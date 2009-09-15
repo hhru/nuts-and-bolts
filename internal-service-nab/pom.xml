@@ -186,10 +186,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <scm>
-    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab/trunk</connection>
-    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab/trunk
-    </developerConnection>
-  </scm>
 </project>

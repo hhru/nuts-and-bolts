@@ -197,8 +197,8 @@
   </build>
 
   <scm>
-    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab/trunk</connection>
-    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab/trunk
+    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/</connection>
+    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/
     </developerConnection>
   </scm>
 </project>

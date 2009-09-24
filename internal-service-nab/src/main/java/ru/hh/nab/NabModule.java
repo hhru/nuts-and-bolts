@@ -9,10 +9,10 @@ import com.google.inject.Scopes;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.lang.annotation.Annotation;
 import java.util.Properties;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.apache.commons.collections.BeanMap;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.ejb.Ejb3Configuration;
 
 public abstract class NabModule extends AbstractModule {
   @Override
@@ -30,9 +30,9 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindHibernateAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
-    bind(SessionFactory.class).annotatedWith(ann).toProvider(hibernateAccessorProvider(name, entities))
+    bind(EntityManagerFactory.class).annotatedWith(ann).toProvider(hibernateAccessorProvider(name, ann, entities))
             .in(Scopes.SINGLETON);
-    bind(HibernateAccess.class).annotatedWith(ann).toProvider(new Provider<HibernateAccess>() {
+    bind(ModelAccess.class).annotatedWith(ann).toProvider(new Provider<ModelAccess>() {
       private Injector inj;
 
       @Inject
@@ -41,31 +41,36 @@ public abstract class NabModule extends AbstractModule {
       }
 
       @Override
-      public HibernateAccess get() {
-        SessionFactory hiber = inj.getInstance(Key.get(SessionFactory.class, ann));
-        DataSource db = inj.getInstance(Key.get(DataSource.class, ann));
-        return new HibernateAccess(hiber, db);
+      public ModelAccess get() {
+        EntityManagerFactory hiber = inj.getInstance(Key.get(EntityManagerFactory.class, ann));
+        return new ModelAccess(hiber);
       }
     }).in(Scopes.SINGLETON);
   }
 
-  private Provider<SessionFactory> hibernateAccessorProvider(final String name, final Class<?>... entities) {
-    return new Provider<SessionFactory>() {
+  private Provider<EntityManagerFactory> hibernateAccessorProvider(final String name,
+                                                                   final Class<? extends Annotation> ann,
+                                                                   final Class<?>... entities) {
+    return new Provider<EntityManagerFactory>() {
       private Settings settings;
+      private Injector injector;
 
       @Inject
-      public void setSettings(Settings settings) {
+      public void inject(Settings settings, Injector injector) {
         this.settings = settings;
+        this.injector = injector;
       }
 
       @Override
-      public SessionFactory get() {
-        AnnotationConfiguration cfg = new AnnotationConfiguration();
+      public EntityManagerFactory get() {
+        Ejb3Configuration cfg = new Ejb3Configuration();
         cfg.setProperties(settings.subTree(name + ".hibernate", "hibernate"));
 
         for (Class<?> entity : entities)
           cfg.addAnnotatedClass(entity);
-        return cfg.buildSessionFactory();
+
+        cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, ann)));
+        return cfg.buildEntityManagerFactory();
       }
     };
   }

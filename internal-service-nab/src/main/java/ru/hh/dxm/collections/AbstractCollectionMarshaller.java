@@ -6,12 +6,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-public abstract class AbstractCollectionMarshaller<V, C extends Collection<V>>
-        extends AbstractSequenceMarshaller<C, V, C, C> {
+public abstract class AbstractCollectionMarshaller<V, B extends Collection<V> & Iterable<V>>
+        extends AbstractSequenceMarshaller<Iterable<V>, V, Iterable<V>, B> {
   private final String wrapperElement;
   private final String entryElement;
 
-  protected abstract C newCollection();
+  protected abstract B newCollection();
 
   protected abstract V acceptElementBody(XMLStreamReader in) throws XMLStreamException;
 
@@ -24,7 +24,7 @@ public abstract class AbstractCollectionMarshaller<V, C extends Collection<V>>
   }
 
   @Override
-  protected final C acceptStartAndMakeBuilder(XMLStreamReader in) throws XMLStreamException {
+  protected final B acceptStartAndMakeBuilder(XMLStreamReader in) throws XMLStreamException {
     if (wrapperElement != null) {
       in.require(XMLStreamConstants.START_ELEMENT, null, wrapperElement);
       in.nextTag();
@@ -35,7 +35,7 @@ public abstract class AbstractCollectionMarshaller<V, C extends Collection<V>>
   }
 
   @Override
-  protected final boolean acceptAndAddElement(C builder, XMLStreamReader in) throws XMLStreamException {
+  protected final boolean acceptAndAddElement(B builder, XMLStreamReader in) throws XMLStreamException {
     if (!in.isStartElement() || !entryElement.equals(in.getName().getLocalPart()))
       return false;
     in.require(XMLStreamConstants.START_ELEMENT, null, entryElement);
@@ -46,19 +46,19 @@ public abstract class AbstractCollectionMarshaller<V, C extends Collection<V>>
   }
 
   @Override
-  protected final C acceptEndAndBuild(C builder, XMLStreamReader in) throws XMLStreamException {
+  protected final Iterable<V> acceptEndAndBuild(B builder, XMLStreamReader in) throws XMLStreamException {
     if (wrapperElement != null)
       in.next();
     return builder;
   }
 
   @Override
-  protected final C sequence(C v) {
+  protected final Iterable<V> sequence(Iterable<V> v) {
     return v;
   }
 
   @Override
-  protected final void start(C sequence, XMLStreamWriter out) throws XMLStreamException {
+  protected final void start(Iterable<V> sequence, XMLStreamWriter out) throws XMLStreamException {
     if (wrapperElement != null)
       out.writeStartElement(wrapperElement);
   }
@@ -71,7 +71,7 @@ public abstract class AbstractCollectionMarshaller<V, C extends Collection<V>>
   }
 
   @Override
-  protected final void end(C sequence, XMLStreamWriter out) throws XMLStreamException {
+  protected final void end(Iterable<V> sequence, XMLStreamWriter out) throws XMLStreamException {
     if (wrapperElement != null)
       out.writeEndElement();
   }

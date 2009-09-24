@@ -1,6 +1,5 @@
 package ru.hh.nab;
 
-import java.sql.SQLException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -12,7 +11,7 @@ public class ModelAccess {
     this.hiber = hiber;
   }
 
-  public <T, E extends Throwable> T perform(ModelCheckedAction<T, E> action) throws E, SQLException {
+  public <T, E extends Throwable> T perform(ModelCheckedAction<T, E> action) throws E {
     EntityManager s = hiber.createEntityManager();
     try {
       EntityTransaction tx = s.getTransaction();
@@ -27,7 +26,7 @@ public class ModelAccess {
     }
   }
 
-  public <T> T perform(ModelAction<T> action) throws SQLException {
+  public <T> T perform(ModelAction<T> action) {
     EntityManager s = hiber.createEntityManager();
     try {
       EntityTransaction tx = s.getTransaction();

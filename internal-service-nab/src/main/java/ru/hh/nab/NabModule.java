@@ -13,6 +13,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.apache.commons.collections.BeanMap;
 import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.event.PreLoadEventListener;
+import org.hibernate.event.def.DefaultPreLoadEventListener;
 
 public abstract class NabModule extends AbstractModule {
   @Override
@@ -69,6 +71,8 @@ public abstract class NabModule extends AbstractModule {
         for (Class<?> entity : entities)
           cfg.addAnnotatedClass(entity);
 
+        cfg.setListeners("pre-load", new PreLoadEventListener[]{new GuicyHibernateLoader(injector),
+                new DefaultPreLoadEventListener()});
         cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, ann)));
         return cfg.buildEntityManagerFactory();
       }

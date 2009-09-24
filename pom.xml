@@ -16,7 +16,7 @@
   <packaging>pom</packaging>
 
   <name>internal services nuts'n'bolts parent module</name>
-  <version>1.0.7-SNAPSHOT</version>
+  <version>1.0.7</version>
 
   <dependencyManagement>
     <dependencies>
@@ -201,8 +201,8 @@
   </build>
 
   <scm>
-    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/</connection>
-    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/
+    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/tags/1.0.7</connection>
+    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/tags/1.0.7
     </developerConnection>
   </scm>
 </project>

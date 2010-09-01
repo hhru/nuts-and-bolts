@@ -4,12 +4,16 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.Stage;
 import com.sun.grizzly.http.SelectorThread;
 import com.sun.grizzly.http.embed.GrizzlyWebServer;
+import com.sun.grizzly.http.servlet.ServletAdapter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.server.impl.container.grizzly.GrizzlyContainer;
@@ -17,14 +21,19 @@ import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import ru.hh.nab.NabModule.ServletDef;
+import ru.hh.nab.NabModule.ServletDefs;
 
 public class Launcher {
+  static NabModule module;
+
   public static void main(String[] args) {
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
     if (modules.size() == 0)
@@ -41,7 +50,25 @@ public class Launcher {
     main(Stage.PRODUCTION, Iterables.getOnlyElement(modules));
   }
 
-  public static void main(Stage stage, Module appModule) {
+  public static void main(Stage stage, NabModule appModule) {
+    main(stage, appModule, new SettingsModule());
+  }
+
+  public static Instance testMode(Stage stage, NabModule appModule, final Properties settings) {
+    return main(stage, appModule, new AbstractModule() {
+      public void configure() {}
+
+      @Provides
+      @Singleton
+      protected Settings settings() throws IOException {
+        settings.setProperty("port", "0");
+        return new Settings(settings);
+      }
+    });
+  }
+
+  public static Instance main(Stage stage, NabModule appModule, Module settingsModule) {
+    module = appModule;
     LogManager.getLogManager().reset();
     Logger rootLogger = LogManager.getLogManager().getLogger("");
     for (Handler h : rootLogger.getHandlers())
@@ -51,7 +78,7 @@ public class Launcher {
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();
       Injector inj = Guice.createInjector(stage, appModule, new JerseyModule(wa),
-              new SettingsModule());
+              settingsModule);
       Settings settings = inj.getInstance(Settings.class);
 
       GrizzlyWebServer ws = new GrizzlyWebServer(settings.port);
@@ -70,11 +97,27 @@ public class Launcher {
       wa.initiate(resources, new GuiceComponentProviderFactory(resources, inj));
       GrizzlyContainer jersey = new GrizzlyContainer(wa);
       jersey.setHandleStaticResources(false);
-      jersey.setRootFolder(null);
       ws.addGrizzlyAdapter(jersey, new String[]{"/*"});
+
+      ServletDefs servlets = inj.getInstance(ServletDefs.class);
+      for (ServletDef s : servlets) {
+        ws.addGrizzlyAdapter(new ServletAdapter(inj.getInstance(s.servlet)), new String[] {s.pattern});
+      }
       ws.start();
+      return new Instance(inj, ws.getSelectorThread().getPort());
     } catch (IOException ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public static class Instance {
+    public final Injector injector;
+    public final int port;
+
+    public Instance(Injector injector, int port) {
+      this.injector = injector;
+      this.port = port;
     }
   }
 }

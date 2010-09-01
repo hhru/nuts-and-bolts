@@ -1,53 +1,120 @@
 package ru.hh.nab;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.lang.annotation.Annotation;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
 import javax.sql.DataSource;
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
+import ru.hh.nab.hibernate.Default;
+import ru.hh.nab.hibernate.Transactional;
+import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.scopes.ThreadLocalScope;
+import ru.hh.nab.scopes.ThreadLocalScoped;
 
 public abstract class NabModule extends AbstractModule {
+  private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
+  private final ServletDefs servletDefs = new ServletDefs();
+
   @Override
   protected final void configure() {
-    bind(JerseyDXMarshaller.class).in(Scopes.SINGLETON);
     configureApp();
+    bindScheduler();
+    bindServlets();
+
+    bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
   }
 
   protected abstract void configureApp();
 
-  protected final void bindDataSourceAndHibernateAccessor(String name, Class<? extends Annotation> ann,
-                                                          Class<?>... entities) {
-    bindDataSource(name, ann);
-    bindHibernateAccessor(name, ann, entities);
+  protected final void bindDataSourceAndEntityManagerAccessor(Class<?>... entities) {
+    bindDefaultDataSource();
+    bindDefaultEntityManagerAccessor(entities);
   }
 
-  protected final void bindHibernateAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
+  protected final void bindDataSourceAndEntityManagerAccessor(String name, Class<? extends Annotation> ann,
+                                                          Class<?>... entities) {
+    bindDataSource(name, ann);
+    bindEntityManagerAccessor(name, ann, entities);
+  }
+
+  protected final void bindDefaultEntityManagerAccessor(Class<?>... entities) {
+    bindEntityManagerAccessor("default-db", Default.class, entities);
+  }
+
+  protected final void bindEntityManagerAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
     bind(EntityManagerFactory.class).annotatedWith(ann).toProvider(hibernateAccessorProvider(name, ann, entities))
             .in(Scopes.SINGLETON);
+    
+    final TxInterceptor tx = new TxInterceptor(getProvider(Key.get(EntityManagerFactory.class, ann)));
+
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), tx);
+
+    bind(EntityManager.class).annotatedWith(ann).toProvider(new Provider<EntityManager>() {
+      @Override
+      public EntityManager get() {
+        return tx.currentEntityManager();
+      }
+    });
+
     bind(ModelAccess.class).annotatedWith(ann).toProvider(new Provider<ModelAccess>() {
-      private Injector inj;
+      private Provider<EntityManagerFactory> emf;
 
       @Inject
-      public void setInjector(Injector inj) {
-        this.inj = inj;
+      public void setEntityManager(Injector inj) {
+        this.emf = inj.getProvider(Key.get(EntityManagerFactory.class, ann));
       }
 
       @Override
       public ModelAccess get() {
-        EntityManagerFactory hiber = inj.getInstance(Key.get(EntityManagerFactory.class, ann));
-        return new ModelAccess(hiber);
+        return new ModelAccess(emf);
       }
     }).in(Scopes.SINGLETON);
+
+    bind(CriteriaBuilder.class).annotatedWith(ann).toProvider(new Provider<CriteriaBuilder>() {
+      private Provider<EntityManagerFactory> emf;
+
+      @Inject
+      public void setEntityManager(Injector inj) {
+        this.emf = inj.getProvider(Key.get(EntityManagerFactory.class, ann));
+      }
+
+      @Override
+      public CriteriaBuilder get() {
+        return emf.get().getCriteriaBuilder();
+      }
+    });
+  }
+
+  protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {
+    servletDefs.add(new ServletDef(klass, pattern));
   }
 
   private Provider<EntityManagerFactory> hibernateAccessorProvider(final String name,
@@ -83,6 +150,10 @@ public abstract class NabModule extends AbstractModule {
     bind(DataSource.class).annotatedWith(ann).toProvider(dataSourceProvider(name)).in(Scopes.SINGLETON);
   }
 
+  protected final void bindDefaultDataSource() {
+    bind(DataSource.class).annotatedWith(Default.class).toProvider(dataSourceProvider("default-db")).in(Scopes.SINGLETON);
+  }
+
   private Provider<DataSource> dataSourceProvider(final String name) {
     return new Provider<DataSource>() {
       private Settings settings;
@@ -94,11 +165,90 @@ public abstract class NabModule extends AbstractModule {
 
       @Override
       public DataSource get() {
-        ComboPooledDataSource ds = new ComboPooledDataSource();
-        Properties props = settings.subTree(name + ".c3p0");
-        new BeanMap(ds).putAll(props);
-        return ds;
+        Properties c3p0Props = settings.subTree(name + ".c3p0");
+        Properties dbcpProps = settings.subTree(name + ".dbcp");
+
+        Preconditions.checkState(c3p0Props.isEmpty() || dbcpProps.isEmpty(),
+                "Both c3p0 and dbcp settings are present");
+        if (!c3p0Props.isEmpty()) {
+          ComboPooledDataSource ds = new ComboPooledDataSource();
+          new BeanMap(ds).putAll(c3p0Props);
+          return ds;
+        }
+        if (!dbcpProps.isEmpty()) {
+          BasicDataSource ds = new BasicDataSource();
+          new BeanMap(ds).putAll(dbcpProps);
+          return ds;
+        }
+
+        throw new IllegalStateException("Neither c3p0 nor dbcp settings found");
       }
     };
+  }
+
+  private void bindScheduler() {
+    bind(Key.get(ScheduledExecutorService.class, Names.named("system"))).toProvider(
+            new Provider<ScheduledExecutorService>() {
+              @Inject
+              Injector injector;
+
+              @Override
+              public ScheduledExecutorService get() {
+                ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+                for (ScheduledTaskDef taskDef : taskDefs) {
+                  Runnable r = injector.getInstance(taskDef.klass);
+                  scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * 0.5 * Math.random()), taskDef.time,
+                          taskDef.unit);
+                }
+                return Executors.unconfigurableScheduledExecutorService(scheduler);
+              }
+            }).asEagerSingleton();
+  }
+
+  private void bindServlets() {
+    bind(ServletDefs.class).toInstance(servletDefs);
+  }
+
+  static class ServletDefs extends ArrayList<ServletDef> {
+  }
+
+  static class ServletDef {
+    final Class<? extends Servlet> servlet;
+    final String pattern;
+
+    private ServletDef(Class<? extends Servlet> servlet, String pattern) {
+      this.servlet = servlet;
+      this.pattern = pattern;
+    }
+  }
+
+  private static class ScheduledTaskDef {
+    private final Class<? extends Runnable> klass;
+    private final long time;
+    private final TimeUnit unit;
+
+    private ScheduledTaskDef(Class<? extends Runnable> klass, long time, TimeUnit unit) {
+      this.klass = klass;
+      this.time = time;
+      this.unit = unit;
+    }
+  }
+
+  protected final void schedulePeriodicTask(Class<? extends Runnable> task, long time, TimeUnit unit) {
+    taskDefs.add(new ScheduledTaskDef(task, time, unit));
+  }  
+
+  protected
+  @Provides
+  @Singleton
+  Random random(SecureRandom seed) {
+    return new Random(System.nanoTime() ^ (System.currentTimeMillis() << 32) ^ seed.nextLong());
+  }
+
+  protected
+  @Provides
+  @Singleton
+  SecureRandom secureRandom() {
+    return new SecureRandom();
   }
 }

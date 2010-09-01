@@ -1,43 +1,44 @@
 package ru.hh.nab;
 
+import com.google.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
 public class ModelAccess {
-  private final EntityManagerFactory hiber;
+  private final Provider<EntityManagerFactory> emf;
 
-  ModelAccess(EntityManagerFactory hiber) {
-    this.hiber = hiber;
+  ModelAccess(Provider<EntityManagerFactory> emProvider) {
+    this.emf = emProvider;
   }
 
   public <T, E extends Throwable> T perform(ModelCheckedAction<T, E> action) throws E {
-    EntityManager s = hiber.createEntityManager();
+    EntityManager em = emf.get().createEntityManager();
     try {
-      EntityTransaction tx = s.getTransaction();
+      EntityTransaction tx = em.getTransaction();
       tx.begin();
       try {
-        return action.perform(s);
+        return action.perform(em);
       } finally {
         tx.commit();
       }
     } finally {
-      s.close();
+      em.close();
     }
   }
 
   public <T> T perform(ModelAction<T> action) {
-    EntityManager s = hiber.createEntityManager();
+    EntityManager em = emf.get().createEntityManager();
     try {
-      EntityTransaction tx = s.getTransaction();
+      EntityTransaction tx = em.getTransaction();
       tx.begin();
       try {
-        return action.perform(s);
+        return action.perform(em);
       } finally {
         tx.commit();
       }
     } finally {
-      s.close();
+      em.close();
     }
   }
 }

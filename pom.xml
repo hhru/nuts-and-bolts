@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.headhunter.commons</groupId>
     <artifactId>common-pom</artifactId>
-    <version>1.22</version>
+    <version>1.23</version>
   </parent>
 
   <modules>
@@ -16,14 +16,35 @@
   <packaging>pom</packaging>
 
   <name>internal services nuts'n'bolts parent module</name>
-  <version>1.0.8-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>ru.hh.nab</groupId>
+        <artifactId>internal-service-nab</artifactId>
+        <version>1.1.0-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
         <groupId>com.google.collections</groupId>
         <artifactId>google-collections</artifactId>
-        <version>1.0-rc2</version>
+        <version>1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>3.2.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>1.8.3</version>
       </dependency>
 
       <dependency>
@@ -48,7 +69,17 @@
       <dependency>
         <groupId>com.sun.grizzly</groupId>
         <artifactId>grizzly-http</artifactId>
-        <version>1.9.18a</version>
+        <version>1.9.18-i</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.grizzly</groupId>
+        <artifactId>grizzly-http-servlet</artifactId>
+        <version>1.9.18-i</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>2.5</version>
       </dependency>
 
       <!-- Jersey -->
@@ -77,12 +108,12 @@
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-core</artifactId>
-        <version>3.3.2.GA</version>
+        <version>3.5.5-Final</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-annotations</artifactId>
-        <version>3.4.0.GA</version>
+        <version>3.5.5-Final</version>
         <exclusions>
           <exclusion>
             <groupId>xml-apis</groupId>
@@ -93,20 +124,25 @@
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-entitymanager</artifactId>
-        <version>3.4.0.GA</version>
+        <version>3.5.5-Final-Hh</version>
       </dependency>
 
-      <!-- XML -->
       <dependency>
-        <groupId>org.codehaus.woodstox</groupId>
-        <artifactId>woodstox-core-asl</artifactId>
-        <version>4.0.5</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.xml.stream</groupId>
-            <artifactId>stax-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>3.8.0.GA</version>
+      </dependency>
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.freemarker</groupId>
+        <artifactId>freemarker</artifactId>
+        <version>2.3.16</version>
+        <optional>true</optional>
       </dependency>
 
       <!-- logging -->
@@ -164,6 +200,11 @@
         <groupId>c3p0</groupId>
         <artifactId>c3p0</artifactId>
         <version>0.9.1.2</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-dbcp</groupId>
+        <artifactId>commons-dbcp</artifactId>
+        <version>1.4</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -5,15 +5,16 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Scope;
-import com.google.inject.Scopes;
 import com.google.inject.servlet.RequestScoped;
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.spi.container.WebApplication;
 import java.util.Map;
+import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
+import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 
 public class JerseyModule extends AbstractModule {
   private final WebApplication wa;
-  private final JerseyModule.JerseyRequestScope REQUEST_SCOPE = new JerseyRequestScope();
+  public final JerseyModule.JerseyRequestScope REQUEST_SCOPE = new JerseyRequestScope();
 
   private static enum NullObject {
     INSTANCE
@@ -25,8 +26,11 @@ public class JerseyModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(StatsResource.class).in(Scopes.SINGLETON);
+    bind(StatsResource.class);
+    bind(StatusResource.class);
     bindScope(RequestScoped.class, REQUEST_SCOPE);
+    bind(FreemarkerJerseyMarshaller.class);
+    bind(HeadersAnnotationFilterFactory.class);
   }
 
   @Provides

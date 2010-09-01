@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>internal-service-nab-parent</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -13,18 +13,31 @@
   <packaging>jar</packaging>
 
   <name>internal services nuts'n'bolts</name>
-  <version>1.0.8-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
-      <version>2.0.0</version>
+      <version>1.8.0.10</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.google.collections</groupId>
       <artifactId>google-collections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
     </dependency>
 
     <dependency>
@@ -46,6 +59,14 @@
     <dependency>
       <groupId>com.sun.grizzly</groupId>
       <artifactId>grizzly-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.grizzly</groupId>
+      <artifactId>grizzly-http-servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
     </dependency>
 
     <!-- Jersey -->
@@ -71,17 +92,24 @@
     <!-- Hibernate -->
     <dependency>
       <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-annotations</artifactId>
     </dependency>
-
-    <!-- XML -->
     <dependency>
-      <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>woodstox-core-asl</artifactId>
+      <groupId>javassist</groupId>
+      <artifactId>javassist</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
     </dependency>
 
     <!-- logging -->
@@ -132,6 +160,10 @@
     <dependency>
       <groupId>c3p0</groupId>
       <artifactId>c3p0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
     </dependency>
 
     <!-- tests -->

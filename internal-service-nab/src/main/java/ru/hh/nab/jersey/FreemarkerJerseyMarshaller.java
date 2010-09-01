@@ -18,8 +18,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
+import org.apache.commons.beanutils.BeanMap;
 
-@Produces({"*/*"})
+@Produces(MediaType.WILDCARD)
 @Provider
 @Singleton
 public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvider<Object> {
@@ -40,10 +41,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   }
 
   public boolean isWriteable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
-    for (Annotation a : annotations)
-      if (a.getClass().equals(FreemarkerTemplate.class))
-        return true;
-    return false;
+    return type.getAnnotation(FreemarkerTemplate.class) != null;
   }
 
   protected static String getCharsetAsString(MediaType m) {
@@ -65,14 +63,11 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
                       MediaType mediaType, MultivaluedMap<String, Object> map, OutputStream stream)
           throws IOException, WebApplicationException {
     String encoding = getCharsetAsString(mediaType);
-    FreemarkerTemplate ann = null;
-    for (Annotation a : annotations)
-      if (a instanceof FreemarkerTemplate)
-        ann = (FreemarkerTemplate) a;
+    FreemarkerTemplate ann = aClass.getAnnotation(FreemarkerTemplate.class);
     Preconditions.checkNotNull(ann);
 
     try {
-      freemarker.getTemplate(ann.value(), encoding).process(o, new OutputStreamWriter(stream, encoding));
+      freemarker.getTemplate(ann.value() + ".ftl", encoding).process(o, new OutputStreamWriter(stream, encoding));
     } catch (TemplateException e) {
       throw new IOException("Error marshalling object of class " + aClass.getName(), e);
     }

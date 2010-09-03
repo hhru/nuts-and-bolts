@@ -34,7 +34,7 @@ import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 import ru.hh.nab.hibernate.Default;
-import ru.hh.nab.hibernate.Transactional;
+import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
@@ -72,10 +72,11 @@ public abstract class NabModule extends AbstractModule {
   protected final void bindEntityManagerAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
     bind(EntityManagerFactory.class).annotatedWith(ann).toProvider(hibernateAccessorProvider(name, ann, entities))
             .in(Scopes.SINGLETON);
-    
-    final TxInterceptor tx = new TxInterceptor(getProvider(Key.get(EntityManagerFactory.class, ann)));
 
-    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), tx);
+    final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, ann));
+    final TxInterceptor tx = new TxInterceptor(emfProvider);
+
+    bindInterceptor(Matchers.any(), new TransactionalMatcher(ann), tx);
 
     bind(EntityManager.class).annotatedWith(ann).toProvider(new Provider<EntityManager>() {
       @Override
@@ -85,32 +86,18 @@ public abstract class NabModule extends AbstractModule {
     });
 
     bind(ModelAccess.class).annotatedWith(ann).toProvider(new Provider<ModelAccess>() {
-      private Provider<EntityManagerFactory> emf;
-
-      @Inject
-      public void setEntityManager(Injector inj) {
-        this.emf = inj.getProvider(Key.get(EntityManagerFactory.class, ann));
-      }
-
       @Override
       public ModelAccess get() {
-        return new ModelAccess(emf);
+        return new ModelAccess(emfProvider);
       }
     }).in(Scopes.SINGLETON);
 
     bind(CriteriaBuilder.class).annotatedWith(ann).toProvider(new Provider<CriteriaBuilder>() {
-      private Provider<EntityManagerFactory> emf;
-
-      @Inject
-      public void setEntityManager(Injector inj) {
-        this.emf = inj.getProvider(Key.get(EntityManagerFactory.class, ann));
-      }
-
       @Override
       public CriteriaBuilder get() {
-        return emf.get().getCriteriaBuilder();
+        return emfProvider.get().getCriteriaBuilder();
       }
-    });
+    }).in(Scopes.SINGLETON);
   }
 
   protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {

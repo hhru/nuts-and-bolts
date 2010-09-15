@@ -5,12 +5,15 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Singleton;
 import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import freemarker.cache.ClassTemplateLoader;
+import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import javax.ws.rs.Produces;
@@ -18,7 +21,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-import org.apache.commons.beanutils.BeanMap;
 
 @Produces(MediaType.WILDCARD)
 @Provider
@@ -30,10 +32,20 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   public FreemarkerJerseyMarshaller() {
     this.freemarker = new Configuration();
     freemarker.setTemplateLoader(new ClassTemplateLoader(FreemarkerJerseyMarshaller.class, "/freemarker"));
+    freemarker.setTemplateUpdateDelay(1);
     freemarker.setNumberFormat("0");
     freemarker.setLocalizedLookup(false);
-    freemarker.setTemplateUpdateDelay(Integer.MAX_VALUE);
     freemarker.setDefaultEncoding("UTF-8");
+    freemarker.setStrictSyntaxMode(true);
+    freemarker.setTagSyntax(Configuration.ANGLE_BRACKET_TAG_SYNTAX);
+    freemarker.setWhitespaceStripping(true);
+
+    BeansWrapper beansWrapper = new BeansWrapper();
+    beansWrapper.setExposeFields(true);
+    beansWrapper.setExposureLevel(BeansWrapper.EXPOSE_PROPERTIES_ONLY);
+    beansWrapper.setStrict(true);
+    beansWrapper.setSimpleMapWrapper(true);
+    freemarker.setObjectWrapper(beansWrapper);
   }
 
   public boolean isReadable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
@@ -63,13 +75,23 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
                       MediaType mediaType, MultivaluedMap<String, Object> map, OutputStream stream)
           throws IOException, WebApplicationException {
     String encoding = getCharsetAsString(mediaType);
-    FreemarkerTemplate ann = aClass.getAnnotation(FreemarkerTemplate.class);
-    Preconditions.checkNotNull(ann);
 
+    marshal(o, encoding, new OutputStreamWriter(stream, encoding));
+  }
+
+  public void marshal(Object o, String encoding, Writer out) throws IOException {
+    FreemarkerTemplate ann = o.getClass().getAnnotation(FreemarkerTemplate.class);
+    Preconditions.checkNotNull(ann);
     try {
-      freemarker.getTemplate(ann.value() + ".ftl", encoding).process(o, new OutputStreamWriter(stream, encoding));
+      freemarker.getTemplate(ann.value() + ".ftl", encoding).process(o, out);
     } catch (TemplateException e) {
-      throw new IOException("Error marshalling object of class " + aClass.getName(), e);
+      throw new IOException("Error marshalling object of class " + o.getClass().getName(), e);
     }
+  }
+
+  public String marshal(Object o, String encoding) throws IOException {
+    StringWriter writer = new StringWriter();
+    marshal(o, encoding, writer);
+    return writer.toString();
   }
 }

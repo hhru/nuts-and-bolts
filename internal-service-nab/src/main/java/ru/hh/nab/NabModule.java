@@ -13,6 +13,7 @@ import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.sun.jersey.api.core.HttpContext;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 import javax.sql.DataSource;
+import javax.ws.rs.Path;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
@@ -36,6 +38,8 @@ import org.hibernate.event.def.DefaultPreLoadEventListener;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.jersey.HttpRequestMDCDecorator;
+import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
 
@@ -50,6 +54,10 @@ public abstract class NabModule extends AbstractModule {
     bindServlets();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
+
+
+    bindInterceptor(Matchers.annotatedWith(Path.class), new WebMethodMatcher(),
+            new HttpRequestMDCDecorator(getProvider(Injector.class)));
   }
 
   protected abstract void configureApp();

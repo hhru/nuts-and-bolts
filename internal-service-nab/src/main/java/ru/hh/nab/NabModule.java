@@ -62,6 +62,10 @@ public abstract class NabModule extends AbstractModule {
 
   protected abstract void configureApp();
 
+  protected final void bindResource(Class<?> resource) {
+    bind(resource);
+  }
+
   protected final void bindDataSourceAndEntityManagerAccessor(Class<?>... entities) {
     bindDefaultDataSource();
     bindDefaultEntityManagerAccessor(entities);
@@ -231,7 +235,7 @@ public abstract class NabModule extends AbstractModule {
 
   protected final void schedulePeriodicTask(Class<? extends Runnable> task, long time, TimeUnit unit) {
     taskDefs.add(new ScheduledTaskDef(task, time, unit));
-  }  
+  }
 
   protected
   @Provides

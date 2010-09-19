@@ -11,9 +11,9 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.sun.jersey.api.core.HttpContext;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -43,9 +43,12 @@ import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
 
+@SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final ServletDefs servletDefs = new ServletDefs();
+
+  private String defaultFreemarkerLayout = "nab/empty";
 
   @Override
   protected final void configure() {
@@ -64,6 +67,16 @@ public abstract class NabModule extends AbstractModule {
 
   protected final void bindResource(Class<?> resource) {
     bind(resource);
+  }
+
+  protected final void setDefaultFreeMarkerLayout(String layout) {
+    defaultFreemarkerLayout = layout;
+  }
+
+  @Provides
+  @Named("defaultFreeMarkerLayout")
+  protected final String defaultFreeMarkerLayout() {
+    return defaultFreemarkerLayout;
   }
 
   protected final void bindDataSourceAndEntityManagerAccessor(Class<?>... entities) {
@@ -162,6 +175,7 @@ public abstract class NabModule extends AbstractModule {
         this.settings = settings;
       }
 
+      @SuppressWarnings({"unchecked"})
       @Override
       public DataSource get() {
         Properties c3p0Props = settings.subTree(name + ".c3p0");
@@ -189,7 +203,7 @@ public abstract class NabModule extends AbstractModule {
     bind(Key.get(ScheduledExecutorService.class, Names.named("system"))).toProvider(
             new Provider<ScheduledExecutorService>() {
               @Inject
-              Injector injector;
+              public Injector injector;
 
               @Override
               public ScheduledExecutorService get() {

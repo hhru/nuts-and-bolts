@@ -2,11 +2,17 @@ package ru.hh.nab.jersey;
 
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import freemarker.cache.ClassTemplateLoader;
+import freemarker.core.Environment;
 import freemarker.ext.beans.BeansWrapper;
+import freemarker.ext.beans.SimpleMapModel;
 import freemarker.template.Configuration;
+import freemarker.template.SimpleScalar;
+import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +34,12 @@ import javax.ws.rs.ext.Provider;
 public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvider<Object> {
   private final Configuration freemarker;
   private static final String DEFAULT_ENCODING = "UTF-8";
+  private final String defaultLayout;
+  private BeansWrapper beansWrapper;
 
-  public FreemarkerJerseyMarshaller() {
+  @Inject
+  public FreemarkerJerseyMarshaller(@Named("defaultFreeMarkerLayout") String defaultLayout) {
+    this.defaultLayout = defaultLayout;
     this.freemarker = new Configuration();
     freemarker.setTemplateLoader(new ClassTemplateLoader(FreemarkerJerseyMarshaller.class, "/freemarker"));
     freemarker.setTemplateUpdateDelay(1);
@@ -40,7 +50,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     freemarker.setTagSyntax(Configuration.ANGLE_BRACKET_TAG_SYNTAX);
     freemarker.setWhitespaceStripping(true);
 
-    BeansWrapper beansWrapper = new BeansWrapper();
+    beansWrapper = new BeansWrapper();
     beansWrapper.setExposeFields(true);
     beansWrapper.setExposureLevel(BeansWrapper.EXPOSE_PROPERTIES_ONLY);
     beansWrapper.setStrict(true);
@@ -53,7 +63,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   }
 
   public boolean isWriteable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
-    return type.getAnnotation(FreemarkerTemplate.class) != null;
+    return type.equals(FreemarkerModel.class);
   }
 
   protected static String getCharsetAsString(MediaType m) {
@@ -71,27 +81,34 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   }
 
   @SuppressWarnings({"unchecked"})
-  public void writeTo(Object o, Class<?> aClass, Type type, Annotation[] annotations,
-                      MediaType mediaType, MultivaluedMap<String, Object> map, OutputStream stream)
+  public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations,
+                      MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                      OutputStream entityStream)
           throws IOException, WebApplicationException {
     String encoding = getCharsetAsString(mediaType);
 
-    marshal(o, encoding, new OutputStreamWriter(stream, encoding));
+    marshal((FreemarkerModel)o, encoding, new OutputStreamWriter(entityStream, encoding));
   }
 
-  public void marshal(Object o, String encoding, Writer out) throws IOException {
-    FreemarkerTemplate ann = o.getClass().getAnnotation(FreemarkerTemplate.class);
-    Preconditions.checkNotNull(ann);
+  public void marshal(FreemarkerModel model, String encoding, Writer out) throws IOException {
+    FreemarkerTemplate ann = Preconditions.checkNotNull(model.annotation);
+        
     try {
-      freemarker.getTemplate(ann.value() + ".ftl", encoding).process(o, out);
+      String layout = (("".equals(ann.layout())) ? defaultLayout : ann.layout()) + ".ftl";
+      Template layoutTemplate = freemarker.getTemplate(layout, encoding);
+      Environment pe = layoutTemplate.createProcessingEnvironment(model.appModel, out);
+      pe.setGlobalVariable("template", new SimpleScalar(ann.value() + ".ftl"));
+      pe.setGlobalVariable("req", new SimpleMapModel(model.requestProperties, beansWrapper));
+      pe.process();
     } catch (TemplateException e) {
-      throw new IOException("Error marshalling object of class " + o.getClass().getName(), e);
+      throw new IOException("Error marshalling object of class " + model.appModel.getClass().getName(), e);
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public String marshal(Object o, String encoding) throws IOException {
     StringWriter writer = new StringWriter();
-    marshal(o, encoding, writer);
+    marshal(FreemarkerModel.of(o), encoding, writer);
     return writer.toString();
   }
 }

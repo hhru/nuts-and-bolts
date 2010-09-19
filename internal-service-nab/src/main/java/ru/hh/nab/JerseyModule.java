@@ -30,7 +30,6 @@ public class JerseyModule extends AbstractModule {
     bind(StatusResource.class);
     bindScope(RequestScoped.class, REQUEST_SCOPE);
     bind(FreemarkerJerseyMarshaller.class);
-    bind(HeadersAnnotationFilterFactory.class);
   }
 
   @Provides

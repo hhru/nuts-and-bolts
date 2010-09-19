@@ -15,6 +15,7 @@ import com.sun.grizzly.http.SelectorThread;
 import com.sun.grizzly.http.embed.GrizzlyWebServer;
 import com.sun.grizzly.http.servlet.ServletAdapter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.NabModule.ServletDef;
 import ru.hh.nab.NabModule.ServletDefs;
+import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
 
 public class Launcher {
@@ -94,6 +96,8 @@ public class Launcher {
       selector.setUseByteBufferView(true);
 
       DefaultResourceConfig resources = new DefaultResourceConfig();
+      resources.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES,
+              HeadersAnnotationFilterFactory.class.getName());
       wa.initiate(resources, new GuiceComponentProviderFactory(resources, inj));
       NabGrizzlyContainer jersey = new NabGrizzlyContainer(wa);
       jersey.setHandleStaticResources(false);

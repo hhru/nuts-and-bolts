@@ -49,6 +49,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     freemarker.setStrictSyntaxMode(true);
     freemarker.setTagSyntax(Configuration.ANGLE_BRACKET_TAG_SYNTAX);
     freemarker.setWhitespaceStripping(true);
+    freemarker.setOutputEncoding("UTF-8");
 
     beansWrapper = new BeansWrapper();
     beansWrapper.setExposeFields(true);

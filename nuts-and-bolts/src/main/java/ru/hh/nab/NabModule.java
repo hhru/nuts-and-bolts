@@ -14,6 +14,7 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ public abstract class NabModule extends AbstractModule {
 
 
     bindInterceptor(Matchers.annotatedWith(Path.class), new WebMethodMatcher(),
-            new HttpRequestMDCDecorator(getProvider(Injector.class)));
+            new HttpRequestMDCDecorator(getProvider(GrizzlyRequest.class)));
   }
 
   protected abstract void configureApp();
@@ -85,7 +86,7 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindDataSourceAndEntityManagerAccessor(String name, Class<? extends Annotation> ann,
-                                                          Class<?>... entities) {
+                                                              Class<?>... entities) {
     bindDataSource(name, ann);
     bindEntityManagerAccessor(name, ann, entities);
   }

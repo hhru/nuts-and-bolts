@@ -35,9 +35,6 @@ public class PersistenceTest {
     @Basic(optional = false)
     private String name;
 
-    @Basic(optional = false)
-    private byte[] binaryField;
-
     public Integer getId() {
       return id;
     }
@@ -52,14 +49,6 @@ public class PersistenceTest {
 
     public void setName(String name) {
       this.name = name;
-    }
-
-    public byte[] getBinaryField() {
-      return binaryField;
-    }
-
-    public void setBinaryField(byte[] binaryField) {
-      this.binaryField = binaryField;
     }
   }
 
@@ -120,8 +109,6 @@ public class PersistenceTest {
 
     TestEntity entity = new TestEntity();
     entity.setName("42");
-    final byte[] bytes = new byte[]{0, -87, -128, -1, 2, 4, 127};
-    entity.setBinaryField(bytes);
     int id = em.persist(entity);
 
     entity = em.get(id);
@@ -130,8 +117,8 @@ public class PersistenceTest {
     ma.perform(new ModelAction<TestEntity>() {
       @Override
       public TestEntity perform(EntityManager store) {
-        TypedQuery<TestEntity> q = store.createQuery("from TestEntity where binaryField = :bytes", TestEntity.class);
-        return q.setParameter("bytes", bytes).getSingleResult();
+        TypedQuery<TestEntity> q = store.createQuery("from TestEntity where name = :name", TestEntity.class);
+        return q.setParameter("name", "42").getSingleResult();
       }
     });
   }

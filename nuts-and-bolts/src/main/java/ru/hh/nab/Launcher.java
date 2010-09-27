@@ -19,6 +19,9 @@ import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -36,7 +39,7 @@ import ru.hh.nab.jersey.NabGrizzlyContainer;
 public class Launcher {
   static NabModule module;
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
     if (modules.size() == 0)
       throw new IllegalStateException("No instances of " + NabModule.class.getName() + " found");
@@ -52,11 +55,11 @@ public class Launcher {
     main(Stage.PRODUCTION, Iterables.getOnlyElement(modules));
   }
 
-  public static void main(Stage stage, NabModule appModule) {
+  public static void main(Stage stage, NabModule appModule) throws IOException {
     main(stage, appModule, new SettingsModule());
   }
 
-  public static Instance testMode(Stage stage, NabModule appModule, final Properties settings) {
+  public static Instance testMode(Stage stage, NabModule appModule, final Properties settings) throws IOException {
     return main(stage, appModule, new AbstractModule() {
       public void configure() {}
 
@@ -69,7 +72,7 @@ public class Launcher {
     });
   }
 
-  public static Instance main(Stage stage, NabModule appModule, Module settingsModule) {
+  public static Instance main(Stage stage, NabModule appModule, Module settingsModule) throws IOException {
     module = appModule;
     LogManager.getLogManager().reset();
     Logger rootLogger = LogManager.getLogManager().getLogger("");
@@ -77,36 +80,18 @@ public class Launcher {
       rootLogger.removeHandler(h);
     SLF4JBridgeHandler.install();
 
+    String settingsDir = System.getProperty("settingsDir");
+    if (settingsDir != null) {
+      LogManager.getLogManager().readConfiguration(
+              new FileInputStream(new File(settingsDir, "logback.xml")));
+    }
+
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();
-      Injector inj = Guice.createInjector(stage, appModule, new JerseyModule(wa),
-              settingsModule);
-      Settings settings = inj.getInstance(Settings.class);
+      Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule,
+              new JerseyModule(wa), settingsModule);
 
-      GrizzlyWebServer ws = new GrizzlyWebServer(settings.port);
-      ws.setCoreThreads(settings.concurrencyLevel);
-      ws.setMaxThreads(settings.concurrencyLevel);
-      SelectorThread selector = ws.getSelectorThread();
-      selector.setMaxKeepAliveRequests(4096);
-      selector.setCompressionMinSize(Integer.MAX_VALUE);
-      selector.setSendBufferSize(4096);
-      selector.setBufferSize(4096);
-      selector.setSelectorReadThreadsCount(1);
-      selector.setUseDirectByteBuffer(true);
-      selector.setUseByteBufferView(true);
-
-      DefaultResourceConfig resources = new DefaultResourceConfig();
-      resources.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES,
-              HeadersAnnotationFilterFactory.class.getName());
-      wa.initiate(resources, new GuiceComponentProviderFactory(resources, inj));
-      NabGrizzlyContainer jersey = new NabGrizzlyContainer(wa);
-      jersey.setHandleStaticResources(false);
-      ws.addGrizzlyAdapter(jersey, new String[]{"/*"});
-
-      ServletDefs servlets = inj.getInstance(ServletDefs.class);
-      for (ServletDef s : servlets) {
-        ws.addGrizzlyAdapter(new ServletAdapter(inj.getInstance(s.servlet)), new String[] {s.pattern});
-      }
+      GrizzlyWebServer ws = inj.getInstance(GrizzlyWebServer.class);
       ws.start();
       return new Instance(inj, ws.getSelectorThread().getPort());
     } catch (IOException ex) {

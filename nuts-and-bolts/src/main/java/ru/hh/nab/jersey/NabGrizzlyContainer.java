@@ -4,27 +4,60 @@ import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.grizzly.tcp.http11.GrizzlyResponse;
 import com.sun.jersey.api.container.ContainerException;
+import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.core.header.InBoundHeaders;
+import com.sun.jersey.server.impl.ThreadLocalInvoker;
 import com.sun.jersey.spi.container.ContainerListener;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseWriter;
+import com.sun.jersey.spi.container.ReloadListener;
 import com.sun.jersey.spi.container.WebApplication;
+import com.sun.jersey.spi.inject.SingletonTypeInjectableProvider;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 
 public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
-
   private WebApplication application;
-  static final ThreadLocal<GrizzlyRequest> CURRENT_REQUEST = new ThreadLocal<GrizzlyRequest>();
 
-  public NabGrizzlyContainer(WebApplication app) throws ContainerException {
+  private String basePath = "/";
+
+  private final ThreadLocalInvoker<GrizzlyRequest> requestInvoker =
+          new ThreadLocalInvoker<GrizzlyRequest>();
+
+  private final ThreadLocalInvoker<GrizzlyResponse> responseInvoker =
+          new ThreadLocalInvoker<GrizzlyResponse>();
+
+  private static class ContextInjectableProvider<T> extends
+          SingletonTypeInjectableProvider<Context, T> {
+
+    protected ContextInjectableProvider(Type type, T instance) {
+      super(type, instance);
+    }
+  }
+
+  public NabGrizzlyContainer(ResourceConfig rc, WebApplication app) throws ContainerException {
     this.application = app;
+
+    GenericEntity<ThreadLocal<GrizzlyRequest>> requestThreadLocal =
+            new GenericEntity<ThreadLocal<GrizzlyRequest>>(requestInvoker.getImmutableThreadLocal()) {
+            };
+    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<GrizzlyRequest>>(
+            requestThreadLocal.getType(), requestThreadLocal.getEntity()));
+
+    GenericEntity<ThreadLocal<GrizzlyResponse>> responseThreadLocal =
+            new GenericEntity<ThreadLocal<GrizzlyResponse>>(responseInvoker.getImmutableThreadLocal()) {
+            };
+    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<GrizzlyResponse>>(
+            responseThreadLocal.getType(), responseThreadLocal.getEntity()));
   }
 
   private final static class Writer implements ContainerResponseWriter {
@@ -60,6 +93,18 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
   }
 
   public void service(GrizzlyRequest request, GrizzlyResponse response) {
+    try {
+      requestInvoker.set(request);
+      responseInvoker.set(response);
+
+      _service(request, response);
+    } finally {
+      requestInvoker.set(null);
+      responseInvoker.set(null);
+    }
+  }
+
+  private void _service(GrizzlyRequest request, GrizzlyResponse response) {
     WebApplication _application = application;
 
     final URI baseUri = getBaseUri(request);
@@ -70,6 +115,14 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     final URI requestUri = baseUri.resolve(
             request.getRequest().unparsedURI().toString());
 
+    /**
+     * Check if the request URI path starts with the base URI path
+     */
+    if (!requestUri.getRawPath().startsWith(basePath)) {
+      response.setStatus(404);
+      return;
+    }
+
     try {
       final ContainerRequest cRequest = new ContainerRequest(
               _application,
@@ -79,17 +132,32 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
               getHeaders(request),
               request.getInputStream());
 
-      CURRENT_REQUEST.set(request);
       _application.handleRequest(cRequest, new Writer(response));
     } catch (IOException ex) {
       throw new RuntimeException(ex);
-    } finally {
-      CURRENT_REQUEST.remove();
     }
   }
 
+  @Override
   public void afterService(GrizzlyRequest request, GrizzlyResponse response)
           throws Exception {
+  }
+
+  @Override
+  public void setResourcesContextPath(String resourcesContextPath) {
+    super.setResourcesContextPath(resourcesContextPath);
+
+    if (resourcesContextPath == null || resourcesContextPath.length() == 0) {
+      basePath = "/";
+    } else if (resourcesContextPath.charAt(resourcesContextPath.length() - 1) != '/') {
+      basePath = resourcesContextPath + "/";
+    } else {
+      basePath = resourcesContextPath;
+    }
+
+    if (basePath.charAt(0) != '/')
+      throw new IllegalArgumentException("The resource context path, " + resourcesContextPath +
+              ", must start with a '/'");
   }
 
   private URI getBaseUri(GrizzlyRequest request) {
@@ -99,7 +167,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
               null,
               request.getServerName(),
               request.getServerPort(),
-              "/",
+              basePath,
               null, null);
     } catch (URISyntaxException ex) {
       throw new IllegalArgumentException(ex);
@@ -124,6 +192,14 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
   public void onReload() {
     WebApplication oldApplication = application;
     application = application.clone();
+
+    if (application.getFeaturesAndProperties() instanceof ReloadListener)
+      ((ReloadListener) application.getFeaturesAndProperties()).onReload();
+
     oldApplication.destroy();
+  }
+
+  public GrizzlyRequest getGrizzlyRequest() {
+    return requestInvoker.get();
   }
 }

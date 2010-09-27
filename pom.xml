@@ -2,27 +2,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>ru.headhunter.commons</groupId>
-    <artifactId>common-pom</artifactId>
-    <version>1.23</version>
+    <groupId>ru.hh.public-pom</groupId>
+    <artifactId>public-pom</artifactId>
+    <version>1.24-SNAPSHOT</version>
   </parent>
 
   <modules>
-    <module>internal-service-nab</module>
+    <module>nuts-and-bolts</module>
   </modules>
 
   <groupId>ru.hh.nab</groupId>
-  <artifactId>internal-service-nab-parent</artifactId>
+  <artifactId>nuts-and-bolts-parent</artifactId>
   <packaging>pom</packaging>
 
-  <name>internal services nuts'n'bolts parent module</name>
+  <name>nuts'n'bolts parent module</name>
   <version>1.2.1-SNAPSHOT</version><!-- VERSION -->
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>ru.hh.nab</groupId>
-        <artifactId>internal-service-nab</artifactId>
+        <artifactId>nuts-and-bolts</artifactId>
         <version>1.2.1-SNAPSHOT</version><!-- VERSION -->
       </dependency>
 
@@ -86,22 +86,12 @@
       <dependency>
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-guice</artifactId>
-        <version>1.0.3.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.guiceyfruit</groupId>
-            <artifactId>guice-all</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.guiceyfruit</groupId>
-            <artifactId>guice-servlet</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>1.4</version>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>1.0.3.1</version>
+        <version>1.4</version>
       </dependency>
 
       <!-- Hibernate -->
@@ -114,17 +104,11 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-annotations</artifactId>
         <version>3.5.5-Final</version>
-        <exclusions>
-          <exclusion>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-entitymanager</artifactId>
-        <version>3.5.5-Final-Hh</version>
+        <version>3.5.5-Final</version>
       </dependency>
 
       <dependency>
@@ -194,7 +178,8 @@
       <dependency>
         <groupId>postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>8.3-603.jdbc4</version>
+        <version>8.4-701.jdbc4</version>
+        <optional>true</optional>
       </dependency>
       <dependency>
         <groupId>c3p0</groupId>
@@ -241,9 +226,19 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>public-jboss</id>
+      <url>https://repository.jboss.org/nexus/content/groups/public-jboss</url>
+    </repository>
+    <repository>
+      <id>dev-java-net-m2</id>
+      <url>http://download.java.net/maven/2</url>
+    </repository>
+  </repositories>
+
   <scm>
-    <connection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/</connection>
-    <developerConnection>scm:svn:https://svn.hh.ru/headhunter.ru/nuts-and-bolts/internal-service-nab-parent/trunk/
-    </developerConnection>
+    <connection>scm:git:git://github.com/hhru/nuts-and-bolts</connection>
+    <developerConnection>scm:git:ssh://git@github.com:hhru/nuts-and-bolts</developerConnection>
   </scm>
 </project>

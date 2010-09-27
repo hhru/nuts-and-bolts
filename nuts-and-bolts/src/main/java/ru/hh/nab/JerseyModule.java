@@ -3,14 +3,12 @@ package ru.hh.nab;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provider;
-import com.google.inject.Provides;
 import com.google.inject.Scope;
 import com.google.inject.servlet.RequestScoped;
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.spi.container.WebApplication;
 import java.util.Map;
 import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
-import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 
 public class JerseyModule extends AbstractModule {
   private final WebApplication wa;
@@ -30,11 +28,6 @@ public class JerseyModule extends AbstractModule {
     bind(StatusResource.class);
     bindScope(RequestScoped.class, REQUEST_SCOPE);
     bind(FreemarkerJerseyMarshaller.class);
-  }
-
-  @Provides
-  protected HttpContext httpContext() {
-    return wa.getThreadLocalHttpContext();
   }
 
   private class JerseyRequestScope implements Scope {

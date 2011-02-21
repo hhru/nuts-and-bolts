@@ -105,4 +105,11 @@ public class JerseyGutsModule extends AbstractModule {
     webapp.initiate(resources, ioc);
     return webapp;
   }
+
+  protected
+  @Provides
+  @RequestScoped
+  HttpContext httpContext(WebApplication wa) {
+    return wa.getThreadLocalHttpContext();
+  }
 }

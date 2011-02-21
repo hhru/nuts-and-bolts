@@ -24,9 +24,8 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
-import org.slf4j.MDC;
 
-public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
+public final class VanillaGrizzlyContainer_1_4 extends GrizzlyAdapter implements ContainerListener {
   private WebApplication application;
 
   private String basePath = "/";
@@ -37,11 +36,6 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
   private final ThreadLocalInvoker<GrizzlyResponse> responseInvoker =
           new ThreadLocalInvoker<GrizzlyResponse>();
 
-  private static final String X_REQUEST_ID = "x-request-id";
-  private static final String X_HHID_PERFORMER = "x-hhid-performer";
-  private static final String X_UID = "x-uid";
-  private static final String REQ_REMOTE_ADDR = "req.remote-addr";
-
   private static class ContextInjectableProvider<T> extends
           SingletonTypeInjectableProvider<Context, T> {
 
@@ -50,7 +44,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     }
   }
 
-  public NabGrizzlyContainer(ResourceConfig rc, WebApplication app) throws ContainerException {
+  public VanillaGrizzlyContainer_1_4(ResourceConfig rc, WebApplication app) throws ContainerException {
     this.application = app;
 
     GenericEntity<ThreadLocal<GrizzlyRequest>> requestThreadLocal =
@@ -138,28 +132,10 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
               getHeaders(request),
               request.getInputStream());
 
-      storeHeaderValue(request, X_REQUEST_ID);
-      storeHeaderValue(request, X_HHID_PERFORMER);
-      storeHeaderValue(request, X_UID);
-      MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
-
       _application.handleRequest(cRequest, new Writer(response));
     } catch (IOException ex) {
       throw new RuntimeException(ex);
-    } finally {
-      removeHeaderValue(X_REQUEST_ID);
-      removeHeaderValue(X_HHID_PERFORMER);
-      removeHeaderValue(X_UID);
-      MDC.remove(REQ_REMOTE_ADDR);
     }
-  }
-
-  private void storeHeaderValue(GrizzlyRequest req, String header) {
-    MDC.put("req.h." + header, req.getHeader(header));
-  }
-
-  private void removeHeaderValue(String header) {
-    MDC.remove("req.h." + header);
   }
 
   @Override
@@ -221,9 +197,5 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       ((ReloadListener) application.getFeaturesAndProperties()).onReload();
 
     oldApplication.destroy();
-  }
-
-  public GrizzlyRequest getGrizzlyRequest() {
-    return requestInvoker.get();
   }
 }

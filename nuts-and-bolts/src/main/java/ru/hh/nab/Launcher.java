@@ -82,8 +82,7 @@ public class Launcher {
 
     String settingsDir = System.getProperty("settingsDir");
     if (settingsDir != null) {
-      LogManager.getLogManager().readConfiguration(
-              new FileInputStream(new File(settingsDir, "logback.xml")));
+      System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
     }
 
     try {

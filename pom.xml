@@ -16,14 +16,14 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.2.3</version><!-- VERSION -->
+  <version>1.2.4-SNAPSHOT</version><!-- VERSION -->
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.2.3</version><!-- VERSION -->
+        <version>1.2.4-SNAPSHOT</version><!-- VERSION -->
       </dependency>
 
       <dependency>

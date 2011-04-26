@@ -45,7 +45,8 @@ public class UnreliableRabbitMqClient {
       log.warn("IO problem", e);
     } finally {
       try {
-        ch.close();
+        if (ch.isOpen())
+          ch.close();
       } catch (Exception e) {
         log.warn("Error while closing channel", e);
       }

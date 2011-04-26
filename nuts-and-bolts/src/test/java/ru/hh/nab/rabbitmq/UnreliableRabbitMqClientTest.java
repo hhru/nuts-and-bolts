@@ -85,6 +85,7 @@ public class UnreliableRabbitMqClientTest {
     doThrow(new IOException("Some connection problem"))
         .when(channel)
         .basicPublish(anyString(), anyString(), anyBoolean(), anyBoolean(), Matchers.<AMQP.BasicProperties>any(), Matchers.<byte[]>any());
+    given(channel.isOpen()).willReturn(true);
 
     Connection connection = mock(Connection.class);
     given(connection.createChannel()).willReturn(channel);
@@ -116,6 +117,7 @@ public class UnreliableRabbitMqClientTest {
   @Test public void failedToPerformAction() throws IOException {
     // given
     Channel channel = mock(Channel.class);
+    given(channel.isOpen()).willReturn(true);
 
     Connection connection = mock(Connection.class);
     given(connection.createChannel()).willReturn(channel);

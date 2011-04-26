@@ -47,7 +47,7 @@ public class UnreliableRabbitMqClient {
       try {
         ch.close();
       } catch (Exception e) {
-        log.warn("Can't close channel");
+        log.warn("Error while closing channel", e);
       }
     }
   }

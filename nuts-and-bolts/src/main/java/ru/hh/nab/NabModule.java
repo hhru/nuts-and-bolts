@@ -15,6 +15,7 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
+import com.sun.jersey.api.core.HttpContext;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -43,6 +44,11 @@ import ru.hh.nab.jersey.HttpRequestMDCDecorator;
 import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
+import ru.hh.nab.security.Secure;
+import ru.hh.nab.security.SecureInterceptor;
+import ru.hh.nab.security.SecureMatcher;
+import ru.hh.nab.security.SecurityFilter;
+import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
@@ -59,9 +65,11 @@ public abstract class NabModule extends AbstractModule {
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
-
+    bind(UnauthorizedExceptionJerseyMapper.class);
     bindInterceptor(Matchers.annotatedWith(Path.class), new WebMethodMatcher(),
             new HttpRequestMDCDecorator(getProvider(GrizzlyRequest.class)));
+    bindInterceptor(Matchers.any(), new SecureMatcher(),
+            new SecureInterceptor(getProvider(HttpContext.class)));
   }
 
   protected abstract void configureApp();

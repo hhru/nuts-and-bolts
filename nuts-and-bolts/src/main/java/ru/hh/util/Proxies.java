@@ -1,6 +1,6 @@
 package ru.hh.util;
 
-import com.google.inject.internal.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.Enhancer;
 
 public abstract class Proxies {
   public static Class<?> realClass(Object o) {

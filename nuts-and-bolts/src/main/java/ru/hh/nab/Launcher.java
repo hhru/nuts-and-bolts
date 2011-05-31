@@ -35,9 +35,11 @@ import ru.hh.nab.NabModule.ServletDef;
 import ru.hh.nab.NabModule.ServletDefs;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
+import ru.hh.nab.security.PermissionLoader;
+import ru.hh.nab.security.PropertiesPermissionLoader;
 
 public class Launcher {
-  static NabModule module;
+  static Module module;
 
   public static void main(String[] args) throws IOException {
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
@@ -55,11 +57,11 @@ public class Launcher {
     main(Stage.PRODUCTION, Iterables.getOnlyElement(modules));
   }
 
-  public static void main(Stage stage, NabModule appModule) throws IOException {
+  public static void main(Stage stage, Module appModule) throws IOException {
     main(stage, appModule, new SettingsModule());
   }
 
-  public static Instance testMode(Stage stage, NabModule appModule, final Properties settings) throws IOException {
+  public static Instance testMode(Stage stage, Module appModule, final Properties settings, final Properties apiSecurity) throws IOException {
     return main(stage, appModule, new AbstractModule() {
       public void configure() {}
 
@@ -69,10 +71,16 @@ public class Launcher {
         settings.setProperty("port", "0");
         return new Settings(settings);
       }
+
+      @Provides
+      @Singleton
+      protected PermissionLoader permissionLoader() {
+        return new PropertiesPermissionLoader(apiSecurity);
+      }
     });
   }
 
-  public static Instance main(Stage stage, NabModule appModule, Module settingsModule) throws IOException {
+  public static Instance main(Stage stage, Module appModule, Module settingsModule) throws IOException {
     module = appModule;
     LogManager.getLogManager().reset();
     Logger rootLogger = LogManager.getLogManager().getLogger("");

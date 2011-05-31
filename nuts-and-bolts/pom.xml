@@ -95,6 +95,12 @@
       <artifactId>jersey-server</artifactId>
     </dependency>
 
+    <!-- HTTP client -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
+
     <!-- Hibernate -->
     <dependency>
       <groupId>org.hibernate</groupId>

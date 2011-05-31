@@ -8,6 +8,8 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
+import com.google.inject.Stage;
+import java.io.IOException;
 import java.util.Properties;
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -19,6 +21,7 @@ import javax.persistence.Table;
 import javax.persistence.TypedQuery;
 import org.junit.Assert;
 import org.junit.Test;
+import ru.hh.nab.Launcher;
 import ru.hh.nab.ModelAccess;
 import ru.hh.nab.ModelAction;
 import ru.hh.nab.NabModule;
@@ -70,42 +73,59 @@ public class PersistenceTest {
   }
 
   @Test
-  public void test() {
-    Injector injector = Guice.createInjector(new NabModule() {
+  public void test() throws IOException {
+    Properties props = new Properties();
+    props.put("concurrencyLevel", "1");
+    props.put("port", "0");
+
+    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    props.put("default-db.hibernate.hbm2ddl.auto", "update");
+    props.put("default-db.hibernate.format_sql", "true");
+
+    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
+    props.put("default-db.c3p0.user", "sa");
+    props.put("default-db.c3p0.password", "");
+
+    Launcher.Instance inst = Launcher.testMode(Stage.DEVELOPMENT, new NabModule() {
       @Override
       protected void configureApp() {
         bindDataSourceAndEntityManagerAccessor(TestEntity.class);
 
         bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
       }
+    }, props, new Properties());
 
-      @Provides
-      @Singleton
-      Settings settings() {
-        Properties props = new Properties();
-        props.put("concurrencyLevel", "1");
-        props.put("port", "0");
+//    Injector injector = Guice.createInjector(Stage.DEVELOPMENT, new NabModule() {
+//      @Override
+//      protected void configureApp() {
+//        bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+//
+//        bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
+//      }
+//
+//      @Provides
+//      @Singleton
+//      Settings settings() {
+//        Properties props = new Properties();
+//        props.put("concurrencyLevel", "1");
+//        props.put("port", "0");
+//
+//        props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+//        props.put("default-db.hibernate.hbm2ddl.auto", "update");
+//        props.put("default-db.hibernate.format_sql", "true");
+//
+//        props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+//        props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
+//        props.put("default-db.c3p0.user", "sa");
+//        props.put("default-db.c3p0.password", "");
+//
+//        return new Settings(props);
+//      }
+//    });
 
-        props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-        props.put("default-db.hibernate.hbm2ddl.auto", "update");
-        props.put("default-db.hibernate.format_sql", "true");
-
-        props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-        props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-        props.put("default-db.c3p0.user", "sa");
-        props.put("default-db.c3p0.password", "");
-
-//        props.put("default-db.dbcp.url", "jdbc:hsqldb:mem:test");
-//        props.put("default-db.dbcp.driverClassName", "org.hsqldb.jdbcDriver");
-//        props.put("default-db.dbcp.username", "sa");
-//        props.put("default-db.dbcp.password", "");
-
-        return new Settings(props);
-      }
-    });
-
-    EntityManagerWrapper em = injector.getInstance(EntityManagerWrapper.class);
-    ModelAccess ma = injector.getInstance(Key.get(ModelAccess.class, Default.class));
+    EntityManagerWrapper em = inst.injector.getInstance(EntityManagerWrapper.class);
+    ModelAccess ma = inst.injector.getInstance(Key.get(ModelAccess.class, Default.class));
 
     TestEntity entity = new TestEntity();
     entity.setName("42");

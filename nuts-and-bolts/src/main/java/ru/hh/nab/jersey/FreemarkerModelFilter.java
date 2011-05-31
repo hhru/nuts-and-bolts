@@ -1,13 +1,11 @@
 package ru.hh.nab.jersey;
 
 import com.google.common.collect.Maps;
-import com.google.inject.internal.cglib.proxy.Enhancer;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 import com.sun.jersey.spi.container.ResourceFilter;
-import java.lang.annotation.Annotation;
 import java.util.Map;
 import ru.hh.util.Proxies;
 

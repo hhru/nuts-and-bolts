@@ -57,24 +57,24 @@
       <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
-        <version>2.0</version>
+        <version>3.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-servlet</artifactId>
-        <version>2.0</version>
+        <version>3.0</version>
       </dependency>
 
       <!-- network -->
       <dependency>
         <groupId>com.sun.grizzly</groupId>
         <artifactId>grizzly-http</artifactId>
-        <version>1.9.18-i</version>
+        <version>1.9.33</version>
       </dependency>
       <dependency>
         <groupId>com.sun.grizzly</groupId>
         <artifactId>grizzly-http-servlet</artifactId>
-        <version>1.9.18-i</version>
+        <version>1.9.33</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -92,6 +92,13 @@
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-server</artifactId>
         <version>1.4</version>
+      </dependency>
+
+      <!-- HTTP client -->
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.1.1</version>
       </dependency>
 
       <!-- Hibernate -->
@@ -133,27 +140,27 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>0.9.17</version>
+        <version>0.9.28</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.5.8</version>
+        <version>1.6.1</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>log4j-over-slf4j</artifactId>
-        <version>1.5.8</version>
+        <version>1.6.1</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
-        <version>1.5.8</version>
+        <version>1.6.1</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jul-to-slf4j</artifactId>
-        <version>1.5.8</version>
+        <version>1.6.1</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -178,7 +185,7 @@
       <dependency>
         <groupId>postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>8.4-701.jdbc4</version>
+        <version>8.4-702.jdbc4</version>
         <optional>true</optional>
       </dependency>
       <dependency>
@@ -234,6 +241,10 @@
     <repository>
       <id>dev-java-net-m2</id>
       <url>http://download.java.net/maven/2</url>
+    </repository>
+    <repository>
+      <id>dev-java-net-glassfish-m2</id>
+      <url>http://download.java.net/maven/glassfish</url>
     </repository>
   </repositories>
 

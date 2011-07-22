@@ -17,6 +17,17 @@ import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
 import ru.hh.nab.NabModule.ServletDef;
 import ru.hh.nab.NabModule.ServletDefs;
+import ru.hh.nab.NabModule.AdapterDef;
+import ru.hh.nab.NabModule.AdapterDefs;
+import ru.hh.nab.NabModule.GrizzlyAppDef;
+import ru.hh.nab.NabModule.GrizzlyAppDefs;
+
+import ru.hh.nab.grizzly.HttpMethod;
+import ru.hh.nab.grizzly.RequestAdapter;
+import ru.hh.nab.grizzly.RequestDispatcher;
+import ru.hh.nab.grizzly.RequestHandler;
+import ru.hh.nab.grizzly.Route;
+import ru.hh.nab.grizzly.Router;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
 
@@ -51,7 +62,8 @@ public class JerseyGutsModule extends AbstractModule {
   @Provides
   @Singleton
   GrizzlyWebServer grizzlyWebServer(
-          Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets,
+          Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets, AdapterDefs adapters,
+          GrizzlyAppDefs grizzlyAppDefs,
           Provider<Injector> inj) {
     GrizzlyWebServer ws = new GrizzlyWebServer(settings.port);
     ws.setCoreThreads(settings.concurrencyLevel);
@@ -71,7 +83,29 @@ public class JerseyGutsModule extends AbstractModule {
       ws.addGrizzlyAdapter(new ServletAdapter(inj.get().getInstance(s.servlet)),
               new String[]{s.pattern});
 
+    for (AdapterDef a : adapters)
+      ws.addGrizzlyAdapter(inj.get().getInstance(a.adapter), new String[]{ a.pattern} );
+
+    for (GrizzlyAppDef a : grizzlyAppDefs) {
+      Router router = new Router();
+      for (Class<? extends RequestHandler> klass : a.handlers) {
+        RequestHandler handler = inj.get().getInstance(klass);
+        router.addRouting(extractPath(klass), new RequestAdapter(handler, extractMethods(klass)));
+      }
+      ws.addGrizzlyAdapter(new RequestDispatcher(router), new String[] { a.contextPath });
+    }
+    
     return ws;
+  }
+
+  private static String extractPath(Class<? extends RequestHandler> handler) {
+    Route route = handler.getAnnotation(Route.class);
+    return route.path();
+  }
+
+  private static HttpMethod[] extractMethods(Class<? extends RequestHandler> handler) {
+    Route route = handler.getAnnotation(Route.class);
+    return route.methods();
   }
 
   protected

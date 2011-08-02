@@ -14,7 +14,6 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.jersey.api.core.HttpContext;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
@@ -50,7 +49,6 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 public abstract class NabModule extends AbstractModule {
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final ServletDefs servletDefs = new ServletDefs();
-  private final AdapterDefs adapterDefs = new AdapterDefs();
   private final GrizzlyAppDefs grizzlyAppDefs = new GrizzlyAppDefs();
 
   private String defaultFreemarkerLayout = "nab/empty";
@@ -60,7 +58,6 @@ public abstract class NabModule extends AbstractModule {
     configureApp();
     bindScheduler();
     bindServlets();
-    bindAdapters();
     bindGrizzlyApps();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
@@ -134,10 +131,6 @@ public abstract class NabModule extends AbstractModule {
 
   protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {
     servletDefs.add(new ServletDef(klass, pattern));
-  }
-
-  protected final void bindAdapter(String pattern, Class<? extends GrizzlyAdapter> klass) {
-    adapterDefs.add(new AdapterDef(klass, pattern));
   }
 
   protected final void bindGrizzlyApp(String contextPath, Class<? extends RequestHandler>... handlers) {
@@ -237,18 +230,11 @@ public abstract class NabModule extends AbstractModule {
     bind(ServletDefs.class).toInstance(servletDefs);
   }
 
-  private void bindAdapters() {
-    bind(AdapterDefs.class).toInstance(adapterDefs);
-  }
-
   private void bindGrizzlyApps() {
     bind(GrizzlyAppDefs.class).toInstance(grizzlyAppDefs);
   }
 
   static class ServletDefs extends ArrayList<ServletDef> {
-  }
-
-  static class AdapterDefs extends ArrayList<AdapterDef> {
   }
 
   static class GrizzlyAppDefs extends ArrayList<GrizzlyAppDef> {
@@ -260,16 +246,6 @@ public abstract class NabModule extends AbstractModule {
 
     private ServletDef(Class<? extends Servlet> servlet, String pattern) {
       this.servlet = servlet;
-      this.pattern = pattern;
-    }
-  }
-
-  static class AdapterDef {
-    final Class<? extends GrizzlyAdapter> adapter;
-    final String pattern;
-
-    public AdapterDef(Class<? extends GrizzlyAdapter> adapter, String pattern) {
-      this.adapter = adapter;
       this.pattern = pattern;
     }
   }

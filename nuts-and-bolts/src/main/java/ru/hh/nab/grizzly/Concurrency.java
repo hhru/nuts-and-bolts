@@ -7,14 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Route {
-  public String path();
-  public HttpMethod[] methods() default {
-      HttpMethod.GET,
-      HttpMethod.POST,
-      HttpMethod.PUT,
-      HttpMethod.DELETE,
-      HttpMethod.HEAD,
-      HttpMethod.OPTIONS
-  };
+public @interface Concurrency {
+  public int value() default 0;
 }

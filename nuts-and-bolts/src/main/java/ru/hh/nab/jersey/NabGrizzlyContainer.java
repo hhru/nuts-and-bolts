@@ -24,9 +24,14 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
+
+  private final static Logger log = LoggerFactory.getLogger(NabGrizzlyContainer.class);
+
   private WebApplication application;
 
   private String basePath = "/";
@@ -144,22 +149,20 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
 
       _application.handleRequest(cRequest, new Writer(response));
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      try {
+        response.sendError(500);
+      } catch (IOException io) {
+        throw new RuntimeException(io);
+      }
     } finally {
-      removeHeaderValue(X_REQUEST_ID);
-      removeHeaderValue(X_HHID_PERFORMER);
-      removeHeaderValue(X_UID);
-      MDC.remove(REQ_REMOTE_ADDR);
+      MDC.clear();
     }
   }
 
   private void storeHeaderValue(GrizzlyRequest req, String header) {
     MDC.put("req.h." + header, req.getHeader(header));
-  }
-
-  private void removeHeaderValue(String header) {
-    MDC.remove("req.h." + header);
   }
 
   @Override

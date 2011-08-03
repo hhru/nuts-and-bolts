@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.servlet.RequestScoped;
 import com.sun.grizzly.http.SelectorThread;
 import com.sun.grizzly.http.embed.GrizzlyWebServer;
@@ -16,13 +15,10 @@ import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
-import javax.ws.rs.Path;
 import ru.hh.nab.NabModule.ServletDef;
 import ru.hh.nab.NabModule.ServletDefs;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
-import ru.hh.nab.jersey.HttpRequestMDCDecorator;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
-import ru.hh.nab.jersey.WebMethodMatcher;
 
 public class JerseyGutsModule extends AbstractModule {
   private final WebApplication webapp;
@@ -33,8 +29,6 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bindInterceptor(Matchers.annotatedWith(Path.class), new WebMethodMatcher(),
-            new HttpRequestMDCDecorator(getProvider(GrizzlyRequest.class)));
   }
 
   protected

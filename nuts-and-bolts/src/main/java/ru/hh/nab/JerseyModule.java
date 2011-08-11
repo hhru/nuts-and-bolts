@@ -9,6 +9,7 @@ import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.spi.container.WebApplication;
 import java.util.Map;
 import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
+import ru.hh.nab.jersey.JacksonJerseyMarshaller;
 
 public class JerseyModule extends AbstractModule {
   private final WebApplication wa;
@@ -28,6 +29,7 @@ public class JerseyModule extends AbstractModule {
     bind(StatusResource.class);
     bindScope(RequestScoped.class, REQUEST_SCOPE);
     bind(FreemarkerJerseyMarshaller.class);
+    bind(JacksonJerseyMarshaller.class);
   }
 
   private class JerseyRequestScope implements Scope {

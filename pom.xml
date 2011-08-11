@@ -137,6 +137,13 @@
         <optional>true</optional>
       </dependency>
 
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-mapper-asl</artifactId>
+        <version>1.7.5</version>
+        <optional>true</optional>
+      </dependency>
+
       <!-- logging -->
       <dependency>
         <groupId>ch.qos.logback</groupId>

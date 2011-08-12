@@ -35,6 +35,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
+import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
@@ -48,6 +49,7 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 public abstract class NabModule extends AbstractModule {
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final ServletDefs servletDefs = new ServletDefs();
+  private final GrizzlyAppDefs grizzlyAppDefs = new GrizzlyAppDefs();
 
   private String defaultFreemarkerLayout = "nab/empty";
 
@@ -56,6 +58,7 @@ public abstract class NabModule extends AbstractModule {
     configureApp();
     bindScheduler();
     bindServlets();
+    bindGrizzlyApps();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
@@ -130,6 +133,10 @@ public abstract class NabModule extends AbstractModule {
     servletDefs.add(new ServletDef(klass, pattern));
   }
 
+  protected final void bindGrizzlyApp(String contextPath, Class<? extends RequestHandler>... handlers) {
+    grizzlyAppDefs.add(new GrizzlyAppDef(contextPath, handlers));
+  }
+
   private Provider<EntityManagerFactory> hibernateAccessorProvider(final String name,
                                                                    final Class<? extends Annotation> ann,
                                                                    final Class<?>... entities) {
@@ -202,28 +209,35 @@ public abstract class NabModule extends AbstractModule {
 
   private void bindScheduler() {
     bind(Key.get(ScheduledExecutorService.class, Names.named("system"))).toProvider(
-            new Provider<ScheduledExecutorService>() {
-              @Inject
-              public Injector injector;
+        new Provider<ScheduledExecutorService>() {
+          @Inject
+          public Injector injector;
 
-              @Override
-              public ScheduledExecutorService get() {
-                ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-                for (ScheduledTaskDef taskDef : taskDefs) {
-                  Runnable r = injector.getInstance(taskDef.klass);
-                  scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * 0.5 * Math.random()), taskDef.time,
-                          taskDef.unit);
-                }
-                return Executors.unconfigurableScheduledExecutorService(scheduler);
-              }
-            }).asEagerSingleton();
+          @Override
+          public ScheduledExecutorService get() {
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            for (ScheduledTaskDef taskDef : taskDefs) {
+              Runnable r = injector.getInstance(taskDef.klass);
+              scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * 0.5 * Math.random()), taskDef.time,
+                  taskDef.unit);
+            }
+            return Executors.unconfigurableScheduledExecutorService(scheduler);
+          }
+        }).asEagerSingleton();
   }
 
   private void bindServlets() {
     bind(ServletDefs.class).toInstance(servletDefs);
   }
 
+  private void bindGrizzlyApps() {
+    bind(GrizzlyAppDefs.class).toInstance(grizzlyAppDefs);
+  }
+
   static class ServletDefs extends ArrayList<ServletDef> {
+  }
+
+  static class GrizzlyAppDefs extends ArrayList<GrizzlyAppDef> {
   }
 
   static class ServletDef {
@@ -245,6 +259,16 @@ public abstract class NabModule extends AbstractModule {
       this.klass = klass;
       this.time = time;
       this.unit = unit;
+    }
+  }
+
+  static class GrizzlyAppDef {
+    final String contextPath;
+    final Class<? extends RequestHandler>[] handlers;
+
+    public GrizzlyAppDef(String contextPath, Class<? extends RequestHandler>[] handlers) {
+      this.contextPath = contextPath;
+      this.handlers = handlers;
     }
   }
 

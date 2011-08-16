@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 @Path("/status")
 @Singleton
 public class StatusResource {
+  private final String name;
   private final String version;
   private final long started;
 
@@ -21,6 +22,7 @@ public class StatusResource {
       p.load(s);
 
     version = p.getProperty("project.version", "unknown");
+    name = p.getProperty("project.name", "unknown");
     started = System.currentTimeMillis();
   }
 
@@ -28,7 +30,7 @@ public class StatusResource {
   @Produces("text/xml")
   public String status() {
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<project name=\"hhid\">\n" +
+            "<project name=\"" + name + "\">\n" +
             " <version>" + version + "</version>\n" +
             " <uptime>" + ((System.currentTimeMillis() - started) / 1000) + "</uptime>\n" +
             "</project>\n";

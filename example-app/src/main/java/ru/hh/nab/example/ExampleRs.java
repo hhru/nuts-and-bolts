@@ -1,4 +1,4 @@
-package ru.ru.hh.nab.example;
+package ru.hh.nab.example;
 
 import com.google.inject.Singleton;
 

@@ -2,6 +2,7 @@ package ru.hh.nab.hibernate;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Provider;
+import java.util.concurrent.Callable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -56,32 +57,48 @@ public class TxInterceptor implements MethodInterceptor {
     this.emf = emf;
   }
 
-  @Override
-  public Object invoke(MethodInvocation invocation) throws Throwable {
-    Transactional ann = invocation.getMethod().getAnnotation(Transactional.class);
+  public <T> T invoke(Transactional ann, Callable<T> invocation) throws Exception {
     EntityManager em = emf.get().createEntityManager();
     CurrentTx tx = this.tx.get();
     if (tx != null) {
       tx.enter(ann);
-      return invocation.proceed();
+      return invocation.call();
     }
     try {
       tx = new CurrentTx(em, ann);
       this.tx.set(tx);
-      Object result;
+      T result;
       tx.begin();
       try {
-        result = invocation.proceed();
+        result = invocation.call();
         tx.commit();
-      } catch (Throwable th) {
+      } catch (Exception e) {
         tx.rollbackIfActive();
-        throw th;
+        throw e;
       }
       return result;
     } finally {
       this.tx.remove();
       em.close();
     }
+  }
+
+  @Override
+  public Object invoke(final MethodInvocation invocation) throws Throwable {
+    return invoke(invocation.getMethod().getAnnotation(Transactional.class),
+            new Callable<Object>() {
+              @Override
+              public Object call() throws Exception {
+                try {
+                  return invocation.proceed();
+                } catch (Throwable throwable) {
+                  if (throwable instanceof Exception)
+                    throw (Exception)throwable;
+                  else
+                    throw new RuntimeException(throwable);
+                }
+              }
+            });
   }
 
   public EntityManager currentEntityManager() {

@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Concurrency {
-  public int value() default 0;
+  public String[] value() default {"global"};
 }

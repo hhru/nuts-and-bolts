@@ -1,6 +1,8 @@
 package ru.hh.nab.async;
 
 import com.google.common.base.Function;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +12,7 @@ public abstract class Async<T> {
 
   protected abstract void runExposed(Callback<T> onSuccess, Callback<Throwable> onError) throws Exception;
 
-  public void run(Callback<T> onSuccess, Callback<Throwable> onError) {
+  public final void run(Callback<T> onSuccess, Callback<Throwable> onError) {
     try {
       runExposed(onSuccess, onError);
     } catch (Exception e) {
@@ -22,7 +24,7 @@ public abstract class Async<T> {
     }
   }
 
-  public <F> Async<F> then(final Function<T, Async<F>> fn) {
+  public final <F> Async<F> then(final Function<T, Async<F>> fn) {
     return new Async<F>() {
       @Override
       public void runExposed(final Callback<F> onSuccess, final Callback<Throwable> onError) {
@@ -46,5 +48,29 @@ public abstract class Async<T> {
         onSuccess.call(null);
       }
     };
+  }
+
+  public final T awaitChecked() throws Throwable {
+    AtomicReference<T> ret = new AtomicReference<T>();
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> ex = new AtomicReference<Throwable>();
+    run(Callbacks.storeAndCountDown(ret, latch),
+            Callbacks.storeAndCountDown(ex, latch));
+    latch.await();
+    if (ex.get() != null)
+      throw ex.get();
+    return ret.get();
+  }
+
+  public final T await() {
+    try {
+      return awaitChecked();
+    } catch (Throwable throwable) {
+      if (throwable instanceof RuntimeException) {
+        throw (RuntimeException)throwable;
+      } else {
+        throw new RuntimeException(throwable);
+      }
+    }
   }
 }

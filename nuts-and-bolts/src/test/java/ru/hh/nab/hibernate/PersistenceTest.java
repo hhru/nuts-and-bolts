@@ -94,7 +94,7 @@ public class PersistenceTest {
 
         bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
       }
-    }, props, new Properties());
+    }, props, new Properties(), new Properties());
 
 //    Injector injector = Guice.createInjector(Stage.DEVELOPMENT, new NabModule() {
 //      @Override

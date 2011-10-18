@@ -27,6 +27,7 @@ import javax.ws.rs.core.GenericEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import ru.hh.nab.scopes.RequestScope;
 
 public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
 
@@ -147,6 +148,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       storeHeaderValue(request, X_HHID_PERFORMER);
       storeHeaderValue(request, X_UID);
       MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
+      RequestScope.enter(request);
 
       _application.handleRequest(cRequest, new Writer(response));
     } catch (Exception e) {
@@ -158,6 +160,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       }
     } finally {
       MDC.clear();
+      RequestScope.leave();
     }
   }
 
@@ -224,9 +227,5 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       ((ReloadListener) application.getFeaturesAndProperties()).onReload();
 
     oldApplication.destroy();
-  }
-
-  public GrizzlyRequest getGrizzlyRequest() {
-    return requestInvoker.get();
   }
 }

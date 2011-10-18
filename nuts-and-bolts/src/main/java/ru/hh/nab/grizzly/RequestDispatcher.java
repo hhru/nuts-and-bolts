@@ -17,11 +17,9 @@ public class RequestDispatcher extends GrizzlyAdapter {
   @Override
   public void service(GrizzlyRequest request, GrizzlyResponse response) throws Exception {
     String uri = request.getRequestURI();
-    uri = PathUtil.removeLastSlash(uri);
-    String path = uri.substring(PathUtil.contextPath(uri).length());
-    HandlerDecorator handler = router.route(path);
+    HandlerDecorator handler = router.route(uri);
     if (handler == null) {
-      response.sendError(404);
+      SimpleGrizzlyAdapterChain.abstain(request);
     } else {
       if (!handler.tryBegin()) {
         response.sendError(503);

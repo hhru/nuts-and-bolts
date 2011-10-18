@@ -7,16 +7,14 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.RequestScoped;
 import com.sun.grizzly.http.SelectorThread;
-import com.sun.grizzly.http.embed.GrizzlyWebServer;
 import com.sun.grizzly.http.servlet.ServletAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.jersey.api.core.DefaultResourceConfig;
-import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
-import ru.hh.nab.NabModule.GrizzlyAppDef;
-import ru.hh.nab.NabModule.GrizzlyAppDefs;
+import ru.hh.nab.NabModule.GrizzletDef;
+import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.NabModule.ServletDef;
 import ru.hh.nab.NabModule.ServletDefs;
 import ru.hh.nab.grizzly.Concurrency;
@@ -26,8 +24,13 @@ import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.grizzly.Route;
 import ru.hh.nab.grizzly.Router;
+import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
+import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
+import ru.hh.nab.scopes.RequestScope;
+import ru.hh.nab.security.PermissionLoader;
+import ru.hh.nab.security.Permissions;
 
 public class JerseyGutsModule extends AbstractModule {
   private final WebApplication webapp;
@@ -52,20 +55,12 @@ public class JerseyGutsModule extends AbstractModule {
 
   protected
   @Provides
-  GrizzlyRequest grizzlyRequest(NabGrizzlyContainer grizzly) {
-    return grizzly.getGrizzlyRequest();
-  }
-
-  protected
-  @Provides
   @Singleton
-  GrizzlyWebServer grizzlyWebServer(
+  SimpleGrizzlyWebServer grizzlyWebServer(
           Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets,
-          GrizzlyAppDefs grizzlyAppDefs,
-          Provider<Injector> inj) {
-    GrizzlyWebServer ws = new GrizzlyWebServer(settings.port);
+          GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj) {
+    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel);
     ws.setCoreThreads(settings.concurrencyLevel);
-    ws.setMaxThreads(settings.concurrencyLevel);
     SelectorThread selector = ws.getSelectorThread();
     selector.setMaxKeepAliveRequests(4096);
     selector.setCompressionMinSize(Integer.MAX_VALUE);
@@ -74,21 +69,21 @@ public class JerseyGutsModule extends AbstractModule {
     selector.setSelectorReadThreadsCount(1);
     selector.setUseDirectByteBuffer(true);
     selector.setUseByteBufferView(true);
-    ws.addGrizzlyAdapter(jersey, new String[]{"/*"});
 
     for (ServletDef s : servlets)
-      ws.addGrizzlyAdapter(new ServletAdapter(inj.get().getInstance(s.servlet)),
-              new String[]{s.pattern});
+      ws.addGrizzlyAdapter(new ServletAdapter(inj.get().getInstance(s.servlet)));
 
-    for (GrizzlyAppDef a : grizzlyAppDefs) {
-      Router router = new Router();
-      for (Class<? extends RequestHandler> klass : a.handlers) {
-        RequestHandler handler = inj.get().getInstance(klass);
-        router.addRouting(extractPath(klass), new HandlerDecorator(handler, extractMethods(klass), extractConcurrency(klass)));
-      }
-      ws.addGrizzlyAdapter(new RequestDispatcher(router), new String[] { a.contextPath });
+    Router router = new Router();
+    for (GrizzletDef a : grizzlets) {
+      RequestHandler handler = inj.get().getInstance(a.handlerClass);
+      router.addRouting(extractPath(a.handlerClass),
+              new HandlerDecorator(handler, extractMethods(a.handlerClass),
+                      limits.compoundLimit(extractConcurrency(a.handlerClass))));
     }
-    
+    ws.addGrizzlyAdapter(new RequestDispatcher(router));
+
+    ws.addGrizzlyAdapter(jersey);
+
     return ws;
   }
 
@@ -107,10 +102,10 @@ public class JerseyGutsModule extends AbstractModule {
     return maybeGetRoute(handler).path();
   }
 
-  private static int extractConcurrency(Class<? extends RequestHandler> handler) {
+  private static String[] extractConcurrency(Class<? extends RequestHandler> handler) {
     Concurrency concurrency = handler.getAnnotation(Concurrency.class);
     if (concurrency == null)
-      return 0;
+      return new String[] {"global"};
     return concurrency.value();
   }
 
@@ -143,7 +138,18 @@ public class JerseyGutsModule extends AbstractModule {
   protected
   @Provides
   @RequestScoped
-  HttpContext httpContext(WebApplication wa) {
-    return wa.getThreadLocalHttpContext();
+  GrizzlyRequest httpRequestContext() {
+    return RequestScope.currentRequest();
+  }
+
+  protected
+  @Provides
+  @RequestScoped
+  Permissions permissions(GrizzlyRequest req, PermissionLoader permissions) {
+    String apiKey = req.getHeader("X-Hh-Api-Key");
+    Permissions ret = permissions.forKey(apiKey);
+    if (ret != null)
+      return permissions.forKey(apiKey);
+    return permissions.anonymous();
   }
 }

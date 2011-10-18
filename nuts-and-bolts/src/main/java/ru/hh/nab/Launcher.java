@@ -11,12 +11,13 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.Stage;
-import com.sun.grizzly.http.embed.GrizzlyWebServer;
+import com.google.inject.name.Named;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Handler;
@@ -24,6 +25,13 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
+import ru.hh.nab.health.limits.HistoLimit;
+import ru.hh.nab.health.limits.Limit;
+import ru.hh.nab.health.limits.SimpleLimit;
+import ru.hh.nab.health.monitoring.CountingHistogramImpl;
+import ru.hh.nab.health.monitoring.CountingHistogramQuantilesDumpable;
+import ru.hh.nab.health.monitoring.Mappers;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.PropertiesPermissionLoader;
 
@@ -50,9 +58,11 @@ public class Launcher {
     main(stage, appModule, new SettingsModule());
   }
 
-  public static Instance testMode(Stage stage, Module appModule, final Properties settings, final Properties apiSecurity) throws IOException {
+  public static Instance testMode(Stage stage, Module appModule, final Properties settings,
+                                  final Properties apiSecurity, final Properties limits) throws IOException {
     return main(stage, appModule, new AbstractModule() {
-      public void configure() {}
+      public void configure() {
+      }
 
       @Provides
       @Singleton
@@ -65,6 +75,23 @@ public class Launcher {
       @Singleton
       protected PermissionLoader permissionLoader() {
         return new PropertiesPermissionLoader(apiSecurity);
+      }
+
+      @Provides
+      @Named("limits-with-names")
+      @Singleton
+      List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto() throws IOException {
+        List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
+
+        for (String name : limits.stringPropertyNames()) {
+          int max = Integer.parseInt(limits.getProperty(name));
+          CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
+
+          Limit limit = new HistoLimit(max, histo);
+          ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name,
+                  new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
+        }
+        return ret;
       }
     });
   }
@@ -85,9 +112,9 @@ public class Launcher {
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();
       Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule,
-              new JerseyModule(wa), settingsModule);
+              new JerseyModule(), settingsModule);
 
-      GrizzlyWebServer ws = inj.getInstance(GrizzlyWebServer.class);
+      SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
       ws.start();
       return new Instance(inj, ws.getSelectorThread().getPort());
     } catch (IOException ex) {

@@ -1,34 +1,28 @@
 package ru.hh.nab.grizzly;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.grizzly.tcp.http11.GrizzlyResponse;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
+import ru.hh.nab.health.limits.Limit;
 
 public class HandlerDecorator implements RequestHandler {
-
   private final RequestHandler target;
   private final Set<HttpMethod> methods;
-  private final Semaphore semaphore;
+  private final Limit limit;
 
-  public HandlerDecorator(RequestHandler target, HttpMethod[] methods, int concurrency) {
-    Preconditions.checkArgument(concurrency >= 0);
+  public HandlerDecorator(RequestHandler target, HttpMethod[] methods, Limit limit) {
     this.target = target;
     this.methods = ImmutableSet.copyOf(methods);
-    this.semaphore = (concurrency > 0) ?  new Semaphore(concurrency) : null;
+    this.limit = limit;
   }
 
   public boolean tryBegin() {
-    if (semaphore == null)
-      return true;
-    return semaphore.tryAcquire();
+    return limit.acquire();
   }
 
   public void finish() {
-    if (semaphore != null)
-      semaphore.release();
+    limit.release();
   }
 
   @Override
@@ -36,6 +30,6 @@ public class HandlerDecorator implements RequestHandler {
     if (methods.contains(HttpMethod.valueOf(request.getRequest().method().getString())))
       target.handle(request, response);
     else
-      response.sendError(405);
+      SimpleGrizzlyAdapterChain.abstain(request);
   }
 }

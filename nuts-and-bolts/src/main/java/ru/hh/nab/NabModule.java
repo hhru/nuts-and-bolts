@@ -2,6 +2,7 @@ package ru.hh.nab;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -14,11 +15,12 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.sun.jersey.api.core.HttpContext;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -36,11 +38,16 @@ import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 import ru.hh.nab.grizzly.RequestHandler;
+import ru.hh.nab.health.limits.Limit;
+import ru.hh.nab.health.limits.Limits;
+import ru.hh.nab.health.monitoring.Dumpable;
+import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
+import ru.hh.nab.security.Permissions;
 import ru.hh.nab.security.SecureInterceptor;
 import ru.hh.nab.security.SecureMatcher;
 import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
@@ -49,7 +56,7 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 public abstract class NabModule extends AbstractModule {
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final ServletDefs servletDefs = new ServletDefs();
-  private final GrizzlyAppDefs grizzlyAppDefs = new GrizzlyAppDefs();
+  private final GrizzletDefs grizzletDefs = new GrizzletDefs();
 
   private String defaultFreemarkerLayout = "nab/empty";
 
@@ -58,13 +65,14 @@ public abstract class NabModule extends AbstractModule {
     configureApp();
     bindScheduler();
     bindServlets();
-    bindGrizzlyApps();
+    bindGrizzlets();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
     bind(UnauthorizedExceptionJerseyMapper.class);
     bindInterceptor(Matchers.any(), new SecureMatcher(),
-            new SecureInterceptor(getProvider(HttpContext.class)));
+            new SecureInterceptor(getProvider(Permissions.class)));
+    schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
   }
 
   protected abstract void configureApp();
@@ -105,6 +113,7 @@ public abstract class NabModule extends AbstractModule {
     final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, ann));
     final TxInterceptor tx = new TxInterceptor(emfProvider);
 
+    bind(TxInterceptor.class).annotatedWith(ann).toInstance(tx);
     bindInterceptor(Matchers.any(), new TransactionalMatcher(ann), tx);
 
     bind(EntityManager.class).annotatedWith(ann).toProvider(new Provider<EntityManager>() {
@@ -133,8 +142,8 @@ public abstract class NabModule extends AbstractModule {
     servletDefs.add(new ServletDef(klass, pattern));
   }
 
-  protected final void bindGrizzlyApp(String contextPath, Class<? extends RequestHandler>... handlers) {
-    grizzlyAppDefs.add(new GrizzlyAppDef(contextPath, handlers));
+  protected final void bindGrizzlet(Class<? extends RequestHandler> handler) {
+    grizzletDefs.add(new GrizzletDef(handler));
   }
 
   private Provider<EntityManagerFactory> hibernateAccessorProvider(final String name,
@@ -218,7 +227,7 @@ public abstract class NabModule extends AbstractModule {
             ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
             for (ScheduledTaskDef taskDef : taskDefs) {
               Runnable r = injector.getInstance(taskDef.klass);
-              scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * 0.5 * Math.random()), taskDef.time,
+              scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * Math.random()), taskDef.time,
                   taskDef.unit);
             }
             return Executors.unconfigurableScheduledExecutorService(scheduler);
@@ -230,14 +239,14 @@ public abstract class NabModule extends AbstractModule {
     bind(ServletDefs.class).toInstance(servletDefs);
   }
 
-  private void bindGrizzlyApps() {
-    bind(GrizzlyAppDefs.class).toInstance(grizzlyAppDefs);
+  private void bindGrizzlets() {
+    bind(GrizzletDefs.class).toInstance(grizzletDefs);
   }
 
   static class ServletDefs extends ArrayList<ServletDef> {
   }
 
-  static class GrizzlyAppDefs extends ArrayList<GrizzlyAppDef> {
+  static class GrizzletDefs extends ArrayList<GrizzletDef> {
   }
 
   static class ServletDef {
@@ -262,13 +271,11 @@ public abstract class NabModule extends AbstractModule {
     }
   }
 
-  static class GrizzlyAppDef {
-    final String contextPath;
-    final Class<? extends RequestHandler>[] handlers;
+  static class GrizzletDef {
+    final Class<? extends RequestHandler> handlerClass;
 
-    public GrizzlyAppDef(String contextPath, Class<? extends RequestHandler>[] handlers) {
-      this.contextPath = contextPath;
-      this.handlers = handlers;
+    public GrizzletDef(Class<? extends RequestHandler> handlerClass) {
+      this.handlerClass = handlerClass;
     }
   }
 
@@ -288,5 +295,27 @@ public abstract class NabModule extends AbstractModule {
   @Singleton
   SecureRandom secureRandom() {
     return new SecureRandom();
+  }
+
+
+  @Provides
+  @Singleton
+  protected Limits limits(@Named("limits-with-names") List<SettingsModule.LimitWithNameAndHisto> limits) throws IOException {
+    Map<String, Limit> ls = Maps.newHashMap();
+    for (SettingsModule.LimitWithNameAndHisto l : limits) {
+      ls.put(l.name, l.limit);
+    }
+    return new Limits(ls);
+  }
+
+  @Provides
+  @Singleton
+  protected StatsDumper statsDumper(@Named("limits-with-names") List<SettingsModule.LimitWithNameAndHisto> limits) {
+    Map<String, Dumpable> ls = Maps.newHashMap();
+    for (SettingsModule.LimitWithNameAndHisto l : limits) {
+      if (l.histo != null)
+        ls.put(l.name, l.histo);
+    }
+    return new StatsDumper(ls);
   }
 }

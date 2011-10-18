@@ -1,8 +1,6 @@
 package ru.hh.nab.security;
 
 import com.google.inject.Module;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.http.HttpResponse;
@@ -37,11 +35,11 @@ public class SecureResourceWithImplicitAnonymousTest extends JerseyTest {
   }
 
   @Test
-  public void authorizedAccessWithNonexistentKey() throws IOException {
+  public void unauthorizedAccessWithNonexistentKey2() throws IOException {
     HttpGet req = new HttpGet(baseUrl() + "anonymous");
     req.addHeader("X-Hh-Api-Key", "api-key-nonexistent");
     HttpResponse resp = httpClient().execute(req);
-    Assert.assertEquals(200, resp.getStatusLine().getStatusCode());
+    Assert.assertEquals(403, resp.getStatusLine().getStatusCode());
   }
 
   @Test

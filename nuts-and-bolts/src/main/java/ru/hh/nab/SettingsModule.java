@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import ru.hh.nab.health.limits.HistoLimit;
 import ru.hh.nab.health.limits.Limit;
+import ru.hh.nab.health.limits.SimpleLimit;
 import ru.hh.nab.health.monitoring.CountingHistogramImpl;
 import ru.hh.nab.health.monitoring.CountingHistogramQuantilesDumpable;
 import ru.hh.nab.health.monitoring.Dumpable;
@@ -74,11 +75,12 @@ public class SettingsModule extends AbstractModule {
 
     for (String name : props.stringPropertyNames()) {
       int max = Integer.parseInt(props.getProperty(name));
-      CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
+//      CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
 
-      Limit limit = new HistoLimit(max, histo);
+      Limit limit = new SimpleLimit(max);
       ret.add(new LimitWithNameAndHisto(limit, name,
-              new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
+              null));
+//              new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
     }
     return ret;
   }

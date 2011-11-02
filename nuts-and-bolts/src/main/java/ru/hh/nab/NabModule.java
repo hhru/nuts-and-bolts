@@ -43,6 +43,7 @@ import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.health.monitoring.Dumpable;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
+import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.ThreadLocalScope;
@@ -136,6 +137,13 @@ public abstract class NabModule extends AbstractModule {
         return emfProvider.get().getCriteriaBuilder();
       }
     }).in(Scopes.SINGLETON);
+
+    bind(PostCommitHooks.class).annotatedWith(ann).toProvider(new Provider<PostCommitHooks>() {
+      @Override
+      public PostCommitHooks get() {
+        return tx.currentPostCommitHooks();
+      }
+    });
   }
 
   protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {

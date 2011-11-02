@@ -15,6 +15,7 @@ public class TxInterceptor implements MethodInterceptor {
     private final EntityManager em;
     private boolean readOnly;
     private final EntityTransaction tx;
+    private final PostCommitHooks postCommitHooks = new PostCommitHooks();
 
     public CurrentTx(EntityManager em, Transactional ann) {
       this.em = em;
@@ -64,6 +65,7 @@ public class TxInterceptor implements MethodInterceptor {
       tx.enter(ann);
       return invocation.call();
     }
+    boolean committed = false;
     try {
       tx = new CurrentTx(em, ann);
       this.tx.set(tx);
@@ -72,6 +74,7 @@ public class TxInterceptor implements MethodInterceptor {
       try {
         result = invocation.call();
         tx.commit();
+        committed = true;
       } catch (Exception e) {
         tx.rollbackIfActive();
         throw e;
@@ -80,6 +83,8 @@ public class TxInterceptor implements MethodInterceptor {
     } finally {
       this.tx.remove();
       em.close();
+      if (committed)
+        tx.postCommitHooks.execute();
     }
   }
 
@@ -105,5 +110,11 @@ public class TxInterceptor implements MethodInterceptor {
     CurrentTx tx = this.tx.get();
     Preconditions.checkState(tx != null, "Not in transaction");
     return tx.em;
+  }
+
+  public PostCommitHooks currentPostCommitHooks() {
+    CurrentTx tx = this.tx.get();
+    Preconditions.checkState(tx != null, "Not in transaction");
+    return tx.postCommitHooks;
   }
 }

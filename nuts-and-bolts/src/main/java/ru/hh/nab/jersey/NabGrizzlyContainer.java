@@ -26,8 +26,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import ru.hh.nab.scopes.RequestScope;
 
 public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
 
@@ -42,11 +40,6 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
 
   private final ThreadLocalInvoker<GrizzlyResponse> responseInvoker =
           new ThreadLocalInvoker<GrizzlyResponse>();
-
-  private static final String X_REQUEST_ID = "x-request-id";
-  private static final String X_HHID_PERFORMER = "x-hhid-performer";
-  private static final String X_UID = "x-uid";
-  private static final String REQ_REMOTE_ADDR = "req.remote-addr";
 
   private static class ContextInjectableProvider<T> extends
           SingletonTypeInjectableProvider<Context, T> {
@@ -143,13 +136,6 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
               requestUri,
               getHeaders(request),
               request.getInputStream());
-
-      storeHeaderValue(request, X_REQUEST_ID);
-      storeHeaderValue(request, X_HHID_PERFORMER);
-      storeHeaderValue(request, X_UID);
-      MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
-      RequestScope.enter(request);
-
       _application.handleRequest(cRequest, new Writer(response));
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -158,14 +144,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
       } catch (IOException io) {
         throw new RuntimeException(io);
       }
-    } finally {
-      MDC.clear();
-      RequestScope.leave();
     }
-  }
-
-  private void storeHeaderValue(GrizzlyRequest req, String header) {
-    MDC.put("req.h." + header, req.getHeader(header));
   }
 
   @Override

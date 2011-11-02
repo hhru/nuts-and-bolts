@@ -7,6 +7,7 @@ import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
+import org.slf4j.MDC;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
@@ -18,11 +19,11 @@ public class RequestScope implements TransferrableScope {
   private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
 
   public static void enter(GrizzlyRequest req) {
-    closure.set(new RequestScopeClosure(req));
+    new RequestScopeClosure(req).enter();
   }
 
   public static void leave() {
-    closure.remove();
+    closure.get().leave();
   }
 
   public static GrizzlyRequest currentRequest() {
@@ -61,6 +62,12 @@ public class RequestScope implements TransferrableScope {
   }
 
   private static class RequestScopeClosure implements ScopeClosure {
+
+    private static final String X_REQUEST_ID = "x-request-id";
+    private static final String X_HHID_PERFORMER = "x-hhid-performer";
+    private static final String X_UID = "x-uid";
+    private static final String REQ_REMOTE_ADDR = "req.remote-addr";
+
     private final GrizzlyRequest request;
     private final Map<Key<?>, Object> objects = Maps.newHashMap();
 
@@ -83,12 +90,21 @@ public class RequestScope implements TransferrableScope {
     @Override
     public void enter() {
       Preconditions.checkState(RequestScope.closure.get() == null);
+      storeHeaderValue(request, X_REQUEST_ID);
+      storeHeaderValue(request, X_HHID_PERFORMER);
+      storeHeaderValue(request, X_UID);
+      MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
       RequestScope.closure.set(this);
+    }
+
+    private void storeHeaderValue(GrizzlyRequest req, String header) {
+      MDC.put("req.h." + header, req.getHeader(header));
     }
 
     @Override
     public void leave() {
       Preconditions.checkState(RequestScope.closure.get() == this);
+      MDC.clear();
       RequestScope.closure.remove();
     }
   }

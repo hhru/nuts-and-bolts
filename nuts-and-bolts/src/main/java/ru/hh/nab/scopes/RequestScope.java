@@ -7,7 +7,9 @@ import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
+
 import org.slf4j.MDC;
+import ru.hh.nab.health.monitoring.TimingsLogger;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
@@ -18,8 +20,8 @@ public class RequestScope implements TransferrableScope {
 
   private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
 
-  public static void enter(GrizzlyRequest req) {
-    new RequestScopeClosure(req).enter();
+  public static void enter(GrizzlyRequest req, TimingsLogger timingsLogger) {
+    new RequestScopeClosure(req, timingsLogger).enter();
   }
 
   public static void leave() {
@@ -38,6 +40,13 @@ public class RequestScope implements TransferrableScope {
     if (cls == null)
       throw new OutOfScopeException("Out of RequestScope");
     return cls;
+  }
+
+  public static TimingsLogger currentTimingsLogger() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null)
+      throw new OutOfScopeException("Out of RequestScope");
+    return cls.timingsLogger;
   }
 
   @Override
@@ -76,10 +85,12 @@ public class RequestScope implements TransferrableScope {
     private static final String REQ_REMOTE_ADDR = "req.remote-addr";
 
     private final GrizzlyRequest request;
+    private final TimingsLogger timingsLogger;
     private final Map<Key<?>, Object> objects = Maps.newHashMap();
 
-    RequestScopeClosure(GrizzlyRequest request) {
+    RequestScopeClosure(GrizzlyRequest request, TimingsLogger timingsLogger) {
       this.request = request;
+      this.timingsLogger = timingsLogger;
     }
 
     @SuppressWarnings({"unchecked"})
@@ -102,7 +113,8 @@ public class RequestScope implements TransferrableScope {
       storeHeaderValue(request, X_UID);
       MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
       RequestScope.closure.set(this);
-    }
+      timingsLogger.enterTimedArea();
+     }
 
     private void storeHeaderValue(GrizzlyRequest req, String header) {
       MDC.put("req.h." + header, req.getHeader(header));
@@ -111,6 +123,7 @@ public class RequestScope implements TransferrableScope {
     @Override
     public void leave() {
       Preconditions.checkState(RequestScope.closure.get() == this);
+      timingsLogger.leaveTimedArea();
       MDC.clear();
       RequestScope.closure.remove();
     }

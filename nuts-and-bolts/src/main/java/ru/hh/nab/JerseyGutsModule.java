@@ -1,5 +1,7 @@
 package ru.hh.nab;
 
+import com.google.common.base.Optional;
+import static com.google.common.collect.Maps.newHashMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -13,6 +15,8 @@ import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
+import java.util.Map;
+import java.util.Properties;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.NabModule.ServletDef;
@@ -26,6 +30,8 @@ import ru.hh.nab.grizzly.Route;
 import ru.hh.nab.grizzly.Router;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.Limits;
+import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.nab.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
 import ru.hh.nab.jersey.NabGrizzlyContainer;
 import ru.hh.nab.scopes.RequestScope;
@@ -58,8 +64,8 @@ public class JerseyGutsModule extends AbstractModule {
   @Singleton
   SimpleGrizzlyWebServer grizzlyWebServer(
           Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets,
-          GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj) {
-    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel);
+          GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj, TimingsLoggerFactory tlFactory) {
+    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory);
     ws.setCoreThreads(settings.concurrencyLevel);
     SelectorThread selector = ws.getSelectorThread();
     selector.setMaxKeepAliveRequests(4096);
@@ -146,6 +152,28 @@ public class JerseyGutsModule extends AbstractModule {
   @Provides
   RequestScope.RequestScopeClosure requestScopeClosure() {
     return RequestScope.currentClosure();
+  }
+
+  protected
+  @Provides
+  @Singleton
+  TimingsLoggerFactory timingsLoggerFactory(Settings settings) {
+    Properties timingProps = settings.subTree("timings");
+    Map<String, Long> delays = newHashMap();
+    for (Map.Entry<Object, Object> ent : timingProps.entrySet())
+      delays.put(ent.getKey().toString(), Long.valueOf(ent.getValue().toString()));
+    Object toleranceStr = timingProps.get("tolerance");
+    Optional<Long> tolerance = (toleranceStr == null)
+        ? Optional.<Long>absent()
+        : Optional.of(Long.valueOf(toleranceStr.toString()));
+    return new TimingsLoggerFactory(delays, tolerance);
+  }
+
+  protected
+  @Provides
+  @RequestScoped
+  TimingsLogger timingsLogger() {
+    return RequestScope.currentTimingsLogger();
   }
 
   protected

@@ -9,6 +9,7 @@ import com.sun.grizzly.ssl.SSLSelectorThread;
 import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyListener;
 import com.sun.grizzly.util.net.jsse.JSSEImplementation;
+import ru.hh.nab.health.monitoring.TimingsLoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -18,31 +19,32 @@ public class SimpleGrizzlyWebServer {
   // The underlying {@link GrizzlyListener}
   private GrizzlyListener grizzlyListener;
 
-  private SimpleGrizzlyAdapterChain adapterChains = new SimpleGrizzlyAdapterChain();
+  private SimpleGrizzlyAdapterChain adapterChains;
 
   private boolean isStarted = false;
 
   private ArrayList<AsyncFilter> asyncFilters = new ArrayList<AsyncFilter>();
 
-  public SimpleGrizzlyWebServer() {
-    this(DEFAULT_PORT, 1);
+  public SimpleGrizzlyWebServer(TimingsLoggerFactory timingsLoggerFactory) {
+    this(DEFAULT_PORT, 1, timingsLoggerFactory);
   }
 
-  public SimpleGrizzlyWebServer(int port) {
-    this(port, 1);
+  public SimpleGrizzlyWebServer(int port, TimingsLoggerFactory timingsLoggerFactory) {
+    this(port, 1, timingsLoggerFactory);
   }
 
-  public SimpleGrizzlyWebServer(int port, int maxThreads) {
-    this(port, maxThreads, false);
+  public SimpleGrizzlyWebServer(int port, int maxThreads, TimingsLoggerFactory timingsLoggerFactory) {
+    this(port, maxThreads, false, timingsLoggerFactory);
   }
 
-  public SimpleGrizzlyWebServer(int port, boolean secure) {
-    this(port, 1, secure);
+  public SimpleGrizzlyWebServer(int port, boolean secure, TimingsLoggerFactory timingsLoggerFactory) {
+    this(port, 1, secure, timingsLoggerFactory);
   }
 
-  public SimpleGrizzlyWebServer(int port, int maxThreads, boolean secure) {
+  public SimpleGrizzlyWebServer(int port, int maxThreads, boolean secure, TimingsLoggerFactory timingsLoggerFactory) {
     createSelectorThread(port, secure);
     setMaxThreads(maxThreads);
+    this.adapterChains = new SimpleGrizzlyAdapterChain(timingsLoggerFactory);
   }
 
   private void createSelectorThread(int port, boolean secure) {

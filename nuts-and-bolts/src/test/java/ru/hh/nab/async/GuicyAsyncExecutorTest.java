@@ -4,6 +4,8 @@ import com.google.common.base.Function;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.sun.grizzly.tcp.http11.GrizzlyRequest;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -20,9 +22,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import org.junit.Assert;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
 import ru.hh.nab.NabModule;
+import ru.hh.nab.health.monitoring.TimingsLogger;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.Transactional;
+import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.testing.JerseyTest;
 
 public class GuicyAsyncExecutorTest extends JerseyTest {
@@ -93,6 +98,9 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
 
+    RequestScope.enter(mock(GrizzlyRequest.class), new TimingsLogger("Test", Collections.<String, Long>emptyMap(), 1000L));
+    final RequestScope.RequestScopeClosure reqClj = RequestScope.currentClosure();
+
     ama.async(new Callable<Integer>() {
       @Inject
       @Default
@@ -109,7 +117,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     }).then(new Function<Integer, Async<TestEntity>>() {
       @Override
       public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.async(new Callable<TestEntity>() {
+        return ama.asyncWithRequestScope(new Callable<TestEntity>() {
           @Inject
           @Default
           EntityManager store;
@@ -119,7 +127,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
           public TestEntity call() {
             return store.find(TestEntity.class, id);
           }
-        });
+        }, reqClj);
       }
     }).run(new Callback<TestEntity>() {
       @Override
@@ -128,6 +136,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
         latch.countDown();
       }
     }, Callbacks.<Throwable>countDown(latch));
+    RequestScope.leave();
 
     latch.await(10, TimeUnit.SECONDS);
 
@@ -141,6 +150,9 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
 
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
+
+    RequestScope.enter(mock(GrizzlyRequest.class), new TimingsLogger("Test", Collections.<String, Long>emptyMap(), 1000L));
+    final RequestScope.RequestScopeClosure reqClj = RequestScope.currentClosure();
 
     ama.async(new Callable<Integer>() {
       @Inject
@@ -159,7 +171,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     }).then(new Function<Integer, Async<TestEntity>>() {
       @Override
       public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.async(new Callable<TestEntity>() {
+        return ama.asyncWithRequestScope(new Callable<TestEntity>() {
           @Inject
           @Default
           EntityManager store;
@@ -170,7 +182,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
             GuicyAsyncExecutor.killThisThreadAfterExecution();
             return store.find(TestEntity.class, id);
           }
-        });
+        }, reqClj);
       }
     }).run(new Callback<TestEntity>() {
       @Override
@@ -179,6 +191,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
         latch.countDown();
       }
     }, Callbacks.<Throwable>countDown(latch));
+    RequestScope.leave();
 
     latch.await(10, TimeUnit.SECONDS);
 

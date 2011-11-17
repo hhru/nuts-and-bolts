@@ -9,10 +9,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.health.monitoring.TimingsLogger;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ScopeClosure;
 
 public class GuicyAsyncExecutor {
@@ -33,7 +36,11 @@ public class GuicyAsyncExecutor {
   }
 
   public <T> Async<T> async(Callable<T> body, ScopeClosure... closures) {
-    return new DeferredAsync<T>(body, closures);
+    return new DeferredAsync<T>(body, null, closures);
+  }
+
+  public <T> Async<T> asyncWithRequestScope(Callable<T> body, RequestScope.RequestScopeClosure requestScopeClosure, ScopeClosure... closures) {
+    return new DeferredAsync<T>(body, requestScopeClosure, closures);
   }
 
   static void killThisThreadAfterExecution() {
@@ -66,18 +73,31 @@ public class GuicyAsyncExecutor {
 
   private class DeferredAsync<T> extends Async<T> {
     private final Callable<T> body;
+    private final @Nullable RequestScope.RequestScopeClosure requestScopeClosure;
     private final ScopeClosure[] closures;
 
-    public DeferredAsync(Callable<T> body, ScopeClosure... closures) {
+    public DeferredAsync(Callable<T> body, @Nullable RequestScope.RequestScopeClosure requestScopeClosure, ScopeClosure... closures) {
       this.body = body;
+      this.requestScopeClosure = requestScopeClosure;
       this.closures = closures;
     }
 
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
+      if (requestScopeClosure != null)
+        requestScopeClosure.enter();
+      final TimingsLogger logger;
+      try {
+        logger = inj.getInstance(TimingsLogger.class);
+      } finally {
+        if (requestScopeClosure != null)
+          requestScopeClosure.leave();
+      }
+      logger.probe("async-submission");
       executor.execute(new Runnable() {
         @Override
         public void run() {
+          logger.probe("async-execution");
           try {
             final Callable<T> injCallable = new Callable<T>() {
               @Override
@@ -100,11 +120,13 @@ public class GuicyAsyncExecutor {
                 } finally {
                   for (ScopeClosure closure : reverse(asList(closures)))
                     closure.leave();
+                  logger.probe("async-finish");
                 }
               }
             };
             onSuccess.call(callable.call());
           } catch (Throwable e) {
+            logger.setErrorState();
             try {
               onError.call(e);
             } catch (Throwable ee) {

@@ -7,7 +7,6 @@ import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.params.ClientParamBean;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
@@ -105,7 +104,7 @@ public abstract class JerseyTest {
     return Launcher.testMode(Stage.DEVELOPMENT, module(), settings(), apiSecurity(), limits());
   }
 
-  protected HttpClient httpClient() {
+  protected DefaultHttpClient httpClient() {
     BasicHttpParams httpParams = new BasicHttpParams();
     DefaultHttpClient.setDefaultHttpParams(httpParams);
 

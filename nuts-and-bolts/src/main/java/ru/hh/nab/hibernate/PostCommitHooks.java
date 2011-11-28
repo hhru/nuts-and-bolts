@@ -11,6 +11,8 @@ public class PostCommitHooks {
 
   private final List<Runnable> hooks = newArrayList();
 
+  public static volatile boolean debug;
+
   public void addHook(Runnable task) {
     hooks.add(task);
   }
@@ -20,6 +22,8 @@ public class PostCommitHooks {
       try {
         action.run();
       } catch (Exception e) {
+        if (debug)
+          throw new RuntimeException(e.getMessage(), e);
         log.error(e.getMessage(), e);
       }
     }

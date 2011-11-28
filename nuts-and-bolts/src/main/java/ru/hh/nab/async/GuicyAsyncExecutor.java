@@ -1,8 +1,10 @@
 package ru.hh.nab.async;
 
+import static com.google.common.collect.Iterables.reverse;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import static java.util.Arrays.asList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -38,6 +40,30 @@ public class GuicyAsyncExecutor {
     killThisThread.set(true);
   }
 
+  private class InjectableAsyncDecorator<T> extends Async<T> {
+
+    private final Async<T> target;
+    private final ScopeClosure[] closures;
+
+    public InjectableAsyncDecorator(Async<T> target, ScopeClosure[] closures) {
+      this.target = target;
+      this.closures = closures;
+    }
+
+    @Override
+    protected void runExposed(Callback<T> onSuccess, Callback<Throwable> onError) throws Exception {
+      for (ScopeClosure c : closures)
+        c.enter();
+      try {
+        inj.injectMembers(target);
+        target.runExposed(onSuccess, onError);
+      } finally {
+        for (ScopeClosure closure : reverse(asList(closures)))
+          closure.leave();
+      }
+    }
+  }
+
   private class DeferredAsync<T> extends Async<T> {
     private final Callable<T> body;
     private final ScopeClosure[] closures;
@@ -53,39 +79,31 @@ public class GuicyAsyncExecutor {
         @Override
         public void run() {
           try {
-            final Transactional ann = body.getClass().getMethod("call").getAnnotation(Transactional.class);
-            final Callable<T> scopesAndInjCallable = new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                      for (ScopeClosure c : closures) {
-                        c.enter();
-                      }
-                      try {
-                        inj.injectMembers(body);
-                        return body.call();
-                      } finally {
-                        for (int i = closures.length - 1; i >= 0; i--) {
-                          closures[i].leave();
-                        }
-                      }
-                    }
-                  };
-            Callable<T> txCallable;
-
-            if (ann != null) {
-              final TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, ann.value()));
-
-              txCallable = new Callable<T>() {
-                @Override
-                public T call() throws Exception {
-                  return interceptor.invoke(ann, scopesAndInjCallable);
+            final Callable<T> injCallable = new Callable<T>() {
+              @Override
+              public T call() throws Exception {
+                inj.injectMembers(body);
+                return body.call();
+              }
+            };
+            Callable<T> callable = new Callable<T>() {
+              @Override
+              public T call() throws Exception {
+                for (ScopeClosure c : closures)
+                  c.enter();
+                try {
+                  Transactional ann = body.getClass().getMethod("call").getAnnotation(Transactional.class);
+                  if (ann == null)
+                    return injCallable.call();
+                  TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, ann.value()));
+                  return interceptor.invoke(ann, injCallable);
+                } finally {
+                  for (ScopeClosure closure : reverse(asList(closures)))
+                    closure.leave();
                 }
-              };
-            } else {
-              txCallable = scopesAndInjCallable;
-            }
-
-            onSuccess.call(txCallable.call());
+              }
+            };
+            onSuccess.call(callable.call());
           } catch (Throwable e) {
             try {
               onError.call(e);

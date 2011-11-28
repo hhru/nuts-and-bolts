@@ -28,10 +28,10 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.HistoLimit;
 import ru.hh.nab.health.limits.Limit;
-import ru.hh.nab.health.limits.SimpleLimit;
 import ru.hh.nab.health.monitoring.CountingHistogramImpl;
 import ru.hh.nab.health.monitoring.CountingHistogramQuantilesDumpable;
 import ru.hh.nab.health.monitoring.Mappers;
+import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.PropertiesPermissionLoader;
 
@@ -62,6 +62,7 @@ public class Launcher {
                                   final Properties apiSecurity, final Properties limits) throws IOException {
     return main(stage, appModule, new AbstractModule() {
       public void configure() {
+        PostCommitHooks.debug = true;
       }
 
       @Provides

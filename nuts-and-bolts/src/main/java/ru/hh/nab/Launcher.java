@@ -26,11 +26,9 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
-import ru.hh.nab.health.limits.HistoLimit;
+import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
-import ru.hh.nab.health.monitoring.CountingHistogramImpl;
-import ru.hh.nab.health.monitoring.CountingHistogramQuantilesDumpable;
-import ru.hh.nab.health.monitoring.Mappers;
+import ru.hh.nab.health.limits.SimpleLimit;
 import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.PropertiesPermissionLoader;
@@ -81,16 +79,13 @@ public class Launcher {
       @Provides
       @Named("limits-with-names")
       @Singleton
-      List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto() throws IOException {
+      List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
         List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
 
         for (String name : limits.stringPropertyNames()) {
           int max = Integer.parseInt(limits.getProperty(name));
-          CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
-
-          Limit limit = new HistoLimit(max, histo);
-          ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name,
-                  new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
+          Limit limit = new SimpleLimit(max, leakDetector);
+          ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
         }
         return ret;
       }

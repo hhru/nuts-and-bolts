@@ -144,6 +144,12 @@ public class JerseyGutsModule extends AbstractModule {
 
   protected
   @Provides
+  RequestScope.RequestScopeClosure requestScopeClosure() {
+    return RequestScope.currentClosure();
+  }
+
+  protected
+  @Provides
   @RequestScoped
   Permissions permissions(GrizzlyRequest req, PermissionLoader permissions) {
     String apiKey = req.getHeader("X-Hh-Api-Key");

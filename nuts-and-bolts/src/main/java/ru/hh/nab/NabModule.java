@@ -38,6 +38,7 @@ import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 import ru.hh.nab.grizzly.RequestHandler;
+import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.health.monitoring.Dumpable;
@@ -46,6 +47,7 @@ import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
 import ru.hh.nab.security.Permissions;
@@ -74,6 +76,7 @@ public abstract class NabModule extends AbstractModule {
     bindInterceptor(Matchers.any(), new SecureMatcher(),
             new SecureInterceptor(getProvider(Permissions.class)));
     schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
+    schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
   }
 
   protected abstract void configureApp();
@@ -305,6 +308,11 @@ public abstract class NabModule extends AbstractModule {
     return new SecureRandom();
   }
 
+  @Provides
+  @Singleton
+  protected LeakDetector detector(Provider<RequestScope.RequestScopeClosure> requestProvider) {
+    return new LeakDetector(1000 * 30, requestProvider);
+  }
 
   @Provides
   @Singleton

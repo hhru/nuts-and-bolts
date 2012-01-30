@@ -33,6 +33,13 @@ public class RequestScope implements TransferrableScope {
     return cls.request;
   }
 
+  public static RequestScopeClosure currentClosure() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null)
+      throw new OutOfScopeException("Out of RequestScope");
+    return cls;
+  }
+
   @Override
   public <T> Provider<T> scope(final Key<T> key, final Provider<T> creator) {
     return new Provider<T>() {
@@ -61,7 +68,7 @@ public class RequestScope implements TransferrableScope {
     return ret;
   }
 
-  private static class RequestScopeClosure implements ScopeClosure {
+  public static class RequestScopeClosure implements ScopeClosure {
 
     private static final String X_REQUEST_ID = "x-request-id";
     private static final String X_HHID_PERFORMER = "x-hhid-performer";
@@ -71,7 +78,7 @@ public class RequestScope implements TransferrableScope {
     private final GrizzlyRequest request;
     private final Map<Key<?>, Object> objects = Maps.newHashMap();
 
-    public RequestScopeClosure(GrizzlyRequest request) {
+    RequestScopeClosure(GrizzlyRequest request) {
       this.request = request;
     }
 

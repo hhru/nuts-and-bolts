@@ -1,6 +1,5 @@
 package ru.hh.nab.grizzly;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.grizzly.tcp.http11.GrizzlyResponse;
@@ -12,23 +11,15 @@ public class HandlerDecorator implements RequestHandler {
   private final RequestHandler target;
   private final Set<HttpMethod> methods;
   private final Limit limit;
-  private LeaseToken token;
 
   public HandlerDecorator(RequestHandler target, HttpMethod[] methods, Limit limit) {
     this.target = target;
     this.methods = ImmutableSet.copyOf(methods);
     this.limit = limit;
-
   }
 
-  public boolean tryBegin() {
-    token = limit.acquire();
-    return (token != null);
-  }
-
-  public void finish() {
-    Preconditions.checkNotNull(token);
-    token.release();
+  public LeaseToken tryBegin() {
+    return limit.acquire();
   }
 
   @Override

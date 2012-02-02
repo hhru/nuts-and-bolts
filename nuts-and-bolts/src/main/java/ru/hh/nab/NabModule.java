@@ -311,7 +311,7 @@ public abstract class NabModule extends AbstractModule {
   @Provides
   @Singleton
   protected LeakDetector detector(Provider<RequestScope.RequestScopeClosure> requestProvider) {
-    return new LeakDetector(1000 * 30, requestProvider);
+    return new LeakDetector(1000 * 60 * 5, requestProvider);
   }
 
   @Provides

@@ -37,7 +37,7 @@ public class LeakDetectorTest {
   public void leakDetected() {
     TestLeakListener leakListener = new TestLeakListener();    
     LeakDetector leakDetector = new LeakDetector(10, requestScopeProvider, leakListener);
-    Limit limit = new SimpleLimit(2, leakDetector);
+    Limit limit = new SimpleLimit(2, leakDetector, "test");
     DateTimeUtils.setCurrentMillisFixed(1);
     LeaseToken token = limit.acquire();
     leakDetector.run();
@@ -51,7 +51,7 @@ public class LeakDetectorTest {
   public void release() {
     TestLeakListener leakListener = new TestLeakListener();
     LeakDetector leakDetector = new LeakDetector(10, requestScopeProvider, leakListener);
-    Limit limit = new SimpleLimit(2, leakDetector);
+    Limit limit = new SimpleLimit(2, leakDetector, "test");
     DateTimeUtils.setCurrentMillisFixed(1);
     LeaseToken token = limit.acquire();
     token.release();

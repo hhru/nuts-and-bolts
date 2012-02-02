@@ -84,7 +84,7 @@ public class Launcher {
 
         for (String name : limits.stringPropertyNames()) {
           int max = Integer.parseInt(limits.getProperty(name));
-          Limit limit = new SimpleLimit(max, leakDetector);
+          Limit limit = new SimpleLimit(max, leakDetector, name);
           ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
         }
         return ret;

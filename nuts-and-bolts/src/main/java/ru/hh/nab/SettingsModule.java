@@ -74,7 +74,7 @@ public class SettingsModule extends AbstractModule {
       int max = Integer.parseInt(props.getProperty(name));
 //      CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
 
-      Limit limit = new SimpleLimit(max, detector);
+      Limit limit = new SimpleLimit(max, detector, name);
       ret.add(new LimitWithNameAndHisto(limit, name,
               null));
 //              new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));

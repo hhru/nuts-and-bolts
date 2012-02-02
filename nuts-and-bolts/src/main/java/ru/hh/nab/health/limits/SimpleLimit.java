@@ -8,19 +8,21 @@ public class SimpleLimit implements Limit {
   private final int max;
   private final AtomicInteger current = new AtomicInteger(0);
   private final LeakDetector detector;
-
+  private final String name;
+  
   private final static Logger LOGGER = LoggerFactory.getLogger(SimpleLimit.class);
 
-  public SimpleLimit(int max, LeakDetector leakDetector) {
+  public SimpleLimit(int max, LeakDetector leakDetector, String name) {
     this.max = max;
     this.detector = leakDetector;
+    this.name = name;
   }
 
   @Override
   public LeaseToken acquire() {
     if (current.incrementAndGet() > max) {
       current.decrementAndGet();
-      LOGGER.debug("[{}] max reached: {}", hashCode(), current);
+      LOGGER.debug("acquired,limit:{},token:-,max,current:{}", name, current);
       return null;
     }
 
@@ -29,12 +31,16 @@ public class SimpleLimit implements Limit {
       public void release() {
         detector.released(this);
         current.decrementAndGet();
-        LOGGER.debug("[{}] released, current: {}", SimpleLimit.this.hashCode(), current.get());
+        LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current.get()));
       }
     };
     detector.acquired(token);
 
-    LOGGER.debug("[{}] current: {}", hashCode(), current.get());
+    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current.get()));
     return token;
+  }
+
+  private static Object[] objects(Object... args) {
+    return args;
   }
 }

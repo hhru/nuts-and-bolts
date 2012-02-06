@@ -36,7 +36,7 @@ public class SimpleLimit implements Limit {
     };
     detector.acquired(token);
 
-    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current.get()));
+    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, token.hashCode(), current.get()));
     return token;
   }
 

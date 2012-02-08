@@ -1,5 +1,8 @@
 package ru.hh.nab.health.limits;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Maps;
 import com.google.inject.Provider;
 import java.util.Map;
@@ -7,6 +10,8 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +39,17 @@ public class LeakDetector implements Runnable {
     }
   }
 
+  public static class FirstException extends Exception {
+  }
+
   private final ConcurrentMap<LeaseToken, LeaseContext> leases = Maps.newConcurrentMap();
+  private final Cache<LeaseToken, FirstException> stackTraces = CacheBuilder.newBuilder().expireAfterWrite(400, TimeUnit.SECONDS).
+          maximumSize(50000).build(new CacheLoader<LeaseToken, FirstException>() {
+    @Override
+    public FirstException load(LeaseToken key) throws Exception {
+      return new FirstException();
+    }
+  });
   private final NavigableMap<LeaseContext, LeaseToken> byDeadline = new ConcurrentSkipListMap<LeaseContext, LeaseToken>();
   private final Provider<? extends ScopeClosure> requestScopeProvider;
   private final long defaultTtl;
@@ -65,10 +80,23 @@ public class LeakDetector implements Runnable {
 
   public void released(LeaseToken o) {
     LeaseContext t = leases.remove(o);
-    if (t == null)
+    if (t == null) {
+      FirstException firstEx;
+      try {
+        firstEx = stackTraces.get(o);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
       LOG.error("Tried to release a token twice", new IllegalStateException());
-    else
+      LOG.error("Tried to release a token twice, first exception was", firstEx);
+    } else {
       byDeadline.remove(t);
+      try {
+        stackTraces.get(o);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    }
   }
 
   public void run() {

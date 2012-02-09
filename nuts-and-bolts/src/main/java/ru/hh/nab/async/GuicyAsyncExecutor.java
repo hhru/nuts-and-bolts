@@ -109,6 +109,7 @@ public class GuicyAsyncExecutor {
               onError.call(e);
             } catch (Throwable ee) {
               LOG.error("Exception in error handler", ee);
+              LOG.error("Original exception was", e);
             }
           }
         }

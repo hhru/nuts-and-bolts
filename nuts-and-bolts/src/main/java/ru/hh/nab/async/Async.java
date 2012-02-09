@@ -20,6 +20,7 @@ public abstract class Async<T> {
         onError.call(e);
       } catch (Exception e1) {
         log.error("Error while handling exception", e1);
+        log.error("Original exception was", e);
       }
     }
   }

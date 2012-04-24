@@ -37,6 +37,12 @@ public class Launcher {
   static Module module;
 
   public static void main(String[] args) throws IOException {
+    String settingsDir = System.getProperty("settingsDir");
+    if (settingsDir != null) {
+      System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
+    }
+    SLF4JBridgeHandler.install();
+
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
     if (modules.size() == 0)
       throw new IllegalStateException("No instances of " + NabModule.class.getName() + " found");
@@ -94,16 +100,6 @@ public class Launcher {
 
   public static Instance main(Stage stage, Module appModule, Module settingsModule) throws IOException {
     module = appModule;
-    LogManager.getLogManager().reset();
-    Logger rootLogger = LogManager.getLogManager().getLogger("");
-    for (Handler h : rootLogger.getHandlers())
-      rootLogger.removeHandler(h);
-    SLF4JBridgeHandler.install();
-
-    String settingsDir = System.getProperty("settingsDir");
-    if (settingsDir != null) {
-      System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
-    }
 
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();

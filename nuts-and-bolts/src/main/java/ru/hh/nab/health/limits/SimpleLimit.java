@@ -3,8 +3,10 @@ package ru.hh.nab.health.limits;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class SimpleLimit implements Limit {
+  public static final String REQ_H_X_REQUEST_ID = "req.h.x-request-id";
   private final int max;
   private final AtomicInteger current = new AtomicInteger(0);
   private final LeakDetector detector;
@@ -20,6 +22,7 @@ public class SimpleLimit implements Limit {
 
   @Override
   public LeaseToken acquire() {
+    final String requestId = MDC.get(REQ_H_X_REQUEST_ID);
     if (current.incrementAndGet() > max) {
       current.decrementAndGet();
       LOGGER.debug("acquired,limit:{},token:-,max,current:{}", name, current);
@@ -31,12 +34,13 @@ public class SimpleLimit implements Limit {
       public void release() {
         detector.released(this);
         current.decrementAndGet();
-        LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current.get()));
+        MDC.put(REQ_H_X_REQUEST_ID, requestId);
+        LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current));
       }
     };
     detector.acquired(token);
 
-    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, token.hashCode(), current.get()));
+    LOGGER.debug("acquired,limit:{},token:{},ok,current:{}", objects(name, token.hashCode(), current));
     return token;
   }
 

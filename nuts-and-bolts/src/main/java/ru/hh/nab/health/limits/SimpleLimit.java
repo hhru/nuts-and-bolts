@@ -40,6 +40,16 @@ public class SimpleLimit implements Limit {
     return token;
   }
 
+  @Override
+  public int getMax() {
+    return max;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
   private static Object[] objects(Object... args) {
     return args;
   }

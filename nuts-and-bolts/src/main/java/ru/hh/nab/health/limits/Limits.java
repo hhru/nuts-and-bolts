@@ -3,6 +3,8 @@ package ru.hh.nab.health.limits;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +50,16 @@ public final class Limits {
       @Override
       public LeaseToken acquire() {
         return Limits.this.acquire(limitNames);
+      }
+
+      @Override
+      public int getMax() {
+        return -1;
+      }
+
+      @Override
+      public String getName() {
+        return String.format("compound<%s>", StringUtils.join(limitNames));
       }
     };
   }

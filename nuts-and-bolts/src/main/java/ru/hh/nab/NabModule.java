@@ -11,6 +11,8 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
+import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
@@ -42,11 +44,13 @@ import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.health.monitoring.Dumpable;
+import ru.hh.nab.health.monitoring.MethodProbeInterceptor;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
@@ -81,8 +85,35 @@ public abstract class NabModule extends AbstractModule {
 
   protected abstract void configureApp();
 
-  protected final void bindResource(Class<?> resource) {
-    bind(resource);
+  protected final void bindJerseyResources(final Class<?>... jerseyResources) {
+    for (Class<?> clazz : jerseyResources)
+      bind(clazz);
+
+    Matcher<Class> classesMatcher = new AbstractMatcher<Class>() {
+      final List<Class<?>> superclasses = Lists.newArrayList(jerseyResources);
+
+      public boolean matches(Class subclass) {
+        for (Class<?> superclass : superclasses)
+          if (superclass.isAssignableFrom(subclass))
+            return true;
+        return false;
+      }
+
+      @Override
+      public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("subclassesOf(");
+        for (Class<?> superclass : superclasses) {
+          sb.append(superclass.getSimpleName());
+          sb.append(".class,");
+        }
+        sb.setLength(sb.length() - 1);
+        sb.append(')');
+        return sb.toString();
+      }
+    };
+
+    bindInterceptor(classesMatcher, new WebMethodMatcher(), new MethodProbeInterceptor());
   }
 
   protected final void setDefaultFreeMarkerLayout(String layout) {

@@ -45,9 +45,11 @@ import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.health.monitoring.Dumpable;
 import ru.hh.nab.health.monitoring.MethodProbeInterceptor;
+import ru.hh.nab.health.monitoring.Probe;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.PostCommitHooks;
+import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.jersey.WebMethodMatcher;
@@ -81,16 +83,15 @@ public abstract class NabModule extends AbstractModule {
             new SecureInterceptor(getProvider(Permissions.class)));
     schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
+
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), new MethodProbeInterceptor());
   }
 
   protected abstract void configureApp();
 
-  protected final void bindJerseyResources(final Class<?>... jerseyResources) {
-    for (Class<?> clazz : jerseyResources)
-      bind(clazz);
-
-    Matcher<Class> classesMatcher = new AbstractMatcher<Class>() {
-      final List<Class<?>> superclasses = Lists.newArrayList(jerseyResources);
+  private static Matcher<Class> subclassesMatcher(final Class<?>... classes) {
+    return new AbstractMatcher<Class>() {
+      final List<Class<?>> superclasses = Lists.newArrayList(classes);
 
       public boolean matches(Class subclass) {
         for (Class<?> superclass : superclasses)
@@ -112,8 +113,32 @@ public abstract class NabModule extends AbstractModule {
         return sb.toString();
       }
     };
+  }
 
-    bindInterceptor(classesMatcher, new WebMethodMatcher(), new MethodProbeInterceptor());
+  protected final void bindJerseyResources(final Class<?>... classes) {
+    for (Class<?> clazz : classes)
+      bind(clazz);
+    bindInterceptor(subclassesMatcher(classes), new WebMethodMatcher(), new MethodProbeInterceptor());
+  }
+
+  protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {
+    for (Class<?> clazz : classes)
+      bind(clazz);
+    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), new MethodProbeInterceptor());
+  }
+
+  protected final void bindTransactionalMethodProbesInterceptorOnly(final Class<?>... classes) {
+    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), new MethodProbeInterceptor());
+  }
+
+  protected final void bindWithAllMethodProbes(final Class<?>... classes) {
+    for (Class<?> clazz : classes)
+      bind(clazz);
+    bindInterceptor(subclassesMatcher(classes), Matchers.any(), new MethodProbeInterceptor());
+  }
+
+  protected final void bindAllMethodProbesInterceptorOnly(final Class<?>... classes) {
+    bindInterceptor(subclassesMatcher(classes), Matchers.any(), new MethodProbeInterceptor());
   }
 
   protected final void setDefaultFreeMarkerLayout(String layout) {

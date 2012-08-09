@@ -274,7 +274,7 @@
   </repositories>
 
   <scm>
-    <connection>scm:git:git://github.com/hhru/nuts-and-bolts</connection>
-    <developerConnection>scm:git:ssh://git@github.com:hhru/nuts-and-bolts</developerConnection>
+    <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
+    <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
   </scm>
 </project>

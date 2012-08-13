@@ -34,8 +34,16 @@ public class SimpleLimit implements Limit {
       public void release() {
         detector.released(this);
         current.decrementAndGet();
-        MDC.put(REQ_H_X_REQUEST_ID, requestId);
+        String old = MDC.get(REQ_H_X_REQUEST_ID);
+        if (requestId != null)
+          MDC.put(REQ_H_X_REQUEST_ID, requestId);
+        else if (old != null)
+          MDC.remove(REQ_H_X_REQUEST_ID);
         LOGGER.debug("released,limit:{},token:{},ok,current:{}", objects(name, hashCode(), current));
+        if (old != null)
+          MDC.put(REQ_H_X_REQUEST_ID, old);
+        else if (requestId != null)
+          MDC.remove(REQ_H_X_REQUEST_ID);
       }
     };
     detector.acquired(token);

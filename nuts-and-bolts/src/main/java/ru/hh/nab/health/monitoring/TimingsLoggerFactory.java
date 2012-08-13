@@ -18,7 +18,7 @@ public class TimingsLoggerFactory {
         : DEFAULT_TIME_TOLERANCE;
   }
 
-  public TimingsLogger getLogger(String context) {
-    return new TimingsLogger(context, probeDelays, totalTimeThreshold);
+  public TimingsLogger getLogger(String context, String requestId) {
+    return new TimingsLogger(context, requestId, probeDelays, totalTimeThreshold);
   }
 }

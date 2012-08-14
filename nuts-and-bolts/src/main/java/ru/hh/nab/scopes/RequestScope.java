@@ -8,10 +8,14 @@ import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.nab.health.monitoring.TimingsLogger;
 
 public class RequestScope implements TransferrableScope {
+  private static final Logger LOG = LoggerFactory.getLogger(RequestScope.class);
+
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
 
   private static enum NullObject {

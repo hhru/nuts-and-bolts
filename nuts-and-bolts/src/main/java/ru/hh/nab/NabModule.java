@@ -19,6 +19,7 @@ import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 import javax.sql.DataSource;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
+
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
@@ -44,7 +48,7 @@ import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.health.monitoring.Dumpable;
-import ru.hh.nab.health.monitoring.MethodProbeInterceptor;
+import ru.hh.nab.health.monitoring.MethodProbingInterceptor;
 import ru.hh.nab.health.monitoring.Probe;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
@@ -52,7 +56,6 @@ import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
-import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
@@ -79,12 +82,11 @@ public abstract class NabModule extends AbstractModule {
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
     bind(UnauthorizedExceptionJerseyMapper.class);
-    bindInterceptor(Matchers.any(), new SecureMatcher(),
-            new SecureInterceptor(getProvider(Permissions.class)));
+    bindInterceptor(Matchers.any(), new SecureMatcher(), new SecureInterceptor(getProvider(Permissions.class)));
     schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 
-    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), new MethodProbeInterceptor());
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), MethodProbingInterceptor.INSTANCE);
   }
 
   protected abstract void configureApp();
@@ -116,29 +118,58 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindJerseyResources(final Class<?>... classes) {
-    for (Class<?> clazz : classes)
+    for (Class<?> clazz : classes) {
       bind(clazz);
-    bindInterceptor(subclassesMatcher(classes), new WebMethodMatcher(), new MethodProbeInterceptor());
+    }
+    bindInterceptor(
+        subclassesMatcher(classes),
+        new AbstractMatcher<AnnotatedElement>() {
+          @Override
+          public boolean matches(AnnotatedElement annotatedElement) {
+            for (Annotation a : annotatedElement.getAnnotations()) {
+              if (a instanceof Path)
+                return true;
+              if (a.annotationType().isAnnotationPresent(HttpMethod.class))
+                return true;
+            }
+            return false;
+          }
+        },
+        MethodProbingInterceptor.INSTANCE
+    );
+  }
+
+  protected final void bindGrizzletResources(Class<? extends RequestHandler>... handlers) {
+    for (Class<? extends RequestHandler> handler : handlers) {
+      bind(handler);
+      grizzletDefs.add(new GrizzletDef(handler));
+    }
+    bindInterceptor(subclassesMatcher(handlers), Matchers.any(), MethodProbingInterceptor.INSTANCE);
+  }
+
+  protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {
+    bind(klass);
+    servletDefs.add(new ServletDef(klass, pattern));
   }
 
   protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {
     for (Class<?> clazz : classes)
       bind(clazz);
-    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), new MethodProbeInterceptor());
+    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), MethodProbingInterceptor.INSTANCE);
   }
 
   protected final void bindTransactionalMethodProbesInterceptorOnly(final Class<?>... classes) {
-    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), new MethodProbeInterceptor());
+    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), MethodProbingInterceptor.INSTANCE);
   }
 
   protected final void bindWithAllMethodProbes(final Class<?>... classes) {
     for (Class<?> clazz : classes)
       bind(clazz);
-    bindInterceptor(subclassesMatcher(classes), Matchers.any(), new MethodProbeInterceptor());
+    bindInterceptor(subclassesMatcher(classes), Matchers.any(), MethodProbingInterceptor.INSTANCE);
   }
 
   protected final void bindAllMethodProbesInterceptorOnly(final Class<?>... classes) {
-    bindInterceptor(subclassesMatcher(classes), Matchers.any(), new MethodProbeInterceptor());
+    bindInterceptor(subclassesMatcher(classes), Matchers.any(), MethodProbingInterceptor.INSTANCE);
   }
 
   protected final void setDefaultFreeMarkerLayout(String layout) {
@@ -203,14 +234,6 @@ public abstract class NabModule extends AbstractModule {
         return tx.currentPostCommitHooks();
       }
     });
-  }
-
-  protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {
-    servletDefs.add(new ServletDef(klass, pattern));
-  }
-
-  protected final void bindGrizzlet(Class<? extends RequestHandler> handler) {
-    grizzletDefs.add(new GrizzletDef(handler));
   }
 
   private Provider<EntityManagerFactory> hibernateAccessorProvider(final String name,

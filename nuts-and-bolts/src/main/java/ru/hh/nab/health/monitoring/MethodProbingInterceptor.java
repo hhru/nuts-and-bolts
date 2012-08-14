@@ -5,7 +5,10 @@ import org.aopalliance.intercept.MethodInvocation;
 import ru.hh.nab.scopes.RequestScope;
 import java.lang.reflect.Method;
 
-public class MethodProbeInterceptor implements MethodInterceptor {
+public class MethodProbingInterceptor implements MethodInterceptor {
+
+  public static final MethodProbingInterceptor INSTANCE = new MethodProbingInterceptor();
+
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {
     Method method = invocation.getMethod();

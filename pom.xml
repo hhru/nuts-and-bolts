@@ -17,14 +17,14 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.4.17-SNAPSHOT</version><!-- VERSION -->
+  <version>1.4.18-SNAPSHOT</version><!-- VERSION -->
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.4.17-SNAPSHOT</version><!-- VERSION -->
+        <version>1.4.18-SNAPSHOT</version><!-- VERSION -->
       </dependency>
 
       <dependency>
@@ -274,7 +274,7 @@
   </repositories>
 
   <scm>
-    <connection>scm:git:git://github.com/hhru/nuts-and-bolts</connection>
-    <developerConnection>scm:git:ssh://git@github.com:hhru/nuts-and-bolts</developerConnection>
+    <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
+    <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
   </scm>
 </project>

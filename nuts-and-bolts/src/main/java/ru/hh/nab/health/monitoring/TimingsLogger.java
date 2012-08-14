@@ -8,21 +8,26 @@ import java.util.Map;
 import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class TimingsLogger {
   private final static Logger PROBE = LoggerFactory.getLogger(TimingsLogger.class);
 
+  private final static String REQ_H_X_REQUEST_ID = "req.h.x-request-id";
+
   private final Map<String, Long> probeDelays;
   private final long totalTimeThreshold;
   private final String timingsContext;
+  private final String requestId;
   private final List<LogRecord> logRecords = newArrayList();
 
   private volatile int timedAreasCount;
   private volatile boolean errorState;
   private volatile long startTime;
 
-  public TimingsLogger(String context, Map<String, Long> probeDelays, long totalTimeThreshold) {
+  public TimingsLogger(String context, String requestId, Map<String, Long> probeDelays, long totalTimeThreshold) {
     this.timingsContext = context;
+    this.requestId = requestId;
     this.probeDelays = probeDelays;
     this.totalTimeThreshold = totalTimeThreshold;
   }
@@ -46,11 +51,20 @@ public class TimingsLogger {
 
   private void outputLoggedTimings() {
     long timeSpent = DateTimeUtils.currentTimeMillis() - startTime;
-    String timeTakenMsg = timingsContext + " : Time taken " + timeSpent + " ms";
+    StringBuilder sb = new StringBuilder();
+    if (timingsContext != null && timingsContext.length() > 0)
+      sb.append("Context : ").append(timingsContext).append(" ; ");
+    sb.append("Time taken ").append(timeSpent).append(" ms");
+
+    String copy = MDC.get(REQ_H_X_REQUEST_ID);
+    if (requestId != null)
+      MDC.put(REQ_H_X_REQUEST_ID, requestId);
+    else if (copy != null)
+      MDC.remove(REQ_H_X_REQUEST_ID);
+
     if (timeSpent < totalTimeThreshold && !errorState) {
-      PROBE.debug(timeTakenMsg);
+      PROBE.debug(sb.toString());
     } else {
-      StringBuilder sb = new StringBuilder(timeTakenMsg);
       for (int idx = 0; idx < logRecords.size(); idx++) {
         long recordedTime = logRecords.get(idx).timestamp;
         long diffFromStart = recordedTime - startTime;
@@ -58,7 +72,6 @@ public class TimingsLogger {
         if (idx > 0)
           diffFromPrev = recordedTime - logRecords.get(idx - 1).timestamp;
         sb.append("\n")
-            .append(timingsContext).append(" : ")
             .append(diffFromStart).append("ms : ")
             .append(diffFromPrev).append("ms : ")
             .append(logRecords.get(idx).message);
@@ -69,6 +82,11 @@ public class TimingsLogger {
         PROBE.warn(sb.toString());
       }
     }
+
+    if (copy != null)
+      MDC.put(REQ_H_X_REQUEST_ID, copy);
+    else if (requestId != null)
+      MDC.remove(REQ_H_X_REQUEST_ID);
   }
 
   public void probe(String event) {

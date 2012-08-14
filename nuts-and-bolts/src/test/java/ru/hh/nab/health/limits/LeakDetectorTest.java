@@ -28,7 +28,7 @@ public class LeakDetectorTest {
     public boolean leakDetected;
 
     @Override
-    public void leakDetected() {
+    public void leakDetected(LeaseToken token) {
       leakDetected = true;
     }
   }

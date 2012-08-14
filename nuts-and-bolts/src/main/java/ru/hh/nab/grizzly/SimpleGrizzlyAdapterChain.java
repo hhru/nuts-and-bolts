@@ -41,10 +41,10 @@ public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {
   
   @Override
   public void service(GrizzlyRequest request, GrizzlyResponse response) throws Exception {
-    String context = request.getHeader(X_REQUEST_ID);
-    if (context == null)
-      context = "NoRequestId";
-    TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(context);
+    String requestId = request.getHeader(X_REQUEST_ID);
+    if (requestId == null)
+      requestId = "NoRequestId";
+    TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(null, requestId);
     timingsLogger.enterTimedArea();
     RequestScope.enter(request, timingsLogger);
     request.setAttribute(LOGGER_ATTR, timingsLogger);

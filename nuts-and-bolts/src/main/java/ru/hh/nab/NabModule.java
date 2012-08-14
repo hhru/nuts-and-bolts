@@ -56,6 +56,7 @@ import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.jersey.WebMethodMatcher;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;

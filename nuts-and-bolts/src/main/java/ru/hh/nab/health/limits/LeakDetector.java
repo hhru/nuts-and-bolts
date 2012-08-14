@@ -87,8 +87,12 @@ public class LeakDetector implements Runnable {
       } catch (ExecutionException e) {
         throw new RuntimeException(e.getMessage(), e);
       }
-      LOG.error("Tried to release a token twice", new IllegalStateException());
-      LOG.error("Tried to release a token twice, first exception was", firstEx);
+
+      if (firstEx == null)
+        LOG.error("Tried to release a token twice, could be stale token or programming bug");
+      else
+        LOG.error("Tried to release a token twice, could be stale token or programming bug, first exception was", firstEx);
+
     } else {
       byDeadline.remove(t);
       try {
@@ -103,9 +107,10 @@ public class LeakDetector implements Runnable {
     SortedMap<LeaseContext, LeaseToken> expired = byDeadline.headMap(new LeaseContext(DateTimeUtils.currentTimeMillis(), null));
     for (Map.Entry<LeaseContext, LeaseToken> e : expired.entrySet()) {
       LeaseContext ctx = e.getKey();
+      LeaseToken token = e.getValue();
       ctx.closure.enter();
       try {
-        leakListener.leakDetected();
+        leakListener.leakDetected(token);
       } finally {
         ctx.closure.leave();
       }

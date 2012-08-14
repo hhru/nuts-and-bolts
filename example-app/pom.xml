@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
-    <version>1.4.17-SNAPSHOT</version><!-- VERSION -->
+    <version>1.4.18-SNAPSHOT</version><!-- VERSION -->
     <relativePath>..</relativePath>
   </parent>
 
@@ -13,7 +13,7 @@
   <packaging>jar</packaging>
 
   <name>nuts'n'bolts example app</name>
-  <version>1.4.17-SNAPSHOT</version><!-- VERSION -->
+  <version>1.4.18-SNAPSHOT</version><!-- VERSION -->
 
   <dependencies>
     <dependency>
@@ -54,7 +54,7 @@
             <configuration>
               <finalName>${project.artifactId}</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <Main-Class>ru.hh.nab.Launcher</Main-Class>

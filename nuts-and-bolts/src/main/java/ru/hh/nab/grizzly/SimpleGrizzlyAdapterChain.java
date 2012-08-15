@@ -44,7 +44,10 @@ public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {
     String requestId = request.getHeader(X_REQUEST_ID);
     if (requestId == null)
       requestId = "NoRequestId";
-    TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(null, requestId);
+    TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(
+        String.format("%s %s", request.getMethod(), request.getRequestURI()),
+        requestId
+    );
     timingsLogger.enterTimedArea();
     RequestScope.enter(request, timingsLogger);
     request.setAttribute(LOGGER_ATTR, timingsLogger);

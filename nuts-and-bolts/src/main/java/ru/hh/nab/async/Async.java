@@ -3,8 +3,11 @@ package ru.hh.nab.async;
 import com.google.common.base.Function;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+
+import com.google.inject.OutOfScopeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.scopes.RequestScope;
 
 public abstract class Async<T> {
 
@@ -26,6 +29,7 @@ public abstract class Async<T> {
   }
 
   public final <F> Async<F> then(final Function<T, Async<F>> fn) {
+
     return new Async<F>() {
       @Override
       public void runExposed(final Callback<F> onSuccess, final Callback<Throwable> onError) {

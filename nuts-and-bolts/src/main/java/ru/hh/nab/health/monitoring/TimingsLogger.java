@@ -66,8 +66,8 @@ public class TimingsLogger {
     }
   }
 
-  private static String probeMessage(long start, long prev, String name, int cols) {
-    return String.format("  total(ms): %" + cols + "d %-" + (cols + 1) + "s %s%n", start, String.format("+%d", prev), name);
+  private static String probeMessage(long startOffset, long took, String name, int cols) {
+    return String.format("  total(ms): %" + cols + "d %-" + (cols + 1) + "s %s%n", startOffset, String.format("+%d", took), name);
   }
 
   private void outputLoggedTimings() {
@@ -101,7 +101,7 @@ public class TimingsLogger {
         LOG.debug(totalTimeMessage);
         return;
       }
-      LogLevel.Level logLevel = errorState ? LogLevel.Level.ERROR :  LogLevel.Level.WARN;
+      LogLevel.Level logLevel = errorState ? LogLevel.Level.ERROR : LogLevel.Level.WARN;
       LogLevel.log(LOG, logLevel, totalTimeMessage);
 
       final int totalRecords = logRecords.size();
@@ -110,17 +110,12 @@ public class TimingsLogger {
         maxCols = Long.toString(endTime - startTime).length();
       }
       for (int idx = 0; idx < totalRecords; idx++) {
-        long recordTimestamp = logRecords.get(idx).timestamp;
-        long diffFromStart = recordTimestamp - startTime;
-        long diffFromPrev = diffFromStart;
-        if (idx > 0)
-          diffFromPrev = recordTimestamp - logRecords.get(idx - 1).timestamp;
+        long timestamp = logRecords.get(idx).timestamp;
+        long startOffset = timestamp - startTime;
+        long nextTimestamp = (idx + 1 == totalRecords) ? endTime : logRecords.get(idx + 1).timestamp;
+        long took = nextTimestamp - timestamp;
 
-        LogLevel.log(LOG, logLevel, probeMessage(diffFromStart, diffFromPrev, logRecords.get(idx).message, maxCols));
-
-        if (idx == totalRecords - 1) {
-          LogLevel.log(LOG, logLevel, probeMessage(endTime - startTime, endTime - recordTimestamp, "<timed area end>", maxCols));
-        }
+        LogLevel.log(LOG, logLevel, probeMessage(startOffset, took, logRecords.get(idx).message, maxCols));
       }
     } finally {
       if (copy != null)

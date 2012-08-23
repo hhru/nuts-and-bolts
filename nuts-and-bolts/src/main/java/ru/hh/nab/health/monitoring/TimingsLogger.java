@@ -19,8 +19,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TimingsLogger {
   private final static Logger LOG = LoggerFactory.getLogger(TimingsLogger.class);
 
-  private final static String REQ_H_X_REQUEST_ID = "req.h.x-request-id";
-
   private final Map<String, Long> probeDelays;
   private final long totalTimeThreshold;
   private final String timingsContext;
@@ -74,13 +72,8 @@ public class TimingsLogger {
     final long endTime = DateTimeUtils.currentTimeMillis();
     long timeSpent = endTime - startTime;
 
-    String copy = MDC.get(REQ_H_X_REQUEST_ID);
-    if (requestId != null)
-      MDC.put(REQ_H_X_REQUEST_ID, requestId);
-    else if (copy != null)
-      MDC.remove(REQ_H_X_REQUEST_ID);
-
-    try { // clear MDC in finally
+    LoggingContext lc = LoggingContext.enter(requestId);
+    try { // leave LoggincContext in finally
 
       final boolean exceeded = timeSpent > totalTimeThreshold;
       final boolean logProbes = errorState || exceeded;
@@ -118,10 +111,7 @@ public class TimingsLogger {
         LogLevel.log(LOG, logLevel, probeMessage(startOffset, took, logRecords.get(idx).message, maxCols));
       }
     } finally {
-      if (copy != null)
-        MDC.put(REQ_H_X_REQUEST_ID, copy);
-      else if (requestId != null)
-        MDC.remove(REQ_H_X_REQUEST_ID);
+      lc.leave();
     }
   }
 

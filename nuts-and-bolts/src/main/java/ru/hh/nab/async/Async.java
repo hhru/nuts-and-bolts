@@ -4,10 +4,8 @@ import com.google.common.base.Function;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.inject.OutOfScopeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.scopes.RequestScope;
 
 public abstract class Async<T> {
 

@@ -43,6 +43,10 @@ public class GuicyAsyncExecutor {
     return new DeferredAsync<T>(body, requestScopeClosure, closures);
   }
 
+  public <T> Async<T> asyncWithTransferredRequestScope(Callable<T> body) {
+    return new DeferredAsync<T>(body, null, RequestScope.currentClosure());
+  }
+
   static void killThisThreadAfterExecution() {
     killThisThread.set(true);
   }

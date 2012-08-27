@@ -99,9 +99,8 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final CountDownLatch latch = new CountDownLatch(1);
 
     RequestScope.enter(mock(GrizzlyRequest.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap(), 1000L));
-    final RequestScope.RequestScopeClosure reqClj = RequestScope.currentClosure();
 
-    ama.async(new Callable<Integer>() {
+    ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject
       @Default
       EntityManager store;
@@ -117,7 +116,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     }).then(new Function<Integer, Async<TestEntity>>() {
       @Override
       public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.asyncWithRequestScope(new Callable<TestEntity>() {
+        return ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
           @Inject
           @Default
           EntityManager store;
@@ -127,7 +126,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
           public TestEntity call() {
             return store.find(TestEntity.class, id);
           }
-        }, reqClj);
+        });
       }
     }).run(new Callback<TestEntity>() {
       @Override
@@ -152,9 +151,8 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final CountDownLatch latch = new CountDownLatch(1);
 
     RequestScope.enter(mock(GrizzlyRequest.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap(), 1000L));
-    final RequestScope.RequestScopeClosure reqClj = RequestScope.currentClosure();
 
-    ama.async(new Callable<Integer>() {
+    ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject
       @Default
       EntityManager store;
@@ -171,7 +169,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     }).then(new Function<Integer, Async<TestEntity>>() {
       @Override
       public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.asyncWithRequestScope(new Callable<TestEntity>() {
+        return ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
           @Inject
           @Default
           EntityManager store;
@@ -182,7 +180,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
             GuicyAsyncExecutor.killThisThreadAfterExecution();
             return store.find(TestEntity.class, id);
           }
-        }, reqClj);
+        });
       }
     }).run(new Callback<TestEntity>() {
       @Override

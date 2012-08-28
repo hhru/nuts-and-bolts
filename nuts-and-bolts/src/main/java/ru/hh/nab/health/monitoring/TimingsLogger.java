@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import ru.hh.util.LogLevel;
 
 import javax.annotation.concurrent.ThreadSafe;

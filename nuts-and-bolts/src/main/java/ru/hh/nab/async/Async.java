@@ -6,14 +6,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/* IMPORTANT NOTE
+/* (this is not javadoc)
+ *
+ * IMPORTANT NOTE
  *
  *  1. The original purpose of async is to do certain tasks without
  *  blocking the original thread, so that this thread can be reused
  *  again by the calling code (assuming that it came from a thread
  *  pool).
  *
- *  1. Async is a very generic concept, but in our code it is
+ *  2. Async is a very generic concept, but in our code it is
  *  almost always used in the context of Jersey/Grizzly calls
  *  with RequestScope.
  *
@@ -46,7 +48,6 @@ import org.slf4j.LoggerFactory;
  *
  *  Example:
  *
- *  <pre>
  *  protected void runExposed(Callback<String> onSuccess, Callback<Throwable> onError) throws Exception {
  *    final Callback<String> scopedOnSuccess = CallbackWithRequestScope.fromCallback(onSuccess);
  *    final Callback<Throwable> scopedOnError = CallbackWithRequestScope.fromCallback(onError);
@@ -77,14 +78,12 @@ import org.slf4j.LoggerFactory;
  *        }
  *      );
  *  }
- * </pre>
  *
  * In this example we do some results handling before calling
  * callbacks with request scope which is ok but is very good.
  *
  * We could also do this:
  *
- *  <pre>
  *  protected abstract static class RequestScopedAsyncCompletionHandler<T> extends AsyncCompletionHandler<T> {
  *   private final RequestScopeClosure requestScopeClosure;
  *
@@ -145,14 +144,11 @@ import org.slf4j.LoggerFactory;
  *        }
  *      );
  *  }
- * </pre>
  *
  * 3. If Async is run as a scheduled task, it is still probably
  *    easier to provide fake request and enter fake RequestScope
  *    or make internal http call.
  */
-
-
 
 public abstract class Async<T> {
 

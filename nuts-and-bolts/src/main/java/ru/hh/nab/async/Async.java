@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
  *
  *   d) Same for any code running in other threads, always enter
  *      RequestScope as soon as our code gets control of execution
- *      and leave in finally clause.
+ *      and leave in the finally clause.
  *
  *      The only code which can be run without RequestScope is
  *      the 3rd party library code (i.e. async http client code)
- *      from the point where it starts and until the point
- *      where our callbacks are called.
+ *      from the point where it starts in another thread and
+ *      up to the point where our callbacks are called.
  *
  *  Example:
  *
@@ -116,7 +116,7 @@ import org.slf4j.LoggerFactory;
  *   protected abstract T onCompletedExposed(Response response) throws Exception;
  * }
  *
- *  protected void runExposed(Callback<String> onSuccess, Callback<Throwable> onError) throws Exception {
+ *  protected void runExposed(final Callback<String> onSuccess, final Callback<Throwable> onError) throws Exception {
  *    ...
  *    httpClient
  *      ...

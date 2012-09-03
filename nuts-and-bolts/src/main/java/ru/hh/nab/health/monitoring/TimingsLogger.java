@@ -64,7 +64,7 @@ public class TimingsLogger {
   }
 
   private String probeMessage(long startOffset, long took, String name, int cols) {
-    return String.format("  total(ms): %" + cols + "d %-" + (cols + 1) + "s %s%n", startOffset, String.format("+%d", took), name);
+    return String.format("  elapsed(ms): %" + cols + "d %-" + (cols + 1) + "s %s", startOffset, String.format("+%d", took), name);
   }
 
   private void outputLoggedTimings() {

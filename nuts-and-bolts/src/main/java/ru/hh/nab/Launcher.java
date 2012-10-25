@@ -24,6 +24,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.LeakDetector;
@@ -108,6 +109,8 @@ public class Launcher {
 
       SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
       ws.start();
+      HttpAdaptor adaptor = inj.getInstance(HttpAdaptor.class);
+      adaptor.start();
       return new Instance(inj, ws.getSelectorThread().getPort());
     } catch (IOException ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);

@@ -13,40 +13,74 @@ import org.aopalliance.intercept.MethodInvocation;
 public class TxInterceptor implements MethodInterceptor {
   private static class CurrentTx {
     private final EntityManager em;
-    private boolean readOnly;
-    private final EntityTransaction tx;
+    private boolean readOnly = false;
+    private EntityTransaction tx = null; // null for dummy transactions
     private final PostCommitHooks postCommitHooks = new PostCommitHooks();
 
     public CurrentTx(EntityManager em, Transactional ann) {
       this.em = em;
-      this.tx = em.getTransaction();
-      this.readOnly = ann.readOnly();
-      em.setFlushMode(readOnly ? FlushModeType.COMMIT : FlushModeType.AUTO);
-      if (ann.rollback())
-        tx.setRollbackOnly();
+      initTx(em, ann);
+    }
+
+    private void initTx(EntityManager em, Transactional ann) {
+      if (!ann.dummy()) {
+        readOnly = ann.readOnly();
+        tx = em.getTransaction();
+        em.setFlushMode(readOnly ? FlushModeType.COMMIT : FlushModeType.AUTO);
+        if (ann.rollback()) {
+          tx.setRollbackOnly();
+        }
+      } else {
+        initDummy();
+      }
     }
 
     public void enter(Transactional ann) {
-      if (!tx.getRollbackOnly() && ann.rollback()) {
-        throw new IllegalStateException("Can't execute (rollback() == true) tx while in (rollback() == false) tx");
-      }
-      if (readOnly && !ann.readOnly()) {
-        em.setFlushMode(FlushModeType.AUTO);
-        readOnly = false;
+      if (isDummy()) {
+        initTx(em, ann);
+      } else {
+        if (!tx.getRollbackOnly() && ann.rollback()) {
+          throw new IllegalStateException("Can't execute (rollback() == true) tx while in (rollback() == false) tx");
+        }
+        if (readOnly && !ann.readOnly()) {
+          em.setFlushMode(FlushModeType.AUTO);
+          readOnly = false;
+        }
       }
     }
 
     public void begin() {
+      if (isDummy()) {
+        throw new IllegalStateException("begin() must not be called in a dummy transaction");
+      }
       tx.begin();
     }
 
     public void commit() {
+      if (isDummy()) {
+        throw new IllegalStateException("commit() must not be called in a dummy transaction");
+      }
       tx.commit();
+      initDummy();
     }
 
     public void rollbackIfActive() {
-      if (tx.isActive())
+      if (isDummy()) {
+        throw new IllegalStateException("rollbackIfActive() must not be called in a dummy transaction");
+      }
+      if (tx.isActive()) {
         tx.rollback();
+      }
+      initDummy();
+    }
+
+    public boolean isDummy() {
+      return tx == null;
+    }
+
+    public void initDummy() {
+      tx = null;
+      em.setFlushMode(FlushModeType.AUTO);
     }
   }
 
@@ -59,17 +93,32 @@ public class TxInterceptor implements MethodInterceptor {
   }
 
   public <T> T invoke(Transactional ann, Callable<T> invocation) throws Exception {
-    EntityManager em = emf.get().createEntityManager();
-    CurrentTx tx = this.tx.get();
-    if (tx != null) {
-      tx.enter(ann);
-      return invocation.call();
-    }
+    EntityManager em = null;
     boolean committed = false;
+    CurrentTx tx = this.tx.get();
     try {
-      tx = new CurrentTx(em, ann);
-      this.tx.set(tx);
+      if (tx == null) {
+        // init new 'dummy' or 'real' transaction
+        em = emf.get().createEntityManager();
+        tx = new CurrentTx(em, ann);
+        this.tx.set(tx);
+      } else if (!tx.isDummy()) {
+        // continue previously started 'real' transaction
+        tx.enter(ann);
+        return invocation.call();
+      }
+
+      // continue or start 'dummy' transaction
+      if (ann.dummy()) {
+        return invocation.call();
+      }
+
+      // start new 'real' transaction, possibly over previous 'dummy' transaction
       T result;
+      if (tx.isDummy()) {
+        // override dummy transaction bits
+        tx.enter(ann);
+      }
       tx.begin();
       try {
         result = invocation.call();
@@ -77,12 +126,15 @@ public class TxInterceptor implements MethodInterceptor {
         committed = true;
       } catch (Exception e) {
         tx.rollbackIfActive();
-        throw e;
+        throw new Exception(e);
       }
       return result;
     } finally {
-      this.tx.remove();
-      em.close();
+      // release entity manager and remove transaction if we have created it in this call
+      if (em != null) {
+        this.tx.remove();
+        em.close();
+      }
       if (committed)
         tx.postCommitHooks.execute();
     }

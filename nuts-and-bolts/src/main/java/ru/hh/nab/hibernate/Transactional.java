@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR })
 public @interface Transactional {
   boolean readOnly() default false;
+  boolean dummy() default false;
   boolean rollback() default false;
   Class<? extends Annotation> value() default Default.class;
 }

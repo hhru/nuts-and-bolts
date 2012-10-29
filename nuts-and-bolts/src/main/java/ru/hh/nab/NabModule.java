@@ -345,7 +345,6 @@ public abstract class NabModule extends AbstractModule {
   @Singleton
   HttpAdaptor httpAdaptor(Settings settings) {
     Properties mx4jProps = settings.subTree("mx4j");
-    HttpAdaptor mockAdaptor = new HttpAdaptor() { public void start() {} };
     if ("true".equals(mx4jProps.getProperty("mode"))) {
       try {
         HttpAdaptor adaptor = new HttpAdaptor();
@@ -357,10 +356,10 @@ public abstract class NabModule extends AbstractModule {
       } catch (Exception ex) {
         Logger logger = LoggerFactory.getLogger(HttpAdaptor.class);
         logger.error("Can't create HttpAdaptor: " + ex);
-        return mockAdaptor;
+        return null;
       }
     } else {
-      return mockAdaptor;
+      return null;
     }
   }
 

@@ -110,7 +110,9 @@ public class Launcher {
       SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
       ws.start();
       HttpAdaptor adaptor = inj.getInstance(HttpAdaptor.class);
-      adaptor.start();
+      if (adaptor != null) {
+        adaptor.start();
+      }
       return new Instance(inj, ws.getSelectorThread().getPort());
     } catch (IOException ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);

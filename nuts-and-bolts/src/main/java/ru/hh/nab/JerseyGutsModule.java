@@ -145,7 +145,11 @@ public class JerseyGutsModule extends AbstractModule {
   @Provides
   @RequestScoped
   GrizzlyRequest httpRequestContext() {
-    return RequestScope.currentRequest();
+    Object request = RequestScope.currentRequest();
+    if (request == null || !(request instanceof GrizzlyRequest)) {
+      throw new IllegalArgumentException("Not a grizzly request");
+    }
+    return (GrizzlyRequest) request;
   }
 
   protected

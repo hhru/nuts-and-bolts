@@ -93,7 +93,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
 
   @Test
   public void basicOperation() throws InterruptedException {
-    final GuicyAsyncExecutor ama = instance().instance.injector.getInstance(GuicyAsyncExecutor.class);
+    final GuicyAsyncExecutor ama = injector().getInstance(GuicyAsyncExecutor.class);
 
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
@@ -145,7 +145,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
 
   @Test
   public void computationResumesInAnotherThread() throws InterruptedException {
-    final GuicyAsyncExecutor ama = instance().instance.injector.getInstance(GuicyAsyncExecutor.class);
+    final GuicyAsyncExecutor ama = injector().getInstance(GuicyAsyncExecutor.class);
 
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);

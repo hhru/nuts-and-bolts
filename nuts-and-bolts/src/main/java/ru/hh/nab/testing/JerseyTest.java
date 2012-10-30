@@ -1,6 +1,7 @@
 package ru.hh.nab.testing;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
 import java.util.Properties;
@@ -78,6 +79,10 @@ public abstract class JerseyTest {
 
   protected final Instance instance() {
     return instances.get(definingSubclass(this.getClass())).get();
+  }
+
+  protected Injector injector() {
+    return instance().instance.injector;
   }
 
   protected final String baseUrl() {

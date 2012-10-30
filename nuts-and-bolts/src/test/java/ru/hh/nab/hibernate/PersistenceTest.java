@@ -169,6 +169,25 @@ public class PersistenceTest {
       postCommitActions.get().addHook(hook);
       em.get().persist(e);
     }
+
+    @Transactional(optional = true)
+    public void txOptionalMethod(TestHook hook2, TestHook hook3) {
+      txMethod(hook2);
+      postCommitActions.get().addHook(hook3);
+    }
+
+    @Transactional(optional = true)
+    public void txOptionalMethodWithError1(TestHook hook, TestHook hookOptional) throws PersistenceException {
+      txMethod(hook);
+      postCommitActions.get().addHook(hookOptional);
+      throw new IllegalArgumentException("your argument is invalid");
+    }
+
+    @Transactional(optional = true)
+    public void txOptionalMethodWithError2(TestHook hook, TestHook hookOptional) {
+      postCommitActions.get().addHook(hook);
+      txMethodWithError(hook);
+    }
   }
 
   public static class TestHook implements Runnable {
@@ -222,6 +241,30 @@ public class PersistenceTest {
     TestHook hook = inst.injector.getInstance(TestHook.class);
     service.txMethod(hook);
     assertTrue(hook.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    TestHook hookOptional = inst.injector.getInstance(TestHook.class);
+    service.txOptionalMethod(hook, hookOptional);
+    assertTrue(hook.called());
+    assertTrue(hookOptional.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    hookOptional = inst.injector.getInstance(TestHook.class);
+    try {
+      service.txOptionalMethodWithError1(hook, hookOptional);
+      fail();
+    } catch (IllegalArgumentException expected){}
+    assertTrue(hook.called());
+    assertFalse(hookOptional.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    hookOptional = inst.injector.getInstance(TestHook.class);
+    try {
+      service.txOptionalMethodWithError2(hook, hookOptional);
+      fail();
+    } catch (PersistenceException expected){}
+    assertFalse(hook.called());
+    assertFalse(hookOptional.called());
 
     hook = inst.injector.getInstance(TestHook.class);
     try {

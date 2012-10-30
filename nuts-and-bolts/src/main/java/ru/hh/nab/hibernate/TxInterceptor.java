@@ -5,14 +5,12 @@ import com.google.inject.Provider;
 import java.util.concurrent.Callable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.FlushModeType;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 public class TxInterceptor implements MethodInterceptor {
 
-  private ThreadLocal<CurrentTx> txHolder = new ThreadLocal<CurrentTx>();
+  private ThreadLocal<TransactionalContext> txHolder = new ThreadLocal<TransactionalContext>();
 
   private Provider<EntityManagerFactory> emf;
 
@@ -21,54 +19,75 @@ public class TxInterceptor implements MethodInterceptor {
   }
 
   public <T> T invoke(Transactional ann, Callable<T> invocation) throws Exception {
+    TransactionalContext tx = txHolder.get();
+    // Is transaction context already initialized (i.e. have we already
+    // encountered Transactional annotation) ?
+    if (tx != null) {
+      if (tx.inTransaction()) {
+        // continue previously started transaction
+        tx.enter(ann);
+        return invocation.call();
+      } else if (ann.optional()) {
+        // not in transaction, and no need to start transaction
+        return invocation.call();
+      } else {
+        // not in transaction, need to start transaction
+        return runInTransaction(ann, invocation);
+      }
+    }
+
     EntityManager em = null;
-    boolean committed = false;
-    CurrentTx tx = txHolder.get();
     try {
+      // create entity manager instance and init new context
+      em = emf.get().createEntityManager();
+      tx = new TransactionalContext(em);
+      txHolder.set(tx);
 
-      if (tx != null && !tx.isDummy()) {
-        // continue previously started 'real' transaction
-        tx.enter(ann);
-        return invocation.call();
+      // call the callback...
+      if (ann.optional()) {
+        // ...without transaction
+        return runWithoutTransaction(invocation);
+      } else {
+        // ...with transaction
+        return runInTransaction(ann, invocation);
       }
-
-      if (tx == null) {
-        // init new 'dummy' or 'real' transaction
-        em = emf.get().createEntityManager();
-        tx = new CurrentTx(em, ann);
-        txHolder.set(tx);
-      }
-
-      // continue or start 'dummy' transaction
-      if (ann.dummy()) {
-        return invocation.call();
-      }
-
-      // start new 'real' transaction, possibly over previous 'dummy' transaction
-      T result;
-      if (tx.isDummy()) {
-        // override dummy transaction bits
-        tx.enter(ann);
-      }
-      tx.begin();
-      try {
-        result = invocation.call();
-        tx.commit();
-        committed = true;
-      } catch (Exception e) {
-        tx.rollbackIfActive();
-        throw new Exception(e);
-      }
-      return result;
     } finally {
-      // release entity manager and remove transaction if we have created it in this call
+      // release entity manager and remove transaction context object
+      // if we have created them in this call
       if (em != null) {
         txHolder.remove();
         em.close();
       }
-      if (committed)
-        tx.postCommitHooks.execute();
     }
+  }
+
+  private <T> T runInTransaction(Transactional ann, Callable<T> invocation) throws Exception {
+    TransactionalContext tx = txHolder.get();
+    PostCommitHooks hooks = new PostCommitHooks();
+    T result = tx.runInTransaction(ann, invocation, hooks);
+    try {
+      // post commit hooks must know nothing about
+      // current transaction (or have access to entity manager)
+      txHolder.remove();
+      hooks.execute();
+    } finally {
+      txHolder.set(tx);
+    }
+    return result;
+  }
+
+  private <T> T runWithoutTransaction(Callable<T> invocation) throws Exception {
+    TransactionalContext tx = txHolder.get();
+    T result = invocation.call();
+    try {
+      // post commit hooks must know nothing about
+      // current transaction (or have access to entity manager)
+      txHolder.remove();
+      tx.getPostCommitHooks().execute();
+    } finally {
+      txHolder.set(tx);
+    }
+    return result;
   }
 
   @Override
@@ -82,7 +101,7 @@ public class TxInterceptor implements MethodInterceptor {
               return invocation.proceed();
             } catch (Throwable throwable) {
               if (throwable instanceof Exception)
-                throw new Exception(throwable);
+                throw (Exception)throwable;
               else
                 throw new RuntimeException(throwable);
             }
@@ -91,87 +110,15 @@ public class TxInterceptor implements MethodInterceptor {
   }
 
   public EntityManager currentEntityManager() {
-    CurrentTx tx = txHolder.get();
-    Preconditions.checkState(tx != null, "Not in transaction");
-    return tx.em;
+    TransactionalContext tx = txHolder.get();
+    Preconditions.checkState(tx != null, "No @Transaction annotation specified");
+    return tx.getEntityManager();
   }
 
   public PostCommitHooks currentPostCommitHooks() {
-    CurrentTx tx = txHolder.get();
-    Preconditions.checkState(tx != null, "Not in transaction");
-    return tx.postCommitHooks;
+    TransactionalContext tx = txHolder.get();
+    Preconditions.checkState(tx != null, "No @Transaction annotation specified");
+    return tx.getPostCommitHooks();
   }
 
-  private static class CurrentTx {
-    private final EntityManager em;
-    private boolean readOnly = false;
-    private EntityTransaction jpaTx = null; // null for dummy transactions
-    private final PostCommitHooks postCommitHooks = new PostCommitHooks();
-
-    public CurrentTx(EntityManager em, Transactional ann) {
-      this.em = em;
-      initTx(em, ann);
-    }
-
-    private void initTx(EntityManager em, Transactional ann) {
-      if (!ann.dummy()) {
-        readOnly = ann.readOnly();
-        jpaTx = em.getTransaction();
-        em.setFlushMode(readOnly ? FlushModeType.COMMIT : FlushModeType.AUTO);
-        if (ann.rollback()) {
-          jpaTx.setRollbackOnly();
-        }
-      } else {
-        initDummy();
-      }
-    }
-
-    public void enter(Transactional ann) {
-      if (isDummy()) {
-        initTx(em, ann);
-      } else {
-        if (!jpaTx.getRollbackOnly() && ann.rollback()) {
-          throw new IllegalStateException("Can't execute (rollback() == true) tx while in (rollback() == false) tx");
-        }
-        if (readOnly && !ann.readOnly()) {
-          em.setFlushMode(FlushModeType.AUTO);
-          readOnly = false;
-        }
-      }
-    }
-
-    public void begin() {
-      if (isDummy()) {
-        throw new IllegalStateException("begin() must not be called in a dummy transaction");
-      }
-      jpaTx.begin();
-    }
-
-    public void commit() {
-      if (isDummy()) {
-        throw new IllegalStateException("commit() must not be called in a dummy transaction");
-      }
-      jpaTx.commit();
-      initDummy();
-    }
-
-    public void rollbackIfActive() {
-      if (isDummy()) {
-        throw new IllegalStateException("rollbackIfActive() must not be called in a dummy transaction");
-      }
-      if (jpaTx.isActive()) {
-        jpaTx.rollback();
-      }
-      initDummy();
-    }
-
-    public boolean isDummy() {
-      return jpaTx == null;
-    }
-
-    public void initDummy() {
-      jpaTx = null;
-      em.setFlushMode(FlushModeType.AUTO);
-    }
-  }
 }

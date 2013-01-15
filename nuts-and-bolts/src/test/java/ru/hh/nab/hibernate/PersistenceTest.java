@@ -28,11 +28,148 @@ import ru.hh.nab.ModelAction;
 import ru.hh.nab.NabModule;
 
 public class PersistenceTest {
+  @Test
+  public void test() throws IOException {
+    Properties props = new Properties();
+    props.put("concurrencyLevel", "1");
+    props.put("port", "0");
+
+    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    props.put("default-db.hibernate.hbm2ddl.auto", "update");
+    props.put("default-db.hibernate.format_sql", "true");
+
+    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
+    props.put("default-db.c3p0.user", "sa");
+    props.put("default-db.c3p0.password", "");
+
+    Launcher.Instance inst = Launcher.testMode(
+      Stage.DEVELOPMENT,
+      new NabModule() {
+        @Override
+        protected void configureApp() {
+          bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+
+          bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
+        }
+      }, props, new Properties(), new Properties());
+
+// Injector injector = Guice.createInjector(Stage.DEVELOPMENT, new NabModule() {
+// @Override
+// protected void configureApp() {
+// bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+//
+// bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
+// }
+//
+// @Provides
+// @Singleton
+// Settings settings() {
+// Properties props = new Properties();
+// props.put("concurrencyLevel", "1");
+// props.put("port", "0");
+//
+// props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+// props.put("default-db.hibernate.hbm2ddl.auto", "update");
+// props.put("default-db.hibernate.format_sql", "true");
+//
+// props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+// props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
+// props.put("default-db.c3p0.user", "sa");
+// props.put("default-db.c3p0.password", "");
+//
+// return new Settings(props);
+// }
+// });
+
+    EntityManagerWrapper em = inst.injector.getInstance(EntityManagerWrapper.class);
+    ModelAccess ma = inst.injector.getInstance(Key.get(ModelAccess.class, Default.class));
+
+    TestEntity entity = new TestEntity();
+    entity.setName("42");
+    int id = em.persist(entity);
+
+    entity = em.get(id);
+    Assert.assertEquals("42", entity.getName());
+
+    ma.perform(
+      new ModelAction<TestEntity>() {
+        @Override
+        public TestEntity perform(EntityManager store) {
+          TypedQuery<TestEntity> q = store.createQuery("from TestEntity where name = :name", TestEntity.class);
+          return q.setParameter("name", "42").getSingleResult();
+        }
+      });
+  }
+
+  @Test
+  public void postCommitActions() throws IOException {
+    Properties props = new Properties();
+    props.put("concurrencyLevel", "1");
+    props.put("port", "0");
+
+    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    props.put("default-db.hibernate.hbm2ddl.auto", "update");
+    props.put("default-db.hibernate.format_sql", "true");
+
+    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
+    props.put("default-db.c3p0.user", "sa");
+    props.put("default-db.c3p0.password", "");
+
+    Launcher.Instance inst = Launcher.testMode(
+      Stage.DEVELOPMENT,
+      new NabModule() {
+        @Override
+        protected void configureApp() {
+          bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+          bind(TestService.class).in(Scopes.SINGLETON);
+          bind(TestHook.class);
+        }
+      }, props, new Properties(), new Properties());
+
+    TestService service = inst.injector.getInstance(TestService.class);
+    TestHook hook = inst.injector.getInstance(TestHook.class);
+    service.txMethod(hook);
+    assertTrue(hook.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    TestHook hookOptional = inst.injector.getInstance(TestHook.class);
+    service.txOptionalMethod(hook, hookOptional);
+    assertTrue(hook.called());
+    assertTrue(hookOptional.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    hookOptional = inst.injector.getInstance(TestHook.class);
+    try {
+      service.txOptionalMethodWithError1(hook, hookOptional);
+      fail();
+    } catch (IllegalArgumentException expected) { }
+    assertTrue(hook.called());
+    assertFalse(hookOptional.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    hookOptional = inst.injector.getInstance(TestHook.class);
+    try {
+      service.txOptionalMethodWithError2(hook, hookOptional);
+      fail();
+    } catch (PersistenceException expected) { }
+    assertFalse(hook.called());
+    assertFalse(hookOptional.called());
+
+    hook = inst.injector.getInstance(TestHook.class);
+    try {
+      service.txMethodWithError(hook);
+      fail();
+    } catch (PersistenceException expected) { }
+    assertFalse(hook.called());
+  }
+
   @Entity(name = "TestEntity")
   @Table(name = "test")
   public static class TestEntity {
-    @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Id
     private Integer id;
 
     @Basic(optional = false)
@@ -56,8 +193,8 @@ public class PersistenceTest {
   }
 
   public static class EntityManagerWrapper {
-    @Inject
     @Default
+    @Inject
     Provider<EntityManager> em;
 
     @Transactional
@@ -72,85 +209,14 @@ public class PersistenceTest {
     }
   }
 
-  @Test
-  public void test() throws IOException {
-    Properties props = new Properties();
-    props.put("concurrencyLevel", "1");
-    props.put("port", "0");
-
-    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-    props.put("default-db.hibernate.hbm2ddl.auto", "update");
-    props.put("default-db.hibernate.format_sql", "true");
-
-    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-    props.put("default-db.c3p0.user", "sa");
-    props.put("default-db.c3p0.password", "");
-
-    Launcher.Instance inst = Launcher.testMode(Stage.DEVELOPMENT, new NabModule() {
-      @Override
-      protected void configureApp() {
-        bindDataSourceAndEntityManagerAccessor(TestEntity.class);
-
-        bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
-      }
-    }, props, new Properties(), new Properties());
-
-//    Injector injector = Guice.createInjector(Stage.DEVELOPMENT, new NabModule() {
-//      @Override
-//      protected void configureApp() {
-//        bindDataSourceAndEntityManagerAccessor(TestEntity.class);
-//
-//        bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
-//      }
-//
-//      @Provides
-//      @Singleton
-//      Settings settings() {
-//        Properties props = new Properties();
-//        props.put("concurrencyLevel", "1");
-//        props.put("port", "0");
-//
-//        props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-//        props.put("default-db.hibernate.hbm2ddl.auto", "update");
-//        props.put("default-db.hibernate.format_sql", "true");
-//
-//        props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-//        props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-//        props.put("default-db.c3p0.user", "sa");
-//        props.put("default-db.c3p0.password", "");
-//
-//        return new Settings(props);
-//      }
-//    });
-
-    EntityManagerWrapper em = inst.injector.getInstance(EntityManagerWrapper.class);
-    ModelAccess ma = inst.injector.getInstance(Key.get(ModelAccess.class, Default.class));
-
-    TestEntity entity = new TestEntity();
-    entity.setName("42");
-    int id = em.persist(entity);
-
-    entity = em.get(id);
-    Assert.assertEquals("42", entity.getName());
-
-    ma.perform(new ModelAction<TestEntity>() {
-      @Override
-      public TestEntity perform(EntityManager store) {
-        TypedQuery<TestEntity> q = store.createQuery("from TestEntity where name = :name", TestEntity.class);
-        return q.setParameter("name", "42").getSingleResult();
-      }
-    });
-  }
-
   public static class TestService {
-
     private final Provider<EntityManager> em;
     private final Provider<PostCommitHooks> postCommitActions;
 
     @Inject
-    public TestService(@Default Provider<EntityManager> em,
-                       @Default Provider<PostCommitHooks> postCommitActions) {
+    public TestService(@Default
+        Provider<EntityManager> em, @Default
+        Provider<PostCommitHooks> postCommitActions) {
       this.em = em;
       this.postCommitActions = postCommitActions;
     }
@@ -191,12 +257,12 @@ public class PersistenceTest {
   }
 
   public static class TestHook implements Runnable {
-
     private final Provider<EntityManager> em;
     private boolean called;
 
     @Inject
-    public TestHook(@Default Provider<EntityManager> em) {
+    public TestHook(@Default
+        Provider<EntityManager> em) {
       this.em = em;
     }
 
@@ -205,7 +271,7 @@ public class PersistenceTest {
       try {
         em.get();
         fail();
-      } catch (ProvisionException notInTxt) {}
+      } catch (ProvisionException notInTxt) { }
       called = true;
     }
 
@@ -213,65 +279,4 @@ public class PersistenceTest {
       return called;
     }
   }
-
-  @Test public void postCommitActions() throws IOException {
-    Properties props = new Properties();
-    props.put("concurrencyLevel", "1");
-    props.put("port", "0");
-
-    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-    props.put("default-db.hibernate.hbm2ddl.auto", "update");
-    props.put("default-db.hibernate.format_sql", "true");
-
-    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-    props.put("default-db.c3p0.user", "sa");
-    props.put("default-db.c3p0.password", "");
-
-    Launcher.Instance inst = Launcher.testMode(Stage.DEVELOPMENT, new NabModule() {
-      @Override
-      protected void configureApp() {
-        bindDataSourceAndEntityManagerAccessor(TestEntity.class);
-        bind(TestService.class).in(Scopes.SINGLETON);
-        bind(TestHook.class);
-      }
-    }, props, new Properties(), new Properties());
-
-    TestService service = inst.injector.getInstance(TestService.class);
-    TestHook hook = inst.injector.getInstance(TestHook.class);
-    service.txMethod(hook);
-    assertTrue(hook.called());
-
-    hook = inst.injector.getInstance(TestHook.class);
-    TestHook hookOptional = inst.injector.getInstance(TestHook.class);
-    service.txOptionalMethod(hook, hookOptional);
-    assertTrue(hook.called());
-    assertTrue(hookOptional.called());
-
-    hook = inst.injector.getInstance(TestHook.class);
-    hookOptional = inst.injector.getInstance(TestHook.class);
-    try {
-      service.txOptionalMethodWithError1(hook, hookOptional);
-      fail();
-    } catch (IllegalArgumentException expected){}
-    assertTrue(hook.called());
-    assertFalse(hookOptional.called());
-
-    hook = inst.injector.getInstance(TestHook.class);
-    hookOptional = inst.injector.getInstance(TestHook.class);
-    try {
-      service.txOptionalMethodWithError2(hook, hookOptional);
-      fail();
-    } catch (PersistenceException expected){}
-    assertFalse(hook.called());
-    assertFalse(hookOptional.called());
-
-    hook = inst.injector.getInstance(TestHook.class);
-    try {
-      service.txMethodWithError(hook);
-      fail();
-    } catch (PersistenceException expected){}
-    assertFalse(hook.called());
-  }
 }
-

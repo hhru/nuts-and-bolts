@@ -21,16 +21,15 @@ public class HeadersAnnotationFilterFactory implements ResourceFilterFactory {
     this.permissionLoader = permissionLoader;
   }
 
-
   @Override
   public List<ResourceFilter> create(AbstractMethod am) {
     List<ResourceFilter> filters = Lists.newArrayList();
     filters.add(new FreemarkerModelFilter());
-    if (am.isAnnotationPresent(Cached.class))
+    if (am.isAnnotationPresent(Cached.class)) {
       filters.add(new CacheControlFilter(am.getAnnotation(Cached.class)));
+    }
     filters.add(new NginxQuirksFilter());
     filters.add(new SecurityFilter(permissionLoader));
     return filters;
   }
-
 }

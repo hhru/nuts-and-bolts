@@ -15,14 +15,16 @@ import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.RequestScope;
 
 public class GuicyAsyncExecutor {
+  public static final ThreadLocal<Boolean> killThisThread =
+    new ThreadLocal<Boolean>() {
+      @Override
+      protected Boolean initialValue() {
+        return false;
+      }
+    };
+
   private final Executor executor;
   private final Logger LOG = LoggerFactory.getLogger(GuicyAsyncExecutor.class);
-  public static final ThreadLocal<Boolean> killThisThread = new ThreadLocal<Boolean>() {
-    @Override
-    protected Boolean initialValue() {
-      return false;
-    }
-  };
   private final Injector inj;
 
   public GuicyAsyncExecutor(Injector inj, String name, int threads) {
@@ -53,47 +55,52 @@ public class GuicyAsyncExecutor {
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
       timingsLogger.probe("async-submission");
-      executor.execute(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            requestScopeClosure.enter();
-            timingsLogger.probe("async-execution");
-            final Callable<T> injCallable = new Callable<T>() {
-              @Override
-              public T call() throws Exception {
-                inj.injectMembers(body);
-                return body.call();
-              }
-            };
-            Callable<T> callable = new Callable<T>() {
-              @Override
-              public T call() throws Exception {
-                try {
-                  Transactional ann = body.getClass().getMethod("call").getAnnotation(Transactional.class);
-                  if (ann == null)
-                    return injCallable.call();
-                  TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, ann.value()));
-                  return interceptor.invoke(ann, injCallable);
-                } finally {
-                  timingsLogger.probe("async-finish");
-                }
-              }
-            };
-            onSuccess.call(callable.call());
-          } catch (Throwable e) {
-            timingsLogger.setErrorState();
+      executor.execute(
+        new Runnable() {
+          @Override
+          public void run() {
             try {
-              onError.call(e);
-            } catch (Throwable ee) {
-              LOG.error("Exception in error handler", ee);
-              LOG.error("Original exception was", e);
+              requestScopeClosure.enter();
+              timingsLogger.probe("async-execution");
+              final Callable<T> injCallable =
+                new Callable<T>() {
+                  @Override
+                  public T call() throws Exception {
+                    inj.injectMembers(body);
+                    return body.call();
+                  }
+                };
+
+              Callable<T> callable =
+                new Callable<T>() {
+                  @Override
+                  public T call() throws Exception {
+                    try {
+                      Transactional ann = body.getClass().getMethod("call").getAnnotation(Transactional.class);
+                      if (ann == null) {
+                        return injCallable.call();
+                      }
+                      TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, ann.value()));
+                      return interceptor.invoke(ann, injCallable);
+                    } finally {
+                      timingsLogger.probe("async-finish");
+                    }
+                  }
+                };
+              onSuccess.call(callable.call());
+            } catch (Throwable e) {
+              timingsLogger.setErrorState();
+              try {
+                onError.call(e);
+              } catch (Throwable ee) {
+                LOG.error("Exception in error handler", ee);
+                LOG.error("Original exception was", e);
+              }
+            } finally {
+              requestScopeClosure.leave();
             }
-          } finally {
-            requestScopeClosure.leave();
           }
-        }
-      });
+        });
       if (GuicyAsyncExecutor.killThisThread.get()) {
         Thread.currentThread().interrupt();
       }

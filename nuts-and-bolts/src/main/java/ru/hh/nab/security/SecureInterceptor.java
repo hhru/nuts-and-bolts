@@ -17,8 +17,9 @@ public class SecureInterceptor implements MethodInterceptor {
 
     Secure ann = invocation.getMethod().getAnnotation(Secure.class);
     for (String p : ann.value()) {
-      if (!perms.hasPermissionTo(p))
+      if (!perms.hasPermissionTo(p)) {
         throw new UnauthorizedException();
+      }
     }
     return invocation.proceed();
   }

@@ -8,31 +8,15 @@ import com.sun.jersey.spi.container.ResourceFilter;
 import org.apache.commons.lang.StringUtils;
 
 public class SecurityFilter implements ResourceFilter {
-  private final PermissionLoader permissions;
   static final String REQUEST_PROPERTY_KEY = "ru.hh.nab.security.SecurityFilter.permissions";
+  private final PermissionLoader permissions;
+
+  private final SecurityRequestFilter FILTER_INSTANCE = new SecurityRequestFilter();
 
   @Inject
   public SecurityFilter(PermissionLoader permissions) {
     this.permissions = permissions;
   }
-
-  public class SecurityRequestFilter implements ContainerRequestFilter {
-    @Override
-    public ContainerRequest filter(ContainerRequest request) {
-      String apiKey = request.getHeaderValue("X-Hh-Api-Key");
-
-      Permissions p = null;
-      if (!StringUtils.isEmpty(apiKey))
-        p = permissions.forKey(apiKey);
-      if (p == null)
-        p = permissions.anonymous();
-
-      request.getProperties().put(REQUEST_PROPERTY_KEY, p);
-      return request;
-    }
-  }
-
-  private final SecurityRequestFilter FILTER_INSTANCE = new SecurityRequestFilter();
 
   @Override
   public ContainerRequestFilter getRequestFilter() {
@@ -42,5 +26,23 @@ public class SecurityFilter implements ResourceFilter {
   @Override
   public ContainerResponseFilter getResponseFilter() {
     return null;
+  }
+
+  public class SecurityRequestFilter implements ContainerRequestFilter {
+    @Override
+    public ContainerRequest filter(ContainerRequest request) {
+      String apiKey = request.getHeaderValue("X-Hh-Api-Key");
+
+      Permissions p = null;
+      if (!StringUtils.isEmpty(apiKey)) {
+        p = permissions.forKey(apiKey);
+      }
+      if (p == null) {
+        p = permissions.anonymous();
+      }
+
+      request.getProperties().put(REQUEST_PROPERTY_KEY, p);
+      return request;
+    }
   }
 }

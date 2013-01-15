@@ -1,6 +1,6 @@
 package ru.hh.nab.health.limits;
 
-import com.google.inject.Provider;
+import javax.inject.Provider;
 import org.joda.time.DateTimeUtils;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;

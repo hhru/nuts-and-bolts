@@ -1,13 +1,13 @@
 package ru.hh.nab.hibernate;
 
-import com.google.inject.Inject;
 import com.google.inject.Key;
-import com.google.inject.Provider;
 import com.google.inject.ProvisionException;
 import com.google.inject.Scopes;
 import com.google.inject.Stage;
 import java.io.IOException;
 import java.util.Properties;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;

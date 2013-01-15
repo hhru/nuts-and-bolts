@@ -1,6 +1,6 @@
 package ru.hh.nab;
 
-import com.google.inject.Provider;
+import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;

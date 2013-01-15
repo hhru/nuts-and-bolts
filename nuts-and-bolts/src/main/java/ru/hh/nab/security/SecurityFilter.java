@@ -1,10 +1,10 @@
 package ru.hh.nab.security;
 
-import com.google.inject.Inject;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 import com.sun.jersey.spi.container.ResourceFilter;
+import javax.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 
 public class SecurityFilter implements ResourceFilter {

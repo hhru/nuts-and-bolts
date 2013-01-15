@@ -1,6 +1,6 @@
 package ru.hh.nab.rabbitmq;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

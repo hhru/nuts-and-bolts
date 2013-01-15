@@ -4,18 +4,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import com.google.inject.Singleton;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -29,6 +26,10 @@ import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -94,6 +95,7 @@ public abstract class NabModule extends AbstractModule {
     return new AbstractMatcher<Class>() {
       final List<Class<?>> superclasses = Lists.newArrayList(classes);
 
+      @Override
       public boolean matches(Class subclass) {
         for (Class<?> superclass : superclasses) {
           if (superclass.isAssignableFrom(subclass)) {
@@ -200,7 +202,9 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindEntityManagerAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
-    bind(EntityManagerFactory.class).annotatedWith(ann).toProvider(hibernateAccessorProvider(name, ann, entities)).in(Scopes.SINGLETON);
+    bind(EntityManagerFactory.class).annotatedWith(ann)
+    .toProvider(Providers.guicify(hibernateAccessorProvider(name, ann, entities)))
+    .in(Scopes.SINGLETON);
 
     final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, ann));
     final TxInterceptor tx = new TxInterceptor(emfProvider);
@@ -209,38 +213,39 @@ public abstract class NabModule extends AbstractModule {
     bindInterceptor(Matchers.any(), new TransactionalMatcher(ann), tx);
 
     bind(EntityManager.class).annotatedWith(ann)
-    .toProvider(new Provider<EntityManager>() {
-        @Override
-        public EntityManager get() {
-          return tx.currentEntityManager();
-        }
-      });
+    .toProvider(Providers.guicify(new Provider<EntityManager>() {
+          @Override
+          public EntityManager get() {
+            return tx.currentEntityManager();
+          }
+        }));
 
     bind(ModelAccess.class).annotatedWith(ann)
-    .toProvider(new Provider<ModelAccess>() {
-        @Override
-        public ModelAccess get() {
-          return new ModelAccess(emfProvider);
-        }
-      })
+    .toProvider(Providers.guicify(new Provider<ModelAccess>() {
+          @Override
+          public ModelAccess get() {
+            return new ModelAccess(emfProvider);
+          }
+        }))
     .in(Scopes.SINGLETON);
 
     bind(CriteriaBuilder.class).annotatedWith(ann)
-    .toProvider(new Provider<CriteriaBuilder>() {
-        @Override
-        public CriteriaBuilder get() {
-          return emfProvider.get().getCriteriaBuilder();
-        }
-      })
+    .toProvider(
+      Providers.guicify(new Provider<CriteriaBuilder>() {
+          @Override
+          public CriteriaBuilder get() {
+            return emfProvider.get().getCriteriaBuilder();
+          }
+        }))
     .in(Scopes.SINGLETON);
 
     bind(PostCommitHooks.class).annotatedWith(ann)
-    .toProvider(new Provider<PostCommitHooks>() {
-        @Override
-        public PostCommitHooks get() {
-          return tx.currentPostCommitHooks();
-        }
-      });
+    .toProvider(Providers.guicify(new Provider<PostCommitHooks>() {
+          @Override
+          public PostCommitHooks get() {
+            return tx.currentPostCommitHooks();
+          }
+        }));
   }
 
   private Provider<EntityManagerFactory> hibernateAccessorProvider(
@@ -272,11 +277,11 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindDataSource(String name, Class<? extends Annotation> ann) {
-    bind(DataSource.class).annotatedWith(ann).toProvider(dataSourceProvider(name)).in(Scopes.SINGLETON);
+    bind(DataSource.class).annotatedWith(ann).toProvider(Providers.guicify(dataSourceProvider(name))).in(Scopes.SINGLETON);
   }
 
   protected final void bindDefaultDataSource() {
-    bind(DataSource.class).annotatedWith(Default.class).toProvider(dataSourceProvider("default-db")).in(Scopes.SINGLETON);
+    bind(DataSource.class).annotatedWith(Default.class).toProvider(Providers.guicify(dataSourceProvider("default-db"))).in(Scopes.SINGLETON);
   }
 
   private Provider<DataSource> dataSourceProvider(final String name) {
@@ -313,20 +318,21 @@ public abstract class NabModule extends AbstractModule {
 
   private void bindScheduler() {
     bind(Key.get(ScheduledExecutorService.class, Names.named("system"))).toProvider(
-      new Provider<ScheduledExecutorService>() {
-        @Inject
-        public Injector injector;
+      Providers.guicify(
+        new Provider<ScheduledExecutorService>() {
+          @Inject
+          public Injector injector;
 
-        @Override
-        public ScheduledExecutorService get() {
-          ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-          for (ScheduledTaskDef taskDef : taskDefs) {
-            Runnable r = injector.getInstance(taskDef.klass);
-            scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * Math.random()), taskDef.time, taskDef.unit);
+          @Override
+          public ScheduledExecutorService get() {
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            for (ScheduledTaskDef taskDef : taskDefs) {
+              Runnable r = injector.getInstance(taskDef.klass);
+              scheduler.scheduleAtFixedRate(r, (long) (taskDef.time * Math.random()), taskDef.time, taskDef.unit);
+            }
+            return Executors.unconfigurableScheduledExecutorService(scheduler);
           }
-          return Executors.unconfigurableScheduledExecutorService(scheduler);
-        }
-      })
+        }))
     .asEagerSingleton();
   }
 

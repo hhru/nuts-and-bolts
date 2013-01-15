@@ -17,11 +17,14 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
@@ -43,6 +46,8 @@ import ru.hh.nab.security.SecureInterceptor;
 import ru.hh.nab.security.SecureMatcher;
 import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -53,6 +58,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -69,6 +75,7 @@ public abstract class NabModule extends AbstractModule {
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final ServletDefs servletDefs = new ServletDefs();
   private final GrizzletDefs grizzletDefs = new GrizzletDefs();
+  private static final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 
   private String defaultFreemarkerLayout = "nab/empty";
 
@@ -331,6 +338,29 @@ public abstract class NabModule extends AbstractModule {
 
   private void bindGrizzlets() {
     bind(GrizzletDefs.class).toInstance(grizzletDefs);
+  }
+
+  protected
+  @Provides
+  @Singleton
+  HttpAdaptor httpAdaptor(Settings settings) {
+    Properties mx4jProps = settings.subTree("mx4j");
+    if ("true".equals(mx4jProps.getProperty("mode"))) {
+      try {
+        HttpAdaptor adaptor = new HttpAdaptor();
+        ObjectName name = new ObjectName("Server:name=HttpAdaptor");
+        server.registerMBean(adaptor, name);
+        adaptor.setPort(Integer.parseInt(mx4jProps.getProperty("port")));
+        adaptor.setHost(mx4jProps.getProperty("host"));
+        return adaptor;
+      } catch (Exception ex) {
+        Logger logger = LoggerFactory.getLogger(HttpAdaptor.class);
+        logger.error("Can't create HttpAdaptor: " + ex);
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
   static class ServletDefs extends ArrayList<ServletDef> {

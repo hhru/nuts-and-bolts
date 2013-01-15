@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
-    <version>1.4.21-SNAPSHOT</version><!-- VERSION -->
+    <version>1.4.21</version><!-- VERSION -->
     <relativePath>..</relativePath>
   </parent>
 
@@ -13,7 +13,7 @@
   <packaging>jar</packaging>
 
   <name>nuts'n'bolts</name>
-  <version>1.4.21-SNAPSHOT</version><!-- VERSION -->
+  <version>1.4.21</version><!-- VERSION -->
 
   <dependencies>
     <dependency>
@@ -197,7 +197,7 @@
       <version>2.0</version>
     </dependency>
 
-    <!--- MX4J -->
+    <!-- MX4J -->
     <dependency>
       <groupId>mx4j</groupId>
       <artifactId>mx4j</artifactId>

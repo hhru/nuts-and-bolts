@@ -46,25 +46,21 @@ public class JerseyGutsModule extends AbstractModule {
   }
 
   @Override
-  protected void configure() {
-  }
+  protected void configure() { }
 
-  protected
   @Provides
   @Singleton
-  NabGrizzlyContainer nabGrizzlyContainer(
-          ResourceConfig resources, WebApplication wa) {
+  protected NabGrizzlyContainer nabGrizzlyContainer(ResourceConfig resources, WebApplication wa) {
     NabGrizzlyContainer ret = new NabGrizzlyContainer(resources, wa);
     ret.setHandleStaticResources(false);
     return ret;
   }
 
-  protected
   @Provides
   @Singleton
-  SimpleGrizzlyWebServer grizzlyWebServer(
-          Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets,
-          GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj, TimingsLoggerFactory tlFactory) {
+  protected SimpleGrizzlyWebServer grizzlyWebServer(
+      Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets, GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj,
+      TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory);
     ws.setCoreThreads(settings.concurrencyLevel);
     SelectorThread selector = ws.getSelectorThread();
@@ -76,15 +72,16 @@ public class JerseyGutsModule extends AbstractModule {
     selector.setUseDirectByteBuffer(true);
     selector.setUseByteBufferView(true);
 
-    for (ServletDef s : servlets)
+    for (ServletDef s : servlets) {
       ws.addGrizzlyAdapter(new ServletAdapter(inj.get().getInstance(s.servlet)));
+    }
 
     Router router = new Router();
     for (GrizzletDef a : grizzlets) {
       RequestHandler handler = inj.get().getInstance(a.handlerClass);
-      router.addRouting(extractPath(a.handlerClass),
-              new HandlerDecorator(handler, extractMethods(a.handlerClass),
-                      limits.compoundLimit(extractConcurrency(a.handlerClass))));
+      router.addRouting(
+        extractPath(a.handlerClass),
+        new HandlerDecorator(handler, extractMethods(a.handlerClass), limits.compoundLimit(extractConcurrency(a.handlerClass))));
     }
     ws.addGrizzlyAdapter(new RequestDispatcher(router));
 
@@ -95,8 +92,9 @@ public class JerseyGutsModule extends AbstractModule {
 
   private static Route maybeGetRoute(Class<? extends RequestHandler> handler) {
     Route route = handler.getAnnotation(Route.class);
-    if (route == null)
+    if (route == null) {
       throw new IllegalArgumentException("@Route in " + handler.getSimpleName() + "?");
+    }
     return route;
   }
 
@@ -110,80 +108,71 @@ public class JerseyGutsModule extends AbstractModule {
 
   private static String[] extractConcurrency(Class<? extends RequestHandler> handler) {
     Concurrency concurrency = handler.getAnnotation(Concurrency.class);
-    if (concurrency == null)
-      return new String[] {"global"};
+    if (concurrency == null) {
+      return new String[] { "global" };
+    }
     return concurrency.value();
   }
 
-  protected
   @Provides
   @Singleton
-  ResourceConfig resourceConfig() {
+  protected ResourceConfig resourceConfig() {
     ResourceConfig ret = new DefaultResourceConfig();
-    ret.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES,
-            HeadersAnnotationFilterFactory.class.getName());
+    ret.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, HeadersAnnotationFilterFactory.class.getName());
     return ret;
   }
 
-  protected
   @Provides
   @Singleton
-  GuiceComponentProviderFactory componentProviderFactory(
-          ResourceConfig resources, Injector inj) {
+  protected GuiceComponentProviderFactory componentProviderFactory(ResourceConfig resources, Injector inj) {
     return new GuiceComponentProviderFactory(resources, inj);
   }
 
-  protected
   @Provides
   @Singleton
-  WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+  protected WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
     webapp.initiate(resources, ioc);
     return webapp;
   }
 
-  protected
   @Provides
   @RequestScoped
-  GrizzlyRequest httpRequestContext() {
+  protected GrizzlyRequest httpRequestContext() {
     return RequestScope.currentRequest();
   }
 
-  protected
   @Provides
-  RequestScope.RequestScopeClosure requestScopeClosure() {
+  protected RequestScope.RequestScopeClosure requestScopeClosure() {
     return RequestScope.currentClosure();
   }
 
-  protected
   @Provides
   @Singleton
-  TimingsLoggerFactory timingsLoggerFactory(Settings settings) {
+  protected TimingsLoggerFactory timingsLoggerFactory(Settings settings) {
     Properties timingProps = settings.subTree("timings");
     Map<String, Long> delays = newHashMap();
-    for (Map.Entry<Object, Object> ent : timingProps.entrySet())
+    for (Map.Entry<Object, Object> ent : timingProps.entrySet()) {
       delays.put(ent.getKey().toString(), Long.valueOf(ent.getValue().toString()));
+    }
     Object toleranceStr = timingProps.get("tolerance");
-    Optional<Long> tolerance = (toleranceStr == null)
-        ? Optional.<Long>absent()
-        : Optional.of(Long.valueOf(toleranceStr.toString()));
+    Optional<Long> tolerance = (toleranceStr == null) ? Optional.<Long>absent() : Optional.of(Long.valueOf(toleranceStr.toString()));
     return new TimingsLoggerFactory(delays, tolerance);
   }
 
-  protected
   @Provides
   @RequestScoped
-  TimingsLogger timingsLogger() {
+  protected TimingsLogger timingsLogger() {
     return RequestScope.currentTimingsLogger();
   }
 
-  protected
   @Provides
   @RequestScoped
-  Permissions permissions(GrizzlyRequest req, PermissionLoader permissions) {
+  protected Permissions permissions(GrizzlyRequest req, PermissionLoader permissions) {
     String apiKey = req.getHeader("X-Hh-Api-Key");
     Permissions ret = permissions.forKey(apiKey);
-    if (ret != null)
+    if (ret != null) {
       return permissions.forKey(apiKey);
+    }
     return permissions.anonymous();
   }
 }

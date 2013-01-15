@@ -7,18 +7,17 @@ import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
-
 import org.slf4j.MDC;
 import ru.hh.nab.health.monitoring.TimingsLogger;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
 
+  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
+
   private static enum NullObject {
     INSTANCE
   }
-
-  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
 
   public static void enter(GrizzlyRequest req, TimingsLogger timingsLogger) {
     new RequestScopeClosure(req, timingsLogger).enter();
@@ -30,22 +29,25 @@ public class RequestScope implements TransferrableScope {
 
   public static GrizzlyRequest currentRequest() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls.request;
   }
 
   public static RequestScopeClosure currentClosure() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls;
   }
 
   public static TimingsLogger currentTimingsLogger() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls.timingsLogger;
   }
 
@@ -78,7 +80,6 @@ public class RequestScope implements TransferrableScope {
   }
 
   public static class RequestScopeClosure implements ScopeClosure {
-
     private static final String X_REQUEST_ID = "x-request-id";
     private static final String X_HHID_PERFORMER = "x-hhid-performer";
     private static final String X_UID = "x-uid";
@@ -93,11 +94,12 @@ public class RequestScope implements TransferrableScope {
       this.timingsLogger = timingsLogger;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     private <T> T get(Key<T> key) {
       Object o = objects.get(key);
-      if (o == NullObject.INSTANCE)
+      if (o == NullObject.INSTANCE) {
         return null;
+      }
       return (T) o;
     }
 
@@ -114,7 +116,7 @@ public class RequestScope implements TransferrableScope {
       MDC.put(REQ_REMOTE_ADDR, request.getRemoteAddr());
       RequestScope.closure.set(this);
       timingsLogger.enterTimedArea();
-     }
+    }
 
     private void storeHeaderValue(GrizzlyRequest req, String header) {
       MDC.put("req.h." + header, req.getHeader(header));

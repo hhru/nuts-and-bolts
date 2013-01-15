@@ -7,35 +7,23 @@ import org.junit.Test;
 import ru.hh.nab.scopes.ScopeClosure;
 
 public class LeakDetectorTest {
+  Provider<ScopeClosure> requestScopeProvider =
+    new Provider<ScopeClosure>() {
+      @Override
+      public ScopeClosure get() {
+        return new ScopeClosure() {
+          @Override
+          public void enter() { }
 
-  Provider<ScopeClosure> requestScopeProvider = new Provider<ScopeClosure>() {
-    @Override
-    public ScopeClosure get() {
-      return new ScopeClosure() {
-
-        @Override
-        public void enter() {
-        }
-
-        @Override
-        public void leave() {
-        }
-      };
-    }
-  };
-
-  private static class TestLeakListener implements LeakListener {
-    public boolean leakDetected;
-
-    @Override
-    public void leakDetected(LeaseToken token) {
-      leakDetected = true;
-    }
-  }
+          @Override
+          public void leave() { }
+        };
+      }
+    };
 
   @Test
   public void leakDetected() {
-    TestLeakListener leakListener = new TestLeakListener();    
+    TestLeakListener leakListener = new TestLeakListener();
     LeakDetector leakDetector = new LeakDetector(10, requestScopeProvider, leakListener);
     Limit limit = new SimpleLimit(2, leakDetector, "test");
     DateTimeUtils.setCurrentMillisFixed(1);
@@ -58,5 +46,14 @@ public class LeakDetectorTest {
     DateTimeUtils.setCurrentMillisFixed(12);
     leakDetector.run();
     assertEquals(false, leakListener.leakDetected);
+  }
+
+  private static class TestLeakListener implements LeakListener {
+    public boolean leakDetected;
+
+    @Override
+    public void leakDetected(LeaseToken token) {
+      leakDetected = true;
+    }
   }
 }

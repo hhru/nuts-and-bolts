@@ -6,5 +6,4 @@ import java.lang.annotation.RetentionPolicy;
 
 @BindingAnnotation
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Default {
-}
+public @interface Default { }

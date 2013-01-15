@@ -1,15 +1,14 @@
 package ru.hh.nab.hibernate;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Provider;
 import java.util.concurrent.Callable;
+import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 public class TxInterceptor implements MethodInterceptor {
-
   private ThreadLocal<TransactionalContext> txHolder = new ThreadLocal<TransactionalContext>();
 
   private Provider<EntityManagerFactory> emf;
@@ -93,20 +92,21 @@ public class TxInterceptor implements MethodInterceptor {
   @Override
   public Object invoke(final MethodInvocation invocation) throws Throwable {
     return invoke(
-        invocation.getMethod().getAnnotation(Transactional.class),
-        new Callable<Object>() {
-          @Override
-          public Object call() throws Exception {
-            try {
-              return invocation.proceed();
-            } catch (Throwable throwable) {
-              if (throwable instanceof Exception)
-                throw (Exception)throwable;
-              else
-                throw new RuntimeException(throwable);
+      invocation.getMethod().getAnnotation(Transactional.class),
+      new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          try {
+            return invocation.proceed();
+          } catch (Throwable throwable) {
+            if (throwable instanceof Exception) {
+              throw (Exception) throwable;
+            } else {
+              throw new RuntimeException(throwable);
             }
           }
-        });
+        }
+      });
   }
 
   public EntityManager currentEntityManager() {
@@ -120,5 +120,4 @@ public class TxInterceptor implements MethodInterceptor {
     Preconditions.checkState(tx != null, "No @Transaction annotation specified");
     return tx.getPostCommitHooks();
   }
-
 }

@@ -1,6 +1,6 @@
 package ru.hh.nab.security;
 
-import com.google.inject.Provider;
+import javax.inject.Provider;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -17,8 +17,9 @@ public class SecureInterceptor implements MethodInterceptor {
 
     Secure ann = invocation.getMethod().getAnnotation(Secure.class);
     for (String p : ann.value()) {
-      if (!perms.hasPermissionTo(p))
+      if (!perms.hasPermissionTo(p)) {
         throw new UnauthorizedException();
+      }
     }
     return invocation.proceed();
   }

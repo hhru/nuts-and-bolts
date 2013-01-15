@@ -3,13 +3,13 @@ package ru.hh.nab;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
@@ -25,8 +25,7 @@ public class SettingsModule extends AbstractModule {
   }
 
   @Override
-  protected void configure() {
-  }
+  protected void configure() { }
 
   @Provides
   @Singleton
@@ -47,20 +46,8 @@ public class SettingsModule extends AbstractModule {
     return new PropertiesPermissionLoader(props);
   }
 
-  public static class LimitWithNameAndHisto {
-    public final Limit limit;
-    public final String name;
-    public final Dumpable histo;
-
-    public LimitWithNameAndHisto(Limit limit, String name, Dumpable histo) {
-      this.limit = limit;
-      this.name = name;
-      this.histo = histo;
-    }
-  }
-
-  @Provides
   @Named("limits-with-names")
+  @Provides
   @Singleton
   List<LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector detector) throws IOException {
     Properties props = new Properties();
@@ -72,13 +59,24 @@ public class SettingsModule extends AbstractModule {
 
     for (String name : props.stringPropertyNames()) {
       int max = Integer.parseInt(props.getProperty(name));
-//      CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
+// CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
 
       Limit limit = new SimpleLimit(max, detector, name);
-      ret.add(new LimitWithNameAndHisto(limit, name,
-              null));
-//              new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
+      ret.add(new LimitWithNameAndHisto(limit, name, null));
+// new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
     }
     return ret;
+  }
+
+  public static class LimitWithNameAndHisto {
+    public final Limit limit;
+    public final String name;
+    public final Dumpable histo;
+
+    public LimitWithNameAndHisto(Limit limit, String name, Dumpable histo) {
+      this.limit = limit;
+      this.name = name;
+      this.histo = histo;
+    }
   }
 }

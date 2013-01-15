@@ -1,9 +1,9 @@
 package ru.hh.nab;
 
-import com.google.inject.Singleton;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -18,8 +18,9 @@ public class StatusResource {
   public StatusResource() throws IOException {
     Properties p = new Properties();
     InputStream s = Launcher.module.getClass().getResourceAsStream("/project.properties");
-    if (s != null)
+    if (s != null) {
       p.load(s);
+    }
 
     version = p.getProperty("project.version", "unknown");
     name = p.getProperty("project.name", "unknown");
@@ -29,10 +30,10 @@ public class StatusResource {
   @GET
   @Produces("text/xml")
   public String status() {
-    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<project name=\"" + name + "\">\n" +
-            " <version>" + version + "</version>\n" +
-            " <uptime>" + ((System.currentTimeMillis() - started) / 1000) + "</uptime>\n" +
-            "</project>\n";
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    + "<project name=\"" + name + "\">\n"
+    + " <version>" + version + "</version>\n"
+    + " <uptime>" + ((System.currentTimeMillis() - started) / 1000) + "</uptime>\n"
+    + "</project>\n";
   }
 }

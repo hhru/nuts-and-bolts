@@ -1,6 +1,6 @@
 package ru.hh.nab;
 
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;

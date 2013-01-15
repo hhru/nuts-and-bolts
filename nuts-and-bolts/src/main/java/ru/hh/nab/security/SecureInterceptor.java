@@ -1,6 +1,6 @@
 package ru.hh.nab.security;
 
-import com.google.inject.Provider;
+import javax.inject.Provider;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 

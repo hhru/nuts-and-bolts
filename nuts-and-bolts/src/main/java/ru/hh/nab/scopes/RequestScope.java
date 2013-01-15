@@ -54,6 +54,7 @@ public class RequestScope implements TransferrableScope {
   @Override
   public <T> Provider<T> scope(final Key<T> key, final Provider<T> creator) {
     return new Provider<T>() {
+      @Override
       public T get() {
         RequestScopeClosure cls = closure.get();
         synchronized (cls) {
@@ -66,6 +67,7 @@ public class RequestScope implements TransferrableScope {
         }
       }
 
+      @Override
       public String toString() {
         return String.format("%s[%s]", creator, REQUEST_SCOPE);
       }

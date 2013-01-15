@@ -9,8 +9,10 @@ import java.util.Map;
 public class ThreadLocalScope {
   public static final Scope THREAD_LOCAL =
     new Scope() {
+      @Override
       public <T> Provider<T> scope(final Key<T> key, final Provider<T> creator) {
         return new Provider<T>() {
+          @Override
           public T get() {
             ThreadLocalCache cache = ThreadLocalCache.getInstance();
             T value = cache.get(key);
@@ -33,7 +35,7 @@ public class ThreadLocalScope {
         }
       };
 
-    private Map<Key<?>, Object> map = new HashMap<Key<?>, Object>();
+    private final Map<Key<?>, Object> map = new HashMap<Key<?>, Object>();
 
     @SuppressWarnings("unchecked")
     public <T> T get(Key<T> key) {

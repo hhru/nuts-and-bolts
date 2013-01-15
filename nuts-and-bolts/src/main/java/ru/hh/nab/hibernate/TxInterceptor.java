@@ -1,8 +1,8 @@
 package ru.hh.nab.hibernate;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Provider;
 import java.util.concurrent.Callable;
+import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.aopalliance.intercept.MethodInterceptor;

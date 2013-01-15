@@ -1,10 +1,6 @@
 package ru.hh.nab.jersey;
 
-
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.core.Environment;
@@ -22,6 +18,9 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -32,8 +31,8 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @Singleton
 public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvider<Object> {
-  private final Configuration freemarker;
   private static final String DEFAULT_ENCODING = "UTF-8";
+  private final Configuration freemarker;
   private final String defaultLayout;
   private BeansWrapper beansWrapper;
 
@@ -59,11 +58,11 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     freemarker.setObjectWrapper(beansWrapper);
   }
 
-  public boolean isReadable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
+  public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return false;
   }
 
-  public boolean isWriteable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
+  public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return type.equals(FreemarkerModel.class);
   }
 
@@ -75,25 +74,24 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     return (result == null) ? DEFAULT_ENCODING : result;
   }
 
-  public Object readFrom(Class<Object> aClass, Type genericType, Annotation[] annotations,
-                         MediaType mediaType, MultivaluedMap<String, String> map, InputStream stream)
-          throws IOException, WebApplicationException {
+  public Object readFrom(
+      Class<Object> aClass, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> map, InputStream stream)
+    throws IOException, WebApplicationException {
     throw new UnsupportedOperationException();
   }
 
-  @SuppressWarnings({"unchecked"})
-  public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations,
-                      MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
-                      OutputStream entityStream)
-          throws IOException, WebApplicationException {
+  @SuppressWarnings({ "unchecked" })
+  public void writeTo(
+      Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+      OutputStream entityStream) throws IOException, WebApplicationException {
     String encoding = getCharsetAsString(mediaType);
 
-    marshal((FreemarkerModel)o, encoding, new OutputStreamWriter(entityStream, encoding));
+    marshal((FreemarkerModel) o, encoding, new OutputStreamWriter(entityStream, encoding));
   }
 
   public void marshal(FreemarkerModel model, String encoding, Writer out) throws IOException {
     FreemarkerTemplate ann = Preconditions.checkNotNull(model.annotation);
-        
+
     try {
       String layout = (("".equals(ann.layout())) ? defaultLayout : ann.layout()) + ".ftl";
       Template layoutTemplate = freemarker.getTemplate(layout, encoding);

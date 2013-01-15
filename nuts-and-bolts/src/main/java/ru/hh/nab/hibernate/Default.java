@@ -1,10 +1,9 @@
 package ru.hh.nab.hibernate;
 
-import com.google.inject.BindingAnnotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import javax.inject.Qualifier;
 
-@BindingAnnotation
+@Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Default {
-}
+public @interface Default { }

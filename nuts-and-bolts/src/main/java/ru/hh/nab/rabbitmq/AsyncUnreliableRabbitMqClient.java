@@ -1,12 +1,11 @@
 package ru.hh.nab.rabbitmq;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AsyncUnreliableRabbitMqClient extends Thread {
-
   private final Logger log = LoggerFactory.getLogger(AsyncUnreliableRabbitMqClient.class);
 
   private final int BUF_SIZE = 1000;
@@ -34,8 +33,9 @@ public class AsyncUnreliableRabbitMqClient extends Thread {
 
   private void bufferAdd(ChannelAction action) {
     synchronized (buffer) {
-      if (buffer.isFull())
+      if (buffer.isFull()) {
         log.warn("Buffer overflow");
+      }
       buffer.add(action);
     }
   }
@@ -68,4 +68,3 @@ public class AsyncUnreliableRabbitMqClient extends Thread {
     }
   }
 }
-

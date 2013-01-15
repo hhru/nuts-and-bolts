@@ -9,9 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.inject.Stage;
-import com.google.inject.name.Named;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.File;
@@ -20,11 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import mx4j.tools.adaptor.http.HttpAdaptor;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.LeakDetector;
@@ -45,17 +43,22 @@ public class Launcher {
     SLF4JBridgeHandler.install();
 
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
-    if (modules.size() == 0)
+    if (modules.size() == 0) {
       throw new IllegalStateException("No instances of " + NabModule.class.getName() + " found");
-    if (modules.size() > 1)
+    }
+    if (modules.size() > 1) {
       throw new IllegalStateException(
-              "Two or more instances of " + NabModule.class.getName() + " found: " + Joiner.on(", ")
-                      .join(Iterables.transform(modules, new Function<NabModule, Object>() {
-                        @Override
-                        public Object apply(NabModule from) {
-                          return from.getClass().getName();
-                        }
-                      })));
+        "Two or more instances of " + NabModule.class.getName() + " found: "
+        + Joiner.on(", ")
+        .join(
+          Iterables.transform(
+            modules, new Function<NabModule, Object>() {
+              @Override
+              public Object apply(NabModule from) {
+                return from.getClass().getName();
+              }
+            })));
+    }
     main(Stage.PRODUCTION, Iterables.getOnlyElement(modules));
   }
 
@@ -63,40 +66,42 @@ public class Launcher {
     main(stage, appModule, new SettingsModule());
   }
 
-  public static Instance testMode(Stage stage, Module appModule, final Properties settings,
-                                  final Properties apiSecurity, final Properties limits) throws IOException {
-    return main(stage, appModule, new AbstractModule() {
-      public void configure() {
-        PostCommitHooks.debug = true;
-      }
-
-      @Provides
-      @Singleton
-      protected Settings settings() throws IOException {
-        settings.setProperty("port", "0");
-        return new Settings(settings);
-      }
-
-      @Provides
-      @Singleton
-      protected PermissionLoader permissionLoader() {
-        return new PropertiesPermissionLoader(apiSecurity);
-      }
-
-      @Provides
-      @Named("limits-with-names")
-      @Singleton
-      List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
-        List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
-
-        for (String name : limits.stringPropertyNames()) {
-          int max = Integer.parseInt(limits.getProperty(name));
-          Limit limit = new SimpleLimit(max, leakDetector, name);
-          ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
+  public static Instance testMode(Stage stage, Module appModule, final Properties settings, final Properties apiSecurity, final Properties limits)
+    throws IOException {
+    return main(
+      stage, appModule,
+      new AbstractModule() {
+        public void configure() {
+          PostCommitHooks.debug = true;
         }
-        return ret;
-      }
-    });
+
+        @Provides
+        @Singleton
+        protected Settings settings() throws IOException {
+          settings.setProperty("port", "0");
+          return new Settings(settings);
+        }
+
+        @Provides
+        @Singleton
+        protected PermissionLoader permissionLoader() {
+          return new PropertiesPermissionLoader(apiSecurity);
+        }
+
+        @Named("limits-with-names")
+        @Provides
+        @Singleton
+        List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
+          List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
+
+          for (String name : limits.stringPropertyNames()) {
+            int max = Integer.parseInt(limits.getProperty(name));
+            Limit limit = new SimpleLimit(max, leakDetector, name);
+            ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
+          }
+          return ret;
+        }
+      });
   }
 
   public static Instance main(Stage stage, Module appModule, Module settingsModule) throws IOException {
@@ -104,8 +109,7 @@ public class Launcher {
 
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();
-      Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule,
-              new JerseyModule(), settingsModule);
+      Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule, new JerseyModule(), settingsModule);
 
       SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
       ws.start();

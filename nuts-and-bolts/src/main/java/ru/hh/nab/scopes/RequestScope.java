@@ -7,12 +7,13 @@ import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
-
 import org.slf4j.MDC;
 import ru.hh.nab.health.monitoring.TimingsLogger;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
+
+  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
 
   private static enum NullObject {
     INSTANCE
@@ -65,8 +66,6 @@ public class RequestScope implements TransferrableScope {
     }
   }
 
-  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
-
   public static void enter(GrizzlyRequest request, TimingsLogger timingsLogger) {
     enter(new RequestContext(request), timingsLogger);
   }
@@ -81,28 +80,32 @@ public class RequestScope implements TransferrableScope {
 
   public static Object currentRequest() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls.requestContext.getRequest();
   }
 
   public static RequestScopeClosure currentClosure() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls;
   }
 
   public static TimingsLogger currentTimingsLogger() {
     RequestScopeClosure cls = closure.get();
-    if (cls == null)
+    if (cls == null) {
       throw new OutOfScopeException("Out of RequestScope");
+    }
     return cls.timingsLogger;
   }
 
   @Override
   public <T> Provider<T> scope(final Key<T> key, final Provider<T> creator) {
     return new Provider<T>() {
+      @Override
       public T get() {
         RequestScopeClosure cls = closure.get();
         synchronized (cls) {
@@ -115,6 +118,7 @@ public class RequestScope implements TransferrableScope {
         }
       }
 
+      @Override
       public String toString() {
         return String.format("%s[%s]", creator, REQUEST_SCOPE);
       }
@@ -139,11 +143,12 @@ public class RequestScope implements TransferrableScope {
       this.timingsLogger = timingsLogger;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     private <T> T get(Key<T> key) {
       Object o = objects.get(key);
-      if (o == NullObject.INSTANCE)
+      if (o == NullObject.INSTANCE) {
         return null;
+      }
       return (T) o;
     }
 
@@ -157,7 +162,7 @@ public class RequestScope implements TransferrableScope {
       requestContext.setLoggingContext();
       RequestScope.closure.set(this);
       timingsLogger.enterTimedArea();
-     }
+    }
 
     @Override
     public void leave() {

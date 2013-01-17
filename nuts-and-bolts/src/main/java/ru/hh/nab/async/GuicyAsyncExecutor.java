@@ -10,6 +10,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.health.monitoring.TimingsLogger;
@@ -30,14 +32,40 @@ public class GuicyAsyncExecutor {
   private final Logger LOG = LoggerFactory.getLogger(GuicyAsyncExecutor.class);
   private final Injector inj;
 
+  /** period in seconds, frequency of getting metrics and writing them in log file. 0 - means that monitoring is disabled */
+  private final int monitoringPeriod;
+
+  private final AtomicLong lastLogTime = new AtomicLong(DateTimeUtils.currentTimeMillis());
+
   public GuicyAsyncExecutor(Injector inj, String name, int threads) {
-    this(inj, name, threads, Integer.MAX_VALUE);
+    this(inj, name, threads, Integer.MAX_VALUE, 0);
   }
 
-  public GuicyAsyncExecutor(Injector inj, String name, int threads, int maxQueueSize) {
+  public GuicyAsyncExecutor(Injector inj, String name, int threads, int maxQueueSize, int monitoringPeriod) {
     ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat(name + "-%d").build();
     this.inj = inj;
     this.executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueueSize), tf);
+    this.monitoringPeriod = monitoringPeriod;
+  }
+
+  /** Method writes in log file current metrics of async executor if enabled */
+  private void logExecutorMetrics() {
+    if (monitoringPeriod <= 0 || !LOG.isDebugEnabled()) {
+      return;
+    }
+
+    long current = DateTimeUtils.currentTimeMillis();
+    long last = lastLogTime.get();
+
+    if (current - last > monitoringPeriod && lastLogTime.compareAndSet(last, current)) {
+      ThreadPoolExecutor threadPool = (ThreadPoolExecutor) executor;
+      LOG.debug(
+        "Current size of async executor queue = {}, current active thread count = {}, total thread count = {}",
+        new String[] {
+          Integer.toString(threadPool.getQueue().size()), Integer.toString(threadPool.getActiveCount()),
+          Integer.toString(threadPool.getMaximumPoolSize())
+        });
+    }
   }
 
   public <T> Async<T> asyncWithTransferredRequestScope(Callable<T> body) {
@@ -62,6 +90,7 @@ public class GuicyAsyncExecutor {
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
       timingsLogger.probe("async-submission");
+      logExecutorMetrics();
       try {
         executor.execute(
           new Runnable() {

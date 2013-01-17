@@ -1,10 +1,13 @@
 */target/
+target/
 *~
 #*
 *.iws
 *.ipr
 *.iml
 .idea
-.project
-.classpath
-.settings
+*/.settings
+.settings/
+*/.project
+/.project
+*/.classpath

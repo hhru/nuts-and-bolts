@@ -95,8 +95,11 @@ public class Launcher {
           List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
 
           for (String name : limits.stringPropertyNames()) {
-            int max = Integer.parseInt(limits.getProperty(name));
-            Limit limit = new SimpleLimit(max, leakDetector, name);
+            String property = limits.getProperty(name);
+            int pos = property.indexOf(',');
+            int max = Integer.parseInt(pos == -1 ? property : property.substring(0, pos));
+            int warnThreshold = pos == -1 ? 0 : Integer.parseInt(property.substring(pos+1));
+            Limit limit = new SimpleLimit(max, leakDetector, name, warnThreshold);
             ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
           }
           return ret;

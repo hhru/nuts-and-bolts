@@ -29,7 +29,7 @@ public class SimpleLimit implements Limit {
       return null;
     }
 
-    final boolean needWarn = current.get() < warnThreshold;
+    final boolean needWarn = current.get() >= warnThreshold;
 
     LeaseToken token = new LeaseToken() {
       @Override

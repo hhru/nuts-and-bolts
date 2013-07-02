@@ -1,8 +1,8 @@
 package ru.hh.nab.health.limits;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -21,7 +21,7 @@ public class LeakDetector implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(LeakDetector.class);
 
   private final ConcurrentMap<LeaseToken, LeaseContext> leases = Maps.newConcurrentMap();
-  private final Cache<LeaseToken, FirstException> stackTraces = CacheBuilder.newBuilder()
+  private final LoadingCache<LeaseToken, FirstException> stackTraces = CacheBuilder.newBuilder()
     .expireAfterWrite(400, TimeUnit.SECONDS)
     .maximumSize(50000)
     .build(

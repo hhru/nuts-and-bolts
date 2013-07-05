@@ -1,8 +1,8 @@
 package ru.hh.nab;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.inject.Injector;
 import com.google.inject.MembersInjector;
 import java.util.concurrent.ExecutionException;
@@ -11,7 +11,7 @@ import org.hibernate.event.PreLoadEventListener;
 
 @SuppressWarnings({"unchecked"})
 public final class GuicyHibernateLoader implements PreLoadEventListener {
-  private final Cache<Class, MembersInjector> memberInjectors;
+  private final LoadingCache<Class, MembersInjector> memberInjectors;
 
   public GuicyHibernateLoader(final Injector injector) {
     memberInjectors = CacheBuilder.newBuilder().softValues().build(

@@ -112,13 +112,25 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
   private void _service(GrizzlyRequest request, GrizzlyResponse response) {
     WebApplication _application = application;
 
-    final URI baseUri = getBaseUri(request);
-    /*
-    * request.unparsedURI() is a URI in encoded form that contains
-    * the URI path and URI query components.
-    */
-    final URI requestUri = baseUri.resolve(
-            request.getRequest().unparsedURI().toString());
+    final String requestUriString = request.getRequest().unparsedURI().toString();
+    final URI baseUri, requestUri;
+
+    try {
+      /*
+      * request.unparsedURI() is a URI in encoded form that contains
+      * the URI path and URI query components.
+      */
+      baseUri = getBaseUri(request);
+      requestUri = baseUri.resolve(requestUriString);
+    } catch (IllegalArgumentException ex) {
+      if (log.isDebugEnabled()) {
+        log.warn(String.format("Could not resolve URI %s, producing HTTP 400", requestUriString), ex);
+      } else {
+        log.warn("Could not resolve URI {}, producing HTTP 400", requestUriString);
+      }
+      response.setStatus(400);
+      return;
+    }
 
     /**
      * Check if the request URI path starts with the base URI path

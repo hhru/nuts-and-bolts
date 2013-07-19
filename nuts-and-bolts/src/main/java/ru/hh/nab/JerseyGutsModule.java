@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Properties;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.ws.rs.ext.Providers;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.NabModule.ServletDef;
@@ -133,6 +134,12 @@ public class JerseyGutsModule extends AbstractModule {
   protected WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
     webapp.initiate(resources, ioc);
     return webapp;
+  }
+
+  @Provides
+  @Singleton
+  protected Providers webApplicationProviders() {
+    return webapp.getProviders();
   }
 
   @Provides

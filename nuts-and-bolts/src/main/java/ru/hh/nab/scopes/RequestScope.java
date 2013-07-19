@@ -20,7 +20,7 @@ public class RequestScope implements TransferrableScope {
   }
 
   public static class RequestContext {
-    protected static final String X_REQUEST_ID = "x-requestContext-id";
+    protected static final String X_REQUEST_ID = "x-request-id";
     protected static final String X_REQUEST_ID_DEFAULT = "NoRequestIdProvided";
     protected static final String X_HHID_PERFORMER = "x-hhid-performer";
     protected static final String X_HHID_PERFORMER_DEFAULT = "NoPerformerTokenProvided";

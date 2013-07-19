@@ -2,6 +2,7 @@ package ru.hh.nab.async;
 
 import com.google.common.base.Function;
 import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.nab.scopes.RequestScope;
 
 public abstract class TimedAsync<T> extends Async<T> {
 
@@ -13,27 +14,32 @@ public abstract class TimedAsync<T> extends Async<T> {
     return new TimedAsync<F>() {
       @Override
       public void runExposed(final Callback<F> onSuccess, final Callback<Throwable> onError) {
-        try {
-          timingsLogger.enterTimedArea();
-          getTimingsLogger().probe(probe);
-          TimedAsync.this.run(
-              new Callback<T>() {
-                @Override
-                public void call(T result) {
+        TimedAsync.this.run(
+            new Callback<T>() {
+              @Override
+              public void call(T result) {
+                try {
+                  timingsLogger.enterTimedArea();
+                  getTimingsLogger().probe(probe);
                   fn.apply(result).run(onSuccess, onError);
+                } finally {
+                  timingsLogger.leaveTimedArea();
                 }
-              },
-              onError
-          );
-        } finally {
-          timingsLogger.leaveTimedArea();
-        }
+              }
+            },
+            onError
+        );
       }
+
       @Override
       protected TimingsLogger getTimingsLogger() {
         return timingsLogger;
       }
     };
+  }
+
+  public static TimedAsync<Void> startTimedAsync() {
+    return startTimedAsync(RequestScope.currentTimingsLogger());
   }
 
   public static TimedAsync<Void> startTimedAsync(final TimingsLogger timingsLogger) {

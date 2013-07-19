@@ -17,20 +17,20 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.4.23-SNAPSHOT</version><!-- VERSION -->
+  <version>1.4.32-SNAPSHOT</version>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.4.23-SNAPSHOT</version><!-- VERSION -->
+        <version>1.4.32-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>10.0.1</version>
+        <version>14.0.1</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -155,9 +155,23 @@
       </dependency>
 
       <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>1.7.5</version>
+        <groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-annotations</artifactId>
+		<version>2.2.2</version>
+		<optional>true</optional>
+	  </dependency>
+	  
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>2.2.2</version>
+        <optional>true</optional>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.2.2</version>
         <optional>true</optional>
       </dependency>
 
@@ -165,7 +179,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>0.9.28</version>
+        <version>1.0.9</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

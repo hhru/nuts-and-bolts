@@ -1,5 +1,9 @@
 package ru.hh.nab.jersey;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,10 +16,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Provider
@@ -23,20 +23,24 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class JacksonJerseyMarshaller extends AbstractMessageReaderWriterProvider<Object> {
   private final JsonFactory jackson = new JsonFactory(new ObjectMapper());
 
+  @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return false;
   }
 
+  @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return type.isAnnotationPresent(JsonModel.class);
   }
 
+  @Override
   public Object readFrom(
       Class<Object> aClass, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> map, InputStream stream)
     throws IOException, WebApplicationException {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   @SuppressWarnings({ "unchecked" })
   public void writeTo(
       Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,

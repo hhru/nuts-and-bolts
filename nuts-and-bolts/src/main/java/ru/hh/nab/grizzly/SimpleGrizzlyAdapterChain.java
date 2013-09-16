@@ -6,8 +6,8 @@ import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.grizzly.tcp.http11.GrizzlyResponse;
 import java.util.List;
-import ru.hh.nab.health.monitoring.TimingsLogger;
-import ru.hh.nab.health.monitoring.TimingsLoggerFactory;
+import ru.hh.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.scopes.RequestScope;
 
 public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {

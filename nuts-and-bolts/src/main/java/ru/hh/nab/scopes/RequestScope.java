@@ -8,7 +8,7 @@ import com.google.inject.Provider;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import java.util.Map;
 import org.slf4j.MDC;
-import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLogger;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();

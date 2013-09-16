@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.RequestScope;

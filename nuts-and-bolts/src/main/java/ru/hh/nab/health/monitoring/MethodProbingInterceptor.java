@@ -2,6 +2,7 @@ package ru.hh.nab.health.monitoring;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.scopes.RequestScope;
 import java.lang.reflect.Method;
 

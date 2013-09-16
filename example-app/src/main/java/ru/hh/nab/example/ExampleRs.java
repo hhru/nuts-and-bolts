@@ -11,7 +11,7 @@ import com.google.common.base.Function;
 import ru.hh.nab.async.Async;
 import ru.hh.nab.async.Callback;
 import ru.hh.nab.async.TimedAsync;
-import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLogger;
 import java.io.IOException;
 
 @Path("/")

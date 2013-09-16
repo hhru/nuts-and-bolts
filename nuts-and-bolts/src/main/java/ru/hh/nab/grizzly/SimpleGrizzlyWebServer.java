@@ -9,7 +9,7 @@ import com.sun.grizzly.ssl.SSLSelectorThread;
 import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyListener;
 import com.sun.grizzly.util.net.jsse.JSSEImplementation;
-import ru.hh.nab.health.monitoring.TimingsLoggerFactory;
+import ru.hh.health.monitoring.TimingsLoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 

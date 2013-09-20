@@ -77,7 +77,7 @@ public class JerseyGutsModule extends AbstractModule {
     selector.setSendBufferSize(
         Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "4096")));
     selector.setBufferSize(
-        Integer.parseInt(selectorProperties.getProperty("bufferSize", "4096")));
+        Integer.parseInt(selectorProperties.getProperty("bufferSize", "16384")));
     selector.setSelectorReadThreadsCount(1);
     selector.setUseDirectByteBuffer(true);
     selector.setUseByteBufferView(true);

@@ -2,6 +2,8 @@ package ru.hh.nab;
 
 import com.google.common.base.Optional;
 import static com.google.common.collect.Maps.newHashMap;
+
+import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -40,6 +42,7 @@ import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.Permissions;
 
 public class JerseyGutsModule extends AbstractModule {
+
   private final WebApplication webapp;
 
   public JerseyGutsModule(WebApplication webapp) {
@@ -64,11 +67,17 @@ public class JerseyGutsModule extends AbstractModule {
       TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory);
     ws.setCoreThreads(settings.concurrencyLevel);
-    SelectorThread selector = ws.getSelectorThread();
-    selector.setMaxKeepAliveRequests(4096);
+
+    final Properties selectorProperties = settings.subTree("selector");
+
+    final SelectorThread selector = ws.getSelectorThread();
+    selector.setMaxKeepAliveRequests(
+        Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));
     selector.setCompressionMinSize(Integer.MAX_VALUE);
-    selector.setSendBufferSize(4096);
-    selector.setBufferSize(4096);
+    selector.setSendBufferSize(
+        Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "4096")));
+    selector.setBufferSize(
+        Integer.parseInt(selectorProperties.getProperty("bufferSize", "4096")));
     selector.setSelectorReadThreadsCount(1);
     selector.setUseDirectByteBuffer(true);
     selector.setUseByteBufferView(true);

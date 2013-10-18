@@ -1,7 +1,7 @@
 package ru.hh.nab.async;
 
 import com.google.common.base.Function;
-import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.scopes.RequestScope;
 
 public abstract class TimedAsync<T> extends Async<T> {

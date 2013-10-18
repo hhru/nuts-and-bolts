@@ -3,7 +3,7 @@ package ru.hh.nab.health.limits;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.health.monitoring.LoggingContext;
+import ru.hh.health.monitoring.LoggingContext;
 
 public class SimpleLimit implements Limit {
   private final int max;

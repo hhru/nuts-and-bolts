@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import ru.hh.nab.NabModule;
-import ru.hh.nab.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.scopes.RequestScope;

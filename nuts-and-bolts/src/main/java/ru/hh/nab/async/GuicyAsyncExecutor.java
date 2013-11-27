@@ -72,6 +72,10 @@ public class GuicyAsyncExecutor {
     return new DeferredAsync<T>(body, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
   }
 
+  public <T> Async<T> asyncWithoutRequestScope(final Callable<T> body) {
+    return new OutOfScopeDeferredAsync<T>(executor, inj, body);
+  }
+
   static void killThisThreadAfterExecution() {
     killThisThread.set(true);
   }

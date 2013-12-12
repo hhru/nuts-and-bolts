@@ -2,6 +2,7 @@ package ru.hh.nab;
 
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import java.io.File;
 import java.io.FileReader;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import com.google.inject.name.Names;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
@@ -25,14 +27,22 @@ public class SettingsModule extends AbstractModule {
   }
 
   @Override
-  protected void configure() { }
+  protected void configure() {
+    final Properties props = new Properties();
+    try {
+      props.load(new FileReader(new File(settingsDir, "settings.properties")));
+    } catch (IOException e) {
+      throw new IllegalStateException("Error reading settings.properties at " + settingsDir.getAbsolutePath(), e);
+    }
 
-  @Provides
-  @Singleton
-  protected Settings settings() throws IOException {
-    Properties props = new Properties();
-    props.load(new FileReader(new File(settingsDir, "settings.properties")));
-    return new Settings(props);
+    Names.bindProperties(binder(), props);
+
+    bind(Settings.class).toProvider(new Provider<Settings>() {
+      @Override
+      public Settings get() {
+        return new Settings(props);
+      }
+    }).asEagerSingleton();
   }
 
   @Provides

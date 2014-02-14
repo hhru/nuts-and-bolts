@@ -82,12 +82,12 @@
       <dependency>
         <groupId>com.sun.grizzly</groupId>
         <artifactId>grizzly-http</artifactId>
-        <version>1.9.33</version>
+        <version>1.9.59</version>
       </dependency>
       <dependency>
         <groupId>com.sun.grizzly</groupId>
         <artifactId>grizzly-http-servlet</artifactId>
-        <version>1.9.33</version>
+        <version>1.9.59</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>

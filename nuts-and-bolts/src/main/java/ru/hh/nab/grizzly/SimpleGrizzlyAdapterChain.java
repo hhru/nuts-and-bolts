@@ -6,9 +6,12 @@ import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
 import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.grizzly.tcp.http11.GrizzlyResponse;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.scopes.RequestScope;
+import javax.ws.rs.WebApplicationException;
 
 public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {
   private final static String INVOKED_ADAPTER_FLAG = SimpleGrizzlyAdapterChain.class.getName() + ".invokedAdapter";
@@ -18,6 +21,8 @@ public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {
   private final TimingsLoggerFactory timingsLoggerFactory;
 
   private final static String X_REQUEST_ID = "x-request-id";
+
+  private final static Logger logger = LoggerFactory.getLogger(SimpleGrizzlyAdapterChain.class);
 
   public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory) {
     this.timingsLoggerFactory = timingsLoggerFactory;
@@ -60,6 +65,17 @@ public class SimpleGrizzlyAdapterChain extends GrizzlyAdapter {
             return;
         } catch (Exception e) {
           timingsLogger.setErrorState();
+          final boolean doLogging;
+          if (e instanceof WebApplicationException) {
+            int status = ((WebApplicationException) e).getResponse().getStatus();
+            doLogging = status >= 500;
+          } else {
+            doLogging = true;
+          }
+          if (doLogging) {
+            timingsLogger.probe(e.getMessage());
+            logger.error(e.getMessage(), e);
+          }
           throw e;
         } finally {
           request.getRequest().setNote(ADAPTER_ABSTAINED_NOTE, null);

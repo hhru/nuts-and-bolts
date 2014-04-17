@@ -68,16 +68,8 @@
 
     <!-- network -->
     <dependency>
-      <groupId>com.sun.grizzly</groupId>
-      <artifactId>grizzly-http</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.grizzly</groupId>
-      <artifactId>grizzly-http-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+        <groupId>org.glassfish.grizzly</groupId>
+        <artifactId>grizzly-http-server</artifactId>
     </dependency>
 
     <!-- Jersey -->

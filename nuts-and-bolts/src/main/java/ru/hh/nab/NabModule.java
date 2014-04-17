@@ -36,8 +36,6 @@ import javax.management.ObjectName;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServlet;
 import javax.sql.DataSource;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -74,7 +72,6 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 public abstract class NabModule extends AbstractModule {
   private static final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
-  private final ServletDefs servletDefs = new ServletDefs();
   private final GrizzletDefs grizzletDefs = new GrizzletDefs();
 
   private String defaultFreemarkerLayout = "nab/empty";
@@ -83,7 +80,6 @@ public abstract class NabModule extends AbstractModule {
   protected final void configure() {
     configureApp();
     bindScheduler();
-    bindServlets();
     bindGrizzlets();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
@@ -155,11 +151,6 @@ public abstract class NabModule extends AbstractModule {
       grizzletDefs.add(new GrizzletDef(handler));
     }
     bindInterceptor(subclassesMatcher(handlers), Matchers.any(), MethodProbingInterceptor.INSTANCE);
-  }
-
-  protected final void bindServlet(String pattern, Class<? extends HttpServlet> klass) {
-    bind(klass);
-    servletDefs.add(new ServletDef(klass, pattern));
   }
 
   protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {
@@ -343,10 +334,6 @@ public abstract class NabModule extends AbstractModule {
     .asEagerSingleton();
   }
 
-  private void bindServlets() {
-    bind(ServletDefs.class).toInstance(servletDefs);
-  }
-
   private void bindGrizzlets() {
     bind(GrizzletDefs.class).toInstance(grizzletDefs);
   }
@@ -417,19 +404,7 @@ public abstract class NabModule extends AbstractModule {
     return new StatsDumper(ls);
   }
 
-  static class ServletDefs extends ArrayList<ServletDef> { }
-
   static class GrizzletDefs extends ArrayList<GrizzletDef> { }
-
-  static class ServletDef {
-    final Class<? extends Servlet> servlet;
-    final String pattern;
-
-    private ServletDef(Class<? extends Servlet> servlet, String pattern) {
-      this.servlet = servlet;
-      this.pattern = pattern;
-    }
-  }
 
   private static class ScheduledTaskDef {
     private final Class<? extends Runnable> klass;

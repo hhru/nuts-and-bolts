@@ -1,8 +1,5 @@
 package ru.hh.nab.jersey;
 
-import com.sun.grizzly.tcp.http11.GrizzlyAdapter;
-import com.sun.grizzly.tcp.http11.GrizzlyRequest;
-import com.sun.grizzly.tcp.http11.GrizzlyResponse;
 import com.sun.jersey.api.container.ContainerException;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.core.header.InBoundHeaders;
@@ -14,32 +11,34 @@ import com.sun.jersey.spi.container.ContainerResponseWriter;
 import com.sun.jersey.spi.container.ReloadListener;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.inject.SingletonTypeInjectableProvider;
+import org.glassfish.grizzly.http.server.HttpHandler;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.GenericEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public final class NabGrizzlyContainer extends GrizzlyAdapter implements ContainerListener {
+public final class JerseyHttpHandler extends HttpHandler implements ContainerListener {
 
-  private final static Logger log = LoggerFactory.getLogger(NabGrizzlyContainer.class);
+  private final static Logger log = LoggerFactory.getLogger(JerseyHttpHandler.class);
 
   private WebApplication application;
 
-  private String basePath = "/";
+  private final static String BASE_PATH = "/";
 
-  private final ThreadLocalInvoker<GrizzlyRequest> requestInvoker =
-          new ThreadLocalInvoker<GrizzlyRequest>();
+  private final ThreadLocalInvoker<Request> requestInvoker =
+          new ThreadLocalInvoker<Request>();
 
-  private final ThreadLocalInvoker<GrizzlyResponse> responseInvoker =
-          new ThreadLocalInvoker<GrizzlyResponse>();
+  private final ThreadLocalInvoker<Response> responseInvoker =
+          new ThreadLocalInvoker<Response>();
 
   private static class ContextInjectableProvider<T> extends
           SingletonTypeInjectableProvider<Context, T> {
@@ -49,26 +48,26 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     }
   }
 
-  public NabGrizzlyContainer(ResourceConfig rc, WebApplication app) throws ContainerException {
+  public JerseyHttpHandler(ResourceConfig rc, WebApplication app) throws ContainerException {
     this.application = app;
 
-    GenericEntity<ThreadLocal<GrizzlyRequest>> requestThreadLocal =
-            new GenericEntity<ThreadLocal<GrizzlyRequest>>(requestInvoker.getImmutableThreadLocal()) {
+    GenericEntity<ThreadLocal<Request>> requestThreadLocal =
+            new GenericEntity<ThreadLocal<Request>>(requestInvoker.getImmutableThreadLocal()) {
             };
-    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<GrizzlyRequest>>(
+    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<Request>>(
             requestThreadLocal.getType(), requestThreadLocal.getEntity()));
 
-    GenericEntity<ThreadLocal<GrizzlyResponse>> responseThreadLocal =
-            new GenericEntity<ThreadLocal<GrizzlyResponse>>(responseInvoker.getImmutableThreadLocal()) {
+    GenericEntity<ThreadLocal<Response>> responseThreadLocal =
+            new GenericEntity<ThreadLocal<Response>>(responseInvoker.getImmutableThreadLocal()) {
             };
-    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<GrizzlyResponse>>(
+    rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<Response>>(
             responseThreadLocal.getType(), responseThreadLocal.getEntity()));
   }
 
   private final static class Writer implements ContainerResponseWriter {
-    final GrizzlyResponse response;
+    final Response response;
 
-    Writer(GrizzlyResponse response) {
+    Writer(Response response) {
       this.response = response;
     }
 
@@ -97,7 +96,8 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     }
   }
 
-  public void service(GrizzlyRequest request, GrizzlyResponse response) {
+  @Override
+  public void service(Request request, Response response) {
     try {
       requestInvoker.set(request);
       responseInvoker.set(response);
@@ -109,19 +109,16 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     }
   }
 
-  private void _service(GrizzlyRequest request, GrizzlyResponse response) {
+  private void _service(Request request, Response response) {
     WebApplication _application = application;
 
-    final String requestUriString = request.getRequest().unparsedURI().toString();
-    final URI baseUri, requestUri;
+    // URI as provided by grizzly does not include query string
+    final String requestUriString = request.getRequestURI() + '?' + request.getQueryString() ;
+    final URI baseUri, resolvedRequestUri;
 
     try {
-      /*
-      * request.unparsedURI() is a URI in encoded form that contains
-      * the URI path and URI query components.
-      */
       baseUri = getBaseUri(request);
-      requestUri = baseUri.resolve(requestUriString);
+      resolvedRequestUri = baseUri.resolve(requestUriString);
     } catch (IllegalArgumentException ex) {
       if (log.isDebugEnabled()) {
         log.warn(String.format("Could not resolve URI %s, producing HTTP 400", requestUriString), ex);
@@ -135,7 +132,7 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     /**
      * Check if the request URI path starts with the base URI path
      */
-    if (!requestUri.getRawPath().startsWith(basePath)) {
+    if (!resolvedRequestUri.getRawPath().startsWith(BASE_PATH)) {
       response.setStatus(404);
       return;
     }
@@ -143,9 +140,9 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     try {
       final ContainerRequest cRequest = new ContainerRequest(
               _application,
-              request.getMethod(),
+              request.getMethod().getMethodString(),
               baseUri,
-              requestUri,
+              resolvedRequestUri,
               getHeaders(request),
               request.getInputStream());
       _application.handleRequest(cRequest, new Writer(response));
@@ -159,48 +156,25 @@ public final class NabGrizzlyContainer extends GrizzlyAdapter implements Contain
     }
   }
 
-  @Override
-  public void afterService(GrizzlyRequest request, GrizzlyResponse response)
-          throws Exception {
-  }
-
-  @Override
-  public void setResourcesContextPath(String resourcesContextPath) {
-    super.setResourcesContextPath(resourcesContextPath);
-
-    if (resourcesContextPath == null || resourcesContextPath.length() == 0) {
-      basePath = "/";
-    } else if (resourcesContextPath.charAt(resourcesContextPath.length() - 1) != '/') {
-      basePath = resourcesContextPath + "/";
-    } else {
-      basePath = resourcesContextPath;
-    }
-
-    if (basePath.charAt(0) != '/')
-      throw new IllegalArgumentException("The resource context path, " + resourcesContextPath +
-              ", must start with a '/'");
-  }
-
-  private URI getBaseUri(GrizzlyRequest request) {
+  private URI getBaseUri(Request request) {
     try {
       return new URI(
-              request.getScheme(),
-              null,
-              request.getServerName(),
-              request.getServerPort(),
-              basePath,
-              null, null);
+        request.getScheme(),
+        null,
+        request.getServerName(),
+        request.getServerPort(),
+        BASE_PATH,
+        null,
+        null);
     } catch (URISyntaxException ex) {
       throw new IllegalArgumentException(ex);
     }
   }
 
-  private InBoundHeaders getHeaders(GrizzlyRequest request) {
+  private InBoundHeaders getHeaders(Request request) {
     InBoundHeaders rh = new InBoundHeaders();
 
-    Enumeration names = request.getHeaderNames();
-    while (names.hasMoreElements()) {
-      String name = (String) names.nextElement();
+    for (String name : request.getHeaderNames()) {
       String value = request.getHeader(name);
       rh.add(name, value);
     }

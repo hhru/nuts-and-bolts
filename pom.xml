@@ -80,36 +80,26 @@
 
       <!-- network -->
       <dependency>
-        <groupId>com.sun.grizzly</groupId>
-        <artifactId>grizzly-http</artifactId>
-        <version>1.9.59</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.grizzly</groupId>
-        <artifactId>grizzly-http-servlet</artifactId>
-        <version>1.9.59</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-        <version>2.5</version>
+        <groupId>org.glassfish.grizzly</groupId>
+        <artifactId>grizzly-http-server</artifactId>
+        <version>2.3.11</version>
       </dependency>
 
       <!-- Jersey -->
       <dependency>
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-guice</artifactId>
-        <version>1.4</version>
+        <version>1.18.1</version>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>1.4</version>
+        <version>1.18.1</version>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-multipart</artifactId>
-        <version>1.4</version>
+        <version>1.18.1</version>
       </dependency>
 
       <!-- HTTP client -->
@@ -195,22 +185,22 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.2</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>log4j-over-slf4j</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.2</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.2</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jul-to-slf4j</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.2</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>

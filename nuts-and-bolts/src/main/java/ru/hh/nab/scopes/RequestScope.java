@@ -5,8 +5,14 @@ import com.google.common.collect.Maps;
 import com.google.inject.Key;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
-import com.sun.grizzly.tcp.http11.GrizzlyRequest;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import org.glassfish.grizzly.http.server.Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.health.monitoring.TimingsLogger;
 
@@ -14,6 +20,8 @@ public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
 
   private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
+
+  private final static Logger logger = LoggerFactory.getLogger(RequestScope.class);
 
   private static enum NullObject {
     INSTANCE
@@ -40,7 +48,7 @@ public class RequestScope implements TransferrableScope {
       this.remoteAddr = remoteAddr;
       this.request = request;
     }
-    RequestContext(GrizzlyRequest request) {
+    RequestContext(Request request) {
       this(request.getHeader(X_REQUEST_ID),
           request.getHeader(X_HHID_PERFORMER),
           request.getHeader(X_UID),
@@ -66,7 +74,7 @@ public class RequestScope implements TransferrableScope {
     }
   }
 
-  public static void enter(GrizzlyRequest request, TimingsLogger timingsLogger) {
+  public static void enter(Request request, TimingsLogger timingsLogger) {
     enter(new RequestContext(request), timingsLogger);
   }
 
@@ -100,6 +108,30 @@ public class RequestScope implements TransferrableScope {
       throw new OutOfScopeException("Out of RequestScope");
     }
     return cls.timingsLogger;
+  }
+
+  public static void incrementAfterServiceLatchCounter() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null) {
+      throw new OutOfScopeException("Out of RequestScope");
+    }
+    cls.incrementAfterServiceTasksLatchCounter();
+  }
+
+  public static void decrementAfterServiceLatchCounter() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null) {
+      throw new OutOfScopeException("Out of RequestScope");
+    }
+    cls.decrementAfterServiceTasksLatchCounter();
+  }
+
+  public static void addAfterServiceTask(Callable<Void> task) {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null) {
+      throw new OutOfScopeException("Out of RequestScope");
+    }
+    cls.afterServiceTasks.add(task);
   }
 
   @Override
@@ -138,6 +170,14 @@ public class RequestScope implements TransferrableScope {
     private final TimingsLogger timingsLogger;
     private final Map<Key<?>, Object> objects = Maps.newHashMap();
 
+    // The latch counter is increased when there is a reason to hold off
+    // running afterServiceTasks, i.e. for example grizzly response is suspended but we
+    // are already in scope and can not enter it the second time, and there is a continuation
+    // task waiting to be run in another thread pool, so there may be a little period where
+    // request is not exactly complete but no threads are in the 'entered' into the scope state.
+    private int afterServiceTasksLatch = 0;
+    private final List<Callable<Void>> afterServiceTasks = new ArrayList<Callable<Void>>();
+
     RequestScopeClosure(RequestContext requestContext, TimingsLogger timingsLogger) {
       this.requestContext = requestContext;
       this.timingsLogger = timingsLogger;
@@ -157,19 +197,39 @@ public class RequestScope implements TransferrableScope {
     }
 
     @Override
-    public void enter() {
+    public synchronized void enter() {
       Preconditions.checkState(RequestScope.closure.get() == null);
       requestContext.setLoggingContext();
       RequestScope.closure.set(this);
       timingsLogger.enterTimedArea();
+      incrementAfterServiceTasksLatchCounter();
     }
 
     @Override
-    public void leave() {
+    public synchronized void leave() {
       Preconditions.checkState(RequestScope.closure.get() == this);
+      decrementAfterServiceTasksLatchCounter();
       timingsLogger.leaveTimedArea();
       requestContext.clearLoggingContext();
       RequestScope.closure.remove();
+    }
+
+    private void incrementAfterServiceTasksLatchCounter() {
+      afterServiceTasksLatch++;
+    }
+
+    private void decrementAfterServiceTasksLatchCounter() {
+      afterServiceTasksLatch--;
+      if (afterServiceTasksLatch == 0) {
+        Collections.reverse(afterServiceTasks);
+        for (Callable<Void> task : afterServiceTasks) {
+          try {
+            task.call();
+          } catch (Exception e) {
+            logger.error("Error during after service task", e);
+          }
+        }
+      }
     }
   }
 }

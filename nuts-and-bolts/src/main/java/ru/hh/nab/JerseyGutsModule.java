@@ -3,40 +3,35 @@ package ru.hh.nab;
 import com.google.common.base.Optional;
 import static com.google.common.collect.Maps.newHashMap;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.servlet.RequestScoped;
-import com.sun.grizzly.http.SelectorThread;
-import com.sun.grizzly.http.servlet.ServletAdapter;
-import com.sun.grizzly.tcp.http11.GrizzlyRequest;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
+import org.glassfish.grizzly.http.server.NetworkListener;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.memory.ByteBufferManager;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
-import ru.hh.nab.NabModule.ServletDef;
-import ru.hh.nab.NabModule.ServletDefs;
-import ru.hh.nab.grizzly.Concurrency;
-import ru.hh.nab.grizzly.HandlerDecorator;
-import ru.hh.nab.grizzly.HttpMethod;
+import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
-import ru.hh.nab.grizzly.Route;
-import ru.hh.nab.grizzly.Router;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
-import ru.hh.nab.jersey.NabGrizzlyContainer;
+import ru.hh.nab.jersey.JerseyHttpHandler;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.Permissions;
@@ -54,74 +49,44 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected NabGrizzlyContainer nabGrizzlyContainer(ResourceConfig resources, WebApplication wa) {
-    NabGrizzlyContainer ret = new NabGrizzlyContainer(resources, wa);
-    ret.setHandleStaticResources(false);
-    return ret;
+  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources, WebApplication wa) {
+    return new JerseyHttpHandler(resources, wa);
   }
 
   @Provides
   @Singleton
   protected SimpleGrizzlyWebServer grizzlyWebServer(
-      Settings settings, NabGrizzlyContainer jersey, ServletDefs servlets, GrizzletDefs grizzlets, Limits limits, Provider<Injector> inj,
+      Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory);
     ws.setCoreThreads(settings.concurrencyLevel);
 
     final Properties selectorProperties = settings.subTree("selector");
 
-    final SelectorThread selector = ws.getSelectorThread();
-    selector.setMaxKeepAliveRequests(
+    final NetworkListener networkListener = ws.getNetworkListener();
+    networkListener.getKeepAlive().setMaxRequestsCount(
         Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));
-    selector.setCompressionMinSize(Integer.MAX_VALUE);
-    selector.setSendBufferSize(
-        Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "4096")));
-    selector.setBufferSize(
-        Integer.parseInt(selectorProperties.getProperty("bufferSize", "16384")));
-    selector.setSelectorReadThreadsCount(1);
-    selector.setUseDirectByteBuffer(true);
-    selector.setUseByteBufferView(true);
+    networkListener.getCompressionConfig().setCompressionMinSize(Integer.MAX_VALUE);
+    networkListener.setMaxPendingBytes(
+        Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "32768")));
+    networkListener.setMaxBufferedPostSize(
+        Integer.parseInt(selectorProperties.getProperty("bufferSize", "32768")));
+    networkListener.setMaxHttpHeaderSize(
+        Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
+    networkListener.getTransport().setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
+    networkListener.getTransport().setSelectorRunnersCount(1);
 
-    for (ServletDef s : servlets) {
-      ws.addGrizzlyAdapter(new ServletAdapter(inj.get().getInstance(s.servlet)));
-    }
-
-    Router router = new Router();
-    for (GrizzletDef a : grizzlets) {
+    List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
+    for (GrizzletDef a : grizzletDefs) {
       RequestHandler handler = inj.get().getInstance(a.handlerClass);
-      router.addRouting(
-        extractPath(a.handlerClass),
-        new HandlerDecorator(handler, extractMethods(a.handlerClass), limits.compoundLimit(extractConcurrency(a.handlerClass))));
+      grizzletHandlers.add(new GrizzletHandler(a.handlerClass, handler, limits));
     }
-    ws.addGrizzlyAdapter(new RequestDispatcher(router));
+    RequestDispatcher grizzletsDispatcher = new RequestDispatcher(grizzletHandlers);
+    ws.addGrizzlyAdapter(grizzletsDispatcher);
 
     ws.addGrizzlyAdapter(jersey);
 
     return ws;
-  }
-
-  private static Route maybeGetRoute(Class<? extends RequestHandler> handler) {
-    Route route = handler.getAnnotation(Route.class);
-    if (route == null) {
-      throw new IllegalArgumentException("@Route in " + handler.getSimpleName() + "?");
-    }
-    return route;
-  }
-
-  private static HttpMethod[] extractMethods(Class<? extends RequestHandler> handler) {
-    return maybeGetRoute(handler).methods();
-  }
-
-  private static String extractPath(Class<? extends RequestHandler> handler) {
-    return maybeGetRoute(handler).path();
-  }
-
-  private static String[] extractConcurrency(Class<? extends RequestHandler> handler) {
-    Concurrency concurrency = handler.getAnnotation(Concurrency.class);
-    if (concurrency == null) {
-      return new String[] { "global" };
-    }
-    return concurrency.value();
   }
 
   @Provides
@@ -153,12 +118,12 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @RequestScoped
-  GrizzlyRequest httpRequestContext() {
+  Request httpRequestContext() {
     Object request = RequestScope.currentRequest();
-    if (request == null || !(request instanceof GrizzlyRequest)) {
+    if (request == null || !(request instanceof Request)) {
       throw new IllegalArgumentException("Not a grizzly request");
     }
-    return (GrizzlyRequest) request;
+    return (Request) request;
   }
 
   @Provides
@@ -187,7 +152,7 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @RequestScoped
-  protected Permissions permissions(GrizzlyRequest req, PermissionLoader permissions) {
+  protected Permissions permissions(Request req, PermissionLoader permissions) {
     String apiKey = req.getHeader("X-Hh-Api-Key");
     Permissions ret = permissions.forKey(apiKey);
     if (ret != null) {

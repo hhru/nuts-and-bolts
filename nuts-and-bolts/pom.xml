@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
-    <version>1.4.40-SNAPSHOT</version><!-- VERSION -->
+    <version>1.4.41-SNAPSHOT</version><!-- VERSION -->
     <relativePath>..</relativePath>
   </parent>
 
@@ -13,7 +13,7 @@
   <packaging>jar</packaging>
 
   <name>nuts'n'bolts</name>
-  <version>1.4.40-SNAPSHOT</version><!-- VERSION -->
+  <version>1.4.41-SNAPSHOT</version><!-- VERSION -->
 
   <dependencies>
     <dependency>
@@ -68,16 +68,8 @@
 
     <!-- network -->
     <dependency>
-      <groupId>com.sun.grizzly</groupId>
-      <artifactId>grizzly-http</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.grizzly</groupId>
-      <artifactId>grizzly-http-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+        <groupId>org.glassfish.grizzly</groupId>
+        <artifactId>grizzly-http-server</artifactId>
     </dependency>
 
     <!-- Jersey -->

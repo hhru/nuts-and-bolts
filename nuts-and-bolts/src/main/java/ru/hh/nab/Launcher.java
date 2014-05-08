@@ -120,7 +120,7 @@ public class Launcher {
       if (adaptor != null) {
         adaptor.start();
       }
-      return new Instance(inj, ws.getSelectorThread().getPort());
+      return new Instance(inj, ws.getNetworkListener().getPort());
     } catch (IOException ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
       throw new RuntimeException(ex);

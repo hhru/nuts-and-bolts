@@ -1,8 +1,40 @@
 package ru.hh.nab.grizzly;
 
-import com.sun.grizzly.tcp.http11.GrizzlyRequest;
-import com.sun.grizzly.tcp.http11.GrizzlyResponse;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
+import ru.hh.nab.scopes.RequestScope;
 
-public interface RequestHandler {
-  void handle(GrizzlyRequest request, GrizzlyResponse response) throws Exception;
+public abstract class RequestHandler {
+
+  public abstract void handle(Request request, Response response) throws Exception;
+
+  protected void suspend() {
+    RequestScope.incrementAfterServiceLatchCounter();
+    ((Request) RequestScope.currentRequest()).getResponse().suspend();
+  }
+
+  protected void resumeWithRedirect(String url) {
+    final Response response = ((Request) RequestScope.currentRequest()).getResponse();
+    response.setHeader("Location", url);
+    resumeWithStatus(302);
+  }
+
+  protected void resumeTemporaryUnavailable() {
+    resumeWithStatus(503);
+  }
+
+  protected void resumeOk() {
+    resumeWithStatus(200);
+  }
+
+  protected void resumeWithStatus(int code) {
+    final Response response = ((Request) RequestScope.currentRequest()).getResponse();
+    response.setStatus(code);
+    resume();
+  }
+
+  protected void resume() {
+    ((Request) RequestScope.currentRequest()).getResponse().resume();
+    RequestScope.decrementAfterServiceLatchCounter();
+  }
 }

@@ -113,7 +113,10 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
     WebApplication _application = application;
 
     // URI as provided by grizzly does not include query string
-    final String requestUriString = request.getRequestURI() + '?' + request.getQueryString() ;
+    final String requestQueryString = request.getQueryString();
+    final String requestUriString = requestQueryString == null
+        ? request.getRequestURI()
+        : request.getRequestURI() + '?' + requestQueryString;
     final URI baseUri, resolvedRequestUri;
 
     try {

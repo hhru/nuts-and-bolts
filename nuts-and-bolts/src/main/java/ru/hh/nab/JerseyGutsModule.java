@@ -58,7 +58,7 @@ public class JerseyGutsModule extends AbstractModule {
   protected SimpleGrizzlyWebServer grizzlyWebServer(
       Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
-    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory);
+    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory, settings.workersQueueLimit);
     ws.setCoreThreads(settings.concurrencyLevel);
 
     final Properties selectorProperties = settings.subTree("selector");

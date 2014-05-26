@@ -14,11 +14,12 @@ public class SimpleGrizzlyWebServer {
 
   private boolean isStarted = false;
 
-  public SimpleGrizzlyWebServer(int port, int maxThreads, TimingsLoggerFactory timingsLoggerFactory) {
+  public SimpleGrizzlyWebServer(int port, int maxThreads, TimingsLoggerFactory timingsLoggerFactory, int workersQueueLimit) {
     httpServer = new HttpServer();
     grizzlyListener = new NetworkListener("grizzly", NetworkListener.DEFAULT_NETWORK_HOST, port);
     httpServer.addListener(grizzlyListener);
     setMaxThreads(maxThreads);
+    setWorkerThreadQueueLimit(workersQueueLimit);
     this.adapterChains = new SimpleGrizzlyAdapterChain(timingsLoggerFactory);
   }
 
@@ -46,6 +47,10 @@ public class SimpleGrizzlyWebServer {
 
   public void setMaxThreads(int maxThreads) {
     grizzlyListener.getTransport().getWorkerThreadPoolConfig().setMaxPoolSize(maxThreads);
+  }
+
+  public void setWorkerThreadQueueLimit(int limit) {
+    grizzlyListener.getTransport().getWorkerThreadPoolConfig().setQueueLimit(limit);
   }
 
   public synchronized void stop() {

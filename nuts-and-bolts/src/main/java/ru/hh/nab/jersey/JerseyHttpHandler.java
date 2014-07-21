@@ -16,6 +16,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.util.UriTool;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import java.io.IOException;
@@ -121,8 +122,8 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
 
     try {
       baseUri = getBaseUri(request);
-      resolvedRequestUri = baseUri.resolve(requestUriString);
-    } catch (IllegalArgumentException ex) {
+      resolvedRequestUri = baseUri.resolve(UriTool.getUri(requestUriString));
+    } catch (Exception ex) {
       if (log.isDebugEnabled()) {
         log.warn(String.format("Could not resolve URI %s, producing HTTP 400", requestUriString), ex);
       } else {

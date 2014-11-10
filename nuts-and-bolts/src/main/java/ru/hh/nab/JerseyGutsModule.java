@@ -59,10 +59,11 @@ public class JerseyGutsModule extends AbstractModule {
       Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory, settings.workersQueueLimit);
-    ws.setCoreThreads(settings.concurrencyLevel);
+
+    final Properties httpServerProperties = settings.subTree("grizzly.httpServer");
+    ws.setJmxEnabled(Boolean.valueOf(httpServerProperties.getProperty("jmxEnabled", "false")));
 
     final Properties selectorProperties = settings.subTree("selector");
-
     final NetworkListener networkListener = ws.getNetworkListener();
     networkListener.getKeepAlive().setMaxRequestsCount(
         Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));

@@ -75,7 +75,7 @@ public class JerseyGutsModule extends AbstractModule {
     networkListener.setMaxHttpHeaderSize(
         Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
     networkListener.getTransport().setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
-    networkListener.getTransport().setSelectorRunnersCount(1);
+    networkListener.getTransport().setSelectorRunnersCount(Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1")));
 
     List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
     for (GrizzletDef a : grizzletDefs) {

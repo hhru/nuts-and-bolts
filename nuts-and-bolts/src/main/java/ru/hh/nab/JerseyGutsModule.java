@@ -64,8 +64,10 @@ public class JerseyGutsModule extends AbstractModule {
 
     ws.addGrizzlyAdapter(new DefaultCharacterEncodingHandler());
 
-    final Properties selectorProperties = settings.subTree("selector");
+    final Properties httpServerProperties = settings.subTree("grizzly.httpServer");
+    ws.setJmxEnabled(Boolean.valueOf(httpServerProperties.getProperty("jmxEnabled", "false")));
 
+    final Properties selectorProperties = settings.subTree("selector");
     final NetworkListener networkListener = ws.getNetworkListener();
     networkListener.getKeepAlive().setMaxRequestsCount(
         Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));

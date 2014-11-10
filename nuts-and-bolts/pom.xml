@@ -72,7 +72,20 @@
         <artifactId>grizzly-http-server</artifactId>
     </dependency>
 
-    <!-- Jersey -->
+      <dependency>
+          <groupId>org.glassfish.grizzly</groupId>
+          <artifactId>grizzly-framework-monitoring</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.glassfish.grizzly</groupId>
+          <artifactId>grizzly-http-monitoring</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.glassfish.grizzly</groupId>
+          <artifactId>grizzly-http-server-monitoring</artifactId>
+      </dependency>
+
+      <!-- Jersey -->
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-guice</artifactId>

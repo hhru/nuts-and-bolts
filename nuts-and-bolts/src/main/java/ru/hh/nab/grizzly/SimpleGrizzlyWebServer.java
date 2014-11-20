@@ -5,6 +5,7 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleGrizzlyWebServer {
@@ -38,6 +39,7 @@ public class SimpleGrizzlyWebServer {
     isStarted = true;
 
     httpServer.getServerConfiguration().addHttpHandler(adapterChains);
+    httpServer.getServerConfiguration().setDefaultQueryEncoding(Charset.defaultCharset());
     httpServer.start();
   }
 

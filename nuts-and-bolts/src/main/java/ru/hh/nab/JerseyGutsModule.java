@@ -23,6 +23,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.memory.ByteBufferManager;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
+import ru.hh.nab.grizzly.DefaultCharacterEncodingHandler;
 import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
@@ -60,6 +61,8 @@ public class JerseyGutsModule extends AbstractModule {
       TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory, settings.workersQueueLimit);
     ws.setCoreThreads(settings.concurrencyLevel);
+
+    ws.addGrizzlyAdapter(new DefaultCharacterEncodingHandler());
 
     final Properties selectorProperties = settings.subTree("selector");
 

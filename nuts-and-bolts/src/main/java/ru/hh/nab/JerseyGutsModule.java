@@ -3,6 +3,7 @@ package ru.hh.nab;
 import com.google.common.base.Optional;
 import static com.google.common.collect.Maps.newHashMap;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -18,9 +19,15 @@ import java.util.Properties;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
+
+import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.memory.ByteBufferManager;
+import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.glassfish.grizzly.strategies.SimpleDynamicNIOStrategy;
+import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.grizzly.GrizzletHandler;
@@ -37,6 +44,12 @@ import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.Permissions;
 
 public class JerseyGutsModule extends AbstractModule {
+  private static final Map<String, IOStrategy> strategies = ImmutableMap.of(
+      "worker", WorkerThreadIOStrategy.getInstance(),
+      "same", SameThreadIOStrategy.getInstance(),
+      "dynamic", SimpleDynamicNIOStrategy.getInstance(),
+      "leader-follower", LeaderFollowerNIOStrategy.getInstance()
+  );
 
   private final WebApplication webapp;
 
@@ -60,8 +73,7 @@ public class JerseyGutsModule extends AbstractModule {
       TimingsLoggerFactory tlFactory) {
     SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory, settings.workersQueueLimit);
 
-    final Properties httpServerProperties = settings.subTree("grizzly.httpServer");
-    ws.setJmxEnabled(Boolean.valueOf(httpServerProperties.getProperty("jmxEnabled", "false")));
+    ws.setJmxEnabled(Boolean.valueOf(settings.subTree("grizzly.httpServer").getProperty("jmxEnabled", "false")));
 
     final Properties selectorProperties = settings.subTree("selector");
     final NetworkListener networkListener = ws.getNetworkListener();
@@ -76,6 +88,8 @@ public class JerseyGutsModule extends AbstractModule {
         Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
     networkListener.getTransport().setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
     networkListener.getTransport().setSelectorRunnersCount(Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1")));
+    networkListener.getTransport().setIOStrategy(toIOStrategy(settings.subTree("grizzly").getProperty("ioStrategy")));
+    networkListener.getTransport().setTcpNoDelay(true);
 
     List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
     for (GrizzletDef a : grizzletDefs) {
@@ -88,6 +102,11 @@ public class JerseyGutsModule extends AbstractModule {
     ws.addGrizzlyAdapter(jersey);
 
     return ws;
+  }
+
+  private static IOStrategy toIOStrategy(String property) {
+    IOStrategy strategy = strategies.get(property);
+    return strategy == null ? SameThreadIOStrategy.getInstance() : strategy;
   }
 
   @Provides
@@ -104,17 +123,25 @@ public class JerseyGutsModule extends AbstractModule {
     return new GuiceComponentProviderFactory(resources, inj);
   }
 
-  @Provides
-  @Singleton
-  protected WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
-    webapp.initiate(resources, ioc);
+  private WebApplication getInitiatedWebapp(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+    synchronized (webapp) {
+      if (!webapp.isInitiated()) {
+        webapp.initiate(resources, ioc);
+      }
+    }
     return webapp;
   }
 
   @Provides
   @Singleton
-  protected Providers webApplicationProviders() {
-    return webapp.getProviders();
+  protected WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+    return getInitiatedWebapp(resources, ioc);
+  }
+
+  @Provides
+  @Singleton
+  protected Providers webApplicationProviders(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+    return getInitiatedWebapp(resources, ioc).getProviders();
   }
 
   @Provides

@@ -19,8 +19,8 @@ import java.util.List;
 @Singleton
 public class SanitizingResource {
 
-  public static final String BAD_XML_CONTENT = "Some text \u0007 some text";
-  public static final String SANITIZED_XML_CONTENT = "Some text \uFFFD some text";
+  public static final String BAD_XML_CONTENT = "Some text \u0007 some \ud83d\ude0a text";
+  public static final String SANITIZED_XML_CONTENT = "Some text \uFFFD some \ud83d\ude0a text";
 
   List<Tag> putted = new ArrayList<Tag>();
 

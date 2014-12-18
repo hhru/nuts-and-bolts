@@ -91,7 +91,12 @@ public class JerseyGutsModule extends AbstractModule {
     networkListener.setMaxHttpHeaderSize(
         Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
     networkListener.getTransport().setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
-    networkListener.getTransport().setSelectorRunnersCount(Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1")));
+
+    int runnersCount = Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1"));
+    if (runnersCount > 0) {
+      networkListener.getTransport().setSelectorRunnersCount(runnersCount);
+    }
+
     networkListener.getTransport().setIOStrategy(toIOStrategy(settings.subTree("grizzly").getProperty("ioStrategy")));
     networkListener.getTransport().setTcpNoDelay(true);
 

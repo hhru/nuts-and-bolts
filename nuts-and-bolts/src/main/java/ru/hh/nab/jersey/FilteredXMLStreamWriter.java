@@ -39,7 +39,9 @@ public class FilteredXMLStreamWriter implements XMLStreamWriter {
           (current == 0xD) ||
           ((current >= 0x20) && (current <= 0xD7FF)) ||
           ((current >= 0xE000) && (current <= 0xFFFD)) ||
-          ((current >= 0x10000) && (current <= 0x10FFFF))) {
+          ((current >= 0x10000) && (current <= 0x10FFFF)) ||
+          Character.isHighSurrogate(current) ||
+          Character.isLowSurrogate(current)) {
         builder.append(current);
       } else {
         builder.append(REPLACEMENT_CHARACTER);

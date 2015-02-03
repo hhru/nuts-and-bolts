@@ -1,14 +1,17 @@
 package ru.hh.nab.grizzly;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
+import org.glassfish.grizzly.http.util.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.scopes.RequestScope;
+import ru.hh.util.AcceptHeaderFixer;
 import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -39,6 +42,11 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
 
   @Override
   public void service(Request request, Response response) throws Exception {
+    String fixedAcceptHeader = AcceptHeaderFixer.fixedAcceptHeaderOrNull(request.getHeader(Header.Accept));
+    if (fixedAcceptHeader != null) {
+      request.getRequest().setHeader(Header.Accept, fixedAcceptHeader);
+    }
+
     String requestId = request.getHeader(X_REQUEST_ID);
     if (requestId == null)
       requestId = "NoRequestId";

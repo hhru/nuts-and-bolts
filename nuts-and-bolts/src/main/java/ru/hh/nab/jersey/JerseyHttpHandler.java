@@ -153,7 +153,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       try {
-        response.sendError(500);
+        if (!response.isCommitted()) {
+          response.sendError(500);
+        }
       } catch (IOException io) {
         throw new RuntimeException(io);
       }

@@ -97,7 +97,10 @@ public class JerseyGutsModule extends AbstractModule {
       networkListener.getTransport().setSelectorRunnersCount(runnersCount);
     }
 
-    networkListener.getTransport().setIOStrategy(toIOStrategy(settings.subTree("grizzly").getProperty("ioStrategy")));
+    IOStrategy strategy = strategies.get(settings.subTree("grizzly").getProperty("ioStrategy"));
+    if (strategy != null) {
+      networkListener.getTransport().setIOStrategy(strategy);
+    }
     networkListener.getTransport().setTcpNoDelay(true);
 
     List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
@@ -111,11 +114,6 @@ public class JerseyGutsModule extends AbstractModule {
     ws.addGrizzlyAdapter(jersey);
 
     return ws;
-  }
-
-  private static IOStrategy toIOStrategy(String property) {
-    IOStrategy strategy = strategies.get(property);
-    return strategy == null ? SameThreadIOStrategy.getInstance() : strategy;
   }
 
   @Provides

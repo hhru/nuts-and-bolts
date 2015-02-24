@@ -7,8 +7,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.Assert;
 import org.junit.Test;
+import ru.hh.nab.JerseyResource;
 import ru.hh.nab.NabModule;
-import ru.hh.nab.TestResource;
 import ru.hh.nab.testing.JerseyTest;
 
 public class SecureResourceWithImplicitAnonymousTest extends JerseyTest {
@@ -63,7 +63,7 @@ public class SecureResourceWithImplicitAnonymousTest extends JerseyTest {
     return new NabModule() {
       @Override
       protected void configureApp() {
-        bind(TestResource.class);
+        bind(JerseyResource.class);
       }
     };
   }

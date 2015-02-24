@@ -17,6 +17,10 @@ public final class AcceptHeaderFixer {
 
   // returns null if empty argument or no need to fix header
   public static String fixedAcceptHeaderOrNull(String acceptHeader) {
+    return fixSpacesBetweenContentTypesWithoutComma(fixWapProfile(acceptHeader));
+  }
+
+  private static String fixWapProfile(String acceptHeader) {
     if (StringUtils.isBlank(acceptHeader)) {
       return null;
     }
@@ -46,6 +50,23 @@ public final class AcceptHeaderFixer {
         fixedAcceptHeader.append(acceptHeader.substring(firstCommaAfter + 1));
       }
       acceptHeader = fixedAcceptHeader.toString();
+    }
+    return acceptHeader;
+  }
+
+  // replace "application/vnd.wap.wmlscriptc, application/vnd.wap.wmlc application/vnd.wap.sic"
+  // with "application/vnd.wap.wmlscriptc, application/vnd.wap.wmlc, application/vnd.wap.sic"
+  private static String fixSpacesBetweenContentTypesWithoutComma(String acceptHeader) {
+    if (StringUtils.isBlank(acceptHeader)) {
+      return null;
+    }
+    // if header starts with a space (first pos == 0). it is bad enough to give up trying to fix it.
+    for (int pos = acceptHeader.indexOf(' '); pos > 0; pos = acceptHeader.indexOf(' ', pos + 1)) {
+      char characterBeforeSpace = acceptHeader.charAt(pos - 1);
+      if (Character.isAlphabetic(characterBeforeSpace) || Character.isDigit(characterBeforeSpace)) {
+        acceptHeader = acceptHeader.substring(0, pos - 1) + ',' + acceptHeader.substring(pos);
+        pos++;
+      }
     }
     return acceptHeader;
   }

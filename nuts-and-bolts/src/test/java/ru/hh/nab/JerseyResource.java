@@ -5,7 +5,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 @Path("/")
-public class TestResource {
+public class JerseyResource {
   @GET
   @Secure("authenticate")
   @Path("/authenticate")

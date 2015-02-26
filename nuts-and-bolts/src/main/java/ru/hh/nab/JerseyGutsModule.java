@@ -78,9 +78,13 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected ResourceConfig resourceConfig() {
+  protected ResourceConfig resourceConfig(Settings settings) {
     ResourceConfig ret = new DefaultResourceConfig();
     ret.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, HeadersAnnotationFilterFactory.class.getName());
+
+    boolean disableWadl = Boolean.parseBoolean(settings.subTree("jersey").getProperty("disableWadl", "true"));
+    ret.getFeatures().put(ResourceConfig.FEATURE_DISABLE_WADL, disableWadl);
+
     return ret;
   }
 

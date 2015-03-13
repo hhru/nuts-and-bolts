@@ -6,7 +6,7 @@ import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.memory.ByteBufferManager;
-import org.glassfish.grizzly.nio.NIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.strategies.SimpleDynamicNIOStrategy;
@@ -72,9 +72,17 @@ public class SimpleGrizzlyWebServer {
     networkListener.getTransport()
         .setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
 
-    NIOTransport transport = networkListener.getTransport();
-    if (Boolean.valueOf(selectorProperties.getProperty("blockOnQueueOverflow", "false"))) {
+    TCPNIOTransport transport = networkListener.getTransport();
+    boolean blockOnQueueOverflow = Boolean.valueOf(selectorProperties.getProperty("blockOnQueueOverflow", "false"));
+    if (blockOnQueueOverflow) {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(transport.getWorkerThreadPoolConfig()));
+    }
+    
+    int ssbacklog = Integer.valueOf(selectorProperties.getProperty("connectionBacklog", "-1"));
+    if (blockOnQueueOverflow && ssbacklog < 0) {
+      throw new IllegalStateException("Set selector.connectionBacklog size and net.ipv4.tcp_abort_on_overflow=1");
+    } else if (ssbacklog > 0) {
+      transport.setServerConnectionBackLog(ssbacklog);
     }
 
     int runnersCount = Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1"));

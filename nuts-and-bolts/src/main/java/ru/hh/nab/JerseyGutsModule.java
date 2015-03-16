@@ -3,7 +3,6 @@ package ru.hh.nab;
 import com.google.common.base.Optional;
 import static com.google.common.collect.Maps.newHashMap;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -20,17 +19,9 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
 
-import org.glassfish.grizzly.IOStrategy;
-import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.Request;
-import org.glassfish.grizzly.memory.ByteBufferManager;
-import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.strategies.SimpleDynamicNIOStrategy;
-import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
-import ru.hh.nab.grizzly.DefaultCharacterEncodingHandler;
 import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
@@ -45,13 +36,6 @@ import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.Permissions;
 
 public class JerseyGutsModule extends AbstractModule {
-  private static final Map<String, IOStrategy> strategies = ImmutableMap.of(
-      "worker", WorkerThreadIOStrategy.getInstance(),
-      "same", SameThreadIOStrategy.getInstance(),
-      "dynamic", SimpleDynamicNIOStrategy.getInstance(),
-      "leader-follower", LeaderFollowerNIOStrategy.getInstance()
-  );
-
   private final WebApplication webapp;
 
   public JerseyGutsModule(WebApplication webapp) {
@@ -72,48 +56,24 @@ public class JerseyGutsModule extends AbstractModule {
   protected SimpleGrizzlyWebServer grizzlyWebServer(
       Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
-    SimpleGrizzlyWebServer ws = new SimpleGrizzlyWebServer(settings.port, settings.concurrencyLevel, tlFactory, settings.workersQueueLimit);
-    ws.setCoreThreads(settings.concurrencyLevel);
+    
+    SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory);
 
-    ws.addGrizzlyAdapter(new DefaultCharacterEncodingHandler());
+    addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
+    
+    grizzlyServer.addGrizzlyAdapter(jersey);
 
-    ws.setJmxEnabled(Boolean.valueOf(settings.subTree("grizzly.httpServer").getProperty("jmxEnabled", "false")));
-
-    final Properties selectorProperties = settings.subTree("selector");
-    final NetworkListener networkListener = ws.getNetworkListener();
-    networkListener.getKeepAlive().setMaxRequestsCount(
-        Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));
-    networkListener.getCompressionConfig().setCompressionMinSize(Integer.MAX_VALUE);
-    networkListener.setMaxPendingBytes(
-        Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "32768")));
-    networkListener.setMaxBufferedPostSize(
-        Integer.parseInt(selectorProperties.getProperty("bufferSize", "32768")));
-    networkListener.setMaxHttpHeaderSize(
-        Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
-    networkListener.getTransport().setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
-
-    int runnersCount = Integer.parseInt(selectorProperties.getProperty("runnersCount", "-1"));
-    if (runnersCount > 0) {
-      networkListener.getTransport().setSelectorRunnersCount(runnersCount);
-    }
-
-    IOStrategy strategy = strategies.get(settings.subTree("grizzly").getProperty("ioStrategy"));
-    if (strategy != null) {
-      networkListener.getTransport().setIOStrategy(strategy);
-    }
-    networkListener.getTransport().setTcpNoDelay(true);
-
+    return grizzlyServer;
+  }
+  
+  private void addGrizzlets(SimpleGrizzlyWebServer grizzlyServer, GrizzletDefs grizzletDefs, Provider<Injector> inj, Limits limits) {
     List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
     for (GrizzletDef a : grizzletDefs) {
       RequestHandler handler = inj.get().getInstance(a.handlerClass);
       grizzletHandlers.add(new GrizzletHandler(a.handlerClass, handler, limits));
     }
     RequestDispatcher grizzletsDispatcher = new RequestDispatcher(grizzletHandlers);
-    ws.addGrizzlyAdapter(grizzletsDispatcher);
-
-    ws.addGrizzlyAdapter(jersey);
-
-    return ws;
+    grizzlyServer.addGrizzlyAdapter(grizzletsDispatcher);
   }
 
   @Provides

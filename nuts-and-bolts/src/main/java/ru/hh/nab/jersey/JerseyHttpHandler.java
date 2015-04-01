@@ -42,9 +42,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
 
   private final ThreadLocalInvoker<Response> responseInvoker =
           new ThreadLocalInvoker<Response>();
-  
+
   private final Provider<TimingsLogger> timingsLoggerProvider;
-  
+
 
   private static class ContextInjectableProvider<T> extends
           SingletonTypeInjectableProvider<Context, T> {
@@ -159,7 +159,7 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
       timingsLogger().probe("jersey#beforeHandle");
       _application.handleRequest(cRequest, writer);
       timingsLogger().probe("jersey#afterHandle");
-      
+
       if (response.getStatus() >= 500) {
         timingsLogger().setErrorState();
       }

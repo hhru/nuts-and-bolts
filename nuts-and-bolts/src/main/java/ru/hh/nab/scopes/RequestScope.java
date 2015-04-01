@@ -19,7 +19,7 @@ import ru.hh.health.monitoring.TimingsLogger;
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
 
-  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<RequestScopeClosure>();
+  private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<>();
 
   private final static Logger logger = LoggerFactory.getLogger(RequestScope.class);
 

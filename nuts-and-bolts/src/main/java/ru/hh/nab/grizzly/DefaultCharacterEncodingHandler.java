@@ -10,6 +10,5 @@ public class DefaultCharacterEncodingHandler extends HttpHandler {
   @Override
   public void service(Request request, Response response) throws Exception {
     request.setCharacterEncoding(Charset.defaultCharset().name());
-    SimpleGrizzlyAdapterChain.abstain();
   }
 }

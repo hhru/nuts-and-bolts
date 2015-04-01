@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import com.google.inject.name.Names;
 import org.glassfish.grizzly.http.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,6 +163,30 @@ public class RequestScope implements TransferrableScope {
     ScopeClosure ret = closure.get();
     Preconditions.checkState(ret != null);
     return ret;
+  }
+
+  public static String getProperty(String propertyName) {
+    return getNamedObject(String.class, propertyName);
+  }
+
+  public static <T> T getNamedObject(Class<T> clazz, String propertyName) {
+    return currentClosure().get(Key.get(clazz, Names.named(propertyName)));
+  }
+
+  public static void setProperty(String propertyName, String value) {
+    setNamedObject(String.class, propertyName, value);
+  }
+
+  public static <T> void setNamedObject(Class<T> clazz, String propertyName, T value) {
+    currentClosure().put(Key.get(clazz, Names.named(propertyName)), value);
+  }
+
+  public static void removeProperty(String propertyName) {
+    removeNamedObject(String.class, propertyName);
+  }
+
+  public static <T> void removeNamedObject(Class<T> clazz, String propertyName) {
+    setNamedObject(clazz, propertyName, null);
   }
 
   public static class RequestScopeClosure implements ScopeClosure {

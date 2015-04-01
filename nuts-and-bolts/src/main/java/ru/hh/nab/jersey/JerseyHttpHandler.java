@@ -17,6 +17,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.util.UriTool;
 import javax.ws.rs.core.Context;
@@ -173,6 +174,7 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
         throw new RuntimeException(io);
       }
     }
+    SimpleGrizzlyAdapterChain.requestServiced();
   }
 
   private URI getBaseUri(Request request) {

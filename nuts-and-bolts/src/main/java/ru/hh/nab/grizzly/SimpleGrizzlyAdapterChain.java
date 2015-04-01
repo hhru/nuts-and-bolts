@@ -1,6 +1,7 @@
 package ru.hh.nab.grizzly;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
@@ -18,7 +19,7 @@ import java.util.concurrent.Callable;
 
 public class SimpleGrizzlyAdapterChain extends HttpHandler {
 
-  private static final String ADAPTER_ABSTAINED_NOTE = "ADAPTER_ABSTAINED_NOTE";
+  private static final String REQUEST_SERVICED = "GRIZZLY_ADAPTER_REQUEST_SERVICED";
 
   private final TimingsLoggerFactory timingsLoggerFactory;
   private final MarkableProbe[] probes;
@@ -37,8 +38,8 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
     this.probes = new MarkableProbe[0];
   }
 
-  public static void abstain() {
-    ((Request) RequestScope.currentRequest()).setAttribute(ADAPTER_ABSTAINED_NOTE, true);
+  public static void requestServiced() {
+    RequestScope.setProperty(REQUEST_SERVICED, REQUEST_SERVICED);
   }
 
   private final List<HttpHandler> adapters = Lists.newArrayList();
@@ -79,7 +80,8 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
       for (HttpHandler adapter : adapters) {
         try {
           adapter.service(request, response);
-          if (request.getAttribute(ADAPTER_ABSTAINED_NOTE) == null) {
+          if (StringUtils.isNotBlank(RequestScope.getProperty(REQUEST_SERVICED))) {
+            RequestScope.removeProperty(REQUEST_SERVICED);
             return;
           }
         } catch (Exception e) {
@@ -96,8 +98,6 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
             logger.error(e.getMessage(), e);
           }
           throw e;
-        } finally {
-          request.getRequest().setAttribute(ADAPTER_ABSTAINED_NOTE, null);
         }
       }
     } finally {

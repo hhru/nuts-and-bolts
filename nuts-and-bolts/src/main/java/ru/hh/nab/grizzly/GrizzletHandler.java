@@ -5,10 +5,12 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.health.limits.LeaseToken;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.scopes.RequestScope;
+import javax.ws.rs.WebApplicationException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -50,7 +52,17 @@ public class GrizzletHandler {
           return null;
         }
       });
-      target.handle(request, response);
+      try {
+        target.handle(request, response);
+      } catch (WebApplicationException exception) {
+        TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();
+        timingsLogger.setErrorState();
+        timingsLogger.probe(exception.getMessage());
+        LOGGER.error("Got WebApplicationException in a grizzlet, must not throw them in grizzlets : " + exception.getMessage(), exception);
+        if (!response.isCommitted() && response.getStatus() == 200) {
+          response.setStatus(exception.getResponse().getStatus());
+        }
+      }
     }
   }
 

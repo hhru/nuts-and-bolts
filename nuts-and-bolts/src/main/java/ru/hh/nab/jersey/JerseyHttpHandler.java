@@ -17,8 +17,9 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain;
 import ru.hh.health.monitoring.TimingsLogger;
+import ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain;
+import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.UriTool;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
@@ -32,7 +33,9 @@ import java.util.Map;
 
 public final class JerseyHttpHandler extends HttpHandler implements ContainerListener {
 
-  private final static Logger log = LoggerFactory.getLogger(JerseyHttpHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(JerseyHttpHandler.class);
+
+  private static final String GRIZZLY_IO_EXCEPTION_DURING_JERSEY_CALL = "GRIZZLY_IO_EXCEPTION_DURING_JERSEY_CALL";
 
   private WebApplication application;
 
@@ -97,15 +100,81 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
         response.setContentType(contentType);
       }
 
-      return response.getOutputStream();
+      return new OutputStreamRememberingIOExceptions(response.getOutputStream());
     }
 
     public void finish() throws IOException {
     }
   }
 
+  private static void rememberIOException(IOException exception) {
+    RequestScope.setNamedObject(IOException.class, GRIZZLY_IO_EXCEPTION_DURING_JERSEY_CALL, exception);
+  }
+
+  private static IOException recallIOException() {
+    return RequestScope.getNamedObject(IOException.class, GRIZZLY_IO_EXCEPTION_DURING_JERSEY_CALL);
+  }
+
+  private static class OutputStreamRememberingIOExceptions extends OutputStream {
+    final OutputStream delegate;
+
+    public OutputStreamRememberingIOExceptions(OutputStream os) {
+      this.delegate = os;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      try {
+        delegate.write(b);
+      } catch (IOException ex) {
+        rememberIOException(ex);
+        throw ex;
+      }
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+      try {
+        delegate.write(b);
+      } catch (IOException ex) {
+        rememberIOException(ex);
+        throw ex;
+      }
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      try {
+        delegate.write(b, off, len);
+      } catch (IOException ex) {
+        rememberIOException(ex);
+        throw ex;
+      }
+    }
+
+    @Override
+    public void flush() throws IOException {
+      try {
+        delegate.flush();
+      } catch (IOException ex) {
+        rememberIOException(ex);
+        throw ex;
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      try {
+        delegate.close();
+      } catch (IOException ex) {
+        rememberIOException(ex);
+        throw ex;
+      }
+    }
+  }
+
   @Override
-  public void service(Request request, Response response) {
+  public void service(Request request, Response response) throws IOException {
     try {
       requestInvoker.set(request);
       responseInvoker.set(response);
@@ -117,7 +186,7 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
     }
   }
 
-  private void _service(Request request, Response response) {
+  private void _service(Request request, Response response) throws IOException {
     WebApplication _application = application;
 
     // URI as provided by grizzly does not include query string
@@ -150,12 +219,12 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
 
     try {
       final ContainerRequest cRequest = new ContainerRequest(
-              _application,
-              request.getMethod().getMethodString(),
-              baseUri,
-              resolvedRequestUri,
-              getHeaders(request),
-              request.getInputStream());
+        _application,
+        request.getMethod().getMethodString(),
+        baseUri,
+        resolvedRequestUri,
+        getHeaders(request),
+        request.getInputStream());
       Writer writer = new Writer(response);
       timingsLogger().probe("jersey#beforeHandle");
       _application.handleRequest(cRequest, writer);
@@ -164,15 +233,16 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
       if (response.getStatus() >= 500) {
         timingsLogger().setErrorState();
       }
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      try {
-        if (!response.isCommitted()) {
-          response.sendError(500);
-        }
-      } catch (IOException io) {
-        throw new RuntimeException(io);
+    } catch (IOException e) {
+      IOException recalledException = recallIOException();
+      if (recalledException == null) {
+        // this is not a client-server error but application I/O error
+        throw e;
       }
+      TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();
+      timingsLogger.setErrorState();
+      timingsLogger.probe(e.getMessage());
+      log.warn(recalledException.getMessage(), recalledException);
     }
     SimpleGrizzlyAdapterChain.requestServiced();
   }

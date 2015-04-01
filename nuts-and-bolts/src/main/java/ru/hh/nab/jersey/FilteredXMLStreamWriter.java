@@ -6,7 +6,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-public class FilteredXMLStreamWriter implements XMLStreamWriter {
+public class FilteredXMLStreamWriter implements XMLStreamWriter, AutoCloseable {
 
   private static final char REPLACEMENT_CHARACTER = '\uFFFD';
 

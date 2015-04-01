@@ -81,17 +81,9 @@ public class FilteredXMLJAXBElementProvider extends AbstractJAXBElementProvider 
 
   protected final void writeTo(JAXBElement<?> t, MediaType mediaType, Charset c,
                                Marshaller m, OutputStream entityStream) throws JAXBException {
-    try {
-      FilteredXMLStreamWriter filteredXMLStreamWriter = null;
-      try {
-        filteredXMLStreamWriter = new FilteredXMLStreamWriter(entityStream);
-        m.marshal(t, filteredXMLStreamWriter);
-        filteredXMLStreamWriter.flush();
-      } finally {
-        if(filteredXMLStreamWriter != null) {
-          filteredXMLStreamWriter.close();
-        }
-      }
+    try (FilteredXMLStreamWriter filteredXMLStreamWriter = new FilteredXMLStreamWriter(entityStream)) {
+      m.marshal(t, filteredXMLStreamWriter);
+      filteredXMLStreamWriter.flush();
     } catch (XMLStreamException e) {
       throw new JAXBException(e);
     }

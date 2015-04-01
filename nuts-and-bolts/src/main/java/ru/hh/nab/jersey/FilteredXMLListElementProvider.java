@@ -88,21 +88,13 @@ public class FilteredXMLListElementProvider extends AbstractListElementProvider 
     final String cName = c.name();
 
     entityStream.write(
-            String.format("<?xml version=\"1.0\" encoding=\"%s\" standalone=\"yes\"?>", cName).getBytes(cName));
+      String.format("<?xml version=\"1.0\" encoding=\"%s\" standalone=\"yes\"?>", cName).getBytes(cName));
     entityStream.write(String.format("<%s>", rootElement).getBytes(cName));
 
-    try {
-      FilteredXMLStreamWriter filteredXMLStreamWriter = null;
-      try {
-        filteredXMLStreamWriter = new FilteredXMLStreamWriter(entityStream);
-        for (Object o : t) {
-          m.marshal(o, filteredXMLStreamWriter);
-          filteredXMLStreamWriter.flush();
-        }
-      } finally {
-        if(filteredXMLStreamWriter != null) {
-          filteredXMLStreamWriter.close();
-        }
+    try (FilteredXMLStreamWriter filteredXMLStreamWriter = new FilteredXMLStreamWriter(entityStream)) {
+      for (Object o : t) {
+        m.marshal(o, filteredXMLStreamWriter);
+        filteredXMLStreamWriter.flush();
       }
     } catch (XMLStreamException e) {
       throw new JAXBException(e);

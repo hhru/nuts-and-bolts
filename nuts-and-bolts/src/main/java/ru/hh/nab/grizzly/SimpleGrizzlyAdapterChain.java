@@ -13,7 +13,6 @@ import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.grizzly.monitoring.MarkableProbe;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.AcceptHeaderFixer;
-import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -78,31 +77,24 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
 
     try {
       for (HttpHandler adapter : adapters) {
-        try {
-          adapter.service(request, response);
-          if (StringUtils.isNotBlank(RequestScope.getProperty(REQUEST_SERVICED))) {
-            RequestScope.removeProperty(REQUEST_SERVICED);
-            return;
-          }
-        } catch (Exception e) {
-          timingsLogger.setErrorState();
-          final boolean doLogging;
-          if (e instanceof WebApplicationException) {
-            int status = ((WebApplicationException) e).getResponse().getStatus();
-            doLogging = status >= 500;
-          } else {
-            doLogging = true;
-          }
-          if (doLogging) {
-            timingsLogger.probe(e.getMessage());
-            logger.error(e.getMessage(), e);
-          }
-          throw e;
+        adapter.service(request, response);
+        if (StringUtils.isNotBlank(RequestScope.getProperty(REQUEST_SERVICED))) {
+          RequestScope.removeProperty(REQUEST_SERVICED);
+          return;
         }
+      }
+      response.sendError(404, "No handler found");
+    } catch (Exception e) {
+      timingsLogger.setErrorState();
+      timingsLogger.probe(e.getMessage());
+      logger.error(e.getMessage(), e);
+
+      // send error response if response if not already committed
+      if (!response.isCommitted()) {
+        response.sendError(500, e.getMessage());
       }
     } finally {
       RequestScope.leave();
     }
-    response.sendError(404, "No handler found");
   }
 }

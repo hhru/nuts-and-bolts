@@ -43,8 +43,7 @@ public class RequestDispatcher extends HttpHandler {
     }
     if (handler != null) {
       handler.handle(request, response);
-    } else {
-      SimpleGrizzlyAdapterChain.abstain();
+      SimpleGrizzlyAdapterChain.requestServiced();
     }
   }
 }

@@ -19,13 +19,17 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
 
+import org.apache.commons.lang.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
+import org.slf4j.LoggerFactory;
+import ru.hh.health.monitoring.LogOutputPrototype;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
+import ru.hh.nab.grizzly.monitoring.NabConnectionProbe;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
@@ -47,8 +51,8 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources, WebApplication wa) {
-    return new JerseyHttpHandler(resources, wa);
+  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources, WebApplication wa, Provider<TimingsLogger> timingsLoggerProvider) {
+    return new JerseyHttpHandler(resources, wa, timingsLoggerProvider);
   }
 
   @Provides
@@ -56,8 +60,9 @@ public class JerseyGutsModule extends AbstractModule {
   protected SimpleGrizzlyWebServer grizzlyWebServer(
       Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
-    
-    SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory);
+
+    SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
+        new NabConnectionProbe(tlFactory.getTotalTimeThreshold(), LoggerFactory.getLogger(TimingsLogger.class)));
 
     addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
     
@@ -130,17 +135,34 @@ public class JerseyGutsModule extends AbstractModule {
     return RequestScope.currentClosure();
   }
 
+  private static Map<String, Long> getDelays(Settings settings) {
+    Map<String, Long> delays = newHashMap();
+    Properties delaysProps = settings.subTree("timings.delays");
+    if (delaysProps != null) {
+      for (Map.Entry<Object, Object> ent : delaysProps.entrySet()) {
+        delays.put(ent.getKey().toString(), Long.valueOf(ent.getValue().toString()));
+      }
+    }    
+    return delays;
+  }
+
   @Provides
   @Singleton
   protected TimingsLoggerFactory timingsLoggerFactory(Settings settings) {
     Properties timingProps = settings.subTree("timings");
-    Map<String, Long> delays = newHashMap();
-    for (Map.Entry<Object, Object> ent : timingProps.entrySet()) {
-      delays.put(ent.getKey().toString(), Long.valueOf(ent.getValue().toString()));
-    }
     Object toleranceStr = timingProps.get("tolerance");
     Optional<Long> tolerance = (toleranceStr == null) ? Optional.<Long>absent() : Optional.of(Long.valueOf(toleranceStr.toString()));
-    return new TimingsLoggerFactory(delays, tolerance);
+
+    String output = timingProps.getProperty("dump");
+    if (!StringUtils.isEmpty(output)) {
+      if (output.contains("oneString") && output.contains("multipleStrings")) {
+        return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.ONE_STRING, LogOutputPrototype.MULTIPLE_STRING);
+      }
+      if (output.contains("oneString")) {
+        return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.ONE_STRING);
+      }
+    }
+    return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.MULTIPLE_STRING);
   }
 
   @Provides

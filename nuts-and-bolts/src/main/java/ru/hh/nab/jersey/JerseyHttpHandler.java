@@ -11,11 +11,13 @@ import com.sun.jersey.spi.container.ContainerResponseWriter;
 import com.sun.jersey.spi.container.ReloadListener;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.inject.SingletonTypeInjectableProvider;
+import javax.inject.Provider;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.util.UriTool;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
@@ -40,6 +42,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
 
   private final ThreadLocalInvoker<Response> responseInvoker =
           new ThreadLocalInvoker<Response>();
+  
+  private final Provider<TimingsLogger> timingsLoggerProvider;
+  
 
   private static class ContextInjectableProvider<T> extends
           SingletonTypeInjectableProvider<Context, T> {
@@ -49,7 +54,7 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
     }
   }
 
-  public JerseyHttpHandler(ResourceConfig rc, WebApplication app) throws ContainerException {
+  public JerseyHttpHandler(ResourceConfig rc, WebApplication app, Provider<TimingsLogger> timingsLoggerProvider) throws ContainerException {
     this.application = app;
 
     GenericEntity<ThreadLocal<Request>> requestThreadLocal =
@@ -63,6 +68,7 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
             };
     rc.getSingletons().add(new ContextInjectableProvider<ThreadLocal<Response>>(
             responseThreadLocal.getType(), responseThreadLocal.getEntity()));
+    this.timingsLoggerProvider = timingsLoggerProvider;
   }
 
   private final static class Writer implements ContainerResponseWriter {
@@ -149,7 +155,14 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
               resolvedRequestUri,
               getHeaders(request),
               request.getInputStream());
-      _application.handleRequest(cRequest, new Writer(response));
+      Writer writer = new Writer(response);
+      timingsLogger().probe("jersey#beforeHandle");
+      _application.handleRequest(cRequest, writer);
+      timingsLogger().probe("jersey#afterHandle");
+      
+      if (response.getStatus() >= 500) {
+        timingsLogger().setErrorState();
+      }
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       try {
@@ -198,5 +211,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
       ((ReloadListener) application.getFeaturesAndProperties()).onReload();
 
     oldApplication.destroy();
+  }
+
+  private TimingsLogger timingsLogger() {
+    return timingsLoggerProvider.get();
   }
 }

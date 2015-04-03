@@ -21,7 +21,7 @@
 
   <properties>
       <grizzly.version>2.3.11</grizzly.version>
-      <jersey.version>1.18.1</jersey.version>
+      <jersey.version>1.19</jersey.version>
       <guice.version>3.0</guice.version>
   </properties>
 
@@ -129,37 +129,55 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.1.1</version>
+        <version>4.4</version>
       </dependency>
 
       <!-- Hibernate -->
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-core</artifactId>
-        <version>3.5.5-Final</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-annotations</artifactId>
-        <version>3.5.5-Final</version>
+        <version>3.6.10.Final</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-entitymanager</artifactId>
-        <version>3.5.5-Final</version>
+        <version>3.6.10.Final</version>
         <exclusions>
-        	<exclusion>
-        		<groupId>javassist</groupId>
-        		<artifactId>javassist</artifactId>
-        	</exclusion>
+          <exclusion>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
 
       <dependency>
         <groupId>org.javassist</groupId>
         <artifactId>javassist</artifactId>
-        <version>3.18.0-GA</version>
+        <version>3.19.0-GA</version>
       </dependency>
+
+      <dependency>
+        <groupId>cglib</groupId>
+        <artifactId>cglib</artifactId>
+        <version>3.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>5.0.3</version>
+      </dependency>
+
       <dependency>
         <groupId>dom4j</groupId>
         <artifactId>dom4j</artifactId>
@@ -293,6 +311,16 @@
           </execution>
         </executions>
       </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <source>1.7</source>
+            <target>1.7</target>
+            <showDeprecation>true</showDeprecation>
+          </configuration>
+        </plugin>
     </plugins>
   </build>
 

@@ -1,7 +1,6 @@
 package ru.hh.nab.grizzly;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
@@ -10,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
+import ru.hh.nab.grizzly.monitoring.MarkableProbe;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.AcceptHeaderFixer;
 import javax.ws.rs.WebApplicationException;
@@ -21,13 +21,20 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
   private static final String ADAPTER_ABSTAINED_NOTE = "ADAPTER_ABSTAINED_NOTE";
 
   private final TimingsLoggerFactory timingsLoggerFactory;
+  private final MarkableProbe[] probes;
 
   private final static String X_REQUEST_ID = "x-request-id";
 
   private final static Logger logger = LoggerFactory.getLogger(SimpleGrizzlyAdapterChain.class);
 
+  public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory, MarkableProbe[] probes) {
+    this.timingsLoggerFactory = timingsLoggerFactory;    
+    this.probes = probes;
+  }
+
   public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory) {
     this.timingsLoggerFactory = timingsLoggerFactory;
+    this.probes = new MarkableProbe[0];
   }
 
   public static void abstain() {
@@ -48,6 +55,10 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
     }
 
     String requestId = request.getHeader(X_REQUEST_ID);
+    for (MarkableProbe probe : probes) {
+      probe.mark(requestId, request.getRequest().getConnection().getPeerAddress().toString());
+    }
+    
     if (requestId == null)
       requestId = "NoRequestId";
     final TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(

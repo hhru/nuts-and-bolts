@@ -1,6 +1,7 @@
 package ru.hh.nab.grizzly;
 
 import com.google.common.collect.ImmutableMap;
+import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -19,6 +20,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import ru.hh.nab.grizzly.monitoring.NabConnectionProbe;
 
 public class SimpleGrizzlyWebServer {
   public static final Map<String, IOStrategy> strategies = ImmutableMap.of(
@@ -36,20 +38,26 @@ public class SimpleGrizzlyWebServer {
 
   private boolean isStarted = false;
 
-  public static SimpleGrizzlyWebServer create(Settings settings, TimingsLoggerFactory timingsLoggerFactory) {
-    SimpleGrizzlyWebServer s = new SimpleGrizzlyWebServer(settings, timingsLoggerFactory);
+  public static SimpleGrizzlyWebServer create(Settings settings, TimingsLoggerFactory timingsLoggerFactory, NabConnectionProbe... probes) {
+    SimpleGrizzlyWebServer s = new SimpleGrizzlyWebServer(settings, timingsLoggerFactory, probes);
     s.configure();
     return s;
   }
   
-  private SimpleGrizzlyWebServer(Settings settings, TimingsLoggerFactory timingsLoggerFactory) {    
+  private SimpleGrizzlyWebServer(Settings settings, TimingsLoggerFactory timingsLoggerFactory, NabConnectionProbe... probes) {
     this.settings = settings;
     httpServer = new HttpServer();
     grizzlyListener = new NetworkListener("grizzly", NetworkListener.DEFAULT_NETWORK_HOST, settings.port);
     httpServer.addListener(grizzlyListener);
 
-    this.adapterChains = new SimpleGrizzlyAdapterChain(timingsLoggerFactory);
+    this.adapterChains = new SimpleGrizzlyAdapterChain(timingsLoggerFactory, probes);
+    addProbe(probes);
+    
     addGrizzlyAdapter(new DefaultCharacterEncodingHandler());
+  }
+  
+  public void addProbe(ConnectionProbe... probes) {
+    getNetworkListener().getTransport().getConnectionMonitoringConfig().addProbes(probes);    
   }
   
   private void configure() {
@@ -77,7 +85,7 @@ public class SimpleGrizzlyWebServer {
     if (blockOnQueueOverflow) {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(transport.getWorkerThreadPoolConfig()));
     }
-    
+
     int ssbacklog = Integer.valueOf(selectorProperties.getProperty("connectionBacklog", "-1"));
     if (blockOnQueueOverflow && ssbacklog < 0) {
       throw new IllegalStateException("Set selector.connectionBacklog size and net.ipv4.tcp_abort_on_overflow=1");

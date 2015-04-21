@@ -16,7 +16,7 @@ public class MethodProbingInterceptor implements MethodInterceptor {
     Probe ann = method.getAnnotation(Probe.class);
     TimingsLogger logger = RequestScope.currentTimingsLogger();
     if (ann == null || ann.desc() == null) {
-      logger.probe(invocation.getMethod().toString());
+      logger.probe(invocation.getMethod().getName());
     } else {
       logger.probe(ann.desc());
     }

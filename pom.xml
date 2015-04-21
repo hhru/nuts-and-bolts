@@ -17,7 +17,7 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.5.3</version>
+  <version>1.5.4-SNAPSHOT</version>
 
   <properties>
       <grizzly.version>2.3.11</grizzly.version>
@@ -30,7 +30,7 @@
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>

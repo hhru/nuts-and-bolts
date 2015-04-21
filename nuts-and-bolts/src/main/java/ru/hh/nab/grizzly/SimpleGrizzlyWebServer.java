@@ -5,7 +5,7 @@ import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
-import org.glassfish.grizzly.memory.ByteBufferManager;
+import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -57,10 +57,10 @@ public class SimpleGrizzlyWebServer {
     setCoreThreads(settings.concurrencyLevel);
     setWorkerThreadQueueLimit(settings.workersQueueLimit);
     setJmxEnabled(Boolean.valueOf(settings.subTree("grizzly.httpServer").getProperty("jmxEnabled", "false")));
-    initNetworkListener(settings.subTree("selector"));    
+    initNetworkListener(settings.subTree("selector"), settings.subTree("grizzly.memoryManager"));
   }
   
-  private void initNetworkListener(Properties selectorProperties) {
+  private void initNetworkListener(Properties selectorProperties, Properties memoryManagerProps) {
     final NetworkListener networkListener = getNetworkListener();
     networkListener.getKeepAlive().setMaxRequestsCount(
         Integer.parseInt(selectorProperties.getProperty("maxKeepAliveRequests", "4096")));
@@ -69,10 +69,12 @@ public class SimpleGrizzlyWebServer {
     networkListener.setMaxPendingBytes(Integer.parseInt(selectorProperties.getProperty("sendBufferSize", "32768")));
     networkListener.setMaxBufferedPostSize(Integer.parseInt(selectorProperties.getProperty("bufferSize", "32768")));
     networkListener.setMaxHttpHeaderSize(Integer.parseInt(selectorProperties.getProperty("headerSize", "16384")));
-    networkListener.getTransport()
-        .setMemoryManager(new ByteBufferManager(true, 128 * 1024, ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE));
 
     TCPNIOTransport transport = networkListener.getTransport();
+
+    final MemoryManager memoryManager = MemoryManagerFactory.create(memoryManagerProps);
+    transport.setMemoryManager(memoryManager);
+
     boolean blockOnQueueOverflow = Boolean.valueOf(selectorProperties.getProperty("blockOnQueueOverflow", "false"));
     if (blockOnQueueOverflow) {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(transport.getWorkerThreadPoolConfig()));

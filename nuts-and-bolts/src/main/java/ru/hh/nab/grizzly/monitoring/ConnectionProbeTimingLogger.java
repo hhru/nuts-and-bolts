@@ -15,14 +15,14 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 
-public class NabConnectionProbe implements ConnectionProbe, MarkableProbe {
-  private static enum Probe {ACCEPT, CONNECT, READ, READY_WRITE, WRITE}
+public class ConnectionProbeTimingLogger implements ConnectionProbe {
+  private static enum Probe {ACCEPT, CONNECT, READ, END_USER_REQUEST, WRITE}
   
-  private static final Marker TCP_MARKER = MarkerFactory.getMarker("TCP_MARKER");
+  static final Marker TCP_MARKER = MarkerFactory.getMarker("TCP_MARKER");
   private static final String X_REQUEST_ID = "req.h.x-request-id";
   private static final Format formatter = FastDateFormat.getInstance("HH:mm:ss.S");
   private static final int DEFAULT_INITIAL_CAPACITY = 1000;
-  private static final int LOG_TRESHOLD =  DEFAULT_INITIAL_CAPACITY * Probe.values().length + 1;
+  public static final int LOG_THRESHOLD =  DEFAULT_INITIAL_CAPACITY * Probe.values().length + 1;
   
   private final ConcurrentMap<String, Long> timingRecords;
   private final ConcurrentMap<String, String> rids;  
@@ -30,21 +30,21 @@ public class NabConnectionProbe implements ConnectionProbe, MarkableProbe {
   private final Logger logger;
   
   
-  public NabConnectionProbe(long tolerance, Logger logger) {
+  public ConnectionProbeTimingLogger(long tolerance, Logger logger) {
     this.tolerance = tolerance;
     assert logger != null;
     this.logger = logger;
     
-    this.timingRecords = new ConcurrentHashMap<String, Long>(DEFAULT_INITIAL_CAPACITY * Probe.values().length);
-    this.rids = new ConcurrentHashMap<String, String>(DEFAULT_INITIAL_CAPACITY);
+    this.timingRecords = new ConcurrentHashMap<>(DEFAULT_INITIAL_CAPACITY * Probe.values().length);
+    this.rids = new ConcurrentHashMap<>(DEFAULT_INITIAL_CAPACITY);
   }
   
   @SuppressWarnings("ConstantConditions")
-  private void dumpTimings(String peerAddressAndPort, long closeProbe, boolean error, String errorMessage) {
-    Long startAccept = timingRecords.get(makeProbeKey(peerAddressAndPort, Probe.ACCEPT));
+  private void dumpTimings(Connection clientConnection, long closeProbe, boolean error, String errorMessage) {
+    Long startAccept = timingRecords.get(makeProbeKey(clientConnection, Probe.ACCEPT));
     long total = startAccept != null ? closeProbe - startAccept : -1;
     if (total > tolerance) {
-      String rid = rids.get(peerAddressAndPort);
+      String rid = rids.get(makeKey(clientConnection));
       if (rid == null) {
         return;
       }
@@ -58,7 +58,7 @@ public class NabConnectionProbe implements ConnectionProbe, MarkableProbe {
             continue;
           }
           
-          Long time = timingRecords.get(makeProbeKey(peerAddressAndPort, p));
+          Long time = timingRecords.get(makeProbeKey(clientConnection, p));
           if (time == null) {
             continue;
           }          
@@ -79,13 +79,12 @@ public class NabConnectionProbe implements ConnectionProbe, MarkableProbe {
     }
   }
 
-  @Override
-  public void mark(String requestId, String peerAddressAndPort) {
-    if (requestId == null || peerAddressAndPort == null 
-        || timingRecords.get(makeProbeKey(peerAddressAndPort, Probe.ACCEPT)) == null) {
+  public void endUserRequest(String requestId, Connection clientConnection) {
+    if (requestId == null || timingRecords.get(makeProbeKey(clientConnection, Probe.ACCEPT)) == null) {
       return;
     }
-    rids.put(peerAddressAndPort, requestId);
+    rids.put(makeKey(clientConnection), requestId);
+    probe(clientConnection, Probe.END_USER_REQUEST);
   }
       
   @Override
@@ -119,42 +118,41 @@ public class NabConnectionProbe implements ConnectionProbe, MarkableProbe {
   }
   
   @Override
-  public void onIOEventReadyEvent(Connection connection, IOEvent ioEvent) {
-    if (IOEvent.WRITE == ioEvent) {
-      probe(connection, Probe.READY_WRITE);
-    }
-  }
+  public void onIOEventReadyEvent(Connection connection, IOEvent ioEvent) {}
 
-  private void clear(String peerAddressAndPort) {
+  private void clear(Connection clientConnection) {
     for (Probe probe : Probe.values()) {
-      timingRecords.remove(makeProbeKey(peerAddressAndPort, probe));
+      timingRecords.remove(makeProbeKey(clientConnection, probe));
     }
-    rids.remove(peerAddressAndPort);
+    rids.remove(makeKey(clientConnection));
   }
 
   private void end(Connection connection, boolean error, String errorMessage) {
-    int ts = timingRecords.size();
-    if (ts > LOG_TRESHOLD) {
-      logger.warn(TCP_MARKER, "timingsRecords map too large: " + String.valueOf(ts));
-    }
-    String peer = connection.getPeerAddress().toString();
     try {
-      dumpTimings(peer, System.currentTimeMillis(), error, errorMessage);
+      int ts = timingRecords.size();
+      if (ts > LOG_THRESHOLD) {
+        logger.warn(TCP_MARKER, "timingsRecords map too large: " + String.valueOf(ts));
+      }
+      dumpTimings(connection, System.currentTimeMillis(), error, errorMessage);
     } finally {
-      clear(peer);
+      clear(connection);
     }
   }
   
   private void probe(Connection clientConnection, Probe stage) {
-    timingRecords.put(makeProbeKey(clientConnection.getPeerAddress(), stage), System.currentTimeMillis());
+    timingRecords.put(makeProbeKey(clientConnection, stage), System.currentTimeMillis());
   }
   
   private static String format(String t, Object... args) {
     return  MessageFormatter.arrayFormat(t, args).getMessage();
   }
 
-  private static String makeProbeKey(Object peerAddressAndPort, Probe probe) {
-    return peerAddressAndPort.toString() + probe.name();
+  private static String makeProbeKey(Connection clientConnection, Probe probe) {
+    return makeKey(clientConnection) + probe.name();
+  }
+
+  private static String makeKey(Connection clientConnection) {
+    return clientConnection.getPeerAddress().toString();
   }
 
   @Override

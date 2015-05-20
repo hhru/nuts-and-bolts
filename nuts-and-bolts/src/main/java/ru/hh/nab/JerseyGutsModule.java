@@ -29,7 +29,7 @@ import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
-import ru.hh.nab.grizzly.monitoring.NabConnectionProbe;
+import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
@@ -62,7 +62,7 @@ public class JerseyGutsModule extends AbstractModule {
       TimingsLoggerFactory tlFactory) {
 
     SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
-        new NabConnectionProbe(tlFactory.getTotalTimeThreshold(), LoggerFactory.getLogger(TimingsLogger.class)));
+        new ConnectionProbeTimingLogger(tlFactory.getTotalTimeThreshold(), LoggerFactory.getLogger(TimingsLogger.class)));
 
     addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
     

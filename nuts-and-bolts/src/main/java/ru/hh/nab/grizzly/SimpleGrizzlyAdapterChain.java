@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
-import ru.hh.nab.grizzly.monitoring.MarkableProbe;
+import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.AcceptHeaderFixer;
 import java.util.List;
@@ -21,20 +21,21 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
   private static final String REQUEST_SERVICED = "GRIZZLY_ADAPTER_REQUEST_SERVICED";
 
   private final TimingsLoggerFactory timingsLoggerFactory;
-  private final MarkableProbe[] probes;
+  private final ConnectionProbeTimingLogger probe;
 
   private final static String X_REQUEST_ID = "x-request-id";
 
   private final static Logger logger = LoggerFactory.getLogger(SimpleGrizzlyAdapterChain.class);
+  private String NO_REQUEST_ID = "NoRequestId";
 
-  public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory, MarkableProbe[] probes) {
+  public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory, ConnectionProbeTimingLogger probe) {
     this.timingsLoggerFactory = timingsLoggerFactory;    
-    this.probes = probes;
+    this.probe = probe;
   }
 
   public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory) {
     this.timingsLoggerFactory = timingsLoggerFactory;
-    this.probes = new MarkableProbe[0];
+    this.probe = null;
   }
 
   public static void requestServiced() {
@@ -48,19 +49,12 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
   }
 
   @Override
-  public void service(Request request, Response response) throws Exception {
+  public void service(final Request request, final Response response) throws Exception {
     String fixedAcceptHeader = AcceptHeaderFixer.fixedAcceptHeaderOrNull(request.getHeader(Header.Accept));
     if (fixedAcceptHeader != null) {
       request.getRequest().setHeader(Header.Accept, fixedAcceptHeader);
     }
-
-    String requestId = request.getHeader(X_REQUEST_ID);
-    for (MarkableProbe probe : probes) {
-      probe.mark(requestId, request.getRequest().getConnection().getPeerAddress().toString());
-    }
-    
-    if (requestId == null)
-      requestId = "NoRequestId";
+    final String requestId = request.getHeader(X_REQUEST_ID) == null ? NO_REQUEST_ID : request.getHeader(X_REQUEST_ID);
     final TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(
         String.format("%s %s", request.getMethod(), request.getRequestURI()),
         requestId
@@ -71,6 +65,9 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
       @Override
       public Void call() throws Exception {
         timingsLogger.leaveTimedArea();
+        if (probe != null && !NO_REQUEST_ID.equals(requestId)) {
+          probe.endUserRequest(requestId, request.getRequest().getConnection());
+        }
         return null;
       }
     });

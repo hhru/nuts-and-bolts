@@ -21,6 +21,7 @@ import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.UriTool;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import java.io.IOException;
@@ -233,10 +234,14 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
       if (response.getStatus() >= 500) {
         timingsLogger().setErrorState();
       }
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
+      // Jersey throws WebApplicationException (extends RuntimeException)
+      // when response is committed and might throw some other RuntimeException
+      // in the future, so we are catching both IOException and RuntimeException
+      // to reduce dependency on jersey internal implementation.
       IOException recalledException = recallIOException();
       if (recalledException == null) {
-        // this is not a client-server error but application I/O error
+        // this is not a grizzly i/o error, rethrow
         throw e;
       }
       TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();

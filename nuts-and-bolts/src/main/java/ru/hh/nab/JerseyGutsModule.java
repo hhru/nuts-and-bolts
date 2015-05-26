@@ -1,6 +1,5 @@
 package ru.hh.nab;
 
-import com.google.common.base.Optional;
 import static com.google.common.collect.Maps.newHashMap;
 
 import com.google.common.collect.Lists;
@@ -21,10 +20,8 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
 
-import org.apache.commons.lang.StringUtils;
 import org.glassfish.grizzly.http.server.Request;
 import org.slf4j.LoggerFactory;
-import ru.hh.health.monitoring.LogOutputPrototype;
 import ru.hh.nab.NabModule.GrizzletDef;
 import ru.hh.nab.NabModule.GrizzletDefs;
 import ru.hh.nab.grizzly.GrizzletHandler;
@@ -64,7 +61,7 @@ public class JerseyGutsModule extends AbstractModule {
       TimingsLoggerFactory tlFactory) {
 
     SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
-        new ConnectionProbeTimingLogger(tlFactory.getTotalTimeThreshold(), LoggerFactory.getLogger(TimingsLogger.class)));
+        new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class)));
 
     addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
     
@@ -155,20 +152,7 @@ public class JerseyGutsModule extends AbstractModule {
   @Provides
   @Singleton
   protected TimingsLoggerFactory timingsLoggerFactory(Settings settings) {
-    Properties timingProps = settings.subTree("timings");
-    Object toleranceStr = timingProps.get("tolerance");
-    Optional<Long> tolerance = (toleranceStr == null) ? Optional.<Long>absent() : Optional.of(Long.valueOf(toleranceStr.toString()));
-
-    String output = timingProps.getProperty("dump");
-    if (!StringUtils.isEmpty(output)) {
-      if (output.contains("oneString") && output.contains("multipleStrings")) {
-        return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.ONE_STRING, LogOutputPrototype.MULTIPLE_STRING);
-      }
-      if (output.contains("oneString")) {
-        return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.ONE_STRING);
-      }
-    }
-    return new TimingsLoggerFactory(getDelays(settings), tolerance, LogOutputPrototype.MULTIPLE_STRING);
+    return new TimingsLoggerFactory(getDelays(settings));
   }
 
   @Provides

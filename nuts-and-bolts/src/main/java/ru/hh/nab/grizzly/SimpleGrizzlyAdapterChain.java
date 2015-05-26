@@ -2,6 +2,7 @@ package ru.hh.nab.grizzly;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
@@ -61,12 +62,13 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
     );
     timingsLogger.enterTimedArea();
     RequestScope.enter(request, timingsLogger);
+    final Connection connection = request.getRequest().getConnection();
     RequestScope.addAfterServiceTask(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
         timingsLogger.leaveTimedArea();
         if (probe != null && !NO_REQUEST_ID.equals(requestId)) {
-          probe.endUserRequest(requestId, request.getRequest().getConnection());
+          probe.endUserRequest(requestId, connection);
         }
         return null;
       }

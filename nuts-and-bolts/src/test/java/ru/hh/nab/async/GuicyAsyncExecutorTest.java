@@ -98,7 +98,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap(), 1000L));
+    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap()));
 
     ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject
@@ -150,7 +150,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap(), 1000L));
+    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap()));
 
     ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject

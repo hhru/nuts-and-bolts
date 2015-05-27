@@ -85,7 +85,6 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
       response.sendError(404, "No handler found");
     } catch (Exception e) {
       timingsLogger.setErrorState();
-      timingsLogger.probe(e.getMessage());
       logger.error(e.getMessage(), e);
 
       // send error response if response if not already committed

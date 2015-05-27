@@ -28,7 +28,11 @@ public class ConnectionProbeTimingLogger implements ConnectionProbe {
   private final ConcurrentMap<String, String> rids;  
   private final long tolerance;
   private final Logger logger;
-  
+
+
+  public ConnectionProbeTimingLogger(Logger logger) {
+    this(-1, logger);
+  }
   
   public ConnectionProbeTimingLogger(long tolerance, Logger logger) {
     this.tolerance = tolerance;

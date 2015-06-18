@@ -19,21 +19,24 @@ public final class TreeNavigator<COLOR, PAYLOAD, T extends Tree<COLOR, PAYLOAD, 
   }
 
   public TreeNavigator<COLOR, PAYLOAD, T> descend(COLOR way) {
-    if (!tryDescend(way))
+    if (!tryDescend(way)) {
       throw new NoSuchElementException(way.toString());
+    }
     return this;
   }
 
   public TreeNavigator<COLOR, PAYLOAD, T> descendOr(COLOR way, Runnable ifNotPossible) {
-    if (!tryDescend(way))
+    if (!tryDescend(way)) {
       ifNotPossible.run();
+    }
     return this;
   }
 
   public boolean tryDescend(COLOR way) {
     T tree = tree().sub(way);
-    if (tree == null)
+    if (tree == null) {
       return false;
+    }
     stack.push(tree);
     return true;
   }

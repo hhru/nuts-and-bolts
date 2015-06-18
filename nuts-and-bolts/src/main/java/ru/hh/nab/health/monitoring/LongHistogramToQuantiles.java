@@ -20,8 +20,9 @@ public class LongHistogramToQuantiles implements Function<long[], long[]> {
 
   public static long[] quantiles(long[] samples, double... q) {
     long sum = 0;
-    for (long f : samples)
+    for (long f : samples) {
       sum += f;
+    }
 
     long[] ret = new long[q.length];
 

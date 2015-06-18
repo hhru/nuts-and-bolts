@@ -8,11 +8,13 @@ public class CsvBuilder {
   private static final Pattern ESCAPED_CHAR = Pattern.compile("[,\r\n\"]", Pattern.MULTILINE);
 
   public CsvBuilder put(String... values) {
-    if (result.length() != 0)
+    if (result.length() != 0) {
       result.append("\n");
+    }
     for (int i = 0; i < values.length; i++) {
-      if (i != 0)
+      if (i != 0) {
         result.append(',');
+      }
       result.append(csvEscaped(values[i]));
     }
     return this;
@@ -23,8 +25,9 @@ public class CsvBuilder {
   }
 
   static String csvEscaped(@Nullable String src) {
-    if (src == null)
+    if (src == null) {
       return "null";
+    }
     if (ESCAPED_CHAR.matcher(src).find()) {
       return "\"" + src.replaceAll("\"", "\"\"") + "\"";
     }

@@ -22,8 +22,9 @@ public class PostCommitHooks {
       try {
         action.run();
       } catch (Exception e) {
-        if (debug)
+        if (debug) {
           throw new RuntimeException(e.getMessage(), e);
+        }
         log.error(e.getMessage(), e);
       }
     }

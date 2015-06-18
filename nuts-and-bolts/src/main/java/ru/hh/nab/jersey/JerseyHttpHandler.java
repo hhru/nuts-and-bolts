@@ -21,7 +21,6 @@ import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.util.UriTool;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import java.io.IOException;
@@ -87,8 +86,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
                                               ContainerResponse cResponse) throws IOException {
       response.setStatus(cResponse.getStatus());
 
-      if (contentLength != -1 && contentLength < Integer.MAX_VALUE)
+      if (contentLength != -1 && contentLength < Integer.MAX_VALUE) {
         response.setContentLength((int) contentLength);
+      }
 
       for (Map.Entry<String, List<Object>> e : cResponse.getHttpHeaders().entrySet()) {
         for (Object value : e.getValue()) {
@@ -180,14 +180,14 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
       requestInvoker.set(request);
       responseInvoker.set(response);
 
-      _service(request, response);
+      internalService(request, response);
     } finally {
       requestInvoker.set(null);
       responseInvoker.set(null);
     }
   }
 
-  private void _service(Request request, Response response) throws IOException {
+  private void internalService(Request request, Response response) throws IOException {
     WebApplication _application = application;
 
     // URI as provided by grizzly does not include query string
@@ -284,8 +284,9 @@ public final class JerseyHttpHandler extends HttpHandler implements ContainerLis
     WebApplication oldApplication = application;
     application = application.clone();
 
-    if (application.getFeaturesAndProperties() instanceof ReloadListener)
+    if (application.getFeaturesAndProperties() instanceof ReloadListener) {
       ((ReloadListener) application.getFeaturesAndProperties()).onReload();
+    }
 
     oldApplication.destroy();
   }

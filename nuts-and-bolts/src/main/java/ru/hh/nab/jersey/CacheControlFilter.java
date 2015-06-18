@@ -29,8 +29,9 @@ class CacheControlFilter implements ResourceFilter {
       public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
         int maxAge = ann.value();
         if (ann.statusCodes().length != 0) {
-          if (!ArrayUtils.contains(ann.statusCodes(), response.getStatus()))
+          if (!ArrayUtils.contains(ann.statusCodes(), response.getStatus())) {
             maxAge = 0;
+          }
         }
         MultivaluedMap<String, Object> headers = response.getHttpHeaders();
         if (maxAge > 0) {

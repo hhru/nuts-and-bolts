@@ -27,7 +27,7 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
   private final static String X_REQUEST_ID = "x-request-id";
 
   private final static Logger logger = LoggerFactory.getLogger(SimpleGrizzlyAdapterChain.class);
-  private String NO_REQUEST_ID = "NoRequestId";
+  private static final String NO_REQUEST_ID = "NoRequestId";
 
   public SimpleGrizzlyAdapterChain(TimingsLoggerFactory timingsLoggerFactory, ConnectionProbeTimingLogger probe) {
     this.timingsLoggerFactory = timingsLoggerFactory;    

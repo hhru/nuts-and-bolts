@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 public class AsyncUnreliableRabbitMqClient extends Thread {
   private final Logger log = LoggerFactory.getLogger(AsyncUnreliableRabbitMqClient.class);
 
-  private final int BUF_SIZE = 1000;
+  private static final int BUF_SIZE = 1000;
 
   private final CircularFifoBuffer buffer = new CircularFifoBuffer(BUF_SIZE);
   private final UnreliableRabbitMqClient mqClient;

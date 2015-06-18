@@ -29,7 +29,7 @@ public class GuicyAsyncExecutor {
     };
 
   private final Executor executor;
-  private final Logger LOG = LoggerFactory.getLogger(GuicyAsyncExecutor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GuicyAsyncExecutor.class);
   private final Injector inj;
 
   /** period in seconds, frequency of getting metrics and writing them in log file. 0 - means that monitoring is disabled */

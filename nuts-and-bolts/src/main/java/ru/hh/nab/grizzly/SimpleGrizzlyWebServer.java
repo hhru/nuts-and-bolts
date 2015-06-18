@@ -83,7 +83,7 @@ public class SimpleGrizzlyWebServer {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(transport.getWorkerThreadPoolConfig()));
     }
 
-    int ssbacklog = Integer.valueOf(selectorProperties.getProperty("connectionBacklog", "-1"));
+    int ssbacklog = Integer.parseInt(selectorProperties.getProperty("connectionBacklog", "-1"));
     if (blockOnQueueOverflow && ssbacklog < 0) {
       throw new IllegalStateException("Set selector.connectionBacklog size and net.ipv4.tcp_abort_on_overflow=1");
     } else if (ssbacklog > 0) {

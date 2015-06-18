@@ -14,12 +14,12 @@ import java.util.Properties;
 
 public class AcceptHeaderFixerTest extends JerseyTest {
 
-  public final String BAD_HEADER_1 = "application/xml,application/vnd.wap.xhtml+xml" +
-    ",application/xhtml+xml;profile='http://www.wapforum.org/xhtml',text/html;q=0.9" +
+  public static final String BAD_HEADER_1 = "application/xml,application/vnd.wap.xhtml+xml"
+          +    ",application/xhtml+xml;profile='http://www.wapforum.org/xhtml',text/html;q=0.9" +
     ",text/plain;q=0.8,image/png,*/*;q=0.5";
 
-  public final String BAD_HEADER_2 = "text/vnd.wap.wml, text/css, text/ecmascript, image/png, image/gif" +
-    ", image/jpeg; q=0.5, image/x-bmp; q=0.3, image/vnd.wap.wbmp; q=0.2, audio/mid, audio/midi" +
+  public static final String BAD_HEADER_2 = "text/vnd.wap.wml, text/css, text/ecmascript, image/png, image/gif"
+          +    ", image/jpeg; q=0.5, image/x-bmp; q=0.3, image/vnd.wap.wbmp; q=0.2, audio/mid, audio/midi" +
     ", audio/qcelp, audio/vnd.qcp, audio/vnd.qcelp, audio/aac, audio/mp3, audio/x-wav, audio/x-wave" +
     ", audio/mpeg3, audio/mpeg, audio/mpg, audio/amr, application/x-pmd, application/x-cmx, application/x-pmd" +
     ", audio/m4a, audio/mp4, audio/3gpp, audio/3gpp2, audio/mp4a-latm, video/3gpp, video/3gpp2, video/mp4" +

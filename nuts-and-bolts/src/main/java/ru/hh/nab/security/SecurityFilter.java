@@ -11,7 +11,7 @@ public class SecurityFilter implements ResourceFilter {
   static final String REQUEST_PROPERTY_KEY = "ru.hh.nab.security.SecurityFilter.permissions";
   private final PermissionLoader permissions;
 
-  private final SecurityRequestFilter FILTER_INSTANCE = new SecurityRequestFilter();
+  private final SecurityRequestFilter filterInstance = new SecurityRequestFilter();
 
   @Inject
   public SecurityFilter(PermissionLoader permissions) {
@@ -20,7 +20,7 @@ public class SecurityFilter implements ResourceFilter {
 
   @Override
   public ContainerRequestFilter getRequestFilter() {
-    return FILTER_INSTANCE;
+    return filterInstance;
   }
 
   @Override

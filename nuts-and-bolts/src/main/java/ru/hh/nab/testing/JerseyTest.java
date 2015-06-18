@@ -44,8 +44,8 @@ public abstract class JerseyTest {
 
   protected static ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> instances = Maps.newConcurrentMap();
 
-  static Class<? extends JerseyTest> definingSubclass(Class<? extends JerseyTest> this_) {
-    Class<? extends JerseyTest> current = this_;
+  static Class<? extends JerseyTest> definingSubclass(Class<? extends JerseyTest> clazz) {
+    Class<? extends JerseyTest> current = clazz;
     while (true) {
       if (Classes.hasDeclaredMethod(current, "settings") ||
           Classes.hasDeclaredMethod(current, "properties") ||
@@ -61,8 +61,9 @@ public abstract class JerseyTest {
     Class<? extends JerseyTest> klass = definingSubclass(this.getClass());
     Holder<Instance> newHolder = new Holder<Instance>();
     Holder<Instance> holder = instances.putIfAbsent(klass, newHolder);
-    if (holder == null)
+    if (holder == null) {
       holder = newHolder;
+    }
     try {
       holder.get(new Callable<Instance>() {
         @Override

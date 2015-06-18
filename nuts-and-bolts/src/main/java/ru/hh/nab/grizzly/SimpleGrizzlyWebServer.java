@@ -138,7 +138,9 @@ public class SimpleGrizzlyWebServer {
   }
 
   public synchronized void stop() {
-    if (!isStarted) return;
+    if (!isStarted) {
+      return;
+    }
     isStarted = false;
     httpServer.shutdown(1, TimeUnit.MINUTES);
   }

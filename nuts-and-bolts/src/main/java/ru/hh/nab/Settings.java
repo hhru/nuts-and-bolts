@@ -21,14 +21,16 @@ public class Settings {
 
   public Properties subTree(String prefix, String newPrefix) {
     prefix = prefix + ".";
-    if (newPrefix != null)
+    if (newPrefix != null) {
       newPrefix = newPrefix + ".";
-    else
+    } else {
       newPrefix = "";
+    }
     Properties ret = new Properties();
     for (String i : props.stringPropertyNames()) {
-      if (!i.startsWith(prefix))
+      if (!i.startsWith(prefix)) {
         continue;
+      }
       String suffix = i.substring(prefix.length());
       ret.put(newPrefix + suffix, props.get(i));
     }

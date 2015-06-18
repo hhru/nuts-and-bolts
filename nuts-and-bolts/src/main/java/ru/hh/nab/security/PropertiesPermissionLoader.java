@@ -14,10 +14,12 @@ public class PropertiesPermissionLoader implements PermissionLoader {
 
   public PropertiesPermissionLoader(Properties props) {
     Map<String, Permissions> b = Maps.newHashMap();
-    for (String key : props.stringPropertyNames())
+    for (String key : props.stringPropertyNames()) {
       b.put(key, permissionsFromString(props.getProperty(key)));
-    if (!b.containsKey(ANONYMOUS_PERMISSIONS_KEY))
+    }
+    if (!b.containsKey(ANONYMOUS_PERMISSIONS_KEY)) {
       b.put(ANONYMOUS_PERMISSIONS_KEY, new Permissions(Lists.<String>newArrayList()));
+    }
     this.permissions = ImmutableMap.copyOf(b);
   }
 

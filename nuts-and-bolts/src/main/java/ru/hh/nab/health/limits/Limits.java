@@ -20,8 +20,9 @@ public final class Limits {
 
     @Override
     public void release() {
-      for (LeaseToken t : subTokens)
+      for (LeaseToken t : subTokens) {
         t.release();
+      }
     }
   }
 

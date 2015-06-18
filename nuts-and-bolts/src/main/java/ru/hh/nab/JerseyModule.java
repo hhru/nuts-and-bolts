@@ -10,7 +10,7 @@ import ru.hh.nab.jersey.FilteredXMLListElementProvider;
 import ru.hh.nab.jersey.FilteredXMLRootElementProvider;
 
 public class JerseyModule extends AbstractModule {
-  public final RequestScope REQUEST_SCOPE = new RequestScope();
+  public final RequestScope requestScope = new RequestScope();
 
   public JerseyModule() {
   }
@@ -19,7 +19,7 @@ public class JerseyModule extends AbstractModule {
   protected void configure() {
     bind(StatsResource.class);
     bind(StatusResource.class);
-    bindScope(RequestScoped.class, REQUEST_SCOPE);
+    bindScope(RequestScoped.class, requestScope);
 
     bind(FreemarkerJerseyMarshaller.class);
     bind(JacksonJerseyMarshaller.class);

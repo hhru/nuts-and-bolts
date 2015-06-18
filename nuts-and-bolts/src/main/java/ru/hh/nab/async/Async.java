@@ -202,8 +202,9 @@ public abstract class Async<T> {
     run(Callbacks.storeAndCountDown(ret, latch),
             Callbacks.storeAndCountDown(ex, latch));
     latch.await();
-    if (ex.get() != null)
+    if (ex.get() != null) {
       throw ex.get();
+    }
     return ret.get();
   }
 

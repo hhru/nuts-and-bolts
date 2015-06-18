@@ -1,7 +1,6 @@
 package ru.hh.nab.health.monitoring;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 public final class CountingHistogramImpl<T> implements Dumpable, CountingHistogram<T> {
@@ -19,7 +18,7 @@ public final class CountingHistogramImpl<T> implements Dumpable, CountingHistogr
 
   public long[] getAndReset() {
     int max = mapper.max();
-    long ret[] = new long[max];
+    long[] ret = new long[max];
     for (int i = 0; i < max; i++) {
       ret[i] = histo.getAndSet(i, 0);
     }
@@ -28,7 +27,7 @@ public final class CountingHistogramImpl<T> implements Dumpable, CountingHistogr
 
   @Override
   public void dumpAndReset(Appendable out) throws IOException {
-    long dump[] = getAndReset();
+    long[] dump = getAndReset();
     for (int i = 0; i < dump.length; i++) {
       out.append(String.format("%d: %d\n", i, dump[i]));
     }

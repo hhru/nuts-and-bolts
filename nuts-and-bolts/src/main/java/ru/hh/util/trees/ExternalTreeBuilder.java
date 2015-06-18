@@ -15,8 +15,9 @@ public final class ExternalTreeBuilder<COLOR, PAYLOAD> {
     }
 
     public void sub(COLOR color, PAYLOAD payload) {
-      if (branches.containsKey(color))
+      if (branches.containsKey(color)) {
         throw new IllegalStateException("key already present " + color);
+      }
       branches.put(color, new TreeHolder<COLOR, PAYLOAD>(payload));
     }
 

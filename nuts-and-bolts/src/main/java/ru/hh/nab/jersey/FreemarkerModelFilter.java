@@ -14,16 +14,18 @@ public class FreemarkerModelFilter implements ResourceFilter {
     @Override
     public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
       Object entity = response.getEntity();
-      if (entity == null)
+      if (entity == null) {
         return response;
+      }
 
       Class<?> klass = Proxies.realClass(entity);
-      if (klass == null)
+      if (klass == null) {
         return response;
+      }
 
       FreemarkerTemplate ann = klass.getAnnotation(FreemarkerTemplate.class);
       if (ann != null) {
-        Map<String,Object> reqMap = Maps.newHashMap(request.getProperties());
+        Map<String, Object> reqMap = Maps.newHashMap(request.getProperties());
         String backurl = request.getRequestUri().toASCIIString();
         reqMap.put("backurl", backurl);
 //        reqMap.put("backurl_encoded", backurl);

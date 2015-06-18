@@ -38,7 +38,7 @@ public class SingleQueryResultUtil {
         resultAssigned = true;
       } else if (fetchedResult != result) {
         // each session must have at most one object representing the same entity
-        throw new NonUniqueResultException( "query returns more than one unique " + (resultDesc != null ? resultDesc : clazz.getSimpleName()));
+        throw new NonUniqueResultException("query returns more than one unique " + (resultDesc != null ? resultDesc : clazz.getSimpleName()));
       }
     }
     if (resultAssigned || returnNullIfEmpty) {

@@ -43,7 +43,7 @@ public class Launcher {
     SLF4JBridgeHandler.install();
 
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
-    if (modules.size() == 0) {
+    if (modules.isEmpty()) {
       throw new IllegalStateException("No instances of " + NabModule.class.getName() + " found");
     }
     if (modules.size() > 1) {

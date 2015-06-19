@@ -17,7 +17,7 @@
   <packaging>pom</packaging>
 
   <name>nuts'n'bolts parent module</name>
-  <version>1.5.10-SNAPSHOT</version>
+  <version>1.5.11</version>
 
   <properties>
       <grizzly.version>2.3.11</grizzly.version>
@@ -30,7 +30,7 @@
       <dependency>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts</artifactId>
-        <version>1.5.10-SNAPSHOT</version>
+        <version>1.5.11</version>
       </dependency>
 
       <dependency>
@@ -370,5 +370,6 @@
   <scm>
     <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
     <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
+    <tag>nuts-and-bolts-parent-1.5.11</tag>
   </scm>
 </project>

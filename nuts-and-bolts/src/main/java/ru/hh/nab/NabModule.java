@@ -13,6 +13,7 @@ import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -299,9 +300,7 @@ public abstract class NabModule extends AbstractModule {
 
         Preconditions.checkState(c3p0Props.isEmpty() || dbcpProps.isEmpty(), "Both c3p0 and dbcp settings are present");
         if (!c3p0Props.isEmpty()) {
-          ComboPooledDataSource ds = new ComboPooledDataSource();
-          new BeanMap(ds).putAll(c3p0Props);
-          return ds;
+          return createC3P0DataSource(name, c3p0Props);
         }
         if (!dbcpProps.isEmpty()) {
           BasicDataSource ds = new BasicDataSource();
@@ -312,6 +311,15 @@ public abstract class NabModule extends AbstractModule {
         throw new IllegalStateException("Neither c3p0 nor dbcp settings found");
       }
     };
+  }
+
+  static DataSource createC3P0DataSource(String name, Map<Object, Object> properties) {
+    ComboPooledDataSource ds = new ComboPooledDataSource(false);
+    ds.setDataSourceName(name);
+    ds.setIdentityToken(name);
+    new BeanMap(ds).putAll(properties);
+    C3P0Registry.reregister(ds);
+    return ds;
   }
 
   private void bindScheduler() {

@@ -14,8 +14,6 @@ import com.sun.jersey.spi.container.WebApplication;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.ext.Providers;
@@ -98,14 +96,10 @@ public class JerseyGutsModule extends AbstractModule {
     return new GuiceComponentProviderFactory(resources, inj);
   }
 
-  private WebApplication getInitiatedWebapp(Settings settings, ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+  private WebApplication getInitiatedWebapp(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
     synchronized (webapp) {
       if (!webapp.isInitiated()) {
         webapp.initiate(resources, ioc);
-        // disable spammer logger by default
-        if (Boolean.parseBoolean(settings.subTree("jersey").getProperty("disableWebApplicationLogging", "true"))) {
-          Logger.getLogger(webapp.getClass().getName()).setLevel(Level.OFF);
-        }
       }
     }
     return webapp;
@@ -113,14 +107,14 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected WebApplication initializedWebApplication(Settings settings, ResourceConfig resources, GuiceComponentProviderFactory ioc) {
-    return getInitiatedWebapp(settings, resources, ioc);
+  protected WebApplication initializedWebApplication(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+    return getInitiatedWebapp(resources, ioc);
   }
 
   @Provides
   @Singleton
-  protected Providers webApplicationProviders(Settings settings, ResourceConfig resources, GuiceComponentProviderFactory ioc) {
-    return getInitiatedWebapp(settings, resources, ioc).getProviders();
+  protected Providers webApplicationProviders(ResourceConfig resources, GuiceComponentProviderFactory ioc) {
+    return getInitiatedWebapp(resources, ioc).getProviders();
   }
 
   @Provides

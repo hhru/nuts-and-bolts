@@ -14,6 +14,8 @@ import javax.ws.rs.WebApplicationException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain.setResponseInTimings;
+
 public class GrizzletHandler {
   private final String path;
   private final RequestHandler target;
@@ -39,15 +41,18 @@ public class GrizzletHandler {
     return methods;
   }
 
-  public void handle(Request request, Response response) throws Exception {
+  public void handle(Request request, final Response response) throws Exception {
     final LeaseToken leaseToken = limit.acquire();
     if (leaseToken == null) {
       LOGGER.warn("Failed to acquire limit, too many requests, responding with 503");
       response.sendError(503);
     } else {
+
+      final TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();
       RequestScope.addAfterServiceTask(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
+          setResponseInTimings(timingsLogger, response);
           leaseToken.release();
           return null;
         }
@@ -55,7 +60,6 @@ public class GrizzletHandler {
       try {
         target.handle(request, response);
       } catch (WebApplicationException exception) {
-        TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();
         timingsLogger.setErrorState();
         timingsLogger.probe(exception.getMessage());
         LOGGER.error("Got WebApplicationException in a grizzlet, must not throw them in grizzlets : " + exception.getMessage(), exception);

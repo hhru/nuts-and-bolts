@@ -4,6 +4,8 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import ru.hh.nab.scopes.RequestScope;
 
+import static ru.hh.nab.grizzly.SimpleGrizzlyAdapterChain.setResponseInTimings;
+
 public abstract class RequestHandler {
 
   public abstract void handle(Request request, Response response) throws Exception;
@@ -30,6 +32,7 @@ public abstract class RequestHandler {
   protected void resumeWithStatus(int code) {
     final Response response = ((Request) RequestScope.currentRequest()).getResponse();
     response.setStatus(code);
+    setResponseInTimings(RequestScope.currentTimingsLogger(), response);
     resume();
   }
 

@@ -66,6 +66,7 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
     RequestScope.addAfterServiceTask(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
+        setResponseInTimings(timingsLogger, response);
         timingsLogger.leaveTimedArea();
         if (probe != null && !NO_REQUEST_ID.equals(requestId)) {
           probe.endUserRequest(requestId, connection);
@@ -93,6 +94,12 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
       }
     } finally {
       RequestScope.leave();
+    }
+  }
+
+  static void setResponseInTimings(final TimingsLogger timingsLogger, final Response response) {
+    if (response.getResponse() != null) {
+      timingsLogger.setResponseContext(String.valueOf(response.getResponse().getStatus()));
     }
   }
 }

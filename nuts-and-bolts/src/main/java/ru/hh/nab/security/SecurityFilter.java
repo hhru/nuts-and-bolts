@@ -5,7 +5,7 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 import com.sun.jersey.spi.container.ResourceFilter;
 import javax.inject.Inject;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class SecurityFilter implements ResourceFilter {
   static final String REQUEST_PROPERTY_KEY = "ru.hh.nab.security.SecurityFilter.permissions";

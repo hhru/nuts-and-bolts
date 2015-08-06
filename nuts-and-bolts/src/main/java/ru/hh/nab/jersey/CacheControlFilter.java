@@ -8,7 +8,7 @@ import com.sun.jersey.spi.container.ResourceFilter;
 import java.util.Date;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MultivaluedMap;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 class CacheControlFilter implements ResourceFilter {
   private final Cached ann;

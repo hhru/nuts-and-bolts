@@ -4,15 +4,20 @@ import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
+import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
-import org.apache.http.client.params.ClientParamBean;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
+import org.apache.http.HttpRequest;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultRoutePlanner;
+import org.apache.http.protocol.HttpContext;
 import ru.hh.nab.Launcher;
 import ru.hh.util.Classes;
 
@@ -59,7 +64,7 @@ public abstract class JerseyTest {
 
   protected JerseyTest() {
     Class<? extends JerseyTest> klass = definingSubclass(this.getClass());
-    Holder<Instance> newHolder = new Holder<Instance>();
+    Holder<Instance> newHolder = new Holder<>();
     Holder<Instance> holder = instances.putIfAbsent(klass, newHolder);
     if (holder == null) {
       holder = newHolder;
@@ -67,7 +72,7 @@ public abstract class JerseyTest {
     try {
       holder.get(new Callable<Instance>() {
         @Override
-        public Instance call() throws Exception {
+        public Instance call() throws IOException {
           Instance ret = new Instance(createServer());
           System.out.println("=== Test server is bound to port " + ret.instance.port + " ===");
           return ret;
@@ -106,19 +111,31 @@ public abstract class JerseyTest {
     return new Properties();
   }
 
-  private Launcher.Instance createServer() throws Exception {
+  private Launcher.Instance createServer() throws IOException {
     return Launcher.testMode(Stage.DEVELOPMENT, module(), settings(), apiSecurity(), limits());
   }
 
-  protected DefaultHttpClient httpClient() {
-    BasicHttpParams httpParams = new BasicHttpParams();
-    DefaultHttpClient.setDefaultHttpParams(httpParams);
+  protected CloseableHttpClient httpClient() {
 
-    HttpClientParams.setRedirecting(httpParams, false);
-    HttpClientParams.setCookiePolicy(httpParams, CookiePolicy.BROWSER_COMPATIBILITY);
+    return HttpClientBuilder.create()
+            .setDefaultRequestConfig(RequestConfig.custom().setRedirectsEnabled(false).setCookieSpec(CookieSpecs.DEFAULT).build())
+            .setRoutePlanner(new DefaultRoutePlannerImpl(port()))
+            .build();
+  }
 
-    new ClientParamBean(httpParams).setDefaultHost(new HttpHost("127.0.0.1", port()));
+  private static class DefaultRoutePlannerImpl extends DefaultRoutePlanner {
 
-    return new DefaultHttpClient(httpParams);
+    private final HttpHost defaultHost;
+
+    DefaultRoutePlannerImpl(final int port) {
+      super(null);
+      this.defaultHost = new HttpHost("127.0.0.1", port);
+    }
+
+    @Override
+    public HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws
+            HttpException {
+      return super.determineRoute(target == null ? defaultHost : target, request, context);
+    }
   }
 }

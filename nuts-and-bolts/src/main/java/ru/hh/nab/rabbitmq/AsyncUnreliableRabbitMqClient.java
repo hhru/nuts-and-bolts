@@ -1,16 +1,16 @@
 package ru.hh.nab.rabbitmq;
 
 import javax.inject.Inject;
-import org.apache.commons.collections.buffer.CircularFifoBuffer;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AsyncUnreliableRabbitMqClient extends Thread {
-  private final Logger log = LoggerFactory.getLogger(AsyncUnreliableRabbitMqClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AsyncUnreliableRabbitMqClient.class);
 
   private static final int BUF_SIZE = 1000;
 
-  private final CircularFifoBuffer buffer = new CircularFifoBuffer(BUF_SIZE);
+  private final CircularFifoQueue<ChannelAction> queue = new CircularFifoQueue<>(BUF_SIZE);
   private final UnreliableRabbitMqClient mqClient;
   private final Object mutex = new Object();
 
@@ -19,24 +19,24 @@ public class AsyncUnreliableRabbitMqClient extends Thread {
     this.mqClient = mqClient;
   }
 
-  private boolean isBufferEmpty() {
-    synchronized (buffer) {
-      return buffer.isEmpty();
+  private boolean isQueueEmpty() {
+    synchronized (queue) {
+      return queue.isEmpty();
     }
   }
 
-  private ChannelAction bufferRemove() {
-    synchronized (buffer) {
-      return (ChannelAction) buffer.remove();
+  private ChannelAction queueRemove() {
+    synchronized (queue) {
+      return queue.remove();
     }
   }
 
-  private void bufferAdd(ChannelAction action) {
-    synchronized (buffer) {
-      if (buffer.isFull()) {
-        log.warn("Buffer overflow");
+  private void queueAdd(final ChannelAction action) {
+    synchronized (queue) {
+      if (queue.isFull()) {
+        LOG.warn("Buffer overflow");
       }
-      buffer.add(action);
+      queue.add(action);
     }
   }
 
@@ -44,7 +44,7 @@ public class AsyncUnreliableRabbitMqClient extends Thread {
   public void run() {
     while (!isInterrupted()) {
       synchronized (mutex) {
-        while (isBufferEmpty()) {
+        while (isQueueEmpty()) {
           try {
             mutex.wait();
           } catch (InterruptedException e) {
@@ -54,16 +54,16 @@ public class AsyncUnreliableRabbitMqClient extends Thread {
         }
       }
       try {
-        mqClient.maybePerform(bufferRemove());
+        mqClient.maybePerform(queueRemove());
       } catch (Exception e) {
-        log.error("Can't perform action", e);
+        LOG.error("Can't perform action", e);
       }
     }
   }
 
-  public void maybePerformAsync(ChannelAction action) {
+  public void maybePerformAsync(final ChannelAction action) {
     synchronized (mutex) {
-      bufferAdd(action);
+      queueAdd(action);
       mutex.notify();
     }
   }

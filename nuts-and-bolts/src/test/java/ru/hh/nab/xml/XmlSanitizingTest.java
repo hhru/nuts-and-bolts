@@ -16,15 +16,18 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import org.apache.http.Consts;
+import org.apache.http.entity.ContentType;
 
 public class XmlSanitizingTest extends JerseyTest {
+  private static final ContentType APPLICATION_XML_UTF8_CONTENT_TYPE = ContentType.create(MediaType.APPLICATION_XML, Consts.UTF_8);
 
   @Test
   public void testRoot() throws IOException {
     HttpGet get = new HttpGet(baseUrl() + "getRoot");
     String body = execute(get);
     HttpPut put = new HttpPut(baseUrl() + "putRoot");
-    put.setEntity(new StringEntity(body, MediaType.APPLICATION_XML, "UTF-8"));
+    put.setEntity(new StringEntity(body, APPLICATION_XML_UTF8_CONTENT_TYPE));
     execute(put);
     Assert.assertEquals(SanitizingResource.SANITIZED_XML_CONTENT, getLastTag().name);
   }
@@ -34,7 +37,7 @@ public class XmlSanitizingTest extends JerseyTest {
     HttpGet get = new HttpGet(baseUrl() + "getList");
     String body = execute(get);
     HttpPut put = new HttpPut(baseUrl() + "putList");
-    put.setEntity(new StringEntity(body, MediaType.APPLICATION_XML, "UTF-8"));
+    put.setEntity(new StringEntity(body, APPLICATION_XML_UTF8_CONTENT_TYPE));
     execute(put);
     Assert.assertEquals(SanitizingResource.SANITIZED_XML_CONTENT, getLastTag().name);
   }
@@ -44,7 +47,7 @@ public class XmlSanitizingTest extends JerseyTest {
     HttpGet get = new HttpGet(baseUrl() + "getJAXB");
     String body = execute(get);
     HttpPut put = new HttpPut(baseUrl() + "putJAXB");
-    put.setEntity(new StringEntity(body, MediaType.APPLICATION_XML, "UTF-8"));
+    put.setEntity(new StringEntity(body, APPLICATION_XML_UTF8_CONTENT_TYPE));
     execute(put);
     Assert.assertEquals(SanitizingResource.SANITIZED_XML_CONTENT, getLastTag().name);
   }

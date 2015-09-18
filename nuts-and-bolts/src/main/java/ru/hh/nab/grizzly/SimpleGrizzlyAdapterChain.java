@@ -55,6 +55,7 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
     if (fixedAcceptHeader != null) {
       request.getRequest().setHeader(Header.Accept, fixedAcceptHeader);
     }
+    response.setHeader("X-Accel-Buffering", "no");
     final String requestId = request.getHeader(X_REQUEST_ID) == null ? NO_REQUEST_ID : request.getHeader(X_REQUEST_ID);
     final TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(
         String.format("%s %s", request.getMethod(), request.getRequestURI()),

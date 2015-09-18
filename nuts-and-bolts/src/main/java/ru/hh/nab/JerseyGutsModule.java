@@ -48,8 +48,12 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources, WebApplication wa, Provider<TimingsLogger> timingsLoggerProvider) {
-    return new JerseyHttpHandler(resources, wa, timingsLoggerProvider);
+  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources,
+                                            WebApplication wa,
+                                            Provider<TimingsLogger> timingsLoggerProvider,
+                                            Settings settings) {
+    boolean allowFlush = Boolean.parseBoolean(settings.subTree("jersey").getProperty("allowFlush", "false"));
+    return new JerseyHttpHandler(resources, wa, timingsLoggerProvider, allowFlush);
   }
 
   @Provides

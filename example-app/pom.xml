@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
-    <version>1.6.0</version><!-- VERSION -->
+    <version>1.6.1-SNAPSHOT</version><!-- VERSION -->
     <relativePath>..</relativePath>
   </parent>
 
@@ -13,7 +13,7 @@
   <packaging>jar</packaging>
 
   <name>nuts'n'bolts example app</name>
-  <version>1.6.0</version><!-- VERSION -->
+  <version>1.6.1-SNAPSHOT</version><!-- VERSION -->
 
   <dependencies>
     <dependency>

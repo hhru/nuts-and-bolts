@@ -13,7 +13,7 @@ import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.scopes.RequestScope;
-import ru.hh.util.AcceptHeaderFixer;
+import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -51,9 +51,13 @@ public class SimpleGrizzlyAdapterChain extends HttpHandler {
 
   @Override
   public void service(final Request request, final Response response) throws Exception {
-    String fixedAcceptHeader = AcceptHeaderFixer.fixedAcceptHeaderOrNull(request.getHeader(Header.Accept));
-    if (fixedAcceptHeader != null) {
-      request.getRequest().setHeader(Header.Accept, fixedAcceptHeader);
+    // replace complex header with a simple one to avoid dealing with non-standard non-parsable
+    // headers sent by mobile browsers; if no wildcard is present in the request, then this is
+    // probably an internal call, and the caller must send properly formatted header m'kay.
+    String httpAcceptHeader = request.getHeader(Header.Accept);
+    if (httpAcceptHeader != null && httpAcceptHeader.contains(MediaType.WILDCARD)) {
+      httpAcceptHeader = MediaType.WILDCARD;
+      request.getRequest().setHeader(Header.Accept, httpAcceptHeader);
     }
     response.setHeader("X-Accel-Buffering", "no");
     final String requestId = request.getHeader(X_REQUEST_ID) == null ? NO_REQUEST_ID : request.getHeader(X_REQUEST_ID);

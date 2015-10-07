@@ -21,6 +21,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +41,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.sql.DataSource;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
+import com.sun.jersey.spi.container.ResourceFilter;
+import com.sun.jersey.spi.container.ResourceFilterFactory;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -74,6 +77,8 @@ public abstract class NabModule extends AbstractModule {
   private static final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final GrizzletDefs grizzletDefs = new GrizzletDefs();
+  private final List<ResourceFilterFactory> jerseyPreFilterFactories = new ArrayList<>();
+  private final List<ResourceFilterFactory> jerseyPostFilterFactories = new ArrayList<>();
 
   private String defaultFreemarkerLayout = "nab/empty";
 
@@ -94,6 +99,40 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected abstract void configureApp();
+
+  @Named("JerseyPreFilterFactories")
+  @Provides
+  @Singleton
+  protected List<ResourceFilterFactory> jerseyPreFilters() {
+    return jerseyPreFilterFactories;
+  }
+
+  @Named("JerseyPostFilterFactories")
+  @Provides
+  @Singleton
+  protected List<ResourceFilterFactory> jerseyPostFilters() {
+    return jerseyPostFilterFactories;
+  }
+
+  protected void addPreFilterFactory(ResourceFilter filter) {
+    addPreFilterFactory(am -> {
+      return Collections.singletonList(filter);
+    });
+  }
+
+  protected void addPostFilterFactory(ResourceFilter filter) {
+    addPostFilterFactory(am -> {
+      return Collections.singletonList(filter);
+    });
+  }
+
+  protected void addPreFilterFactory(ResourceFilterFactory filter) {
+    jerseyPreFilterFactories.add(filter);
+  }
+
+  protected void addPostFilterFactory(ResourceFilterFactory filter) {
+    jerseyPostFilterFactories.add(filter);
+  }
 
   private static Matcher<Class> subclassesMatcher(final Class<?>... classes) {
     return new AbstractMatcher<Class>() {

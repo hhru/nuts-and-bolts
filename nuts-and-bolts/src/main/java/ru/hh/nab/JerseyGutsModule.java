@@ -30,7 +30,7 @@ import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.health.monitoring.TimingsLoggerFactory;
-import ru.hh.nab.jersey.HeadersAnnotationFilterFactory;
+import ru.hh.nab.jersey.JerseyResourceFilterFactory;
 import ru.hh.nab.jersey.JerseyHttpHandler;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.security.PermissionLoader;
@@ -86,7 +86,7 @@ public class JerseyGutsModule extends AbstractModule {
   @Singleton
   protected ResourceConfig resourceConfig(Settings settings) {
     ResourceConfig ret = new DefaultResourceConfig();
-    ret.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, HeadersAnnotationFilterFactory.class.getName());
+    ret.getProperties().put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, JerseyResourceFilterFactory.class.getName());
 
     boolean disableWadl = Boolean.parseBoolean(settings.subTree("jersey").getProperty("disableWadl", "true"));
     ret.getFeatures().put(ResourceConfig.FEATURE_DISABLE_WADL, disableWadl);

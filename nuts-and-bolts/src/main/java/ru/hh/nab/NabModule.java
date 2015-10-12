@@ -114,13 +114,13 @@ public abstract class NabModule extends AbstractModule {
     return jerseyPostFilterFactories;
   }
 
-  protected void addPreFilterFactory(ResourceFilter filter) {
+  protected void addPreFilter(ResourceFilter filter) {
     addPreFilterFactory(am -> {
       return Collections.singletonList(filter);
     });
   }
 
-  protected void addPostFilterFactory(ResourceFilter filter) {
+  protected void addPostFilter(ResourceFilter filter) {
     addPostFilterFactory(am -> {
       return Collections.singletonList(filter);
     });
@@ -309,9 +309,15 @@ public abstract class NabModule extends AbstractModule {
 
         cfg.setListeners("pre-load", new PreLoadEventListener[] { new GuicyHibernateLoader(injector), new DefaultPreLoadEventListener() });
         cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, ann)));
-        return cfg.buildEntityManagerFactory();
+        configureEjb3Configuration(cfg);
+        EntityManagerFactory f = cfg.buildEntityManagerFactory();
+        return f;
       }
     };
+  }
+
+  protected void configureEjb3Configuration(Ejb3Configuration cfg) {
+    // override to configure additional stuff
   }
 
   protected final void bindDataSource(String name, Class<? extends Annotation> ann) {
@@ -472,4 +478,5 @@ public abstract class NabModule extends AbstractModule {
       this.handlerClass = handlerClass;
     }
   }
+
 }

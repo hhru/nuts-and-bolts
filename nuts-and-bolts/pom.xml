@@ -39,6 +39,11 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -50,11 +55,6 @@
       <artifactId>joda-time</artifactId>
     </dependency>
 
-
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-    </dependency>
 
     <!-- Guice -->
     <dependency>

@@ -9,6 +9,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR })
 public @interface Transactional {
+  // readonly attribute is not enforced at the moment because doing that would
+  // require closing of readonly transaction and creating a new readwrite
+  // transaction. However, it is better to specify it anyway for documentation
+  // purposes and because we may start enforcing it.
   boolean readOnly() default false;
   // If optional flag is set to true, then current method does not start
   // transaction, but has access to EntityManager via providers.

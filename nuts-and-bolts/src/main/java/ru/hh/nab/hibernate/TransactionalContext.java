@@ -1,5 +1,7 @@
 package ru.hh.nab.hibernate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.FlushModeType;
@@ -10,6 +12,8 @@ class TransactionalContext {
   private boolean readOnly = false;
   private EntityTransaction jpaTx = null; // null when not in transaction
   private PostCommitHooks postCommitHooks = new PostCommitHooks();
+
+  private static final Logger logger = LoggerFactory.getLogger(TransactionalContext.class);
 
   public TransactionalContext(EntityManager em) {
     this.em = em;
@@ -28,7 +32,6 @@ class TransactionalContext {
       throw new IllegalStateException("Can't execute (rollback() == true) tx while in (rollback() == false) tx");
     }
     if (readOnly && !ann.readOnly()) {
-      em.setFlushMode(FlushModeType.AUTO);
       readOnly = false;
     }
   }
@@ -38,12 +41,19 @@ class TransactionalContext {
     this.postCommitHooks = postCommitHooks;
     try {
       begin(ann);
-      T result = invocation.call();
-      commit();
+      final T result;
+      try {
+        result = invocation.call();
+      } catch (Exception e) {
+        try {
+          maybeRollback();
+        } catch (RuntimeException rollbackE) {
+          logger.debug(rollbackE.getMessage());
+        }
+        throw e;
+      }
+      end();
       return result;
-    } catch (Exception e) {
-      rollbackIfActive();
-      throw e;
     } finally {
       this.postCommitHooks = savedCommitHooks;
       resetJpaTransaction();
@@ -57,18 +67,22 @@ class TransactionalContext {
   private void begin(Transactional ann) {
     readOnly = ann.readOnly();
     jpaTx = em.getTransaction();
-    em.setFlushMode(readOnly ? FlushModeType.COMMIT : FlushModeType.AUTO);
+    em.setFlushMode(FlushModeType.COMMIT);
     if (ann.rollback()) {
       jpaTx.setRollbackOnly();
     }
     jpaTx.begin();
   }
 
-  private void commit() {
-    jpaTx.commit();
+  private void end() {
+    if (jpaTx.getRollbackOnly()) {
+      jpaTx.rollback();
+    } else {
+      jpaTx.commit();
+    }
   }
 
-  private void rollbackIfActive() {
+  private void maybeRollback() {
     if (jpaTx.isActive()) {
       jpaTx.rollback();
     }

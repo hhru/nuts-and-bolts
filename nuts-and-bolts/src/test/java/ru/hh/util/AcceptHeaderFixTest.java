@@ -3,12 +3,12 @@ package ru.hh.util;
 import com.google.inject.Module;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.glassfish.grizzly.http.util.Header;
 import org.junit.Assert;
 import org.junit.Test;
 import ru.hh.nab.JerseyResource;
 import ru.hh.nab.NabModule;
 import ru.hh.nab.testing.JerseyTest;
+import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -32,7 +32,7 @@ public class AcceptHeaderFixTest extends JerseyTest {
   @Test
   public void checkWithBadAcceptHeader1() throws IOException {
     HttpGet req = new HttpGet(baseUrl() + "test");
-    req.setHeader(Header.Accept.toString(), BAD_HEADER_1);
+    req.setHeader(HttpHeaders.ACCEPT, BAD_HEADER_1);
     HttpResponse resp = httpClient().execute(req);
     Assert.assertEquals(200, resp.getStatusLine().getStatusCode());
   }
@@ -40,7 +40,7 @@ public class AcceptHeaderFixTest extends JerseyTest {
   @Test
   public void checkWithBadAcceptHeader2() throws IOException {
     HttpGet req = new HttpGet(baseUrl() + "test");
-    req.setHeader(Header.Accept.toString(), BAD_HEADER_2);
+    req.setHeader(HttpHeaders.ACCEPT, BAD_HEADER_2);
     HttpResponse resp = httpClient().execute(req);
     Assert.assertEquals(200, resp.getStatusLine().getStatusCode());
   }

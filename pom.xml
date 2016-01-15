@@ -23,6 +23,7 @@
       <grizzly.version>2.3.11</grizzly.version>
       <jersey.version>1.19</jersey.version>
       <guice.version>3.0</guice.version>
+      <jetty.version>9.3.3.v20150827</jetty.version>
   </properties>
 
   <dependencyManagement>
@@ -122,6 +123,18 @@
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-multipart</artifactId>
         <version>${jersey.version}</version>
+      </dependency>
+
+      <!-- jetty -->
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-xml</artifactId>
+        <version>${jetty.version}</version>
       </dependency>
 
       <!-- HTTP client -->

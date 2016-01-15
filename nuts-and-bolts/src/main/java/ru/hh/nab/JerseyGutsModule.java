@@ -1,8 +1,5 @@
 package ru.hh.nab;
 
-import static com.google.common.collect.Maps.newHashMap;
-
-import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -11,30 +8,27 @@ import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.ws.rs.ext.Providers;
-
-import org.glassfish.grizzly.http.server.Request;
-import org.slf4j.LoggerFactory;
-import ru.hh.nab.NabModule.GrizzletDef;
-import ru.hh.nab.NabModule.GrizzletDefs;
+import org.eclipse.jetty.server.Server;
+import ru.hh.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLoggerFactory;
 import ru.hh.nab.grizzly.GrizzletHandler;
 import ru.hh.nab.grizzly.RequestDispatcher;
 import ru.hh.nab.grizzly.RequestHandler;
-import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
-import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
-import ru.hh.nab.health.limits.Limits;
-import ru.hh.health.monitoring.TimingsLogger;
-import ru.hh.health.monitoring.TimingsLoggerFactory;
+import ru.hh.nab.jersey.JerseyHttpServletAdapter;
 import ru.hh.nab.jersey.JerseyResourceFilterFactory;
-import ru.hh.nab.jersey.JerseyHttpHandler;
+import ru.hh.nab.jetty.JettyRequestHandler;
+import ru.hh.nab.jetty.JettyServerFactory;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.Permissions;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ext.Providers;
+import java.util.Map;
+import java.util.Properties;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 public class JerseyGutsModule extends AbstractModule {
   private final WebApplication webapp;
@@ -48,39 +42,65 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources,
-                                            WebApplication wa,
-                                            Provider<TimingsLogger> timingsLoggerProvider,
-                                            Settings settings) {
-    boolean allowFlush = Boolean.parseBoolean(settings.subTree("jersey").getProperty("allowFlush", "false"));
-    return new JerseyHttpHandler(resources, wa, timingsLoggerProvider, allowFlush);
+  protected Server jettyServer(Settings settings,
+                               JettyRequestHandler jersey) {
+    final Server server = JettyServerFactory.create(settings);
+    server.setHandler(jersey);
+    return server;
   }
 
   @Provides
   @Singleton
-  protected SimpleGrizzlyWebServer grizzlyWebServer(
-      Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
-      TimingsLoggerFactory tlFactory) {
-
-    SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
-        new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class)));
-
-    addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
-    
-    grizzlyServer.addGrizzlyAdapter(jersey);
-
-    return grizzlyServer;
+  protected JettyRequestHandler jettyRequestHandler(
+    TimingsLoggerFactory timingsLoggerFactory,
+    JerseyHttpServletAdapter jerseyHttpServletAdapter) {
+    return new JettyRequestHandler(timingsLoggerFactory, jerseyHttpServletAdapter);
   }
-  
-  private void addGrizzlets(SimpleGrizzlyWebServer grizzlyServer, GrizzletDefs grizzletDefs, Provider<Injector> inj, Limits limits) {
-    List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
-    for (GrizzletDef a : grizzletDefs) {
-      RequestHandler handler = inj.get().getInstance(a.handlerClass);
-      grizzletHandlers.add(new GrizzletHandler(a.handlerClass, handler, limits));
-    }
-    RequestDispatcher grizzletsDispatcher = new RequestDispatcher(grizzletHandlers);
-    grizzlyServer.addGrizzlyAdapter(grizzletsDispatcher);
+
+  @Provides
+  @Singleton
+  protected JerseyHttpServletAdapter jerseyHttpServletAdapter(WebApplication wa,
+                                                              Provider<TimingsLogger> timingsLoggerProvider,
+                                                              Settings settings) {
+    boolean allowFlush = Boolean.parseBoolean(settings.subTree("jersey").getProperty("allowFlush", "false"));
+    return new JerseyHttpServletAdapter(wa, timingsLoggerProvider, allowFlush);
   }
+
+//  @Provides
+//  @Singleton
+//  protected JerseyHttpHandler jerseyAdapter(ResourceConfig resources,
+//                                            WebApplication wa,
+//                                            Provider<TimingsLogger> timingsLoggerProvider,
+//                                            Settings settings) {
+//    boolean allowFlush = Boolean.parseBoolean(settings.subTree("jersey").getProperty("allowFlush", "false"));
+//    return new JerseyHttpHandler(resources, wa, timingsLoggerProvider, allowFlush);
+//  }
+//
+//  @Provides
+//  @Singleton
+//  protected SimpleGrizzlyWebServer grizzlyWebServer(
+//      Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
+//      TimingsLoggerFactory tlFactory) {
+//
+//    SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
+//        new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class)));
+//
+//    addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
+//
+//    grizzlyServer.addGrizzlyAdapter(jersey);
+//
+//    return grizzlyServer;
+//  }
+//
+//  private void addGrizzlets(SimpleGrizzlyWebServer grizzlyServer, GrizzletDefs grizzletDefs, Provider<Injector> inj, Limits limits) {
+//    List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
+//    for (GrizzletDef a : grizzletDefs) {
+//      RequestHandler handler = inj.get().getInstance(a.handlerClass);
+//      grizzletHandlers.add(new GrizzletHandler(a.handlerClass, handler, limits));
+//    }
+//    RequestDispatcher grizzletsDispatcher = new RequestDispatcher(grizzletHandlers);
+//    grizzlyServer.addGrizzlyAdapter(grizzletsDispatcher);
+//  }
 
   @Provides
   @Singleton
@@ -121,16 +141,25 @@ public class JerseyGutsModule extends AbstractModule {
     return getInitiatedWebapp(resources, ioc).getProviders();
   }
 
+//  @Provides
+//  @RequestScoped
+//  Request httpRequestContext() {
+//    Object request = RequestScope.currentRequest();
+//    if (request == null || !(request instanceof Request)) {
+//      throw new IllegalArgumentException("Not a grizzly request");
+//    }
+//    return (Request) request;
+//  }
+
   @Provides
   @RequestScoped
-  Request httpRequestContext() {
+  HttpServletRequest httpRequestContext() {
     Object request = RequestScope.currentRequest();
-    if (request == null || !(request instanceof Request)) {
-      throw new IllegalArgumentException("Not a grizzly request");
+    if (request == null || !(request instanceof HttpServletRequest)) {
+      throw new IllegalArgumentException("Not a HttpServletRequest request");
     }
-    return (Request) request;
+    return (HttpServletRequest) request;
   }
-
   @Provides
   protected RequestScope.RequestScopeClosure requestScopeClosure() {
     return RequestScope.currentClosure();
@@ -161,7 +190,7 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @RequestScoped
-  protected Permissions permissions(Request req, PermissionLoader permissions) {
+  protected Permissions permissions(HttpServletRequest req, PermissionLoader permissions) {
     String apiKey = req.getHeader("X-Hh-Api-Key");
     Permissions ret = permissions.forKey(apiKey);
     if (ret != null) {

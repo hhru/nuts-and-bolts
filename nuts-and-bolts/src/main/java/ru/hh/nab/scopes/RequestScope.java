@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.health.monitoring.TimingsLogger;
+import javax.servlet.http.HttpServletRequest;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
@@ -57,6 +58,14 @@ public class RequestScope implements TransferrableScope {
           request
       );
     }
+    RequestContext(HttpServletRequest request) {
+      this(request.getHeader(X_REQUEST_ID),
+        request.getHeader(X_HHID_PERFORMER),
+        request.getHeader(X_UID),
+        request.getRemoteAddr(),
+        request
+      );
+    }
 
     public void setLoggingContext() {
       storeValue("req.h." + X_REQUEST_ID, requestId, X_REQUEST_ID_DEFAULT);
@@ -76,6 +85,10 @@ public class RequestScope implements TransferrableScope {
   }
 
   public static void enter(Request request, TimingsLogger timingsLogger) {
+    enter(new RequestContext(request), timingsLogger);
+  }
+
+  public static void enter(HttpServletRequest request, TimingsLogger timingsLogger) {
     enter(new RequestContext(request), timingsLogger);
   }
 

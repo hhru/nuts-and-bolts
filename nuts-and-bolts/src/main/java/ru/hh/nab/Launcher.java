@@ -15,6 +15,7 @@ import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -23,8 +24,9 @@ import java.util.logging.Logger;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
@@ -40,6 +42,7 @@ public class Launcher {
     if (settingsDir != null) {
       System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
     }
+    SLF4JBridgeHandler.uninstall();
     SLF4JBridgeHandler.install();
 
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
@@ -114,14 +117,23 @@ public class Launcher {
       WebApplication wa = WebApplicationFactory.createWebApplication();
       Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule, new JerseyModule(), settingsModule);
 
-      SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
+      Server ws = inj.getInstance(Server.class);
       ws.start();
       HttpAdaptor adaptor = inj.getInstance(HttpAdaptor.class);
       if (adaptor != null) {
         adaptor.start();
       }
-      return new Instance(inj, ws.getNetworkListener().getPort());
-    } catch (IOException ex) {
+
+      // find out port (for testing instances)
+      final int actualPort =
+        ((ServerConnector) Arrays.asList(ws.getConnectors()).stream()
+          .filter(a -> a instanceof ServerConnector).findFirst().get()
+        ).getLocalPort();
+      return new Instance(inj, actualPort);
+    } catch (IOException | RuntimeException ex) {
+      Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
+      throw ex;
+    } catch (Exception ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
       throw new RuntimeException(ex);
     }

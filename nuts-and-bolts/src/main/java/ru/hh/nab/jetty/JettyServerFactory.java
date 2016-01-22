@@ -1,34 +1,29 @@
 package ru.hh.nab.jetty;
 
+import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.nab.Settings;
+import java.lang.management.ManagementFactory;
 import java.util.Properties;
 
 public abstract class JettyServerFactory {
 
-  public static int MIN_SERVER_THREADS = 16;
-  public static int MAX_SERVER_THREADS = 128;
-
-  private static int limitMinMax(final int value, final int min, final int max) {
-    return Math.max(max, Math.min(min, value));
-  }
-
   public static Server create(Settings settings) {
 
-    // common settings for jetty and grizzly
-    final int minThreads = limitMinMax(settings.concurrencyLevel, MIN_SERVER_THREADS, MAX_SERVER_THREADS);
-    final int maxThreads = settings.workersQueueLimit == -1 ? minThreads :
-      limitMinMax(settings.workersQueueLimit, minThreads, MAX_SERVER_THREADS);
+    // common settings for jetty and grizzly. Only port ? Ok...
     final int port = settings.port;
 
     Properties jettyProperties = settings.subTree("jetty");
-    final int securePort = Integer.parseInt(jettyProperties.getProperty("securePort", "8443"));
+    final int minThreads = Integer.parseInt(jettyProperties.getProperty("minThreads", "16"));
+    final int maxThreads = Integer.parseInt(jettyProperties.getProperty("maxThreads", "128"));
+
     final int outputBufferSize = Integer.parseInt(jettyProperties.getProperty("outputBufferSize", "65536"));
     final int requestHeaderSize = Integer.parseInt(jettyProperties.getProperty("requestHeaderSize", "16384"));
     final int responseHeaderSize = Integer.parseInt(jettyProperties.getProperty("responseHeaderSize", "65536"));
@@ -45,7 +40,6 @@ public abstract class JettyServerFactory {
     final int serverStopTimeout = Integer.parseInt(jettyProperties.getProperty("serverStopTimeout", "5000"));
 
     HttpConfiguration httpConfiguration = new HttpConfiguration();
-    httpConfiguration.setSecurePort(securePort);
     httpConfiguration.setOutputBufferSize(outputBufferSize);
     httpConfiguration.setRequestHeaderSize(requestHeaderSize);
     httpConfiguration.setResponseHeaderSize(responseHeaderSize);
@@ -56,6 +50,12 @@ public abstract class JettyServerFactory {
 
     final ThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleThreadTimeoutMs);
     final Server server = new Server(threadPool);
+
+    final MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
+    server.addEventListener(mbContainer);
+    server.addBean(mbContainer);
+    server.addBean(Log.getLog());
+
     server.setRequestLog(new RequestLogger());
 
     final HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);

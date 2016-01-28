@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate;
 
-import com.google.inject.Key;
 import com.google.inject.ProvisionException;
 import com.google.inject.Scopes;
 import com.google.inject.Stage;
@@ -16,15 +15,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PersistenceException;
 import javax.persistence.Table;
-import javax.persistence.TypedQuery;
 import org.junit.Assert;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import ru.hh.nab.Launcher;
-import ru.hh.nab.ModelAccess;
-import ru.hh.nab.ModelAction;
 import ru.hh.nab.NabModule;
 
 public class PersistenceTest {
@@ -83,7 +79,6 @@ public class PersistenceTest {
 // });
 
     EntityManagerWrapper em = inst.injector.getInstance(EntityManagerWrapper.class);
-    ModelAccess ma = inst.injector.getInstance(Key.get(ModelAccess.class, Default.class));
 
     TestEntity entity = new TestEntity();
     entity.setName("42");
@@ -91,15 +86,6 @@ public class PersistenceTest {
 
     entity = em.get(id);
     Assert.assertEquals("42", entity.getName());
-
-    ma.perform(
-      new ModelAction<TestEntity>() {
-        @Override
-        public TestEntity perform(EntityManager store) {
-          TypedQuery<TestEntity> q = store.createQuery("from TestEntity where name = :name", TestEntity.class);
-          return q.setParameter("name", "42").getSingleResult();
-        }
-      });
   }
 
   @Test

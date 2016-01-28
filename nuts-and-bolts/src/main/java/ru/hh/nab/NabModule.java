@@ -258,15 +258,6 @@ public abstract class NabModule extends AbstractModule {
           }
         }));
 
-    bind(ModelAccess.class).annotatedWith(ann)
-    .toProvider(Providers.guicify(new Provider<ModelAccess>() {
-          @Override
-          public ModelAccess get() {
-            return new ModelAccess(emfProvider);
-          }
-        }))
-    .in(Scopes.SINGLETON);
-
     bind(CriteriaBuilder.class).annotatedWith(ann)
     .toProvider(
       Providers.guicify(new Provider<CriteriaBuilder>() {

@@ -51,7 +51,7 @@ import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.grizzly.RequestHandler;
+import ru.hh.nab.jersey.Concurrency;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
@@ -64,6 +64,7 @@ import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
+import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
@@ -76,7 +77,6 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 public abstract class NabModule extends AbstractModule {
   private static final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
-  private final GrizzletDefs grizzletDefs = new GrizzletDefs();
   private final List<ResourceFilterFactory> jerseyPreFilterFactories = new ArrayList<>();
   private final List<ResourceFilterFactory> jerseyPostFilterFactories = new ArrayList<>();
 
@@ -86,7 +86,6 @@ public abstract class NabModule extends AbstractModule {
   protected final void configure() {
     configureApp();
     bindScheduler();
-    bindGrizzlets();
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
@@ -183,14 +182,19 @@ public abstract class NabModule extends AbstractModule {
           return false;
         }
       }, MethodProbingInterceptor.INSTANCE);
-  }
-
-  protected final void bindGrizzletResources(Class<? extends RequestHandler>... handlers) {
-    for (Class<? extends RequestHandler> handler : handlers) {
-      bind(handler);
-      grizzletDefs.add(new GrizzletDef(handler));
-    }
-    bindInterceptor(subclassesMatcher(handlers), Matchers.any(), MethodProbingInterceptor.INSTANCE);
+    bindInterceptor(
+      subclassesMatcher(classes),
+      new AbstractMatcher<AnnotatedElement>() {
+        @Override
+        public boolean matches(AnnotatedElement annotatedElement) {
+          for (Annotation a : annotatedElement.getAnnotations()) {
+            if (a instanceof Concurrency) {
+              return true;
+            }
+          }
+          return false;
+        }
+      }, new ConcurrentJerseyMethodInterceptor(getProvider(Limits.class)));
   }
 
   protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {
@@ -378,10 +382,6 @@ public abstract class NabModule extends AbstractModule {
     .asEagerSingleton();
   }
 
-  private void bindGrizzlets() {
-    bind(GrizzletDefs.class).toInstance(grizzletDefs);
-  }
-
   @Provides
   @Singleton
   protected HttpAdaptor httpAdaptor(Settings settings) {
@@ -448,8 +448,6 @@ public abstract class NabModule extends AbstractModule {
     return new StatsDumper(ls);
   }
 
-  static class GrizzletDefs extends ArrayList<GrizzletDef> { }
-
   private static class ScheduledTaskDef {
     private final Class<? extends Runnable> klass;
     private final long time;
@@ -461,13 +459,4 @@ public abstract class NabModule extends AbstractModule {
       this.unit = unit;
     }
   }
-
-  static class GrizzletDef {
-    final Class<? extends RequestHandler> handlerClass;
-
-    public GrizzletDef(Class<? extends RequestHandler> handlerClass) {
-      this.handlerClass = handlerClass;
-    }
-  }
-
 }

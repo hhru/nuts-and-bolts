@@ -33,6 +33,11 @@ final class IoExceptionCatchingOutputStream extends OutputStream {
     this.delegate = delegate;
   }
 
+  IoExceptionCatchingOutputStream(IOException exception) {
+    this.delegate = null;
+    this.exception = exception;
+  }
+
   // returns either IOException or RuntimeException thrown by last delegate call
   Exception getException() {
     return exception;

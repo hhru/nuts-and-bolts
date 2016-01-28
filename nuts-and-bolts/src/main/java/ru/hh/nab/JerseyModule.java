@@ -1,25 +1,17 @@
 package ru.hh.nab;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.servlet.RequestScoped;
-import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
-import ru.hh.nab.jersey.JacksonJerseyMarshaller;
-import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.jersey.FilteredXMLJAXBElementProvider;
 import ru.hh.nab.jersey.FilteredXMLListElementProvider;
 import ru.hh.nab.jersey.FilteredXMLRootElementProvider;
+import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
+import ru.hh.nab.jersey.JacksonJerseyMarshaller;
 
 public class JerseyModule extends AbstractModule {
-  public final RequestScope requestScope = new RequestScope();
-
-  public JerseyModule() {
-  }
-
   @Override
   protected void configure() {
     bind(StatsResource.class);
     bind(StatusResource.class);
-    bindScope(RequestScoped.class, requestScope);
 
     bind(FreemarkerJerseyMarshaller.class);
     bind(JacksonJerseyMarshaller.class);

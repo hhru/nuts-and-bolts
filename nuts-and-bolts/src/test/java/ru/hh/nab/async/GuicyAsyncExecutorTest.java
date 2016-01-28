@@ -4,12 +4,13 @@ import com.google.common.base.Function;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import org.junit.Assert;
+import org.junit.Test;
+import ru.hh.nab.NabModule;
+import ru.hh.nab.hibernate.Default;
+import ru.hh.nab.hibernate.Transactional;
+import ru.hh.nab.scopes.RequestScope;
+import ru.hh.nab.testing.JerseyTest;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.persistence.Basic;
@@ -19,16 +20,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.glassfish.grizzly.http.server.Request;
-import org.junit.Assert;
-import org.junit.Test;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.mockito.Mockito.mock;
-import ru.hh.nab.NabModule;
-import ru.hh.health.monitoring.TimingsLogger;
-import ru.hh.nab.hibernate.Default;
-import ru.hh.nab.hibernate.Transactional;
-import ru.hh.nab.scopes.RequestScope;
-import ru.hh.nab.testing.JerseyTest;
 
 public class GuicyAsyncExecutorTest extends JerseyTest {
   @Entity(name = "TestEntity")
@@ -98,7 +98,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap()));
+    RequestScope.enter(mock(HttpServletRequest.class), mock(HttpServletResponse.class));
 
     ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject
@@ -150,7 +150,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    RequestScope.enter(mock(Request.class), new TimingsLogger("Test", "EmptyRequestId", Collections.<String, Long>emptyMap()));
+    RequestScope.enter(mock(HttpServletRequest.class), mock(HttpServletResponse.class));
 
     ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
       @Inject

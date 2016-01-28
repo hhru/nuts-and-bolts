@@ -15,6 +15,7 @@ import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -23,8 +24,10 @@ import java.util.logging.Logger;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
@@ -35,11 +38,16 @@ import ru.hh.nab.security.PropertiesPermissionLoader;
 public class Launcher {
   static Module module;
 
+  static boolean useJetty = true;
+
   public static void main(String[] args) throws IOException {
+    useJetty = !"grizzly".equals(System.getProperty("server"));
+
     String settingsDir = System.getProperty("settingsDir");
     if (settingsDir != null) {
       System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
     }
+    SLF4JBridgeHandler.uninstall();
     SLF4JBridgeHandler.install();
 
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());
@@ -112,16 +120,37 @@ public class Launcher {
 
     try {
       WebApplication wa = WebApplicationFactory.createWebApplication();
-      Injector inj = Guice.createInjector(stage, new JerseyGutsModule(wa), appModule, new JerseyModule(), settingsModule);
+      Injector inj = Guice.createInjector(stage,
+        new JerseyGutsModule(wa),
+        appModule,
+        new RequestScopeModule(),
+        new JerseyModule(),
+        useJetty ? new JettyServerModule() : new GrizzlyServerModule(),
+        settingsModule);
 
-      SimpleGrizzlyWebServer ws = inj.getInstance(SimpleGrizzlyWebServer.class);
-      ws.start();
+      // start web server and find out actual listening port (for unit test instances)
+      final int actualPort;
+      if (useJetty) {
+        Server jettyServer = inj.getInstance(Server.class);
+        jettyServer.start();
+        actualPort = ((ServerConnector) Arrays.asList(jettyServer.getConnectors()).stream()
+          .filter(a -> a instanceof ServerConnector).findFirst().get()
+        ).getLocalPort();
+      } else {
+        HttpServer grizzlyServer = inj.getInstance(HttpServer.class);
+        grizzlyServer.start();
+        actualPort = grizzlyServer.getListeners().iterator().next().getPort();
+      }
       HttpAdaptor adaptor = inj.getInstance(HttpAdaptor.class);
       if (adaptor != null) {
         adaptor.start();
       }
-      return new Instance(inj, ws.getNetworkListener().getPort());
-    } catch (IOException ex) {
+
+      return new Instance(inj, actualPort);
+    } catch (IOException | RuntimeException ex) {
+      Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
+      throw ex;
+    } catch (Exception ex) {
       Logger.getAnonymousLogger().log(Level.SEVERE, "boom", ex);
       throw new RuntimeException(ex);
     }

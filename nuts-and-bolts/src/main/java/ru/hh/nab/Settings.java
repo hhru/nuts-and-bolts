@@ -36,4 +36,42 @@ public class Settings {
     }
     return ret;
   }
+
+  public final static class BoolProperty {
+    final boolean defaultValue;
+    final String propertyName;
+    public BoolProperty(final String propertyName, final boolean defaultValue) {
+      this.propertyName = propertyName;
+      this.defaultValue = defaultValue;
+    }
+    public boolean getFrom(final Properties properties) {
+      String propertyValue = properties.getProperty(propertyName);
+      return propertyValue == null ? defaultValue : Boolean.parseBoolean(propertyValue);
+    }
+  }
+
+  public final static class IntProperty {
+    final int defaultValue;
+    final String propertyName;
+    public IntProperty(final String propertyName, final int defaultValue) {
+      this.propertyName = propertyName;
+      this.defaultValue = defaultValue;
+    }
+    public int from(final Properties properties) {
+      String propertyValue = properties.getProperty(propertyName);
+      return propertyValue == null ? defaultValue : Integer.parseInt(propertyValue);
+    }
+  }
+
+  public final static class StringProperty {
+    final String defaultValue;
+    final String propertyName;
+    public StringProperty(final String propertyName, final String defaultValue) {
+      this.propertyName = propertyName;
+      this.defaultValue = defaultValue;
+    }
+    public String getFrom(final Properties properties) {
+      return properties.getProperty(propertyName, defaultValue);
+    }
+  }
 }

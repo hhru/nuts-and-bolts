@@ -1,35 +1,40 @@
 package ru.hh.nab.scopes;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.inject.Key;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provider;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import com.google.inject.name.Names;
-import org.glassfish.grizzly.http.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.health.monitoring.TimingsLogger;
+import ru.hh.health.monitoring.TimingsLoggerFactory;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class RequestScope implements TransferrableScope {
   public static final RequestScope REQUEST_SCOPE = new RequestScope();
 
+  @Inject
+  private static TimingsLoggerFactory timingsLoggerFactory;
+
   private static final ThreadLocal<RequestScopeClosure> closure = new ThreadLocal<>();
 
-  private final static Logger logger = LoggerFactory.getLogger(RequestScope.class);
+  private static final Logger logger = LoggerFactory.getLogger(RequestScope.class);
 
-  private static enum NullObject {
+  private enum NullObject {
     INSTANCE
   }
 
   public static class RequestContext {
-    protected static final String X_REQUEST_ID = "x-request-id";
+    public static final String X_REQUEST_ID = "x-request-id";
     protected static final String X_REQUEST_ID_DEFAULT = "NoRequestIdProvided";
     protected static final String X_HHID_PERFORMER = "x-hhid-performer";
     protected static final String X_HHID_PERFORMER_DEFAULT = "NoPerformerTokenProvided";
@@ -37,24 +42,32 @@ public class RequestScope implements TransferrableScope {
     protected static final String X_UID_DEFAULT = "NoUidProvided";
     protected static final String REQ_REMOTE_ADDR = "req.remote-addr";
     protected static final String REQ_REMOTE_ADDR_DEFAULT = "NoRemoteAddrProvided";
+
+    private static final String NO_REQUEST_ID = "NoRequestId";
+
     private final String requestId;
     private final String performerToken;
     private final String uid;
     private final String remoteAddr;
     private final Object request;
-    public RequestContext(String requestId, String performerToken, String uid, String remoteAddr, Object request)  {
+    private final Object response;
+
+    public RequestContext(String requestId, String performerToken, String uid, String remoteAddr, Object request, Object response)  {
       this.requestId = requestId;
       this.performerToken = performerToken;
       this.uid = uid;
       this.remoteAddr = remoteAddr;
       this.request = request;
+      this.response = response;
     }
-    RequestContext(Request request) {
-      this(request.getHeader(X_REQUEST_ID),
-          request.getHeader(X_HHID_PERFORMER),
-          request.getHeader(X_UID),
-          request.getRemoteAddr(),
-          request
+
+    RequestContext(HttpServletRequest request, HttpServletResponse response) {
+      this(request.getHeader(X_REQUEST_ID) == null ? NO_REQUEST_ID : request.getHeader(X_REQUEST_ID),
+        request.getHeader(X_HHID_PERFORMER),
+        request.getHeader(X_UID),
+        request.getRemoteAddr(),
+        request,
+        response
       );
     }
 
@@ -73,14 +86,25 @@ public class RequestScope implements TransferrableScope {
     public Object getRequest() {
       return request;
     }
+    public Object getResponse() {
+      return response;
+    }
   }
 
-  public static void enter(Request request, TimingsLogger timingsLogger) {
-    enter(new RequestContext(request), timingsLogger);
+  public static void enter(HttpServletRequest request, HttpServletResponse response) {
+    String loggerContext = String.format("%s %s", request.getMethod(), request.getRequestURI());
+    enter(new RequestContext(request, response), loggerContext);
   }
 
-  public static void enter(RequestContext requestContext, TimingsLogger timingsLogger) {
+  public static void enter(RequestContext requestContext, String context) {
+    final TimingsLogger timingsLogger = timingsLoggerFactory.getLogger(context, requestContext.requestId);
+    timingsLogger.enterTimedArea();
     new RequestScopeClosure(requestContext, timingsLogger).enter();
+    RequestScope.addAfterServiceTask(() -> {
+        timingsLogger.leaveTimedArea();
+        return null;
+      }
+    );
   }
 
   public static void leave() {
@@ -93,6 +117,14 @@ public class RequestScope implements TransferrableScope {
       throw new OutOfScopeException("Out of RequestScope");
     }
     return cls.requestContext.getRequest();
+  }
+
+  public static Object currentResponse() {
+    RequestScopeClosure cls = closure.get();
+    if (cls == null) {
+      throw new OutOfScopeException("Out of RequestScope");
+    }
+    return cls.requestContext.getResponse();
   }
 
   public static RequestScopeClosure currentClosure() {
@@ -165,35 +197,11 @@ public class RequestScope implements TransferrableScope {
     return ret;
   }
 
-  public static String getProperty(String propertyName) {
-    return getNamedObject(String.class, propertyName);
-  }
-
-  public static <T> T getNamedObject(Class<T> clazz, String propertyName) {
-    return currentClosure().get(Key.get(clazz, Names.named(propertyName)));
-  }
-
-  public static void setProperty(String propertyName, String value) {
-    setNamedObject(String.class, propertyName, value);
-  }
-
-  public static <T> void setNamedObject(Class<T> clazz, String propertyName, T value) {
-    currentClosure().put(Key.get(clazz, Names.named(propertyName)), value);
-  }
-
-  public static void removeProperty(String propertyName) {
-    removeNamedObject(String.class, propertyName);
-  }
-
-  public static <T> void removeNamedObject(Class<T> clazz, String propertyName) {
-    setNamedObject(clazz, propertyName, null);
-  }
-
   public static class RequestScopeClosure implements ScopeClosure {
 
     private final RequestContext requestContext;
     private final TimingsLogger timingsLogger;
-    private final Map<Key<?>, Object> objects = Maps.newHashMap();
+    private final Map<Key<?>, Object> objects = new HashMap<>();
 
     // The latch counter is increased when there is a reason to hold off
     // running afterServiceTasks, i.e. for example grizzly response is suspended but we

@@ -1,4 +1,4 @@
-package ru.hh.nab.grizzly;
+package ru.hh.nab.jersey;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

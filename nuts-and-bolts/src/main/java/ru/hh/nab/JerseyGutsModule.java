@@ -2,7 +2,6 @@ package ru.hh.nab;
 
 import static com.google.common.collect.Maps.newHashMap;
 
-import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -11,7 +10,6 @@ import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import com.sun.jersey.spi.container.WebApplication;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Provider;
@@ -20,11 +18,6 @@ import javax.ws.rs.ext.Providers;
 
 import org.glassfish.grizzly.http.server.Request;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.NabModule.GrizzletDef;
-import ru.hh.nab.NabModule.GrizzletDefs;
-import ru.hh.nab.grizzly.GrizzletHandler;
-import ru.hh.nab.grizzly.RequestDispatcher;
-import ru.hh.nab.grizzly.RequestHandler;
 import ru.hh.nab.grizzly.SimpleGrizzlyWebServer;
 import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.health.limits.Limits;
@@ -59,27 +52,15 @@ public class JerseyGutsModule extends AbstractModule {
   @Provides
   @Singleton
   protected SimpleGrizzlyWebServer grizzlyWebServer(
-      Settings settings, JerseyHttpHandler jersey, GrizzletDefs grizzletDefs, Limits limits, Provider<Injector> inj,
+      Settings settings, JerseyHttpHandler jersey, Limits limits, Provider<Injector> inj,
       TimingsLoggerFactory tlFactory) {
 
     SimpleGrizzlyWebServer grizzlyServer = SimpleGrizzlyWebServer.create(settings, tlFactory,
         new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class)));
 
-    addGrizzlets(grizzlyServer, grizzletDefs, inj, limits);
-    
     grizzlyServer.addGrizzlyAdapter(jersey);
 
     return grizzlyServer;
-  }
-  
-  private void addGrizzlets(SimpleGrizzlyWebServer grizzlyServer, GrizzletDefs grizzletDefs, Provider<Injector> inj, Limits limits) {
-    List<GrizzletHandler> grizzletHandlers = Lists.newArrayListWithExpectedSize(grizzletDefs.size());
-    for (GrizzletDef a : grizzletDefs) {
-      RequestHandler handler = inj.get().getInstance(a.handlerClass);
-      grizzletHandlers.add(new GrizzletHandler(a.handlerClass, handler, limits));
-    }
-    RequestDispatcher grizzletsDispatcher = new RequestDispatcher(grizzletHandlers);
-    grizzlyServer.addGrizzlyAdapter(grizzletsDispatcher);
   }
 
   @Provides
@@ -143,7 +124,7 @@ public class JerseyGutsModule extends AbstractModule {
       for (Map.Entry<Object, Object> ent : delaysProps.entrySet()) {
         delays.put(ent.getKey().toString(), Long.valueOf(ent.getValue().toString()));
       }
-    }    
+    }
     return delays;
   }
 

@@ -7,11 +7,11 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 
 
-public class BlockedQueueLimitedThreadPool extends FixedThreadPool {
+final class BlockedQueueLimitedThreadPool extends FixedThreadPool {
   public static final int MAX_QUEUE_SIZE = 30000;
   private final Semaphore queuePermits;
 
-  public BlockedQueueLimitedThreadPool(ThreadPoolConfig config) {
+  BlockedQueueLimitedThreadPool(ThreadPoolConfig config) {
     super(config);
     if (config.getQueueLimit() < 0 || config.getQueueLimit() > MAX_QUEUE_SIZE) {
       throw new IllegalArgumentException("0 < maxQueuedTasks < " + MAX_QUEUE_SIZE);

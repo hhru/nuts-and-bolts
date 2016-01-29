@@ -64,7 +64,7 @@ public final class GrizzlyServerFactory {
     setJmxEnabled(server, Boolean.valueOf(settings.subTree("grizzly.httpServer").getProperty("jmxEnabled", "false")));
     configureNetworking(settings, server, probe);
     server.getServerConfiguration().setDefaultQueryEncoding(Charset.defaultCharset());
-    configureJerseyServlet(server, jerseyHttpServlet, probe);
+    createWebapp(jerseyHttpServlet, probe).deploy(server);
     return server;
   }
 
@@ -116,7 +116,7 @@ public final class GrizzlyServerFactory {
     transport.getConnectionMonitoringConfig().addProbes(probe);
   }
 
-  private static void configureJerseyServlet(HttpServer server, JerseyHttpServlet jerseyHttpServlet, ConnectionProbeTimingLogger probe) {
+  private static WebappContext createWebapp(JerseyHttpServlet jerseyHttpServlet, ConnectionProbeTimingLogger probe) {
     WebappContext webappContext = new WebappContext("GrizzlyWebApp");
     FilterRegistration requestScopeFilterRegistration = webappContext.addFilter("RequestScopeFilter", RequestScopeFilter.class);
     requestScopeFilterRegistration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), JerseyHttpServlet.MAPPING);
@@ -174,8 +174,7 @@ public final class GrizzlyServerFactory {
     ServletRegistration servletRegistration = webappContext.addServlet("JerseyHttpServlet", jerseyHttpServlet);
     servletRegistration.addMapping(JerseyHttpServlet.MAPPING);
     servletRegistration.setAsyncSupported(true);
-
-    webappContext.deploy(server);
+    return webappContext;
   }
 
   private static void setJmxEnabled(HttpServer server, boolean enableJmx) {

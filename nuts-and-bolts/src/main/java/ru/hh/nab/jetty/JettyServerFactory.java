@@ -13,9 +13,9 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.nab.Settings;
 import ru.hh.nab.Settings.IntProperty;
-import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.scopes.RequestScopeFilter;
 import javax.servlet.DispatcherType;
+import javax.servlet.http.HttpServlet;
 import java.lang.management.ManagementFactory;
 import java.util.EnumSet;
 import java.util.Properties;
@@ -40,7 +40,7 @@ public abstract class JettyServerFactory {
 
   private static final IntProperty SERVER_STOP_TIMEOUT = new IntProperty("serverStopTimeout", 5000);
 
-  public static Server create(Settings settings, JerseyHttpServlet jerseyHttpServlet) {
+  public static Server create(Settings settings, HttpServlet httpServlet) {
 
     final Properties properties = settings.subTree("jetty");
 
@@ -86,20 +86,20 @@ public abstract class JettyServerFactory {
     server.setStopAtShutdown(true);
     server.setStopTimeout(SERVER_STOP_TIMEOUT.from(properties));
 
-    server.setHandler(createWebapp(jerseyHttpServlet));
+    server.setHandler(createWebapp(httpServlet));
 
     return server;
   }
 
-  private static WebAppContext createWebapp(JerseyHttpServlet jerseyHttpServlet) {
+  private static WebAppContext createWebapp(HttpServlet httpServlet) {
     WebAppContext context = new WebAppContext();
-    context.setContextPath(JerseyHttpServlet.BASE_PATH);
+    context.setContextPath("/");
     context.setResourceBase("/bad/local/system/path");
-    context.addFilter(RequestScopeFilter.class, JerseyHttpServlet.MAPPING, EnumSet.allOf(DispatcherType.class));
+    context.addFilter(RequestScopeFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
     ServletHolder sh = new ServletHolder();
-    sh.setServlet(jerseyHttpServlet);
+    sh.setServlet(httpServlet);
     sh.setAsyncSupported(true);
-    context.addServlet(sh, JerseyHttpServlet.MAPPING);
+    context.addServlet(sh, "/*");
     return context;
   }
 }

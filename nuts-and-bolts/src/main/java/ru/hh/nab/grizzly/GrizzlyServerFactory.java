@@ -23,7 +23,6 @@ import ru.hh.nab.Settings;
 import ru.hh.nab.Settings.BoolProperty;
 import ru.hh.nab.Settings.IntProperty;
 import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
-import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.scopes.RequestScope.RequestContext;
 import ru.hh.nab.scopes.RequestScopeFilter;
 import javax.servlet.AsyncEvent;
@@ -35,6 +34,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -58,13 +58,13 @@ public final class GrizzlyServerFactory {
   static final IntProperty SELECTOR_RUNNERS_COUNT = new IntProperty("runnersCount", -1);
   static final BoolProperty SELECTOR_BLOCK_ON_QUEUE_OVERFLOW = new BoolProperty("blockOnQueueOverflow", false);
 
-  public static HttpServer create(Settings settings, JerseyHttpServlet jerseyHttpServlet) {
+  public static HttpServer create(Settings settings, HttpServlet httpServlet) {
     final ConnectionProbeTimingLogger probe = new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class));
     final HttpServer server = new HttpServer();
     setJmxEnabled(server, Boolean.valueOf(settings.subTree("grizzly.httpServer").getProperty("jmxEnabled", "false")));
     configureNetworking(settings, server, probe);
     server.getServerConfiguration().setDefaultQueryEncoding(Charset.defaultCharset());
-    createWebapp(jerseyHttpServlet, probe).deploy(server);
+    createWebapp(httpServlet, probe).deploy(server);
     return server;
   }
 
@@ -116,10 +116,10 @@ public final class GrizzlyServerFactory {
     transport.getConnectionMonitoringConfig().addProbes(probe);
   }
 
-  private static WebappContext createWebapp(JerseyHttpServlet jerseyHttpServlet, ConnectionProbeTimingLogger probe) {
+  private static WebappContext createWebapp(HttpServlet httpServlet, ConnectionProbeTimingLogger probe) {
     WebappContext webappContext = new WebappContext("GrizzlyWebApp");
     FilterRegistration requestScopeFilterRegistration = webappContext.addFilter("RequestScopeFilter", RequestScopeFilter.class);
-    requestScopeFilterRegistration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), JerseyHttpServlet.MAPPING);
+    requestScopeFilterRegistration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), "/*");
     requestScopeFilterRegistration.setAsyncSupported(true);
 
     FilterRegistration connectionProbeFilterRegistration = webappContext.addFilter("ConnectionProbeFilter",
@@ -168,11 +168,11 @@ public final class GrizzlyServerFactory {
         }
       }
     );
-    connectionProbeFilterRegistration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), JerseyHttpServlet.MAPPING);
+    connectionProbeFilterRegistration.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), "/*");
     connectionProbeFilterRegistration.setAsyncSupported(true);
 
-    ServletRegistration servletRegistration = webappContext.addServlet("JerseyHttpServlet", jerseyHttpServlet);
-    servletRegistration.addMapping(JerseyHttpServlet.MAPPING);
+    ServletRegistration servletRegistration = webappContext.addServlet("nab-" + httpServlet.getClass().getName(), httpServlet);
+    servletRegistration.addMapping("/*");
     servletRegistration.setAsyncSupported(true);
     return webappContext;
   }

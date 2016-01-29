@@ -86,12 +86,12 @@ public abstract class JettyServerFactory {
     server.setStopAtShutdown(true);
     server.setStopTimeout(SERVER_STOP_TIMEOUT.from(properties));
 
-    configureJerseyServlet(server, jerseyHttpServlet);
+    server.setHandler(createWebapp(jerseyHttpServlet));
 
     return server;
   }
 
-  private static Server configureJerseyServlet(Server server, JerseyHttpServlet jerseyHttpServlet) {
+  private static WebAppContext createWebapp(JerseyHttpServlet jerseyHttpServlet) {
     WebAppContext context = new WebAppContext();
     context.setContextPath(JerseyHttpServlet.BASE_PATH);
     context.setResourceBase("/bad/local/system/path");
@@ -100,7 +100,6 @@ public abstract class JettyServerFactory {
     sh.setServlet(jerseyHttpServlet);
     sh.setAsyncSupported(true);
     context.addServlet(sh, JerseyHttpServlet.MAPPING);
-    server.setHandler(context);
-    return server;
+    return context;
   }
 }

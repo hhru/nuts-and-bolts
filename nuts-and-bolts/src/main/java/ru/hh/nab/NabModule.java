@@ -182,6 +182,10 @@ public abstract class NabModule extends AbstractModule {
           return false;
         }
       }, MethodProbingInterceptor.INSTANCE);
+
+    ConcurrentJerseyMethodInterceptor concurrentJerseyMethodInterceptor =
+      new ConcurrentJerseyMethodInterceptor();
+    requestInjection(concurrentJerseyMethodInterceptor);
     bindInterceptor(
       subclassesMatcher(classes),
       new AbstractMatcher<AnnotatedElement>() {
@@ -194,7 +198,7 @@ public abstract class NabModule extends AbstractModule {
           }
           return false;
         }
-      }, new ConcurrentJerseyMethodInterceptor(getProvider(Limits.class)));
+      }, concurrentJerseyMethodInterceptor);
   }
 
   protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {

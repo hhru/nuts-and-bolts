@@ -8,18 +8,17 @@ import ru.hh.nab.health.limits.LeaseToken;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
 import ru.hh.nab.scopes.RequestScope;
+import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.WebApplicationException;
 import java.lang.reflect.Method;
 
 public class ConcurrentJerseyMethodInterceptor implements MethodInterceptor {
-  private final Provider<Limits> limits;
+
+  @Inject
+  private Provider<Limits> limits;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConcurrentJerseyMethodInterceptor.class);
-
-  public ConcurrentJerseyMethodInterceptor(Provider<Limits> limits) {
-    this.limits = limits;
-  }
 
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {

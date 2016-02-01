@@ -23,7 +23,7 @@
       <grizzly.version>2.3.11</grizzly.version>
       <jersey.version>1.19</jersey.version>
       <guice.version>3.0</guice.version>
-      <jetty.version>9.3.6.v20151106</jetty.version>
+      <jetty.version>9.3.7.v20160115</jetty.version>
   </properties>
 
   <dependencyManagement>
@@ -133,17 +133,7 @@
       <!-- jetty -->
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-xml</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

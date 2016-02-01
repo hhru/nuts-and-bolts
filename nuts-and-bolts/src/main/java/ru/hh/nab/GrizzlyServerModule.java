@@ -15,7 +15,6 @@ class GrizzlyServerModule extends AbstractModule {
   @Provides
   @Singleton
   protected HttpServer jettyServer(Settings settings, JerseyHttpServlet jerseyHttpServlet) {
-    return GrizzlyServerFactory.create(
-      settings, jerseyHttpServlet);
+    return GrizzlyServerFactory.create(settings, jerseyHttpServlet);
   }
 }

@@ -23,9 +23,6 @@ public final class JerseyHttpServlet extends HttpServlet {
 
   private static final Logger log = LoggerFactory.getLogger(JerseyHttpServlet.class);
 
-  public static final String BASE_PATH = "/";
-  public static final String MAPPING = "/*";
-
   private final WebApplication app;
 
   private final boolean allowFlush;
@@ -90,7 +87,7 @@ public final class JerseyHttpServlet extends HttpServlet {
       null,
       request.getServerName(),
       request.getServerPort(),
-      BASE_PATH,
+      "/",
       null,
       null);
   }

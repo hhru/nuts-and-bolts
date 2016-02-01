@@ -7,25 +7,20 @@ import org.glassfish.grizzly.memory.MemoryManager;
 
 import java.util.Properties;
 
-import static java.lang.Boolean.parseBoolean;
-import static java.lang.Integer.parseInt;
+import static ru.hh.nab.Settings.getBoolProperty;
+import static ru.hh.nab.Settings.getIntProperty;
 
 final class MemoryManagerFactory {
 
   static MemoryManager create(Properties memoryManagerProps) {
 
     String memoryManagerClass = memoryManagerProps.getProperty("class", ByteBufferManager.class.getName());
-    int maxBufferSize = parseInt(
-        memoryManagerProps.getProperty("maxBufferSize", String.valueOf(AbstractMemoryManager.DEFAULT_MAX_BUFFER_SIZE))
-    );
+    int maxBufferSize = getIntProperty(memoryManagerProps, "maxBufferSize", AbstractMemoryManager.DEFAULT_MAX_BUFFER_SIZE);
 
     if (memoryManagerClass.equals(ByteBufferManager.class.getName())) {
-      boolean isDirect = parseBoolean(
-          memoryManagerProps.getProperty("direct", "true")
-      );
-      int maxSmallBufferSize = parseInt(
-          memoryManagerProps.getProperty("maxSmallBufferSize", String.valueOf(ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE))
-      );
+      boolean isDirect = getBoolProperty(memoryManagerProps, "direct", true);
+      int maxSmallBufferSize =
+        getIntProperty(memoryManagerProps, "maxSmallBufferSize", ByteBufferManager.DEFAULT_SMALL_BUFFER_SIZE);
       return new ByteBufferManager(isDirect, maxBufferSize, maxSmallBufferSize);
 
     } else if (memoryManagerClass.equals(HeapMemoryManager.class.getName())) {

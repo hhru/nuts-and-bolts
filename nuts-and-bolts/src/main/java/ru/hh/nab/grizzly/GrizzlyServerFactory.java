@@ -20,8 +20,6 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.Settings;
-import ru.hh.nab.Settings.BoolProperty;
-import ru.hh.nab.Settings.IntProperty;
 import ru.hh.nab.grizzly.monitoring.ConnectionProbeTimingLogger;
 import ru.hh.nab.scopes.RequestScope.RequestContext;
 import ru.hh.nab.scopes.RequestScopeFilter;
@@ -42,6 +40,9 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
 
+import static ru.hh.nab.Settings.getBoolProperty;
+import static ru.hh.nab.Settings.getIntProperty;
+
 public final class GrizzlyServerFactory {
   public static final Map<String, IOStrategy> strategies = ImmutableMap.of(
       "worker", WorkerThreadIOStrategy.getInstance(),
@@ -49,14 +50,6 @@ public final class GrizzlyServerFactory {
       "dynamic", SimpleDynamicNIOStrategy.getInstance(),
       "leader-follower", LeaderFollowerNIOStrategy.getInstance()
   );
-
-  static final IntProperty SELECTOR_MAX_KEEP_ALIVE_REQUESTS = new IntProperty("maxKeepAliveRequests", 4096);
-  static final IntProperty SELECTOR_MAX_PENDING_BYTES = new IntProperty("sendBufferSize", 32768);
-  static final IntProperty SELECTOR_MAX_BUFFERED_POST_SIZE = new IntProperty("bufferSize", 32768);
-  static final IntProperty SELECTOR_MAX_HTTP_HEADER_SIZE = new IntProperty("headerSize", 16384);
-  static final IntProperty SELECTOR_CONNECTION_BACKLOG = new IntProperty("connectionBacklog", -1);
-  static final IntProperty SELECTOR_RUNNERS_COUNT = new IntProperty("runnersCount", -1);
-  static final BoolProperty SELECTOR_BLOCK_ON_QUEUE_OVERFLOW = new BoolProperty("blockOnQueueOverflow", false);
 
   public static HttpServer create(Settings settings, HttpServlet httpServlet) {
     final ConnectionProbeTimingLogger probe = new ConnectionProbeTimingLogger(LoggerFactory.getLogger(TimingsLogger.class));
@@ -69,22 +62,21 @@ public final class GrizzlyServerFactory {
   }
 
   private static void configureNetworking(Settings settings, HttpServer server, ConnectionProbeTimingLogger probe) {
-    final Properties selectorProperties = settings.subTree("selector");
-    final Properties memoryManagerProps = settings.subTree("grizzly.memoryManager");
+    final Properties selectorProps = settings.subTree("selector");
 
     final NetworkListener networkListener = new NetworkListener("grizzly", NetworkListener.DEFAULT_NETWORK_HOST, settings.port);
     server.addListener(networkListener);
-    networkListener.getKeepAlive().setMaxRequestsCount(SELECTOR_MAX_KEEP_ALIVE_REQUESTS.from(selectorProperties));
+    networkListener.getKeepAlive().setMaxRequestsCount(getIntProperty(selectorProps, "maxKeepAliveRequests", 4096));
     networkListener.getCompressionConfig().setCompressionMinSize(Integer.MAX_VALUE);
-    networkListener.setMaxPendingBytes(SELECTOR_MAX_PENDING_BYTES.from(selectorProperties));
-    networkListener.setMaxBufferedPostSize(SELECTOR_MAX_BUFFERED_POST_SIZE.from(selectorProperties));
-    networkListener.setMaxHttpHeaderSize(SELECTOR_MAX_HTTP_HEADER_SIZE.from(selectorProperties));
+    networkListener.setMaxPendingBytes(getIntProperty(selectorProps, "sendBufferSize", 32768));
+    networkListener.setMaxBufferedPostSize(getIntProperty(selectorProps, "bufferSize", 32768));
+    networkListener.setMaxHttpHeaderSize(getIntProperty(selectorProps, "headerSize", 16384));
 
     final TCPNIOTransport transport = networkListener.getTransport();
-    final MemoryManager memoryManager = MemoryManagerFactory.create(memoryManagerProps);
+    final MemoryManager memoryManager = MemoryManagerFactory.create(settings.subTree("grizzly.memoryManager"));
     transport.setMemoryManager(memoryManager);
 
-    final boolean blockOnQueueOverflow = SELECTOR_BLOCK_ON_QUEUE_OVERFLOW.getFrom(selectorProperties);
+    final boolean blockOnQueueOverflow = getBoolProperty(selectorProps, "blockOnQueueOverflow", false);
 
     // Configure thread pool and queue
     final ThreadPoolConfig threadPoolConfig = transport.getWorkerThreadPoolConfig();
@@ -95,14 +87,14 @@ public final class GrizzlyServerFactory {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(threadPoolConfig));
     }
 
-    final int ssbacklog = SELECTOR_CONNECTION_BACKLOG.from(selectorProperties);
+    final int ssbacklog = getIntProperty(selectorProps, "connectionBacklog", -1);
     if (blockOnQueueOverflow && ssbacklog < 0) {
       throw new IllegalStateException("Set selector.connectionBacklog size and net.ipv4.tcp_abort_on_overflow=1");
     } else if (ssbacklog > 0) {
       transport.setServerConnectionBackLog(ssbacklog);
     }
 
-    final int runnersCount = SELECTOR_RUNNERS_COUNT.from(selectorProperties);
+    final int runnersCount = getIntProperty(selectorProps, "runnersCount", -1);
     if (runnersCount > 0) {
       transport.setSelectorRunnersCount(runnersCount);
     }

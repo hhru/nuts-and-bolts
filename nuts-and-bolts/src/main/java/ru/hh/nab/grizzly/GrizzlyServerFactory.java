@@ -80,9 +80,15 @@ public final class GrizzlyServerFactory {
 
     // Configure thread pool and queue
     final ThreadPoolConfig threadPoolConfig = transport.getWorkerThreadPoolConfig();
-    threadPoolConfig.setMaxPoolSize(settings.concurrencyLevel);
-    threadPoolConfig.setCorePoolSize(settings.concurrencyLevel);
-    threadPoolConfig.setQueueLimit(settings.workersQueueLimit);
+    final Properties grizzlyProps = settings.subTree("grizzly");
+    final int concurrencyLevel = getIntProperty(grizzlyProps, "concurrencyLevel", -1);
+    if (concurrencyLevel <= 0) {
+      throw new IllegalArgumentException("grizzly.concurrencyLevel is required and must be > 0");
+    }
+    final int workersQueueLimit = getIntProperty(grizzlyProps, "workersQueueLimit", -1);
+    threadPoolConfig.setMaxPoolSize(concurrencyLevel);
+    threadPoolConfig.setCorePoolSize(concurrencyLevel);
+    threadPoolConfig.setQueueLimit(workersQueueLimit);
     if (blockOnQueueOverflow) {
       transport.setWorkerThreadPool(new BlockedQueueLimitedThreadPool(threadPoolConfig));
     }
@@ -99,7 +105,7 @@ public final class GrizzlyServerFactory {
       transport.setSelectorRunnersCount(runnersCount);
     }
 
-    IOStrategy strategy = strategies.get(settings.subTree("grizzly").getProperty("ioStrategy"));
+    IOStrategy strategy = strategies.get(grizzlyProps.getProperty("ioStrategy"));
     if (strategy != null) {
       transport.setIOStrategy(strategy);
     }

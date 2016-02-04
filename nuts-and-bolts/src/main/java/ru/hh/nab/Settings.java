@@ -4,15 +4,11 @@ import java.util.Properties;
 
 public class Settings {
   private final Properties props;
-  public final int concurrencyLevel;
-  public final int workersQueueLimit;
   public final int port;
 
   public Settings(Properties props) {
     this.props = props;
-    concurrencyLevel = Integer.parseInt(props.getProperty("concurrencyLevel"));
     port = Integer.parseInt(props.getProperty("port"));
-    workersQueueLimit = Integer.parseInt(props.getProperty("workersQueueLimit", "-1"));
   }
 
   public Properties subTree(String prefix) {

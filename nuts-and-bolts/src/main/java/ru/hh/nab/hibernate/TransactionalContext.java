@@ -67,7 +67,7 @@ class TransactionalContext {
   private void begin(Transactional ann) {
     readOnly = ann.readOnly();
     jpaTx = em.getTransaction();
-    em.setFlushMode(FlushModeType.COMMIT);
+    em.setFlushMode(FlushModeType.AUTO);
     if (ann.rollback()) {
       jpaTx.setRollbackOnly();
     }

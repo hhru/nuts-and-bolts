@@ -231,11 +231,21 @@ public class RequestScope implements TransferrableScope {
 
     @Override
     public synchronized void enter() {
+      prepareDelayedEnter();
+      executeDelayedEnter();
+    }
+
+    // call before submitting task to be executed in another thread
+    public synchronized void prepareDelayedEnter() {
+      timingsLogger.enterTimedArea();
+      incrementAfterServiceTasksLatchCounter();
+    }
+
+    // call when starting task submitted when calling prapareDelayedEnter()
+    public synchronized void executeDelayedEnter() {
       Preconditions.checkState(RequestScope.closure.get() == null);
       requestContext.setLoggingContext();
       RequestScope.closure.set(this);
-      timingsLogger.enterTimedArea();
-      incrementAfterServiceTasksLatchCounter();
     }
 
     @Override

@@ -68,6 +68,24 @@ public class GuicyAsyncExecutor {
     }
   }
 
+  public <T> void runWithTransferredRequestScope(final Runnable body) throws Exception {
+    runWithTransferredRequestScope(() -> {
+      body.run();
+      return null;
+    }, result -> {}, throwable -> {
+      if (throwable instanceof Exception) {
+        throw (Exception) throwable;
+      }
+    });
+  }
+
+  public <T> void runWithTransferredRequestScope(
+    final Callable<T> body,
+    final Callback<T> onSuccess,
+    final Callback<Throwable> onError) throws Exception {
+    runWithTransferredRequestScopeImpl(body, onSuccess, onError, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
+  }
+
   public <T> Async<T> asyncWithTransferredRequestScope(Callable<T> body) {
     return new DeferredAsync<T>(body, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
   }
@@ -89,61 +107,58 @@ public class GuicyAsyncExecutor {
 
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
-      timingsLogger.probe("async-submission");
-      logExecutorMetrics();
-      try {
-        executor.execute(
-          new Runnable() {
-            @Override
-            public void run() {
-              try {
-                requestScopeClosure.enter();
-                timingsLogger.probe("async-execution");
-                final Callable<T> injCallable =
-                  new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                      inj.injectMembers(body);
-                      return body.call();
-                    }
-                  };
-
-                Callable<T> callable =
-                  new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                      try {
-                        Transactional ann = body.getClass().getMethod("call").getAnnotation(Transactional.class);
-                        if (ann == null) {
-                          return injCallable.call();
-                        }
-                        TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, ann.value()));
-                        return interceptor.invoke(ann, injCallable);
-                      } finally {
-                        timingsLogger.probe("async-finish");
-                      }
-                    }
-                  };
-                onSuccess.call(callable.call());
-              } catch (Throwable e) {
-                timingsLogger.setErrorState();
-                try {
-                  onError.call(e);
-                } catch (Throwable ee) {
-                  LOG.error("Exception in error handler", ee);
-                  LOG.error("Original exception was", e);
-                }
-              } finally {
-                requestScopeClosure.leave();
-              }
-            }
-          });
-      } catch (RejectedExecutionException ree) {
-        onError.call(ree);
-      }
+      runWithTransferredRequestScopeImpl(body, onSuccess, onError, requestScopeClosure, timingsLogger);
       if (GuicyAsyncExecutor.killThisThread.get()) {
         Thread.currentThread().interrupt();
       }
+    }
+  }
+
+  private <T> void runWithTransferredRequestScopeImpl(
+    final Callable<T> body,
+    final Callback<T> onSuccess,
+    final Callback<Throwable> onError,
+    final RequestScope.RequestScopeClosure requestScopeClosure,
+    final TimingsLogger timingsLogger) throws Exception {
+
+    requestScopeClosure.prepareDelayedEnter();
+    timingsLogger.probe("async-submission");
+    logExecutorMetrics();
+    try {
+      executor.execute(
+        () -> {
+          try {
+            requestScopeClosure.executeDelayedEnter();
+            timingsLogger.probe("async-execution");
+
+            final Callable<T> injCallable = () -> {
+              inj.injectMembers(body);
+              return body.call();
+            };
+            Transactional txAnn = body.getClass().getMethod("call").getAnnotation(Transactional.class);
+            final T result;
+            if (txAnn == null) {
+              result = injCallable.call();
+            } else {
+              TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, txAnn.value()));
+              result = interceptor.invoke(txAnn, injCallable);
+            }
+            onSuccess.call(result);
+          } catch (Throwable e) {
+            timingsLogger.setErrorState();
+            try {
+              onError.call(e);
+            } catch (Throwable ee) {
+              LOG.error("Exception in error handler", ee);
+              LOG.error("Original exception was", e);
+            }
+          } finally {
+            timingsLogger.probe("async-finish");
+            requestScopeClosure.leave();
+          }
+        });
+    } catch (RejectedExecutionException ree) {
+      onError.call(ree);
     }
   }
 }

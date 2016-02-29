@@ -95,6 +95,10 @@ public abstract class NabModule extends AbstractModule {
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), MethodProbingInterceptor.INSTANCE);
+
+    ConcurrentJerseyMethodInterceptor concurrentJerseyMethodInterceptor = new ConcurrentJerseyMethodInterceptor();
+    requestInjection(concurrentJerseyMethodInterceptor);
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Concurrency.class), concurrentJerseyMethodInterceptor);
   }
 
   protected abstract void configureApp();
@@ -182,23 +186,6 @@ public abstract class NabModule extends AbstractModule {
           return false;
         }
       }, MethodProbingInterceptor.INSTANCE);
-
-    ConcurrentJerseyMethodInterceptor concurrentJerseyMethodInterceptor =
-      new ConcurrentJerseyMethodInterceptor();
-    requestInjection(concurrentJerseyMethodInterceptor);
-    bindInterceptor(
-      subclassesMatcher(classes),
-      new AbstractMatcher<AnnotatedElement>() {
-        @Override
-        public boolean matches(AnnotatedElement annotatedElement) {
-          for (Annotation a : annotatedElement.getAnnotations()) {
-            if (a instanceof Concurrency) {
-              return true;
-            }
-          }
-          return false;
-        }
-      }, concurrentJerseyMethodInterceptor);
   }
 
   protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {

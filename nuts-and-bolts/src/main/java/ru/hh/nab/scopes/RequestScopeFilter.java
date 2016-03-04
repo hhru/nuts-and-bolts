@@ -34,27 +34,29 @@ public final class RequestScopeFilter implements Filter {
 
     RequestScope.enter(request, response);
 
+    final TimingsLogger timingsLogger = RequestScope.currentTimingsLogger();
+
     try {
       chain.doFilter(request, response);
       if (!request.isAsyncStarted()) {
-        RequestScope.currentTimingsLogger().setResponseContext(String.valueOf(response.getStatus()));
+        timingsLogger.setResponseContext(String.valueOf(response.getStatus()));
       } else {
         request.getAsyncContext().addListener(new AsyncListener() {
           @Override
           public void onComplete(AsyncEvent event) throws IOException {
-            timingsLogger().setResponseContext(String.valueOf(response.getStatus()));
+            timingsLogger.setResponseContext(String.valueOf(response.getStatus()));
           }
 
           @Override
           public void onTimeout(AsyncEvent event) throws IOException {
-            timingsLogger().setErrorState();
-            timingsLogger().setResponseContext("timeout");
+            timingsLogger.setErrorState();
+            timingsLogger.setResponseContext("timeout");
           }
 
           @Override
           public void onError(AsyncEvent event) throws IOException {
-            timingsLogger().setErrorState();
-            timingsLogger().setResponseContext("500");
+            timingsLogger.setErrorState();
+            timingsLogger.setResponseContext("500");
           }
 
           @Override
@@ -64,7 +66,7 @@ public final class RequestScopeFilter implements Filter {
         });
       }
     } catch (IOException | ServletException | RuntimeException e) {
-      timingsLogger().setErrorState();
+      timingsLogger.setErrorState();
       throw e;
     } finally {
       RequestScope.leave();
@@ -73,9 +75,5 @@ public final class RequestScopeFilter implements Filter {
 
   @Override
   public void destroy() {
-  }
-
-  private static TimingsLogger timingsLogger() {
-    return RequestScope.currentTimingsLogger();
   }
 }

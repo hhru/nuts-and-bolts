@@ -18,6 +18,7 @@ import ru.hh.health.monitoring.TimingsLogger;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.RequestScope;
+import javax.ws.rs.WebApplicationException;
 
 public class GuicyAsyncExecutor {
   public static final ThreadLocal<Boolean> killThisThread =
@@ -155,7 +156,16 @@ public class GuicyAsyncExecutor {
             }
             onSuccess.call(result);
           } catch (Throwable e) {
-            timingsLogger.setErrorState();
+            final boolean isError;
+            if (e instanceof WebApplicationException) {
+              final int status = ((WebApplicationException) e).getResponse().getStatus();
+              isError = status >= 500 && status != 502 && status != 503 && status != 504;
+            } else {
+              isError = true;
+            }
+            if (isError) {
+              timingsLogger.setErrorState();
+            }
             try {
               onError.call(e);
             } catch (Throwable ee) {

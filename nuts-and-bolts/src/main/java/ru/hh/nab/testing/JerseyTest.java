@@ -118,7 +118,8 @@ public abstract class JerseyTest {
   protected CloseableHttpClient httpClient() {
 
     return HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom().setRedirectsEnabled(false).setCookieSpec(CookieSpecs.DEFAULT).build())
+            .setDefaultRequestConfig(
+              RequestConfig.custom().setRedirectsEnabled(false).setCookieSpec(CookieSpecs.STANDARD).build())
             .setRoutePlanner(new DefaultRoutePlannerImpl(port()))
             .build();
   }

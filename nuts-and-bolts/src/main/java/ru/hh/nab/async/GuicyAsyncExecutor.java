@@ -28,8 +28,11 @@ public class GuicyAsyncExecutor {
       }
     };
 
-  private final Executor executor;
+  private static final int DEFAULT_CORE_THREADS = 10;
+
   private static final Logger LOG = LoggerFactory.getLogger(GuicyAsyncExecutor.class);
+
+  private final Executor executor;
   private final Injector inj;
 
   /** period in seconds, frequency of getting metrics and writing them in log file. 0 - means that monitoring is disabled */
@@ -42,9 +45,16 @@ public class GuicyAsyncExecutor {
   }
 
   public GuicyAsyncExecutor(Injector inj, String name, int threads, int maxQueueSize, int monitoringPeriod) {
+    this(inj, name, DEFAULT_CORE_THREADS < threads ? DEFAULT_CORE_THREADS : threads, threads,
+      0L, maxQueueSize, monitoringPeriod);
+  }
+
+  public GuicyAsyncExecutor(Injector inj, String name, int coreThreads, int maxThreads,
+                            long keepAliveTimeForExtraIdleThreads, int maxQueueSize, int monitoringPeriod) {
     ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat(name + "-%d").build();
     this.inj = inj;
-    this.executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueueSize), tf);
+    this.executor = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTimeForExtraIdleThreads,
+      TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(maxQueueSize), tf);
     this.monitoringPeriod = monitoringPeriod;
   }
 

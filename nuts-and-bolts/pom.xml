@@ -72,30 +72,6 @@
       <artifactId>guice-servlet</artifactId>
     </dependency>
 
-    <!-- network -->
-    <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-http-server</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-servlet</artifactId>
-    </dependency>
-
-    <dependency>
-          <groupId>org.glassfish.grizzly</groupId>
-          <artifactId>grizzly-framework-monitoring</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.glassfish.grizzly</groupId>
-          <artifactId>grizzly-http-monitoring</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.glassfish.grizzly</groupId>
-          <artifactId>grizzly-http-server-monitoring</artifactId>
-      </dependency>
-
     <!-- jetty -->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

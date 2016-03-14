@@ -204,7 +204,7 @@ public class RequestScope implements TransferrableScope {
     private final Map<Key<?>, Object> objects = new HashMap<>();
 
     // The latch counter is increased when there is a reason to hold off
-    // running afterServiceTasks, i.e. for example grizzly response is suspended but we
+    // running afterServiceTasks, i.e. for example web server response is suspended but we
     // are already in scope and can not enter it the second time, and there is a continuation
     // task waiting to be run in another thread pool, so there may be a little period where
     // request is not exactly complete but no threads are in the 'entered' into the scope state.

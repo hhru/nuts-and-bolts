@@ -97,12 +97,10 @@ public class GuicyAsyncExecutor {
     runWithTransferredRequestScopeImpl(body, onSuccess, onError, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
   }
 
+  /* 1. use runWithTransferredRequestScope methods instead if possible, Async is evil */
+  /* 2. if still need to use Async, run returned Async while still in RequestScope.   */
   public <T> Async<T> asyncWithTransferredRequestScope(Callable<T> body) {
     return new DeferredAsync<T>(body, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
-  }
-
-  static void killThisThreadAfterExecution() {
-    killThisThread.set(true);
   }
 
   private class DeferredAsync<T> extends Async<T> {
@@ -119,9 +117,6 @@ public class GuicyAsyncExecutor {
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
       runWithTransferredRequestScopeImpl(body, onSuccess, onError, requestScopeClosure, timingsLogger);
-      if (GuicyAsyncExecutor.killThisThread.get()) {
-        Thread.currentThread().interrupt();
-      }
     }
   }
 

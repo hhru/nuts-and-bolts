@@ -10,30 +10,37 @@ import org.slf4j.LoggerFactory;
  *
  * IMPORTANT NOTE
  *
+ *  Do not use this in new code. Async was invented to reduce
+ *  the number of sleeping/waiting threads at the cost of additional
+ *  context switches, but the code is hard to understand and there is
+ *  very little profit.
+ *
+ *  Use CompletableFuture from Java8 if you still want something like Async.
+ *
  *  1. The original purpose of async is to do certain tasks without
  *  blocking the original thread, so that this thread can be reused
  *  again by the calling code (assuming that it came from a thread
  *  pool).
  *
  *  2. Async is a very generic concept, but in our code it is
- *  almost always used in the context of Jersey/Grizzly calls
- *  with RequestScope.
+ *  almost always used with RequestScope.
  *
- *  This means that execution is very often continued in other
- *  threads, which by default do not have RequestScope initialized.
- *  This can (and is known to) cause all kinds of mess, unless
- *  the following simple rules are followed:
+ *  Asyncs are chained, and the execution of the next Async in chain
+ *  may continue in a new thread, so RequestScope have to be
+ *  initialized in that thread. This can (and is known to) cause
+ *  all kinds of mess, unless the following simple rules are followed:
  *
  *   a) When writing functions which return Async<T> instances,
- *      assume that RequestScope is already entered.
+ *      assume that RequestScope is already entered when the function
+ *      is called.
  *
- *   b) when overriding runExposed() function, assume that
- *      RequestScope is already entered.
+ *   b) when overriding runExposed() function, assume in the method
+ *      code that RequestScope is already entered.
  *
  *   c) when creating Callbacks to be called from another
- *      thread (for example, by async http client), enter
- *      the scope in the callback before doing anything else,
- *      and leave in the finally clause.
+ *      thread definitely outside of RequestScope (for example, callbacks
+ *      passed to async http client), enter the scope in the callback
+ *      before doing anything else, and leave in the finally clause.
  *
  *      CallbackWithRequestScope class can help with that.
  *
@@ -45,6 +52,9 @@ import org.slf4j.LoggerFactory;
  *      the 3rd party library code (i.e. async http client code)
  *      from the point where it starts in another thread and
  *      up to the point where our callbacks are called.
+ *
+ *   e) Again - do not use Async unless for some reason you really have to.
+ *      At this point almost all use of chained Asyncs is already removed.
  *
  *  Example:
  *

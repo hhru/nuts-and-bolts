@@ -26,7 +26,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
@@ -38,11 +37,7 @@ import ru.hh.nab.security.PropertiesPermissionLoader;
 public class Launcher {
   static Module module;
 
-  static boolean useJetty = true;
-
   public static void main(String[] args) throws IOException {
-    useJetty = !"grizzly".equals(System.getProperty("server"));
-
     String settingsDir = System.getProperty("settingsDir");
     if (settingsDir != null) {
       System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
@@ -119,28 +114,21 @@ public class Launcher {
     module = appModule;
 
     try {
-      WebApplication wa = WebApplicationFactory.createWebApplication();
-      Injector inj = Guice.createInjector(stage,
+      final WebApplication wa = WebApplicationFactory.createWebApplication();
+      final Injector inj = Guice.createInjector(stage,
         new JerseyGutsModule(wa),
         appModule,
         new RequestScopeModule(),
         new JerseyModule(),
-        useJetty ? new JettyServerModule() : new GrizzlyServerModule(),
+        new JettyServerModule(),
         settingsModule);
 
       // start web server and find out actual listening port (for unit test instances)
-      final int actualPort;
-      if (useJetty) {
-        Server jettyServer = inj.getInstance(Server.class);
-        jettyServer.start();
-        actualPort = ((ServerConnector) Arrays.asList(jettyServer.getConnectors()).stream()
-          .filter(a -> a instanceof ServerConnector).findFirst().get()
-        ).getLocalPort();
-      } else {
-        HttpServer grizzlyServer = inj.getInstance(HttpServer.class);
-        grizzlyServer.start();
-        actualPort = grizzlyServer.getListeners().iterator().next().getPort();
-      }
+      final Server jettyServer = inj.getInstance(Server.class);
+      jettyServer.start();
+      final int actualPort = ((ServerConnector) Arrays.asList(jettyServer.getConnectors()).stream()
+        .filter(a -> a instanceof ServerConnector).findFirst().get()
+      ).getLocalPort();
       HttpAdaptor adaptor = inj.getInstance(HttpAdaptor.class);
       if (adaptor != null) {
         adaptor.start();

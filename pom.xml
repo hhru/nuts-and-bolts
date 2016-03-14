@@ -20,7 +20,6 @@
   <version>1.7.5-SNAPSHOT</version>
 
   <properties>
-      <grizzly.version>2.3.11</grizzly.version>
       <jersey.version>1.19</jersey.version>
       <guice.version>3.0</guice.version>
       <jetty.version>9.3.7.v20160115</jetty.version>
@@ -82,35 +81,6 @@
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-servlet</artifactId>
         <version>${guice.version}</version>
-      </dependency>
-
-      <!-- network -->
-      <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-http-server</artifactId>
-        <version>${grizzly.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-http-servlet</artifactId>
-        <version>${grizzly.version}</version>
-      </dependency>
-
-      <!-- Grizzly monitoring -->
-      <dependency>
-         <groupId>org.glassfish.grizzly</groupId>
-         <artifactId>grizzly-framework-monitoring</artifactId>
-         <version>${grizzly.version}</version>
-      </dependency>
-      <dependency>
-         <groupId>org.glassfish.grizzly</groupId>
-         <artifactId>grizzly-http-monitoring</artifactId>
-         <version>${grizzly.version}</version>
-      </dependency>
-      <dependency>
-         <groupId>org.glassfish.grizzly</groupId>
-         <artifactId>grizzly-http-server-monitoring</artifactId>
-         <version>${grizzly.version}</version>
       </dependency>
 
       <!-- Jersey -->

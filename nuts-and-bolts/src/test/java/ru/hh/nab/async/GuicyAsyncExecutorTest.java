@@ -1,6 +1,5 @@
 package ru.hh.nab.async;
 
-import com.google.common.base.Function;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -11,7 +10,6 @@ import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.testing.JerseyTest;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -95,8 +93,10 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
   public void basicOperation() throws InterruptedException {
     final GuicyAsyncExecutor ama = injector().getInstance(GuicyAsyncExecutor.class);
 
-    final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
-    final CountDownLatch latch = new CountDownLatch(1);
+    final AtomicReference<TestEntity> result = new AtomicReference<>();
+    final AtomicReference<Integer> resultId = new AtomicReference<>();
+    final CountDownLatch syncLatch = new CountDownLatch(1);
+    final CountDownLatch finalLatch = new CountDownLatch(1);
 
     RequestScope.enter(mock(HttpServletRequest.class), mock(HttpServletResponse.class));
 
@@ -113,85 +113,35 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
         store.persist(e);
         return e.getId();
       }
-    }).then(new Function<Integer, Async<TestEntity>>() {
-      @Override
-      public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
-          @Inject
-          @Default
-          EntityManager store;
+    }).run(id -> {
+      resultId.set(id);
+      syncLatch.countDown();
+    }, Callbacks.<Throwable>countDown(finalLatch));
 
-          @Override
-          @Transactional
-          public TestEntity call() {
-            return store.find(TestEntity.class, id);
-          }
-        });
-      }
-    }).run(new Callback<TestEntity>() {
-      @Override
-      public void call(TestEntity arg) throws Exception {
-        result.set(arg);
-        latch.countDown();
-      }
-    }, Callbacks.<Throwable>countDown(latch));
-    RequestScope.leave();
 
-    latch.await(10, TimeUnit.SECONDS);
-
-    Assert.assertNotNull(result.get());
-    Assert.assertEquals("Foo", result.get().getName());
-  }
-
-  @Test
-  public void computationResumesInAnotherThread() throws InterruptedException {
-    final GuicyAsyncExecutor ama = injector().getInstance(GuicyAsyncExecutor.class);
-
-    final AtomicReference<TestEntity> result = new AtomicReference<TestEntity>();
-    final CountDownLatch latch = new CountDownLatch(1);
-
-    RequestScope.enter(mock(HttpServletRequest.class), mock(HttpServletResponse.class));
-
-    ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
+    ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
       @Inject
       @Default
       EntityManager store;
 
       @Override
       @Transactional
-      public Integer call() {
-        GuicyAsyncExecutor.killThisThreadAfterExecution();
-        TestEntity e = new TestEntity();
-        e.name = "Foo";
-        store.persist(e);
-        return e.getId();
+      public TestEntity call() {
+        try {
+          syncLatch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        return store.find(TestEntity.class, resultId.get());
       }
-    }).then(new Function<Integer, Async<TestEntity>>() {
-      @Override
-      public Async<TestEntity> apply(@Nullable final Integer id) {
-        return ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
-          @Inject
-          @Default
-          EntityManager store;
+    }).run(resultEntity -> {
+      result.set(resultEntity);
+      finalLatch.countDown();
+    }, Callbacks.<Throwable>countDown(finalLatch));
 
-          @Override
-          @Transactional
-          public TestEntity call() {
-            GuicyAsyncExecutor.killThisThreadAfterExecution();
-            return store.find(TestEntity.class, id);
-          }
-        });
-      }
-    }).run(new Callback<TestEntity>() {
-      @Override
-      public void call(TestEntity arg) throws Exception {
-        result.set(arg);
-        latch.countDown();
-      }
-    }, Callbacks.<Throwable>countDown(latch));
     RequestScope.leave();
 
-    latch.await(10, TimeUnit.SECONDS);
+    finalLatch.await(10, TimeUnit.SECONDS);
 
     Assert.assertNotNull(result.get());
     Assert.assertEquals("Foo", result.get().getName());

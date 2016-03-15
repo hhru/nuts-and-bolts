@@ -1,7 +1,5 @@
 package ru.hh.nab.scopes;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
@@ -16,8 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public final class RequestScopeFilter implements Filter {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(RequestScopeFilter.class);
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -61,7 +57,6 @@ public final class RequestScopeFilter implements Filter {
 
           @Override
           public void onStartAsync(AsyncEvent event) throws IOException {
-            LOGGER.error("Starting async request while already running async request");
           }
         });
       }

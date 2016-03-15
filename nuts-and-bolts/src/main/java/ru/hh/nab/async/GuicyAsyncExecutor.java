@@ -79,21 +79,16 @@ public class GuicyAsyncExecutor {
     }
   }
 
-  public <T> void runWithTransferredRequestScope(final Runnable body) throws Exception {
-    runWithTransferredRequestScope(() -> {
-      body.run();
-      return null;
-    }, result -> {}, throwable -> {
-      if (throwable instanceof Exception) {
-        throw (Exception) throwable;
-      }
-    });
+  public <T, E extends Exception> void runWithTransferredRequestScope(
+    final Callable<T> body,
+    final OnErrorCallback<E> onError) throws E {
+    runWithTransferredRequestScope(body, Callbacks.empty(), onError);
   }
 
-  public <T> void runWithTransferredRequestScope(
+  public <T, E extends Exception> void runWithTransferredRequestScope(
     final Callable<T> body,
     final Callback<T> onSuccess,
-    final Callback<Throwable> onError) throws Exception {
+    final OnErrorCallback<E> onError) throws E {
     runWithTransferredRequestScopeImpl(body, onSuccess, onError, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
   }
 
@@ -116,16 +111,16 @@ public class GuicyAsyncExecutor {
 
     @Override
     protected void runExposed(final Callback<T> onSuccess, final Callback<Throwable> onError) throws Exception {
-      runWithTransferredRequestScopeImpl(body, onSuccess, onError, requestScopeClosure, timingsLogger);
+      runWithTransferredRequestScopeImpl(body, onSuccess, onError::call, requestScopeClosure, timingsLogger);
     }
   }
 
-  private <T> void runWithTransferredRequestScopeImpl(
+  private <T, E extends Exception> void runWithTransferredRequestScopeImpl(
     final Callable<T> body,
     final Callback<T> onSuccess,
-    final Callback<Throwable> onError,
+    final OnErrorCallback<E> onError,
     final RequestScope.RequestScopeClosure requestScopeClosure,
-    final TimingsLogger timingsLogger) throws Exception {
+    final TimingsLogger timingsLogger) throws E {
 
     requestScopeClosure.prepareDelayedEnter();
     timingsLogger.probe("async-submission");
@@ -173,6 +168,7 @@ public class GuicyAsyncExecutor {
           }
         });
     } catch (RejectedExecutionException ree) {
+      requestScopeClosure.cancelDelayedEnter();
       onError.call(ree);
     }
   }

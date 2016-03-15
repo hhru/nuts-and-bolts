@@ -248,6 +248,12 @@ public class RequestScope implements TransferrableScope {
       RequestScope.closure.set(this);
     }
 
+    // call after prepareDelayedEnter() if was unable to submit task
+    public synchronized void cancelDelayedEnter() {
+      decrementAfterServiceTasksLatchCounter();
+      timingsLogger.leaveTimedArea();
+    }
+
     @Override
     public synchronized void leave() {
       Preconditions.checkState(RequestScope.closure.get() == this);

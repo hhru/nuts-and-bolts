@@ -25,19 +25,14 @@ public final class JerseyHttpServlet extends HttpServlet {
 
   private final WebApplication app;
 
-  private final boolean allowFlush;
-
-  public JerseyHttpServlet(final WebApplication app,
-                           final boolean allowFlush) {
+  public JerseyHttpServlet(final WebApplication app) {
     this.app = app;
-    this.allowFlush = allowFlush;
   }
 
   @Override
   protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
     request.setCharacterEncoding(Charset.defaultCharset().name());
-    response.setHeader("X-Accel-Buffering", "no");
 
     final String requestQueryString = request.getQueryString();
     final String requestUriString = requestQueryString == null
@@ -66,7 +61,7 @@ public final class JerseyHttpServlet extends HttpServlet {
       getHeaders(request),
       request.getInputStream());
     final JerseyToHttpServletResponseWriter responseWriter =
-      new JerseyToHttpServletResponseWriter(request, response, allowFlush);
+      new JerseyToHttpServletResponseWriter(request, response);
     timingsLogger().probe("jersey#beforeHandle");
     app.handleRequest(cRequest, responseWriter);
     timingsLogger().probe("jersey#afterHandle");

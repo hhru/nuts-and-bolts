@@ -29,9 +29,8 @@ public class JerseyGutsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected JerseyHttpServlet jerseyHttpServlet(WebApplication wa, Settings settings) {
-    boolean allowFlush = Boolean.parseBoolean(settings.subTree("jersey").getProperty("allowFlush", "false"));
-    return new JerseyHttpServlet(wa, allowFlush);
+  protected JerseyHttpServlet jerseyHttpServlet(WebApplication wa) {
+    return new JerseyHttpServlet(wa);
   }
 
   @Provides

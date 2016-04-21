@@ -116,10 +116,9 @@ public class Launcher {
     try {
       final WebApplication wa = WebApplicationFactory.createWebApplication();
       final Injector inj = Guice.createInjector(stage,
-        new JerseyGutsModule(wa),
+        new JerseyModule(wa),
         appModule,
         new RequestScopeModule(),
-        new JerseyModule(),
         new JettyServerModule(),
         settingsModule);
 

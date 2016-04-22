@@ -2,13 +2,10 @@ package ru.hh.nab.jersey;
 
 import com.sun.jersey.core.provider.jaxb.AbstractListElementProvider;
 import com.sun.jersey.spi.inject.Injectable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -37,36 +34,27 @@ public class FilteredXMLListElementProvider extends AbstractListElementProvider 
 
   @Produces(MediaType.APPLICATION_XML)
   @Consumes(MediaType.APPLICATION_XML)
-  @Provider
-  @Singleton
   public static final class App extends FilteredXMLListElementProvider {
 
-    @Inject
-    public App(Providers ps) {
+    public App(@Context Providers ps) {
       super(ps , MediaType.APPLICATION_XML_TYPE);
     }
   }
 
   @Produces(MediaType.TEXT_XML)
   @Consumes(MediaType.TEXT_XML)
-  @Provider
-  @Singleton
   public static final class Text extends FilteredXMLListElementProvider {
 
-    @Inject
-    public Text(Providers ps) {
+    public Text(@Context Providers ps) {
       super(ps , MediaType.TEXT_XML_TYPE);
     }
   }
 
   @Produces(MediaType.WILDCARD)
   @Consumes(MediaType.WILDCARD)
-  @Provider
-  @Singleton
   public static final class General extends FilteredXMLListElementProvider {
 
-    @Inject
-    public General(Providers ps) {
+    public General(@Context Providers ps) {
       super(ps);
     }
 

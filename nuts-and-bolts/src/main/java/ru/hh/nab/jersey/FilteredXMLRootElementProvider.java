@@ -2,13 +2,10 @@ package ru.hh.nab.jersey;
 
 import com.sun.jersey.core.provider.jaxb.AbstractRootElementProvider;
 import com.sun.jersey.spi.inject.Injectable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -36,36 +33,27 @@ public class FilteredXMLRootElementProvider extends AbstractRootElementProvider 
 
   @Produces(MediaType.APPLICATION_XML)
   @Consumes(MediaType.APPLICATION_XML)
-  @Provider
-  @Singleton
   public static final class App extends FilteredXMLRootElementProvider {
 
-    @Inject
-    public App(Providers providers) {
+    public App(@Context Providers providers) {
       super(providers, MediaType.APPLICATION_XML_TYPE);
     }
   }
 
   @Produces(MediaType.TEXT_XML)
   @Consumes(MediaType.TEXT_XML)
-  @Provider
-  @Singleton
   public static final class Text extends FilteredXMLRootElementProvider {
 
-    @Inject
-    public Text(Providers providers) {
+    public Text(@Context Providers providers) {
       super(providers, MediaType.TEXT_XML_TYPE);
     }
   }
 
   @Produces(MediaType.WILDCARD)
   @Consumes(MediaType.WILDCARD)
-  @Provider
-  @Singleton
   public static final class General extends FilteredXMLRootElementProvider {
 
-    @Inject
-    public General(Providers providers) {
+    public General(@Context Providers providers) {
       super(providers);
     }
 

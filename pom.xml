@@ -21,7 +21,7 @@
 
   <properties>
       <jersey.version>1.19</jersey.version>
-      <guice.version>3.0</guice.version>
+      <guice.version>4.0</guice.version>
       <jetty.version>9.3.7.v20160115</jetty.version>
   </properties>
 

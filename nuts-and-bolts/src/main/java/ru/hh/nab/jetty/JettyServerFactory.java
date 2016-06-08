@@ -69,7 +69,21 @@ public abstract class JettyServerFactory {
     server.setStopAtShutdown(true);
     server.setStopTimeout(getIntProperty(props, "serverStopTimeout", 5000));
 
-    server.setHandler(createWebapp(httpServlet));
+    if (Boolean.parseBoolean(settings.subTree("session-manager").getProperty("enabled"))) {
+      HashSessionIdManager hashSessionIdManager = new HashSessionIdManager();
+      server.setSessionIdManager(hashSessionIdManager);
+
+      ContextHandler context = new ContextHandler("/");
+      server.setHandler(context);
+
+      HashSessionManager manager = new HashSessionManager();
+      SessionHandler sessions = new SessionHandler(manager);
+
+      context.setHandler(sessions);
+      sessions.setHandler(createWebapp(httpServlet));
+    } else {
+      server.setHandler(createWebapp(httpServlet));
+    }
 
     return server;
   }

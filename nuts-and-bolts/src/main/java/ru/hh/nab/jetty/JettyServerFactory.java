@@ -5,6 +5,10 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.log.Log;
@@ -69,7 +73,21 @@ public abstract class JettyServerFactory {
     server.setStopAtShutdown(true);
     server.setStopTimeout(getIntProperty(props, "serverStopTimeout", 5000));
 
-    server.setHandler(createWebapp(httpServlet));
+    if (Boolean.parseBoolean(settings.subTree("session-manager").getProperty("enabled"))) {
+      HashSessionIdManager hashSessionIdManager = new HashSessionIdManager();
+      server.setSessionIdManager(hashSessionIdManager);
+
+      ContextHandler context = new ContextHandler("/");
+      server.setHandler(context);
+
+      HashSessionManager manager = new HashSessionManager();
+      SessionHandler sessions = new SessionHandler(manager);
+
+      context.setHandler(sessions);
+      sessions.setHandler(createWebapp(httpServlet));
+    } else {
+      server.setHandler(createWebapp(httpServlet));
+    }
 
     return server;
   }

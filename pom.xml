@@ -22,7 +22,7 @@
   <properties>
       <jersey.version>1.19</jersey.version>
       <guice.version>4.0</guice.version>
-      <jetty.version>9.3.7.v20160115</jetty.version>
+      <jetty.version>9.3.10.v20160621</jetty.version>
   </properties>
 
   <dependencyManagement>
@@ -103,7 +103,7 @@
       <!-- jetty -->
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
+        <artifactId>jetty-servlet</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

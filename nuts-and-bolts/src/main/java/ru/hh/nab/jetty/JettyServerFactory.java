@@ -14,6 +14,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
+import ru.hh.jetty.GracefulServerConnector;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.nab.Settings;
 import ru.hh.nab.scopes.RequestScopeFilter;
@@ -58,7 +59,7 @@ public abstract class JettyServerFactory {
 
     final HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);
 
-    final ServerConnector serverConnector = new ServerConnector(
+    final ServerConnector serverConnector = new GracefulServerConnector(
       server,
       getIntProperty(props, "acceptors", 1),
       getIntProperty(props, "selectors", -1),
@@ -71,7 +72,7 @@ public abstract class JettyServerFactory {
     server.addConnector(serverConnector);
 
     server.setStopAtShutdown(true);
-    server.setStopTimeout(getIntProperty(props, "serverStopTimeout", 5000));
+    server.setStopTimeout(getIntProperty(props, "serverStopTimeout", 10_000));
 
     if (Boolean.parseBoolean(settings.subTree("session-manager").getProperty("enabled"))) {
       HashSessionIdManager hashSessionIdManager = new HashSessionIdManager();

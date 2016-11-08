@@ -42,7 +42,7 @@ public class Launcher {
     if (settingsDir != null) {
       System.setProperty("logback.configurationFile", new File(settingsDir, "logback.xml").getCanonicalPath());
     }
-    SLF4JBridgeHandler.uninstall();
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
 
     ArrayList<NabModule> modules = Lists.newArrayList(ServiceLoader.load(NabModule.class).iterator());

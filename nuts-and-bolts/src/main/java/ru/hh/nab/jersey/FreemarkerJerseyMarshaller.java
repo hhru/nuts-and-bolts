@@ -5,6 +5,7 @@ import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.core.Environment;
 import freemarker.ext.beans.BeansWrapper;
+import freemarker.ext.beans.BeansWrapperBuilder;
 import freemarker.ext.beans.SimpleMapModel;
 import freemarker.template.Configuration;
 import freemarker.template.SimpleScalar;
@@ -34,34 +35,36 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   private static final String DEFAULT_ENCODING = "UTF-8";
   private final Configuration freemarker;
   private final String defaultLayout;
-  private BeansWrapper beansWrapper;
+  private final BeansWrapper beansWrapper;
 
   @Inject
   public FreemarkerJerseyMarshaller(@Named("defaultFreeMarkerLayout") String defaultLayout) {
     this.defaultLayout = defaultLayout;
-    this.freemarker = new Configuration();
+    this.freemarker = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
     freemarker.setTemplateLoader(new ClassTemplateLoader(FreemarkerJerseyMarshaller.class, "/freemarker"));
-    freemarker.setTemplateUpdateDelay(1);
+    freemarker.setTemplateUpdateDelayMilliseconds(1000);
     freemarker.setNumberFormat("0");
     freemarker.setLocalizedLookup(false);
     freemarker.setDefaultEncoding("UTF-8");
-    freemarker.setStrictSyntaxMode(true);
     freemarker.setTagSyntax(Configuration.ANGLE_BRACKET_TAG_SYNTAX);
     freemarker.setWhitespaceStripping(true);
     freemarker.setOutputEncoding("UTF-8");
 
-    beansWrapper = new BeansWrapper();
-    beansWrapper.setExposeFields(true);
-    beansWrapper.setExposureLevel(BeansWrapper.EXPOSE_PROPERTIES_ONLY);
-    beansWrapper.setStrict(true);
-    beansWrapper.setSimpleMapWrapper(true);
+    final BeansWrapperBuilder beansWrapperBuilder = new BeansWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+    beansWrapperBuilder.setExposeFields(true);
+    beansWrapperBuilder.setExposureLevel(BeansWrapper.EXPOSE_PROPERTIES_ONLY);
+    beansWrapperBuilder.setStrict(true);
+    beansWrapperBuilder.setSimpleMapWrapper(true);
+    beansWrapper = beansWrapperBuilder.build();
     freemarker.setObjectWrapper(beansWrapper);
   }
 
+  @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return false;
   }
 
+  @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return type.equals(FreemarkerModel.class);
   }
@@ -74,15 +77,17 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     return (result == null) ? DEFAULT_ENCODING : result;
   }
 
+  @Override
   public Object readFrom(
       Class<Object> aClass, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> map, InputStream stream)
     throws IOException, WebApplicationException {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   @SuppressWarnings({ "unchecked" })
   public void writeTo(
-      Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+          Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
       OutputStream entityStream) throws IOException, WebApplicationException {
     String encoding = getCharsetAsString(mediaType);
 
@@ -93,7 +98,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
     FreemarkerTemplate ann = Preconditions.checkNotNull(model.annotation);
 
     try {
-      String layout = (("".equals(ann.layout())) ? defaultLayout : ann.layout()) + ".ftl";
+      String layout = ("".equals(ann.layout()) ? defaultLayout : ann.layout()) + ".ftl";
       Template layoutTemplate = freemarker.getTemplate(layout, encoding);
       Environment pe = layoutTemplate.createProcessingEnvironment(model.appModel, out);
       pe.setGlobalVariable("template", new SimpleScalar(ann.value() + ".ftl"));

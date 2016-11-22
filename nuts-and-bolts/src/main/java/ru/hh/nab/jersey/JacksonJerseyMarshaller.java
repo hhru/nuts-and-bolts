@@ -45,8 +45,8 @@ public class JacksonJerseyMarshaller extends AbstractMessageReaderWriterProvider
   public void writeTo(
       Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
       OutputStream entityStream) throws IOException, WebApplicationException {
-    JsonGenerator g = jackson.createJsonGenerator(entityStream, JsonEncoding.UTF8);
-    g.writeObject(o);
-    g.close();
+    try (JsonGenerator g = jackson.createGenerator(entityStream, JsonEncoding.UTF8)) {
+      g.writeObject(o);
+    }
   }
 }

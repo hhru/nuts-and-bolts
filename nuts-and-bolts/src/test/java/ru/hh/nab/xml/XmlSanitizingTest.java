@@ -15,6 +15,7 @@ import ru.hh.nab.testing.JerseyTest;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Properties;
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
@@ -61,7 +62,7 @@ public class XmlSanitizingTest extends JerseyTest {
       try {
         stream = entity.getContent();
         StringBuilder content = new StringBuilder();
-        for(Object line : IOUtils.readLines(stream)) {
+        for (Object line : IOUtils.readLines(stream, Charset.defaultCharset())) {
           content.append((String) line);
         }
         return content.toString();

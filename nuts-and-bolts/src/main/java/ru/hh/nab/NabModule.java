@@ -45,7 +45,7 @@ import com.sun.jersey.spi.container.ResourceFilter;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
@@ -75,7 +75,7 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
-  private static final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+  private static final MBeanServer SERVER = ManagementFactory.getPlatformMBeanServer();
   private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
   private final List<ResourceFilterFactory> jerseyPreFilterFactories = new ArrayList<>();
   private final List<ResourceFilterFactory> jerseyPostFilterFactories = new ArrayList<>();
@@ -245,31 +245,13 @@ public abstract class NabModule extends AbstractModule {
     bind(TxInterceptor.class).annotatedWith(ann).toInstance(tx);
     bindInterceptor(Matchers.any(), new TransactionalMatcher(ann), tx);
 
-    bind(EntityManager.class).annotatedWith(ann)
-    .toProvider(Providers.guicify(new Provider<EntityManager>() {
-          @Override
-          public EntityManager get() {
-            return tx.currentEntityManager();
-          }
-        }));
+    bind(EntityManager.class).annotatedWith(ann).toProvider(Providers.guicify(tx::currentEntityManager));
 
     bind(CriteriaBuilder.class).annotatedWith(ann)
-    .toProvider(
-      Providers.guicify(new Provider<CriteriaBuilder>() {
-          @Override
-          public CriteriaBuilder get() {
-            return emfProvider.get().getCriteriaBuilder();
-          }
-        }))
-    .in(Scopes.SINGLETON);
+            .toProvider(Providers.guicify(() -> emfProvider.get().getCriteriaBuilder()))
+            .in(Scopes.SINGLETON);
 
-    bind(PostCommitHooks.class).annotatedWith(ann)
-    .toProvider(Providers.guicify(new Provider<PostCommitHooks>() {
-          @Override
-          public PostCommitHooks get() {
-            return tx.currentPostCommitHooks();
-          }
-        }));
+    bind(PostCommitHooks.class).annotatedWith(ann).toProvider(Providers.guicify(tx::currentPostCommitHooks));
   }
 
   private Provider<EntityManagerFactory> hibernateAccessorProvider(
@@ -381,7 +363,7 @@ public abstract class NabModule extends AbstractModule {
       try {
         HttpAdaptor adaptor = new HttpAdaptor();
         ObjectName name = new ObjectName("Server:name=HttpAdaptor");
-        server.registerMBean(adaptor, name);
+        SERVER.registerMBean(adaptor, name);
         adaptor.setPort(Integer.parseInt(mx4jProps.getProperty("port")));
         adaptor.setHost(mx4jProps.getProperty("host"));
         return adaptor;

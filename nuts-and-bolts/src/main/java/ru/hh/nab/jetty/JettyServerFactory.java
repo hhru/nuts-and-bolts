@@ -14,7 +14,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import ru.hh.jetty.GracefulServerConnector;
+import ru.hh.jetty.HHServerConnector;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.nab.Settings;
 import ru.hh.nab.scopes.RequestScopeFilter;
@@ -59,7 +59,7 @@ public abstract class JettyServerFactory {
 
     final HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);
 
-    final ServerConnector serverConnector = new GracefulServerConnector(
+    final ServerConnector serverConnector = new HHServerConnector(
       server,
       getIntProperty(props, "acceptors", 1),
       getIntProperty(props, "selectors", -1),

@@ -1,6 +1,5 @@
 package ru.hh.nab;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
@@ -13,8 +12,8 @@ import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
-import com.mchange.v2.c3p0.C3P0Registry;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.StatsDClient;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
@@ -27,7 +26,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Executors;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -44,13 +45,12 @@ import javax.ws.rs.Path;
 import com.sun.jersey.spi.container.ResourceFilter;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
 import mx4j.tools.adaptor.http.HttpAdaptor;
-import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.jersey.Concurrency;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
@@ -296,43 +296,8 @@ public abstract class NabModule extends AbstractModule {
     bind(DataSource.class).annotatedWith(Default.class).toProvider(Providers.guicify(dataSourceProvider("default-db"))).in(Scopes.SINGLETON);
   }
 
-  private Provider<DataSource> dataSourceProvider(final String name) {
-    return new Provider<DataSource>() {
-      private Settings settings;
-
-      @Inject
-      public void setSettings(Settings settings) {
-        this.settings = settings;
-      }
-
-      @Override
-      @SuppressWarnings({ "unchecked" })
-      public DataSource get() {
-        Properties c3p0Props = settings.subTree(name + ".c3p0");
-        Properties dbcpProps = settings.subTree(name + ".dbcp");
-
-        Preconditions.checkState(c3p0Props.isEmpty() || dbcpProps.isEmpty(), "Both c3p0 and dbcp settings are present");
-        if (!c3p0Props.isEmpty()) {
-          return createC3P0DataSource(name, c3p0Props);
-        }
-        if (!dbcpProps.isEmpty()) {
-          BasicDataSource ds = new BasicDataSource();
-          new BeanMap(ds).putAll(dbcpProps);
-          return ds;
-        }
-
-        throw new IllegalStateException("Neither c3p0 nor dbcp settings found");
-      }
-    };
-  }
-
-  static DataSource createC3P0DataSource(String name, Map<Object, Object> properties) {
-    ComboPooledDataSource ds = new ComboPooledDataSource(false);
-    ds.setDataSourceName(name);
-    ds.setIdentityToken(name);
-    new BeanMap(ds).putAll(properties);
-    C3P0Registry.reregister(ds);
-    return ds;
+  private Provider<DataSource> dataSourceProvider(String name) {
+    return new MonitoringDataSourceProvider(name);
   }
 
   private void bindScheduler() {
@@ -375,6 +340,18 @@ public abstract class NabModule extends AbstractModule {
     } else {
       return null;
     }
+  }
+
+  @Provides
+  @Singleton
+  private StatsDSender statsDSender() {
+    ThreadFactory threadFactory = runnable -> {
+      Thread thread = new Thread(runnable, "db monitoring scheduled executor");
+      thread.setDaemon(true);
+      return thread;
+    };
+    StatsDClient statsDClient = new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
+    return new StatsDSender(statsDClient, newSingleThreadScheduledExecutor(threadFactory));
   }
 
   protected final void schedulePeriodicTask(Class<? extends Runnable> task, long time, TimeUnit unit) {

@@ -70,6 +70,9 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
     props.put("default-db.c3p0.user", "sa");
     props.put("default-db.c3p0.password", "");
+
+    props.put("default-db.monitoring.sendStats", "false");
+    props.put("default-db.monitoring.longConnectionUsageMs", "3000");
     return props;
   }
 

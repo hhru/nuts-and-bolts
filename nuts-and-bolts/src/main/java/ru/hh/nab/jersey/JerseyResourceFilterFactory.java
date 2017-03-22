@@ -45,7 +45,6 @@ public class JerseyResourceFilterFactory implements ResourceFilterFactory {
     if (am.isAnnotationPresent(Cached.class)) {
       filters.add(new CacheControlFilter(am.getAnnotation(Cached.class)));
     }
-    filters.add(new NginxQuirksFilter());
     filters.add(new SecurityFilter(permissionLoader));
   }
 }

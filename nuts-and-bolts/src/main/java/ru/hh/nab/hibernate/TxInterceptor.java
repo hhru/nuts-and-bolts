@@ -26,7 +26,7 @@ public class TxInterceptor implements MethodInterceptor {
         // continue previously started transaction
         tx.enter(ann);
         return invocation.call();
-      } else if (ann.optional()) {
+      } else if (ann.optional() || ann.readOnly()) {
         // not in transaction, and no need to start transaction
         return invocation.call();
       } else {
@@ -43,7 +43,7 @@ public class TxInterceptor implements MethodInterceptor {
       txHolder.set(tx);
 
       // call the callback...
-      if (ann.optional()) {
+      if (ann.readOnly() || ann.optional()) {
         // ...without transaction
         return runWithoutTransaction(invocation);
       } else {

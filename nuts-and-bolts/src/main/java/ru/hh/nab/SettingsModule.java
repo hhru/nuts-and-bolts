@@ -28,9 +28,12 @@ public class SettingsModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    final Properties props = new Properties();
+    final Properties props;
     try {
-      props.load(new FileReader(new File(settingsDir, "settings.properties")));
+      final Properties defaultProps = new Properties();
+      defaultProps.load(new FileReader(new File(settingsDir, "settings.properties")));
+      props = new Properties(defaultProps);
+      tryLoadDevProperties(props);
     } catch (IOException e) {
       throw new IllegalStateException("Error reading settings.properties at " + settingsDir.getAbsolutePath(), e);
     }
@@ -43,6 +46,13 @@ public class SettingsModule extends AbstractModule {
         return new Settings(props);
       }
     }).asEagerSingleton();
+  }
+
+  private void tryLoadDevProperties(Properties props) throws IOException {
+    File devPropertiesFile = new File(settingsDir, "settings.properties.dev");
+    if (devPropertiesFile.exists()) {
+      props.load(new FileReader(devPropertiesFile));
+    }
   }
 
   @Provides

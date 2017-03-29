@@ -8,14 +8,14 @@ import javax.persistence.FlushModeType;
 import java.util.concurrent.Callable;
 
 class TransactionalContext {
-  private final EntityManager em;
-  private boolean readOnly = false;
-  private EntityTransaction jpaTx = null; // null when not in transaction
-  private PostCommitHooks postCommitHooks = new PostCommitHooks();
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionalContext.class);
 
-  public TransactionalContext(EntityManager em) {
+  private final EntityManager em;
+  private EntityTransaction jpaTx = null; // null when not in transaction
+  private PostCommitHooks postCommitHooks = new PostCommitHooks();
+
+  TransactionalContext(EntityManager em) {
     this.em = em;
   }
 
@@ -31,12 +31,9 @@ class TransactionalContext {
     if (!jpaTx.getRollbackOnly() && ann.rollback()) {
       throw new IllegalStateException("Can't execute (rollback() == true) tx while in (rollback() == false) tx");
     }
-    if (readOnly && !ann.readOnly()) {
-      readOnly = false;
-    }
   }
 
-  public <T> T runInTransaction(Transactional ann, Callable<T> invocation, PostCommitHooks postCommitHooks) throws Exception {
+  <T> T runInTransaction(Transactional ann, Callable<T> invocation, PostCommitHooks postCommitHooks) throws Exception {
     PostCommitHooks savedCommitHooks = this.postCommitHooks;
     this.postCommitHooks = postCommitHooks;
     try {
@@ -65,7 +62,6 @@ class TransactionalContext {
   }
 
   private void begin(Transactional ann) {
-    readOnly = ann.readOnly();
     jpaTx = em.getTransaction();
     em.setFlushMode(FlushModeType.AUTO);
     if (ann.rollback()) {

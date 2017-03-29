@@ -9,32 +9,20 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR })
 public @interface Transactional {
-  // readonly attribute is not enforced at the moment because doing that would
-  // require closing of readonly transaction and creating a new readwrite
-  // transaction. However, it is better to specify it anyway for documentation
-  // purposes and because we may start enforcing it.
+
+  /** Do not open db transaction, only initialize entity manager, get db connection only per query. <br/>
+   * This reduces db connection usage, saving db connection pool. <br/>
+   * Mind that this violates 'repeatable read' transaction isolation level, but as soon as 'read committed' is commonly used, that is fine. <br/>
+   * If db transaction is already opened this flag is ignored. <br/>
+   * If some inner method has @Transactional(readOnly=false) annotation, db transaction will be opened for that particular method. <br/>
+   * readOnly and optional flags work the same. If any is true then db transaction will not be opened. <br/>
+   * We keep both, because of compatibility and because we do not know which one is better to remove) */
   boolean readOnly() default false;
-  // If optional flag is set to true, then current method does not start
-  // transaction, but has access to EntityManager via providers.
-  //
-  // If another method is called and it has transactional annotation with
-  // optional() flag set to false, then that method starts its own
-  // transaction with its own post commit hooks which are run on return.
-  //
-  // So, the following code starts 1000 transactions in method2:
-  // .....
-  // @Transactional
-  // void method1() { do something }
-  // .....
-  // @Transactional(optional = true)
-  // void method2() {
-  //   for (int 1 = 0; i < 1000; i++) {
-  //     method1();
-  //   }
-  // }
-  // ....
-  //
+
+  /** The same as {@link #readOnly} */
   boolean optional() default false;
+
   boolean rollback() default false;
+
   Class<? extends Annotation> value() default Default.class;
 }

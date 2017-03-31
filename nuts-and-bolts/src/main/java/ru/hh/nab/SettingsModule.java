@@ -2,11 +2,11 @@ package ru.hh.nab;
 
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 import java.util.Properties;
 import javax.inject.Named;
@@ -28,30 +28,26 @@ public class SettingsModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    final Properties props;
-    try {
-      final Properties defaultProps = new Properties();
-      defaultProps.load(new FileReader(new File(settingsDir, "settings.properties")));
-      props = new Properties(defaultProps);
+    final Properties defaultProps = new Properties();
+    final Properties props = new Properties(defaultProps);
+    try (Reader defaultPropertiesReader = new FileReader(new File(settingsDir, "settings.properties"))) {
+      defaultProps.load(defaultPropertiesReader);
       tryLoadDevProperties(props);
     } catch (IOException e) {
-      throw new IllegalStateException("Error reading settings.properties at " + settingsDir.getAbsolutePath(), e);
+      throw new IllegalStateException("Error reading settings", e);
     }
 
     Names.bindProperties(binder(), props);
 
-    bind(Settings.class).toProvider(new Provider<Settings>() {
-      @Override
-      public Settings get() {
-        return new Settings(props);
-      }
-    }).asEagerSingleton();
+    bind(Settings.class).toProvider(() -> new Settings(props)).asEagerSingleton();
   }
 
   private void tryLoadDevProperties(Properties props) throws IOException {
     File devPropertiesFile = new File(settingsDir, "settings.properties.dev");
     if (devPropertiesFile.exists()) {
-      props.load(new FileReader(devPropertiesFile));
+      try (Reader propertiesReader = new FileReader(devPropertiesFile)) {
+        props.load(propertiesReader);
+      }
     }
   }
 

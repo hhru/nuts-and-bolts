@@ -38,9 +38,9 @@ public class SettingsModule extends AbstractModule {
     final Properties props = new Properties(defaultProps);
     try {
       fillProperties(defaultProps, new File(settingsDir, "settings.properties"));
-      final File devSettings = new File(settingsDir, "settings.properties.dev");
-      if (devSettings.exists()) {
-        fillProperties(props, devSettings);
+      final File devSettingsFile = new File(settingsDir, "settings.properties.dev");
+      if (devSettingsFile.exists()) {
+        fillProperties(props, devSettingsFile);
       }
       return props;
     } catch (IOException e) {

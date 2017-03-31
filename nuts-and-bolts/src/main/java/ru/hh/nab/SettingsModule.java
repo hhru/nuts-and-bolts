@@ -28,26 +28,29 @@ public class SettingsModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    final Properties defaultProps = new Properties();
-    final Properties props = new Properties(defaultProps);
-    try (Reader defaultPropertiesReader = new FileReader(new File(settingsDir, "settings.properties"))) {
-      defaultProps.load(defaultPropertiesReader);
-      tryLoadDevProperties(props);
-    } catch (IOException e) {
-      throw new IllegalStateException("Error reading settings", e);
-    }
-
+    final Properties props = loadProperties(settingsDir);
     Names.bindProperties(binder(), props);
-
     bind(Settings.class).toProvider(() -> new Settings(props)).asEagerSingleton();
   }
 
-  private void tryLoadDevProperties(Properties props) throws IOException {
-    File devPropertiesFile = new File(settingsDir, "settings.properties.dev");
-    if (devPropertiesFile.exists()) {
-      try (Reader propertiesReader = new FileReader(devPropertiesFile)) {
-        props.load(propertiesReader);
+  static Properties loadProperties(File settingsDir) {
+    final Properties defaultProps = new Properties();
+    final Properties props = new Properties(defaultProps);
+    try {
+      fillProperties(defaultProps, new File(settingsDir, "settings.properties"));
+      final File devSettings = new File(settingsDir, "settings.properties.dev");
+      if (devSettings.exists()) {
+        fillProperties(props, devSettings);
       }
+      return props;
+    } catch (IOException e) {
+      throw new IllegalStateException("Error reading settings", e);
+    }
+  }
+
+  private static void fillProperties(Properties properties, File file) throws IOException {
+    try (Reader propertiesReader = new FileReader(file)) {
+      properties.load(propertiesReader);
     }
   }
 

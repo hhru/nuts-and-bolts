@@ -2,8 +2,12 @@ package ru.hh.nab;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Properties;
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -12,37 +16,40 @@ public class SettingsModuleTest {
 
   @Test
   public void testLoadProperties() throws IOException {
-    File settingsDir = prepareSettingsDir(SettingsModuleTest.class.getName(), "port=1111", null);
+    File settingsDir = prepareSettingsDir("port=1111", null);
     Properties props = SettingsModule.loadProperties(settingsDir);
     assertEquals("1111", props.getProperty("port"));
   }
 
   @Test
   public void testLoadPropertiesOverriden() throws IOException {
-    File settingsDir = prepareSettingsDir(SettingsModuleTest.class.getName(), "port=1111", "port=2222");
+    File settingsDir = prepareSettingsDir("port=1111", "port=2222");
     Properties props = SettingsModule.loadProperties(settingsDir);
     assertEquals("2222", props.getProperty("port"));
   }
 
-  private File prepareSettingsDir(String dirName, String defaultValue, String actualValue) throws IOException {
-    File directory = new File(System.getProperty("java.io.tmpdir"), dirName);
+  private static File prepareSettingsDir(String defaultValue, String overrideValue) throws IOException {
+    File directory = Files.createTempDirectory(SettingsModuleTest.class.getName()).toFile();
     directory.mkdirs();
     if (defaultValue != null) {
       File defaultProperties = new File(directory, "settings.properties");
       defaultProperties.createNewFile();
-      FileUtils.write(defaultProperties, defaultValue, "UTF-8");
+      Files.write(defaultProperties.toPath(), Collections.singleton(defaultValue));
     }
-    if (actualValue != null) {
+    if (overrideValue != null) {
       File properties = new File(directory, "settings.properties.dev");
       properties.createNewFile();
-      FileUtils.write(properties, actualValue, "UTF-8");
+      Files.write(properties.toPath(), Collections.singleton(overrideValue));
     }
     return directory;
   }
 
   @After
   public void removeSettings() throws IOException {
-    File testDir = new File(System.getProperty("java.io.tmpdir"), SettingsModuleTest.class.getName());
-    FileUtils.deleteDirectory(testDir);
+    File directory = Files.createTempDirectory(SettingsModuleTest.class.getName()).toFile();
+    Files.walk(directory.toPath(), FileVisitOption.FOLLOW_LINKS)
+      .sorted(Comparator.reverseOrder())
+      .map(Path::toFile)
+      .forEach(File::delete);
   }
 }

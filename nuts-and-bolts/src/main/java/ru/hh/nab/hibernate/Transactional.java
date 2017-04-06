@@ -19,7 +19,8 @@ public @interface Transactional {
    * We keep both, because of compatibility and because we do not know which one is better to remove) */
   boolean readOnly() default false;
 
-  /** The same as {@link #readOnly} */
+  /** Use {@link #readOnly} */
+  @Deprecated
   boolean optional() default false;
 
   boolean rollback() default false;

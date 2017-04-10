@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import static java.lang.Boolean.parseBoolean;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.IntConsumer;
@@ -17,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.jdbc.MonitoringDataSource;
-import ru.hh.metrics.CounterAggregator;
-import ru.hh.metrics.PercentileAggregator;
+import ru.hh.metrics.Counters;
+import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
 import ru.hh.nab.jersey.RequestUrlFilter;
@@ -92,20 +91,20 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   }
 
   private static IntConsumer createConnectionGetMsConsumer(String dataSourceName, StatsDSender statsDSender) {
-    PercentileAggregator percentileAggregator = new PercentileAggregator(2000, Arrays.asList(0.5, 0.97, 0.99, 1.0), 1);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.get_ms", percentileAggregator);
-    return (getMs) -> percentileAggregator.increaseMetric(getMs);
+    Histogram histogram = new Histogram(2000);
+    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.get_ms", histogram);
+    return histogram::save;
   }
 
   private static IntConsumer createConnectionUsageMsConsumer(String dataSourceName,
                                                              int longConnectionUsageMs,
                                                              StatsDSender statsDSender) {
 
-    CounterAggregator totalUsageAggregator = new CounterAggregator(500);
-    statsDSender.sendCounterPeriodically(dataSourceName + ".connection.total_usage_ms", totalUsageAggregator);
+    Counters totalUsageCounter = new Counters(500);
+    statsDSender.sendCountersPeriodically(dataSourceName + ".connection.total_usage_ms", totalUsageCounter);
 
-    PercentileAggregator percentileAggregator = new PercentileAggregator(2000, Arrays.asList(0.5, 0.97, 0.99, 1.0), 1);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", percentileAggregator);
+    Histogram histogram = new Histogram(2000);
+    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", histogram);
 
     return (usageMs) -> {
 
@@ -116,14 +115,14 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
         logger.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
       }
 
-      percentileAggregator.increaseMetric(usageMs);
+      histogram.save(usageMs);
 
       String controller = MDC.get(RequestUrlFilter.CONTROLLER_MDC_KEY);
       if (controller == null) {
         controller = "unknown";
       }
       Tag controllerTag = new Tag("controller", controller);
-      totalUsageAggregator.increaseMetric(usageMs, controllerTag);
+      totalUsageCounter.add(usageMs, controllerTag);
     };
   }
 

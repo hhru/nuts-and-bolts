@@ -6,6 +6,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import static java.lang.Boolean.parseBoolean;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -15,11 +16,13 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import ru.hh.CompressedStackFactory;
 import ru.hh.jdbc.MonitoringDataSource;
 import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
+import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.RequestUrlFilter;
 
 public class MonitoringDataSourceProvider implements Provider<DataSource> {
@@ -79,11 +82,13 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
         throw new RuntimeException("Setting  " + dataSourceName + ".monitoring.longConnectionUsageMs must be set");
       }
 
+      boolean sendSampledStats = parseBoolean(monitoringProps.getProperty("sendSampledStats"));
+
       return new MonitoringDataSource(
               dataSource,
               dataSourceName,
               createConnectionGetMsConsumer(dataSourceName, statsDSender),
-              createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, statsDSender)
+              createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, sendSampledStats, statsDSender)
       );
     } else {
       return dataSource;
@@ -98,6 +103,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
   private static IntConsumer createConnectionUsageMsConsumer(String dataSourceName,
                                                              int longConnectionUsageMs,
+                                                             boolean sendSampledStats,
                                                              StatsDSender statsDSender) {
 
     Counters totalUsageCounter = new Counters(500);
@@ -105,6 +111,24 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
     Histogram histogram = new Histogram(2000);
     statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", histogram);
+
+    CompressedStackFactory compressedStackFactory;
+    Counters sampledUsageCounters;
+    if (sendSampledStats) {
+      compressedStackFactory = new CompressedStackFactory(
+          "ru.hh.jdbc.MonitoringConnection", "close",
+          JerseyHttpServlet.class.getName(), "service",
+          new String[]{"ru.hh."},
+          new String[]{"Interceptor"}
+      );
+
+      sampledUsageCounters = new Counters(2000);
+      statsDSender.sendCountersPeriodically(dataSourceName + ".connection.sampled_usage_ms", sampledUsageCounters);
+
+    } else {
+      sampledUsageCounters = null;
+      compressedStackFactory = null;
+    }
 
     return (usageMs) -> {
 
@@ -123,6 +147,11 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       }
       Tag controllerTag = new Tag("controller", controller);
       totalUsageCounter.add(usageMs, controllerTag);
+
+      if (sendSampledStats && ThreadLocalRandom.current().nextInt(100) == 0) {
+        String compressedStack = compressedStackFactory.create();
+        sampledUsageCounters.add(usageMs, new Tag("stack", compressedStack));
+      }
     };
   }
 

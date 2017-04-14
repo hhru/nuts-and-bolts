@@ -31,7 +31,7 @@
     <dependency>
       <groupId>ru.hh.metrics</groupId>
       <artifactId>hh-metrics</artifactId>
-      <version>0.11</version>
+      <version>0.12</version>
     </dependency>
 
     <dependency>

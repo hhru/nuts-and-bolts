@@ -97,7 +97,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
   private static IntConsumer createConnectionGetMsConsumer(String dataSourceName, StatsDSender statsDSender) {
     Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.get_ms", histogram);
+    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.get_ms", histogram, 50, 99, 100);
     return histogram::save;
   }
 
@@ -110,7 +110,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     statsDSender.sendCountersPeriodically(dataSourceName + ".connection.total_usage_ms", totalUsageCounter);
 
     Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", histogram);
+    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", histogram, 50, 97, 99, 100);
 
     CompressedStackFactory compressedStackFactory;
     Counters sampledUsageCounters;

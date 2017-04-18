@@ -119,7 +119,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
           "ru.hh.jdbc.MonitoringConnection", "close",
           JerseyHttpServlet.class.getName(), "service",
           new String[]{"ru.hh."},
-          new String[]{"Interceptor"}
+          new String[]{"Interceptor", "TransactionalContext"}
       );
 
       sampledUsageCounters = new Counters(2000);

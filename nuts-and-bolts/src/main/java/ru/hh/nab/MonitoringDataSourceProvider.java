@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.sql.DataSource;
 import org.apache.commons.beanutils.BeanMap;
@@ -26,14 +27,21 @@ import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.RequestUrlFilter;
 
 public class MonitoringDataSourceProvider implements Provider<DataSource> {
-  private static final Logger logger = LoggerFactory.getLogger(MonitoringDataSourceProvider.class);
-  private final String dataSourceName;
 
+  private static final Logger logger = LoggerFactory.getLogger(MonitoringDataSourceProvider.class);
+
+  private final String dataSourceName;
+  private String serviceName;
   private Settings settings;
   private StatsDSender statsDSender;
 
   public MonitoringDataSourceProvider(String dataSourceName) {
     this.dataSourceName = dataSourceName;
+  }
+
+  @Inject
+  public void setServiceName(@Named("serviceName") String serviceName) {
+    this.serviceName = serviceName;
   }
 
   @Inject
@@ -87,30 +95,36 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       return new MonitoringDataSource(
               dataSource,
               dataSourceName,
-              createConnectionGetMsConsumer(dataSourceName, statsDSender),
-              createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, sendSampledStats, statsDSender)
+              createConnectionGetMsConsumer(),
+              createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
       );
     } else {
       return dataSource;
     }
   }
 
-  private static IntConsumer createConnectionGetMsConsumer(String dataSourceName, StatsDSender statsDSender) {
+  private static DataSource createC3P0DataSource(String name, Map<Object, Object> properties) {
+    ComboPooledDataSource ds = new ComboPooledDataSource(false);
+    ds.setDataSourceName(name);
+    ds.setIdentityToken(name);
+    new BeanMap(ds).putAll(properties);
+    C3P0Registry.reregister(ds);
+    return ds;
+  }
+
+  private IntConsumer createConnectionGetMsConsumer() {
     Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.get_ms", histogram, 50, 99, 100);
+    statsDSender.sendPercentilesPeriodically(getMetricName("connection.get_ms"), histogram, 50, 99, 100);
     return histogram::save;
   }
 
-  private static IntConsumer createConnectionUsageMsConsumer(String dataSourceName,
-                                                             int longConnectionUsageMs,
-                                                             boolean sendSampledStats,
-                                                             StatsDSender statsDSender) {
+  private IntConsumer createConnectionUsageMsConsumer(int longConnectionUsageMs, boolean sendSampledStats) {
 
     Counters totalUsageCounter = new Counters(500);
-    statsDSender.sendCountersPeriodically(dataSourceName + ".connection.total_usage_ms", totalUsageCounter);
+    statsDSender.sendCountersPeriodically(getMetricName("connection.total_usage_ms"), totalUsageCounter);
 
     Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(dataSourceName + ".connection.usage_ms", histogram, 50, 97, 99, 100);
+    statsDSender.sendPercentilesPeriodically(getMetricName("connection.usage_ms"), histogram, 50, 97, 99, 100);
 
     CompressedStackFactory compressedStackFactory;
     Counters sampledUsageCounters;
@@ -123,7 +137,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       );
 
       sampledUsageCounters = new Counters(2000);
-      statsDSender.sendCountersPeriodically(dataSourceName + ".connection.sampled_usage_ms", sampledUsageCounters);
+      statsDSender.sendCountersPeriodically(getMetricName("connection.sampled_usage_ms"), sampledUsageCounters);
 
     } else {
       sampledUsageCounters = null;
@@ -155,12 +169,8 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     };
   }
 
-  private static DataSource createC3P0DataSource(String name, Map<Object, Object> properties) {
-    ComboPooledDataSource ds = new ComboPooledDataSource(false);
-    ds.setDataSourceName(name);
-    ds.setIdentityToken(name);
-    new BeanMap(ds).putAll(properties);
-    C3P0Registry.reregister(ds);
-    return ds;
+  private String getMetricName(String shortName) {
+    return serviceName + '.' + dataSourceName + '.' + shortName;
   }
+
 }

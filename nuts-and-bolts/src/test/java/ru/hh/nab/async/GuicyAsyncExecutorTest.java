@@ -3,6 +3,7 @@ package ru.hh.nab.async;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.name.Names;
 import org.junit.Assert;
 import org.junit.Test;
 import ru.hh.nab.NabModule;
@@ -81,6 +82,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     return new NabModule() {
       @Override
       protected void configureApp() {
+        bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
         bindDataSourceAndEntityManagerAccessor(TestEntity.class);
       }
 

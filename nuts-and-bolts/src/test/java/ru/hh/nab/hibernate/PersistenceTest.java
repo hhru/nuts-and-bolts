@@ -15,6 +15,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PersistenceException;
 import javax.persistence.Table;
+
+import com.google.inject.name.Names;
 import org.junit.Assert;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -47,8 +49,8 @@ public class PersistenceTest {
       new NabModule() {
         @Override
         protected void configureApp() {
+          bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
           bindDataSourceAndEntityManagerAccessor(TestEntity.class);
-
           bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
         }
       }, props, new Properties(), new Properties());
@@ -114,6 +116,7 @@ public class PersistenceTest {
       new NabModule() {
         @Override
         protected void configureApp() {
+          bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
           bindDataSourceAndEntityManagerAccessor(TestEntity.class);
           bind(TestService.class).in(Scopes.SINGLETON);
           bind(TestHook.class);

@@ -2,7 +2,6 @@ package ru.hh.nab;
 
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import java.io.File;
 import java.io.FileReader;
@@ -21,28 +20,27 @@ import ru.hh.nab.security.PropertiesPermissionLoader;
 
 public class SettingsModule extends AbstractModule {
   private final File settingsDir;
+  private final Properties settingsProperties;
 
   public SettingsModule() {
     settingsDir = new File(System.getProperty("settingsDir"));
-  }
 
-  @Override
-  protected void configure() {
-    final Properties props = new Properties();
+    settingsProperties = new Properties();
     try {
-      props.load(new FileReader(new File(settingsDir, "settings.properties")));
+      settingsProperties.load(new FileReader(new File(settingsDir, "settings.properties")));
     } catch (IOException e) {
       throw new IllegalStateException("Error reading settings.properties at " + settingsDir.getAbsolutePath(), e);
     }
 
-    Names.bindProperties(binder(), props);
+    if (settingsProperties.getProperty("serviceName") == null) {
+      throw new IllegalStateException("Property 'serviceName' not found in settings");
+    }
+  }
 
-    bind(Settings.class).toProvider(new Provider<Settings>() {
-      @Override
-      public Settings get() {
-        return new Settings(props);
-      }
-    }).asEagerSingleton();
+  @Override
+  protected void configure() {
+    Names.bindProperties(binder(), settingsProperties);
+    bind(Settings.class).toInstance(new Settings(settingsProperties));
   }
 
   @Provides

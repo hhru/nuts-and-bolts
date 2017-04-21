@@ -4,7 +4,7 @@
   <parent>
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
-    <version>1.8.13</version>
+    <version>1.8.14-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -12,7 +12,7 @@
   <packaging>jar</packaging>
 
   <name>nuts'n'bolts</name>
-  <version>1.8.13</version>
+  <version>1.8.14-SNAPSHOT</version>
 
   <dependencies>
     <dependency>

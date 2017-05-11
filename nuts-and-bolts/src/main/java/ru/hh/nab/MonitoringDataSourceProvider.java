@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import static java.lang.Boolean.parseBoolean;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
@@ -55,7 +57,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   }
 
   @Override
-  @SuppressWarnings({ "unchecked" })
+  @SuppressWarnings({"unchecked"})
   public DataSource get() {
     Properties c3p0Props = settings.subTree(dataSourceName + ".c3p0");
     Properties dbcpProps = settings.subTree(dataSourceName + ".dbcp");
@@ -93,10 +95,10 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       boolean sendSampledStats = parseBoolean(monitoringProps.getProperty("sendSampledStats"));
 
       return new MonitoringDataSource(
-              dataSource,
-              dataSourceName,
-              createConnectionGetMsConsumer(),
-              createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
+          dataSource,
+          dataSourceName,
+          createConnectionGetMsConsumer(),
+          createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
       );
     } else {
       return dataSource;
@@ -109,7 +111,21 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     ds.setIdentityToken(name);
     new BeanMap(ds).putAll(properties);
     C3P0Registry.reregister(ds);
+    try {
+      checkDataSource(ds, name);
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed check data source", e);
+    }
+
     return ds;
+  }
+
+  private static void checkDataSource(DataSource dataSource, String name) throws SQLException {
+    Connection connection = dataSource.getConnection();
+    if (!connection.isValid(1000)) {
+      throw new SQLException("Bad connection for dataSourceName=" + name);
+    }
+    connection.close();
   }
 
   private IntConsumer createConnectionGetMsConsumer() {
@@ -148,8 +164,8 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
       if (usageMs > longConnectionUsageMs) {
         String message = String.format(
-                "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
-                dataSourceName, longConnectionUsageMs, usageMs);
+            "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
+            dataSourceName, longConnectionUsageMs, usageMs);
         logger.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
       }
 

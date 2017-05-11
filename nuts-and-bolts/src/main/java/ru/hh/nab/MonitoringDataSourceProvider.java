@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import static java.lang.Boolean.parseBoolean;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
@@ -93,10 +95,10 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       boolean sendSampledStats = parseBoolean(monitoringProps.getProperty("sendSampledStats"));
 
       return new MonitoringDataSource(
-              dataSource,
-              dataSourceName,
-              createConnectionGetMsConsumer(),
-              createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
+          dataSource,
+          dataSourceName,
+          createConnectionGetMsConsumer(),
+          createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
       );
     } else {
       return dataSource;
@@ -109,7 +111,18 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     ds.setIdentityToken(name);
     new BeanMap(ds).putAll(properties);
     C3P0Registry.reregister(ds);
+    checkDataSource(ds, name);
     return ds;
+  }
+
+  private static void checkDataSource(DataSource dataSource, String dataSourceName) {
+    try (Connection connection = dataSource.getConnection()) {
+      if (!connection.isValid(1000)) {
+        throw new RuntimeException("Invalid connection to " + dataSourceName);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to check data source " + dataSourceName + ": " + e.toString());
+    }
   }
 
   private IntConsumer createConnectionGetMsConsumer() {
@@ -148,8 +161,8 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
       if (usageMs > longConnectionUsageMs) {
         String message = String.format(
-                "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
-                dataSourceName, longConnectionUsageMs, usageMs);
+            "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
+            dataSourceName, longConnectionUsageMs, usageMs);
         logger.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
       }
 

@@ -1,6 +1,7 @@
 package ru.hh.util;
 
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.Assert;
@@ -58,6 +59,7 @@ public class AcceptHeaderFixTest extends JerseyTest {
       @Override
       protected void configureApp() {
         bind(JerseyResource.class);
+        bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
       }
     };
   }

@@ -344,14 +344,25 @@ public abstract class NabModule extends AbstractModule {
 
   @Provides
   @Singleton
-  private StatsDSender statsDSender() {
+  private ScheduledExecutorService statsdScheduledExecutorService(@Named("serviceName") String serviceName) {
     ThreadFactory threadFactory = runnable -> {
-      Thread thread = new Thread(runnable, "db monitoring scheduled executor");
+      Thread thread = new Thread(runnable, serviceName + " statsd scheduled executor");
       thread.setDaemon(true);
       return thread;
     };
-    StatsDClient statsDClient = new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
-    return new StatsDSender(statsDClient, newSingleThreadScheduledExecutor(threadFactory));
+    return newSingleThreadScheduledExecutor(threadFactory);
+  }
+
+  @Provides
+  @Singleton
+  private StatsDClient statsDClient() {
+    return new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
+  }
+
+  @Provides
+  @Singleton
+  private StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient) {
+    return new StatsDSender(statsDClient, scheduledExecutorService);
   }
 
   protected final void schedulePeriodicTask(Class<? extends Runnable> task, long time, TimeUnit unit) {

@@ -57,7 +57,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   }
 
   @Override
-  @SuppressWarnings({"unchecked"})
+  @SuppressWarnings({ "unchecked" })
   public DataSource get() {
     Properties c3p0Props = settings.subTree(dataSourceName + ".c3p0");
     Properties dbcpProps = settings.subTree(dataSourceName + ".dbcp");
@@ -111,21 +111,18 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     ds.setIdentityToken(name);
     new BeanMap(ds).putAll(properties);
     C3P0Registry.reregister(ds);
-    try {
-      checkDataSource(ds, name);
-    } catch (SQLException e) {
-      throw new RuntimeException("Failed check data source", e);
-    }
-
+    checkDataSource(ds, name);
     return ds;
   }
 
-  private static void checkDataSource(DataSource dataSource, String name) throws SQLException {
-    Connection connection = dataSource.getConnection();
-    if (!connection.isValid(1000)) {
-      throw new SQLException("Bad connection for dataSourceName=" + name);
+  private static void checkDataSource(DataSource dataSource, String dataSourceName) {
+    try (Connection connection = dataSource.getConnection()) {
+      if (!connection.isValid(1000)) {
+        throw new RuntimeException("Invalid connection to " + dataSourceName);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to check data source " + dataSourceName + ": " + e.toString());
     }
-    connection.close();
   }
 
   private IntConsumer createConnectionGetMsConsumer() {

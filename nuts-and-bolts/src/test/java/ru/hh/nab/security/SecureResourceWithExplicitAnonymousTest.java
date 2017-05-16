@@ -1,6 +1,7 @@
 package ru.hh.nab.security;
 
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.http.HttpResponse;
@@ -71,6 +72,7 @@ public class SecureResourceWithExplicitAnonymousTest extends JerseyTest {
       @Override
       protected void configureApp() {
         bind(JerseyResource.class);
+        bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
       }
     };
   }

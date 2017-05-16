@@ -1,6 +1,7 @@
 package ru.hh.nab.xml;
 
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -88,6 +89,7 @@ public class XmlSanitizingTest extends JerseyTest {
       @Override
       protected void configureApp() {
         bind(SanitizingResource.class);
+        bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
       }
     };
   }

@@ -14,18 +14,16 @@
   <name>nuts'n'bolts</name>
   <version>1.8.16-SNAPSHOT</version>
 
+  <properties>
+    <jetty.version>9.4.6.v20170531</jetty.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
       <version>2.3.4</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>ru.hh</groupId>
-      <artifactId>jetty-utils</artifactId>
-      <version>1.4</version>
     </dependency>
 
     <dependency>
@@ -79,15 +77,23 @@
 
     <!-- jetty -->
     <dependency>
+      <groupId>ru.hh</groupId>
+      <artifactId>jetty-utils</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <!-- update jetty version in jetty-utils first to pass unit tests -->
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jmx</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
 
-      <!-- Jersey -->
+    <!-- Jersey -->
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-guice</artifactId>

@@ -22,7 +22,6 @@
   <properties>
       <jersey.version>1.19.3</jersey.version>
       <guice.version>4.0</guice.version>
-      <jetty.version>9.3.14.v20161028</jetty.version>
       <slf4j.version>1.7.21</slf4j.version>
   </properties>
 
@@ -99,18 +98,6 @@
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-multipart</artifactId>
         <version>${jersey.version}</version>
-      </dependency>
-
-      <!-- jetty -->
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-jmx</artifactId>
-        <version>${jetty.version}</version>
       </dependency>
 
       <!-- HTTP client -->

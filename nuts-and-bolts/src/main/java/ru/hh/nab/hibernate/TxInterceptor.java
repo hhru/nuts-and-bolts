@@ -17,6 +17,7 @@ public class TxInterceptor implements MethodInterceptor {
     this.entityManagerFactoryProvider = entityManagerFactoryProvider;
   }
 
+  @SuppressWarnings("deprecation")
   public <T> T invoke(Transactional ann, Callable<T> invocation) throws Exception {
     TransactionalContext txContext = txContextHolder.get();
     // Is transaction context already initialized (i.e. have we already

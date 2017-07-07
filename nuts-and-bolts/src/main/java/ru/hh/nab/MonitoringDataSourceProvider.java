@@ -1,6 +1,5 @@
 package ru.hh.nab;
 
-import com.google.common.base.Preconditions;
 import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import static java.lang.Boolean.parseBoolean;
@@ -15,7 +14,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.sql.DataSource;
 import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -30,7 +28,7 @@ import ru.hh.nab.jersey.RequestUrlFilter;
 
 public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MonitoringDataSourceProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringDataSourceProvider.class);
 
   private final String dataSourceName;
   private String serviceName;
@@ -60,20 +58,13 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   @SuppressWarnings({ "unchecked" })
   public DataSource get() {
     Properties c3p0Props = settings.subTree(dataSourceName + ".c3p0");
-    Properties dbcpProps = settings.subTree(dataSourceName + ".dbcp");
 
     Properties monitoringProps = settings.subTree(dataSourceName + ".monitoring");
 
-    Preconditions.checkState(c3p0Props.isEmpty() || dbcpProps.isEmpty(), "Both c3p0 and dbcp settings are present");
-    DataSource dataSource;
-    if (!c3p0Props.isEmpty()) {
-      dataSource = createC3P0DataSource(dataSourceName, c3p0Props);
-    } else if (!dbcpProps.isEmpty()) {
-      dataSource = new BasicDataSource();
-      new BeanMap(dataSource).putAll(dbcpProps);
-    } else {
-      throw new IllegalStateException("Neither c3p0 nor dbcp settings found");
+    if (c3p0Props.isEmpty()) {
+      throw new IllegalStateException("c3p0 settings NOT found");
     }
+    final DataSource dataSource = createC3P0DataSource(dataSourceName, c3p0Props);
 
     String sendStatsString = monitoringProps.getProperty("sendStats");
     boolean sendStats;
@@ -87,7 +78,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
       String longUsageConnectionMsString = monitoringProps.getProperty("longConnectionUsageMs");
       int longUsageConnectionMs;
       if (longUsageConnectionMsString != null) {
-        longUsageConnectionMs = Integer.valueOf(longUsageConnectionMsString);
+        longUsageConnectionMs = Integer.parseInt(longUsageConnectionMsString);
       } else {
         throw new RuntimeException("Setting  " + dataSourceName + ".monitoring.longConnectionUsageMs must be set");
       }
@@ -163,7 +154,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
         String message = String.format(
             "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
             dataSourceName, longConnectionUsageMs, usageMs);
-        logger.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
+        LOGGER.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
       }
 
       histogram.save(usageMs);

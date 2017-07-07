@@ -248,11 +248,6 @@
             <version>0.9.5.2</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-dbcp2</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-        <dependency>
             <groupId>ru.hh.jdbc</groupId>
             <artifactId>data-source-utils</artifactId>
             <version>0.2</version>

@@ -97,12 +97,10 @@ public class TxInterceptor implements MethodInterceptor {
         () -> {
           try {
             return invocation.proceed();
+          } catch (Exception exception) {
+            throw exception;
           } catch (Throwable throwable) {
-            if (throwable instanceof Exception) {
-              throw (Exception) throwable;
-            } else {
-              throw new RuntimeException(throwable);
-            }
+            throw new RuntimeException(throwable);
           }
         }
     );

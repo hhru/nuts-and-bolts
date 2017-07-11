@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate;
 
-import com.google.common.base.Preconditions;
 import java.util.concurrent.Callable;
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
@@ -108,13 +107,11 @@ public class TxInterceptor implements MethodInterceptor {
 
   public EntityManager currentEntityManager() {
     TransactionalContext tx = txContextHolder.get();
-    Preconditions.checkState(tx != null, "No @Transaction annotation specified");
     return tx.getEntityManager();
   }
 
   public PostCommitHooks currentPostCommitHooks() {
     TransactionalContext tx = txContextHolder.get();
-    Preconditions.checkState(tx != null, "No @Transaction annotation specified");
     return tx.getPostCommitHooks();
   }
 }

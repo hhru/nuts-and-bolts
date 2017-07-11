@@ -55,34 +55,6 @@ public class PersistenceTest {
         }
       }, props, new Properties(), new Properties());
 
-// Injector injector = Guice.createInjector(Stage.DEVELOPMENT, new NabModule() {
-// @Override
-// protected void configureApp() {
-// bindDataSourceAndEntityManagerAccessor(TestEntity.class);
-//
-// bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
-// }
-//
-// @Provides
-// @Singleton
-// Settings settings() {
-// Properties props = new Properties();
-// props.put("concurrencyLevel", "1");
-// props.put("port", "0");
-//
-// props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-// props.put("default-db.hibernate.hbm2ddl.auto", "update");
-// props.put("default-db.hibernate.format_sql", "true");
-//
-// props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-// props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-// props.put("default-db.c3p0.user", "sa");
-// props.put("default-db.c3p0.password", "");
-//
-// return new Settings(props);
-// }
-// });
-
     EntityManagerWrapper em = inst.injector.getInstance(EntityManagerWrapper.class);
 
     TestEntity entity = new TestEntity();

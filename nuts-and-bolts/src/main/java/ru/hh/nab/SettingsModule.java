@@ -1,6 +1,5 @@
 package ru.hh.nab;
 
-import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import java.io.File;
@@ -11,6 +10,7 @@ import java.util.Properties;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import com.google.inject.name.Names;
+import java.util.ArrayList;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
@@ -63,7 +63,7 @@ public class SettingsModule extends AbstractModule {
     if (file.isFile()) {
       props.load(new FileReader(file));
     }
-    List<LimitWithNameAndHisto> ret = Lists.newArrayList();
+    List<LimitWithNameAndHisto> ret = new ArrayList<>();
 
     for (String name : props.stringPropertyNames()) {
       String property = props.getProperty(name);

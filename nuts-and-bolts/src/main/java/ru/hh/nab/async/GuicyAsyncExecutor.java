@@ -2,7 +2,6 @@ package ru.hh.nab.async;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Injector;
-import com.google.inject.Key;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,19 +14,10 @@ import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.health.monitoring.TimingsLogger;
-import ru.hh.nab.hibernate.Transactional;
-import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.scopes.RequestScope;
 import javax.ws.rs.WebApplicationException;
 
 public class GuicyAsyncExecutor {
-  public static final ThreadLocal<Boolean> killThisThread =
-    new ThreadLocal<Boolean>() {
-      @Override
-      protected Boolean initialValue() {
-        return false;
-      }
-    };
 
   private static final int DEFAULT_CORE_THREADS = 10;
 
@@ -72,10 +62,9 @@ public class GuicyAsyncExecutor {
       ThreadPoolExecutor threadPool = (ThreadPoolExecutor) executor;
       LOG.debug(
         "Current size of async executor queue = {}, current active thread count = {}, total thread count = {}",
-        new String[] {
-          Integer.toString(threadPool.getQueue().size()), Integer.toString(threadPool.getActiveCount()),
-          Integer.toString(threadPool.getMaximumPoolSize())
-        });
+              Integer.toString(threadPool.getQueue().size()),
+              Integer.toString(threadPool.getActiveCount()),
+              Integer.toString(threadPool.getMaximumPoolSize()));
     }
   }
 
@@ -95,7 +84,7 @@ public class GuicyAsyncExecutor {
   /* 1. use runWithTransferredRequestScope methods instead if possible, Async is evil */
   /* 2. if still need to use Async, run returned Async while still in RequestScope.   */
   public <T> Async<T> asyncWithTransferredRequestScope(Callable<T> body) {
-    return new DeferredAsync<T>(body, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
+    return new DeferredAsync<>(body, RequestScope.currentClosure(), RequestScope.currentTimingsLogger());
   }
 
   private class DeferredAsync<T> extends Async<T> {
@@ -103,7 +92,7 @@ public class GuicyAsyncExecutor {
     private final RequestScope.RequestScopeClosure requestScopeClosure;
     private final TimingsLogger timingsLogger;
 
-    public DeferredAsync(Callable<T> body, RequestScope.RequestScopeClosure requestScopeClosure, TimingsLogger timingsLogger) {
+    private DeferredAsync(Callable<T> body, RequestScope.RequestScopeClosure requestScopeClosure, TimingsLogger timingsLogger) {
       this.body = body;
       this.requestScopeClosure = requestScopeClosure;
       this.timingsLogger = timingsLogger;
@@ -136,15 +125,8 @@ public class GuicyAsyncExecutor {
               inj.injectMembers(body);
               return body.call();
             };
-            Transactional txAnn = body.getClass().getMethod("call").getAnnotation(Transactional.class);
-            final T result;
-            if (txAnn == null) {
-              result = injCallable.call();
-            } else {
-              TxInterceptor interceptor = inj.getInstance(Key.get(TxInterceptor.class, txAnn.value()));
-              result = interceptor.invoke(txAnn, injCallable);
-            }
-            onSuccess.call(result);
+
+            onSuccess.call(injCallable.call());
           } catch (Throwable e) {
             final boolean isError;
             if (e instanceof WebApplicationException) {

@@ -3,6 +3,7 @@ package ru.hh.nab.async;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,13 +27,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.inject.Provider;
 
 import static org.mockito.Mockito.mock;
 
 public class GuicyAsyncExecutorTest extends JerseyTest {
   @Entity(name = "TestEntity")
   @Table(name = "test")
-  public static class TestEntity {
+  private static class TestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
@@ -54,6 +56,26 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
 
     public void setName(String name) {
       this.name = name;
+    }
+  }
+
+  static class TestService {
+
+    private final Provider<EntityManager> em;
+
+    @Inject
+    TestService(@Default Provider<EntityManager> em) {
+      this.em = em;
+    }
+
+    @Transactional
+    public void persist(TestEntity testEntity) {
+      em.get().persist(testEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public TestEntity find(Integer id) {
+      return em.get().find(TestEntity.class, id);
     }
   }
 
@@ -84,6 +106,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
       protected void configureApp() {
         bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
         bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+        bind(TestService.class).in(Scopes.SINGLETON);
       }
 
       protected
@@ -106,16 +129,15 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     RequestScope.enter(mock(HttpServletRequest.class), mock(HttpServletResponse.class));
 
     ama.asyncWithTransferredRequestScope(new Callable<Integer>() {
+
       @Inject
-      @Default
-      EntityManager store;
+      private TestService testService;
 
       @Override
-      @Transactional
       public Integer call() {
         TestEntity e = new TestEntity();
-        e.name = "Foo";
-        store.persist(e);
+        e.setName("Foo");
+        testService.persist(e);
         return e.getId();
       }
     }).run(id -> {
@@ -126,18 +148,16 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
 
     ama.asyncWithTransferredRequestScope(new Callable<TestEntity>() {
       @Inject
-      @Default
-      EntityManager store;
+      private TestService testService;
 
       @Override
-      @Transactional
       public TestEntity call() {
         try {
           syncLatch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
-        return store.find(TestEntity.class, resultId.get());
+        return testService.find(resultId.get());
       }
     }).run(resultEntity -> {
       result.set(resultEntity);

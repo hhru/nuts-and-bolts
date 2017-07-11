@@ -95,7 +95,7 @@ public class Launcher {
         @Provides
         @Singleton
         List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
-          List<SettingsModule.LimitWithNameAndHisto> ret = Lists.newArrayList();
+          List<SettingsModule.LimitWithNameAndHisto> ret = new ArrayList<>();
 
           for (String name : limits.stringPropertyNames()) {
             String property = limits.getProperty(name);

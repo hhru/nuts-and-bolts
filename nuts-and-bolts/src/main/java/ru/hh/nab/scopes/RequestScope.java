@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,7 +194,7 @@ public class RequestScope implements TransferrableScope {
   @Override
   public ScopeClosure capture() {
     ScopeClosure ret = closure.get();
-    Preconditions.checkState(ret != null);
+    Objects.requireNonNull(ret);
     return ret;
   }
 

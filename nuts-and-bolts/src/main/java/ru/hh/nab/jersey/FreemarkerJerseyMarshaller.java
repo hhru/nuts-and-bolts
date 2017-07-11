@@ -1,6 +1,5 @@
 package ru.hh.nab.jersey;
 
-import com.google.common.base.Preconditions;
 import com.sun.jersey.core.provider.AbstractMessageReaderWriterProvider;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.core.Environment;
@@ -95,7 +94,7 @@ public class FreemarkerJerseyMarshaller extends AbstractMessageReaderWriterProvi
   }
 
   public void marshal(FreemarkerModel model, String encoding, Writer out) throws IOException {
-    FreemarkerTemplate ann = Preconditions.checkNotNull(model.annotation);
+    FreemarkerTemplate ann = model.annotation;
 
     try {
       String layout = ("".equals(ann.layout()) ? defaultLayout : ann.layout()) + ".ftl";

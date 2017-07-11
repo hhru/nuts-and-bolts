@@ -76,7 +76,7 @@ import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
   private static final MBeanServer SERVER = ManagementFactory.getPlatformMBeanServer();
-  private final List<ScheduledTaskDef> taskDefs = Lists.newArrayList();
+  private final List<ScheduledTaskDef> taskDefs = new ArrayList<>();
   private final List<ResourceFilterFactory> jerseyPreFilterFactories = new ArrayList<>();
   private final List<ResourceFilterFactory> jerseyPostFilterFactories = new ArrayList<>();
 

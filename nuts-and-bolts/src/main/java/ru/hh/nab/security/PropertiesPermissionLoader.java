@@ -3,6 +3,7 @@ package ru.hh.nab.security;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -18,7 +19,7 @@ public class PropertiesPermissionLoader implements PermissionLoader {
       b.put(key, permissionsFromString(props.getProperty(key)));
     }
     if (!b.containsKey(ANONYMOUS_PERMISSIONS_KEY)) {
-      b.put(ANONYMOUS_PERMISSIONS_KEY, new Permissions(Lists.<String>newArrayList()));
+      b.put(ANONYMOUS_PERMISSIONS_KEY, new Permissions(Collections.emptyList()));
     }
     this.permissions = ImmutableMap.copyOf(b);
   }

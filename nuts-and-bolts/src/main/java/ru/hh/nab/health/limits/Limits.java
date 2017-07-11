@@ -2,7 +2,7 @@ package ru.hh.nab.health.limits;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public final class Limits {
   }
 
   public LeaseToken acquire(String... limitNames) {
-    List<LeaseToken> tokens = Lists.newArrayList();
+    List<LeaseToken> tokens = new ArrayList<>();
     for (String limitName : limitNames) {
       Limit limit = limits.get(limitName);
       LeaseToken token = limit.acquire();

@@ -1,9 +1,9 @@
 package ru.hh.nab.jersey;
 
-import com.google.common.collect.Lists;
 import com.sun.jersey.api.model.AbstractMethod;
 import com.sun.jersey.spi.container.ResourceFilter;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
+import java.util.ArrayList;
 import java.util.List;
 import ru.hh.nab.security.PermissionLoader;
 import ru.hh.nab.security.SecurityFilter;
@@ -32,7 +32,7 @@ public class JerseyResourceFilterFactory implements ResourceFilterFactory {
 
   @Override
   public List<ResourceFilter> create(AbstractMethod am) {
-    List<ResourceFilter> filters = Lists.newArrayList();
+    List<ResourceFilter> filters = new ArrayList<>();
     preFilterFactories.forEach(ff -> filters.addAll(ff.create(am)));
     addCommonFilters(filters, am);
     postFilterFactories.forEach(ff -> filters.addAll(ff.create(am)));

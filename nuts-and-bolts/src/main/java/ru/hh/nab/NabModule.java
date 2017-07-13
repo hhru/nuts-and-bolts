@@ -6,7 +6,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
@@ -36,18 +35,11 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.sql.DataSource;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import com.sun.jersey.spi.container.ResourceFilter;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
 import mx4j.tools.adaptor.http.HttpAdaptor;
-import org.hibernate.ejb.Ejb3Configuration;
-import org.hibernate.event.PreLoadEventListener;
-import org.hibernate.event.def.DefaultPreLoadEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.metrics.StatsDSender;
@@ -59,10 +51,6 @@ import ru.hh.nab.health.monitoring.Dumpable;
 import ru.hh.nab.health.monitoring.MethodProbingInterceptor;
 import ru.hh.nab.health.monitoring.Probe;
 import ru.hh.nab.health.monitoring.StatsDumper;
-import ru.hh.nab.hibernate.Default;
-import ru.hh.nab.hibernate.PostCommitHooks;
-import ru.hh.nab.hibernate.TransactionalMatcher;
-import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
@@ -213,78 +201,6 @@ public abstract class NabModule extends AbstractModule {
   @Provides
   protected final String defaultFreeMarkerLayout() {
     return defaultFreemarkerLayout;
-  }
-
-  protected final void bindDataSourceAndEntityManagerAccessor(Class<?>... entities) {
-    bindDataSource("default-db", Default.class);
-    bindEntityManagerAccessor("default-db", Default.class, entities);
-  }
-
-  protected final void bindDataSourceAndEntityManagerAccessor(String name, Class<? extends Annotation> ann, Class<?>... entities) {
-    bindDataSource(name, ann);
-    bindEntityManagerAccessor(name, ann, entities);
-  }
-
-  protected final void bindEntityManagerAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
-    bind(EntityManagerFactory.class).annotatedWith(ann)
-    .toProvider(Providers.guicify(hibernateAccessorProvider(name, ann, entities)))
-    .in(Scopes.SINGLETON);
-
-    final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, ann));
-    final TxInterceptor tx = new TxInterceptor(emfProvider);
-
-    bind(TxInterceptor.class).annotatedWith(ann).toInstance(tx);
-    bindInterceptor(Matchers.any(), new TransactionalMatcher(ann), tx);
-
-    bind(EntityManager.class).annotatedWith(ann).toProvider(Providers.guicify(tx::currentEntityManager));
-
-    bind(CriteriaBuilder.class).annotatedWith(ann)
-            .toProvider(Providers.guicify(() -> emfProvider.get().getCriteriaBuilder()))
-            .in(Scopes.SINGLETON);
-
-    bind(PostCommitHooks.class).annotatedWith(ann).toProvider(Providers.guicify(tx::currentPostCommitHooks));
-  }
-
-  private Provider<EntityManagerFactory> hibernateAccessorProvider(
-      final String name, final Class<? extends Annotation> ann, final Class<?>... entities) {
-    return new Provider<EntityManagerFactory>() {
-      private Settings settings;
-      private Injector injector;
-
-      @Inject
-      public void inject(Settings settings, Injector injector) {
-        this.settings = settings;
-        this.injector = injector;
-      }
-
-      @Override
-      public EntityManagerFactory get() {
-        Ejb3Configuration cfg = new Ejb3Configuration();
-        cfg.setProperties(settings.subTree(name + ".hibernate", "hibernate"));
-
-        for (Class<?> entity : entities) {
-          cfg.addAnnotatedClass(entity);
-        }
-
-        cfg.setListeners("pre-load", new PreLoadEventListener[] { new GuicyHibernateLoader(injector), new DefaultPreLoadEventListener() });
-        cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, ann)));
-        configureEjb3Configuration(cfg);
-        EntityManagerFactory f = cfg.buildEntityManagerFactory();
-        return f;
-      }
-    };
-  }
-
-  protected void configureEjb3Configuration(Ejb3Configuration cfg) {
-    // override to configure additional stuff
-  }
-
-  protected final void bindDataSource(String name, Class<? extends Annotation> ann) {
-    bind(DataSource.class).annotatedWith(ann).toProvider(Providers.guicify(dataSourceProvider(name))).in(Scopes.SINGLETON);
-  }
-
-  private Provider<DataSource> dataSourceProvider(String name) {
-    return new MonitoringDataSourceProvider(name);
   }
 
   private void bindScheduler() {

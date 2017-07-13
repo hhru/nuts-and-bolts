@@ -1,4 +1,4 @@
-package ru.hh.nab;
+package ru.hh.nab.hibernate;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

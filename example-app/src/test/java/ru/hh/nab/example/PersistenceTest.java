@@ -25,6 +25,7 @@ import org.junit.Test;
 import ru.hh.nab.Launcher;
 import ru.hh.nab.NabModule;
 import ru.hh.nab.hibernate.Default;
+import ru.hh.nab.hibernate.HibernateModule;
 import ru.hh.nab.hibernate.PostCommitHooks;
 import ru.hh.nab.hibernate.Transactional;
 
@@ -54,7 +55,7 @@ public class PersistenceTest {
         protected void configureApp() {
           PostCommitHooks.debug = true;
           bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
-          bindDataSourceAndEntityManagerAccessor(TestEntity.class);
+          install(new HibernateModule(TestEntity.class));
           bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
         }
       }, props, new Properties(), new Properties());
@@ -94,8 +95,8 @@ public class PersistenceTest {
         protected void configureApp() {
           PostCommitHooks.debug = true;
           bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
-          bindDataSourceAndEntityManagerAccessor(TestEntity.class);
           bind(TestService.class).in(Scopes.SINGLETON);
+          install(new HibernateModule(TestEntity.class));
           bind(TestHook.class);
         }
       }, props, new Properties(), new Properties());

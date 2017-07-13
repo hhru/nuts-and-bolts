@@ -77,6 +77,7 @@ public class SecureResourceWithExplicitAnonymousTest extends JerseyTest {
     };
   }
 
+  @Override
   protected Properties apiSecurity() {
     Properties props = new Properties();
     props.setProperty("anonymous", "anonymous");

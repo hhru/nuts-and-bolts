@@ -70,6 +70,7 @@ public class SecureResourceWithImplicitAnonymousTest extends JerseyTest {
     };
   }
 
+  @Override
   protected Properties apiSecurity() {
     Properties props = new Properties();
     props.setProperty("api-key-none", "");

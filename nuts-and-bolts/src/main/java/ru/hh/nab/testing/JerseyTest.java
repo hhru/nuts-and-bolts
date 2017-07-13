@@ -47,7 +47,7 @@ public abstract class JerseyTest {
     }
   }
 
-  protected static ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> instances = Maps.newConcurrentMap();
+  private static final ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> INSTANCES = Maps.newConcurrentMap();
 
   static Class<? extends JerseyTest> definingSubclass(Class<? extends JerseyTest> clazz) {
     Class<? extends JerseyTest> current = clazz;
@@ -65,7 +65,7 @@ public abstract class JerseyTest {
   protected JerseyTest() {
     Class<? extends JerseyTest> klass = definingSubclass(this.getClass());
     Holder<Instance> newHolder = new Holder<>();
-    Holder<Instance> holder = instances.putIfAbsent(klass, newHolder);
+    Holder<Instance> holder = INSTANCES.putIfAbsent(klass, newHolder);
     if (holder == null) {
       holder = newHolder;
     }
@@ -84,7 +84,7 @@ public abstract class JerseyTest {
   }
 
   protected final Instance instance() {
-    return instances.get(definingSubclass(this.getClass())).get();
+    return INSTANCES.get(definingSubclass(this.getClass())).get();
   }
 
   protected Injector injector() {

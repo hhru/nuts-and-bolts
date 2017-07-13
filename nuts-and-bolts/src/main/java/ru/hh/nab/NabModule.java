@@ -61,7 +61,6 @@ import ru.hh.nab.health.monitoring.Probe;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.hibernate.Default;
 import ru.hh.nab.hibernate.PostCommitHooks;
-import ru.hh.nab.hibernate.Transactional;
 import ru.hh.nab.hibernate.TransactionalMatcher;
 import ru.hh.nab.hibernate.TxInterceptor;
 import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
@@ -188,15 +187,11 @@ public abstract class NabModule extends AbstractModule {
       }, MethodProbingInterceptor.INSTANCE);
   }
 
-  protected final void bindWithTransactionalMethodProbes(final Class<?>... classes) {
+  protected final void bindWithAnnotationMethodProbes(Class<? extends Annotation> annotation, Class<?>... classes) {
     for (Class<?> clazz : classes) {
       bind(clazz);
     }
-    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), MethodProbingInterceptor.INSTANCE);
-  }
-
-  protected final void bindTransactionalMethodProbesInterceptorOnly(final Class<?>... classes) {
-    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(Transactional.class), MethodProbingInterceptor.INSTANCE);
+    bindInterceptor(subclassesMatcher(classes), Matchers.annotatedWith(annotation), MethodProbingInterceptor.INSTANCE);
   }
 
   protected final void bindWithAllMethodProbes(final Class<?>... classes) {
@@ -221,17 +216,13 @@ public abstract class NabModule extends AbstractModule {
   }
 
   protected final void bindDataSourceAndEntityManagerAccessor(Class<?>... entities) {
-    bindDefaultDataSource();
-    bindDefaultEntityManagerAccessor(entities);
+    bindDataSource("default-db", Default.class);
+    bindEntityManagerAccessor("default-db", Default.class, entities);
   }
 
   protected final void bindDataSourceAndEntityManagerAccessor(String name, Class<? extends Annotation> ann, Class<?>... entities) {
     bindDataSource(name, ann);
     bindEntityManagerAccessor(name, ann, entities);
-  }
-
-  protected final void bindDefaultEntityManagerAccessor(Class<?>... entities) {
-    bindEntityManagerAccessor("default-db", Default.class, entities);
   }
 
   protected final void bindEntityManagerAccessor(String name, final Class<? extends Annotation> ann, Class<?>... entities) {
@@ -290,10 +281,6 @@ public abstract class NabModule extends AbstractModule {
 
   protected final void bindDataSource(String name, Class<? extends Annotation> ann) {
     bind(DataSource.class).annotatedWith(ann).toProvider(Providers.guicify(dataSourceProvider(name))).in(Scopes.SINGLETON);
-  }
-
-  protected final void bindDefaultDataSource() {
-    bind(DataSource.class).annotatedWith(Default.class).toProvider(Providers.guicify(dataSourceProvider("default-db"))).in(Scopes.SINGLETON);
   }
 
   private Provider<DataSource> dataSourceProvider(String name) {

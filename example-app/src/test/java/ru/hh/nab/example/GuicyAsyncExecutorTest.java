@@ -32,6 +32,7 @@ import javax.inject.Provider;
 import static org.mockito.Mockito.mock;
 import ru.hh.nab.async.Callbacks;
 import ru.hh.nab.async.GuicyAsyncExecutor;
+import ru.hh.nab.hibernate.PostCommitHooks;
 
 public class GuicyAsyncExecutorTest extends JerseyTest {
   @Entity(name = "TestEntity")
@@ -106,6 +107,7 @@ public class GuicyAsyncExecutorTest extends JerseyTest {
     return new NabModule() {
       @Override
       protected void configureApp() {
+        PostCommitHooks.debug = true;
         bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
         bindDataSourceAndEntityManagerAccessor(TestEntity.class);
         bind(TestService.class).in(Scopes.SINGLETON);

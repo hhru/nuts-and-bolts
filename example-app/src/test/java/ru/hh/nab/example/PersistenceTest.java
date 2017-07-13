@@ -52,6 +52,7 @@ public class PersistenceTest {
       new NabModule() {
         @Override
         protected void configureApp() {
+          PostCommitHooks.debug = true;
           bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
           bindDataSourceAndEntityManagerAccessor(TestEntity.class);
           bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
@@ -91,6 +92,7 @@ public class PersistenceTest {
       new NabModule() {
         @Override
         protected void configureApp() {
+          PostCommitHooks.debug = true;
           bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
           bindDataSourceAndEntityManagerAccessor(TestEntity.class);
           bind(TestService.class).in(Scopes.SINGLETON);

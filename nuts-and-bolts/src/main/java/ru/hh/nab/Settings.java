@@ -16,19 +16,18 @@ public class Settings {
   }
 
   public Properties subTree(String prefix, String newPrefix) {
-    prefix = prefix + ".";
+    prefix += ".";
     if (newPrefix != null) {
-      newPrefix = newPrefix + ".";
+      newPrefix += ".";
     } else {
       newPrefix = "";
     }
-    Properties ret = new Properties();
-    for (String i : props.stringPropertyNames()) {
-      if (!i.startsWith(prefix)) {
-        continue;
+    final int prefixLength = prefix.length();
+    final Properties ret = new Properties();
+    for (String property : props.stringPropertyNames()) {
+      if (property.startsWith(prefix)) {
+        ret.put(newPrefix + property.substring(prefixLength), props.get(property));
       }
-      String suffix = i.substring(prefix.length());
-      ret.put(newPrefix + suffix, props.get(i));
     }
     return ret;
   }

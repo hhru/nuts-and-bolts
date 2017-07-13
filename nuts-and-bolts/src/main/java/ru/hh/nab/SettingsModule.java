@@ -26,8 +26,8 @@ public class SettingsModule extends AbstractModule {
     settingsDir = new File(System.getProperty("settingsDir"));
 
     settingsProperties = new Properties();
-    try {
-      settingsProperties.load(new FileReader(new File(settingsDir, "settings.properties")));
+    try (final FileReader fileReader = new FileReader(new File(settingsDir, "settings.properties"))) {
+      settingsProperties.load(fileReader);
     } catch (IOException e) {
       throw new IllegalStateException("Error reading settings.properties at " + settingsDir.getAbsolutePath(), e);
     }
@@ -49,7 +49,9 @@ public class SettingsModule extends AbstractModule {
     Properties props = new Properties();
     File file = new File(settingsDir, "api-security.properties");
     if (file.isFile()) {
-      props.load(new FileReader(file));
+      try (final FileReader fileReader = new FileReader(file)) {
+        props.load(fileReader);
+      }
     }
     return new PropertiesPermissionLoader(props);
   }
@@ -61,7 +63,9 @@ public class SettingsModule extends AbstractModule {
     Properties props = new Properties();
     File file = new File(settingsDir, "limits.properties");
     if (file.isFile()) {
-      props.load(new FileReader(file));
+      try (final FileReader fileReader = new FileReader(file)) {
+        props.load(fileReader);
+      }
     }
     List<LimitWithNameAndHisto> ret = new ArrayList<>();
 

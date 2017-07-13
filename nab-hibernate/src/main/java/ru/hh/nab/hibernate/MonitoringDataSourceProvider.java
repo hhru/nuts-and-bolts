@@ -1,4 +1,4 @@
-package ru.hh.nab;
+package ru.hh.nab.hibernate;
 
 import com.mchange.v2.c3p0.C3P0Registry;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -23,8 +23,6 @@ import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
-import ru.hh.nab.jersey.JerseyHttpServlet;
-import ru.hh.nab.jersey.RequestUrlFilter;
 
 public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
@@ -32,7 +30,8 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
   private final String dataSourceName;
   private String serviceName;
-  private Settings settings;
+  private Properties c3p0Props;
+  private Properties monitoringProps;
   private StatsDSender statsDSender;
 
   public MonitoringDataSourceProvider(String dataSourceName) {
@@ -45,8 +44,9 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   }
 
   @Inject
-  public void setSettings(Settings settings) {
-    this.settings = settings;
+  public void setSettingsProperties(@Named("settings.properties") Properties settingsProperties) {
+    c3p0Props = HibernateModule.subTree(dataSourceName + ".c3p0", settingsProperties);
+    monitoringProps = HibernateModule.subTree(dataSourceName + ".monitoring", settingsProperties);
   }
 
   @Inject
@@ -57,10 +57,6 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   @Override
   @SuppressWarnings({ "unchecked" })
   public DataSource get() {
-    Properties c3p0Props = settings.subTree(dataSourceName + ".c3p0");
-
-    Properties monitoringProps = settings.subTree(dataSourceName + ".monitoring");
-
     if (c3p0Props.isEmpty()) {
       throw new IllegalStateException("c3p0 settings NOT found");
     }
@@ -135,7 +131,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     if (sendSampledStats) {
       compressedStackFactory = new CompressedStackFactory(
           "ru.hh.jdbc.MonitoringConnection", "close",
-          JerseyHttpServlet.class.getName(), "service",
+          "ru.hh.nab.jersey.JerseyHttpServlet", "service",
           new String[]{"ru.hh."},
           new String[]{"Interceptor", "TransactionalContext"}
       );
@@ -159,7 +155,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
       histogram.save(usageMs);
 
-      String controller = MDC.get(RequestUrlFilter.CONTROLLER_MDC_KEY);
+      String controller = MDC.get("controller");
       if (controller == null) {
         controller = "unknown";
       }

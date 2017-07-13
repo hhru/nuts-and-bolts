@@ -1,4 +1,4 @@
-package ru.hh.nab.example;
+package ru.hh.nab.hibernate;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;

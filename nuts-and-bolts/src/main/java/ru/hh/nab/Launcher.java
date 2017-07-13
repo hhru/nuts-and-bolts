@@ -64,6 +64,13 @@ public class Launcher {
         }
 
         @Provides
+        @Named("settings.properties")
+        @Singleton
+        protected Properties settingsProperties() throws IOException {
+          return settings;
+        }
+
+        @Provides
         @Singleton
         protected Settings settings() throws IOException {
           settings.setProperty("port", "0");

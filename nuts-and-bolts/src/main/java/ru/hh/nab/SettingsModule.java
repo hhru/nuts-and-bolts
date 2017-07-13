@@ -40,6 +40,7 @@ public class SettingsModule extends AbstractModule {
   @Override
   protected void configure() {
     Names.bindProperties(binder(), settingsProperties);
+    bind(Properties.class).annotatedWith(Names.named("settings.properties")).toInstance(settingsProperties);
     bind(Settings.class).toInstance(new Settings(settingsProperties));
   }
 

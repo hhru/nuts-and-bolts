@@ -1,4 +1,4 @@
-package ru.hh.nab.async;
+package ru.hh.nab.example;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Provider;
 
 import static org.mockito.Mockito.mock;
+import ru.hh.nab.async.Callbacks;
+import ru.hh.nab.async.GuicyAsyncExecutor;
 
 public class GuicyAsyncExecutorTest extends JerseyTest {
   @Entity(name = "TestEntity")

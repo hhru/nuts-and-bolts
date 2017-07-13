@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.example;
 
 import com.google.inject.ProvisionException;
 import com.google.inject.Scopes;
@@ -24,6 +24,9 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import ru.hh.nab.Launcher;
 import ru.hh.nab.NabModule;
+import ru.hh.nab.hibernate.Default;
+import ru.hh.nab.hibernate.PostCommitHooks;
+import ru.hh.nab.hibernate.Transactional;
 
 public class PersistenceTest {
   @Test
@@ -162,12 +165,12 @@ public class PersistenceTest {
   public static class EntityManagerWrapper {
     @Default
     @Inject
-    Provider<EntityManager> em;
+    private Provider<EntityManager> em;
 
     @Transactional
     public int persist(TestEntity e) {
       em.get().persist(e);
-      return e.id;
+      return e.getId();
     }
 
     @Transactional(readOnly = true)

@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
-import com.google.inject.util.Providers;
 import java.lang.annotation.Annotation;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -37,10 +36,10 @@ public class HibernateModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(DataSource.class).annotatedWith(annotation).toProvider(Providers.guicify(dataSourceProvider())).in(Scopes.SINGLETON);
+    bind(DataSource.class).annotatedWith(annotation).toProvider(dataSourceProvider()).in(Scopes.SINGLETON);
 
     bind(EntityManagerFactory.class).annotatedWith(annotation)
-            .toProvider(Providers.guicify(hibernateAccessorProvider()))
+            .toProvider(hibernateAccessorProvider())
             .in(Scopes.SINGLETON);
 
     final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, annotation));
@@ -49,13 +48,13 @@ public class HibernateModule extends AbstractModule {
     bind(TxInterceptor.class).annotatedWith(annotation).toInstance(tx);
     bindInterceptor(Matchers.any(), new TransactionalMatcher(annotation), tx);
 
-    bind(EntityManager.class).annotatedWith(annotation).toProvider(Providers.guicify(tx::currentEntityManager));
+    bind(EntityManager.class).annotatedWith(annotation).toProvider(tx::currentEntityManager);
 
     bind(CriteriaBuilder.class).annotatedWith(annotation)
-            .toProvider(Providers.guicify(() -> emfProvider.get().getCriteriaBuilder()))
+            .toProvider(() -> emfProvider.get().getCriteriaBuilder())
             .in(Scopes.SINGLETON);
 
-    bind(PostCommitHooks.class).annotatedWith(annotation).toProvider(Providers.guicify(tx::currentPostCommitHooks));
+    bind(PostCommitHooks.class).annotatedWith(annotation).toProvider(tx::currentPostCommitHooks);
   }
 
   private Provider<DataSource> dataSourceProvider() {

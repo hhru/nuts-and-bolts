@@ -39,7 +39,7 @@ public class HibernateModule extends AbstractModule {
     bind(DataSource.class).annotatedWith(annotation).toProvider(dataSourceProvider()).in(Scopes.SINGLETON);
 
     bind(EntityManagerFactory.class).annotatedWith(annotation)
-            .toProvider(hibernateAccessorProvider())
+            .toProvider(hibernateEntityManagerFactoryProvider())
             .in(Scopes.SINGLETON);
 
     final Provider<EntityManagerFactory> emfProvider = getProvider(Key.get(EntityManagerFactory.class, annotation));
@@ -73,7 +73,7 @@ public class HibernateModule extends AbstractModule {
     return annotation;
   }
 
-  private Provider<EntityManagerFactory> hibernateAccessorProvider() {
+  private Provider<EntityManagerFactory> hibernateEntityManagerFactoryProvider() {
     return new Provider<EntityManagerFactory>() {
       private Properties hibernateProperties;
       private Injector injector;

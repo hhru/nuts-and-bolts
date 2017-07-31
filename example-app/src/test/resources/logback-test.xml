@@ -1,19 +1,15 @@
 <configuration>
-    <appender name="unsorted" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %X - %msg%n</Pattern>
         </layout>
     </appender>
 
     <root level="info">
-        <appender-ref ref="unsorted"/>
+        <appender-ref ref="console"/>
     </root>
 
-    <logger name="org.hibernate" level="debug" additivity="false">
-        <appender-ref ref="unsorted"/>
-    </logger>
+    <logger name="org.hibernate" level="debug" />
 
-    <logger name="org.hsqldb" level="debug" additivity="false">
-        <appender-ref ref="unsorted"/>
-    </logger>
+    <logger name="org.hsqldb" level="debug" />
 </configuration>

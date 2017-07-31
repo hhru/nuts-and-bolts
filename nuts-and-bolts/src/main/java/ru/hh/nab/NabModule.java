@@ -10,7 +10,6 @@ import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
-import com.google.inject.util.Providers;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import java.io.IOException;
@@ -205,7 +204,6 @@ public abstract class NabModule extends AbstractModule {
 
   private void bindScheduler() {
     bind(Key.get(ScheduledExecutorService.class, Names.named("system"))).toProvider(
-      Providers.guicify(
         new Provider<ScheduledExecutorService>() {
           @Inject
           public Injector injector;
@@ -219,7 +217,7 @@ public abstract class NabModule extends AbstractModule {
             }
             return Executors.unconfigurableScheduledExecutorService(scheduler);
           }
-        }))
+        })
     .asEagerSingleton();
   }
 

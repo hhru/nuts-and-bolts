@@ -51,6 +51,8 @@ import ru.hh.nab.health.monitoring.MethodProbingInterceptor;
 import ru.hh.nab.health.monitoring.Probe;
 import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
+import ru.hh.nab.jersey.JerseyHttpServlet;
+import ru.hh.nab.jersey.RequestUrlFilter;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
@@ -308,6 +310,27 @@ public abstract class NabModule extends AbstractModule {
       }
     }
     return new StatsDumper(ls);
+  }
+
+  @Named("controller_mdc_key")
+  @Provides
+  @Singleton
+  protected String controllerMdcKey() {
+    return RequestUrlFilter.CONTROLLER_MDC_KEY;
+  }
+
+  @Named("stack_outer_class_excluding")
+  @Provides
+  @Singleton
+  protected String stackOuterClassExcluding() {
+    return JerseyHttpServlet.class.getName();
+  }
+
+  @Named("stack_outer_method_excluding")
+  @Provides
+  @Singleton
+  protected String stackOuterMethodExcluding() {
+    return "service";
   }
 
   private static class ScheduledTaskDef {

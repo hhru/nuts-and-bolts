@@ -32,6 +32,9 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   private String serviceName;
   private Properties c3p0Props;
   private Properties monitoringProps;
+  private String controllerMdcKey;
+  private String stackOuterClassExcluding;
+  private String stackOuterMethodExcluding;
   private StatsDSender statsDSender;
 
   public MonitoringDataSourceProvider(String dataSourceName) {
@@ -47,6 +50,21 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   public void setSettingsProperties(@Named("settings.properties") Properties settingsProperties) {
     c3p0Props = HibernateModule.subTree(dataSourceName + ".c3p0", settingsProperties);
     monitoringProps = HibernateModule.subTree(dataSourceName + ".monitoring", settingsProperties);
+  }
+
+  @Inject
+  public void setControllerMdcKey(@Named("controller_mdc_key") String controllerMdcKey) {
+    this.controllerMdcKey = controllerMdcKey;
+  }
+
+  @Inject
+  public void setStackOuterClassExcluding(@Named("stack_outer_class_excluding") String stackOuterClassExcluding) {
+    this.stackOuterClassExcluding = stackOuterClassExcluding;
+  }
+
+  @Inject
+  public void setStackOuterMethodExcluding(@Named("stack_outer_method_excluding") String stackOuterMethodExcluding) {
+    this.stackOuterMethodExcluding = stackOuterMethodExcluding;
   }
 
   @Inject
@@ -130,10 +148,10 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
     Counters sampledUsageCounters;
     if (sendSampledStats) {
       compressedStackFactory = new CompressedStackFactory(
-          "ru.hh.jdbc.MonitoringConnection", "close",
-          "ru.hh.nab.jersey.JerseyHttpServlet", "service",
-          new String[]{"ru.hh."},
-          new String[]{"Interceptor", "TransactionalContext"}
+              "ru.hh.jdbc.MonitoringConnection", "close",
+              stackOuterClassExcluding, stackOuterMethodExcluding,
+              new String[]{"ru.hh."},
+              new String[]{"Interceptor", "TransactionalContext"}
       );
 
       sampledUsageCounters = new Counters(2000);
@@ -155,7 +173,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
       histogram.save(usageMs);
 
-      String controller = MDC.get("controller");
+      String controller = MDC.get(controllerMdcKey);
       if (controller == null) {
         controller = "unknown";
       }

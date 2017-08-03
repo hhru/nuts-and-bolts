@@ -27,6 +27,11 @@
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.3</version>
         </dependency>
+        <dependency>
+            <groupId>ru.hh.jdebug</groupId>
+            <artifactId>jdebug-addon-jdbc</artifactId>
+            <version>${jdebug.version}</version>
+        </dependency>
 
         <!-- Hibernate -->
         <dependency>

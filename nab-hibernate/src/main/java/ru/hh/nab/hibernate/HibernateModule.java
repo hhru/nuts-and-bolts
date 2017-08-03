@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
+import ru.hh.jdebug.jdbc.log4jdbc.LoggingDataSourceFactory;
 import java.lang.annotation.Annotation;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -14,11 +15,18 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.sql.DataSource;
+import org.hibernate.cfg.Environment;
 import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.ejb.connection.InjectedDataSourceConnectionProvider;
 import org.hibernate.event.PreLoadEventListener;
 import org.hibernate.event.def.DefaultPreLoadEventListener;
 
 public class HibernateModule extends AbstractModule {
+
+  static {
+    // jdebug jdbc logging prerequisite
+    LoggingDataSourceFactory.init();
+  }
 
   private final String dataSourceName;
   private final Class<? extends Annotation> annotation;
@@ -55,6 +63,8 @@ public class HibernateModule extends AbstractModule {
             .in(Scopes.SINGLETON);
 
     bind(PostCommitHooks.class).annotatedWith(annotation).toProvider(tx::currentPostCommitHooks);
+
+    bind(DebugInitializer.class).asEagerSingleton();
   }
 
   private Provider<DataSource> dataSourceProvider() {
@@ -108,7 +118,14 @@ public class HibernateModule extends AbstractModule {
    * @param cfg
    */
   protected void configureEjb3Configuration(Ejb3Configuration cfg) {
+    cfg.setProperty(Environment.CONNECTION_PROVIDER, LoggingDataSourceFactoryConnectionProvider.class.getName());
+  }
 
+  public static class LoggingDataSourceFactoryConnectionProvider extends InjectedDataSourceConnectionProvider {
+    @Override
+    public DataSource getDataSource() {
+      return LoggingDataSourceFactory.proxyDataSource(super.getDataSource());
+    }
   }
 
   public static Properties subTree(String prefix, Properties properties) {

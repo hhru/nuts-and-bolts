@@ -41,6 +41,8 @@ import com.sun.jersey.spi.container.ResourceFilterFactory;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.jdebug.jersey1.provider.DebugResourceRequestFilter;
+import ru.hh.jdebug.jersey1.provider.DebugResourceResponseFilter;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.jersey.Concurrency;
 import ru.hh.nab.health.limits.LeakDetector;
@@ -87,6 +89,8 @@ public abstract class NabModule extends AbstractModule {
     ConcurrentJerseyMethodInterceptor concurrentJerseyMethodInterceptor = new ConcurrentJerseyMethodInterceptor();
     requestInjection(concurrentJerseyMethodInterceptor);
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Concurrency.class), concurrentJerseyMethodInterceptor);
+    install(new DebugModule());
+    initializeDebugFilters();
   }
 
   protected abstract void configureApp();
@@ -331,6 +335,17 @@ public abstract class NabModule extends AbstractModule {
   @Singleton
   protected String stackOuterMethodExcluding() {
     return "service";
+  }
+
+  @Provides
+  @Singleton
+  protected AppMetadata getAppMetaData(@Named("serviceName") String serviceName) {
+    return new AppMetadata(serviceName);
+  }
+
+  private void initializeDebugFilters() {
+    addPreFilterFactory(new DebugResourceRequestFilter());
+    addPostFilterFactory(new DebugResourceResponseFilter());
   }
 
   private static class ScheduledTaskDef {

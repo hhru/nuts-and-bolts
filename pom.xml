@@ -22,6 +22,7 @@
 
     <properties>
         <guice.version>4.1.0</guice.version>
+        <jdebug.version>0.0.14</jdebug.version>
     </properties>
 
     <dependencyManagement>

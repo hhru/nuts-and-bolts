@@ -10,7 +10,7 @@ public class DebugInitializer {
 
   @Inject
   public DebugInitializer(@Named("settings.properties") Properties settingsProperties) throws JAXBException {
-    String logFullQuery = HibernateModule.subTree("jdebug", settingsProperties).getProperty("logFullQuery", "false");
+    String logFullQuery = settingsProperties.getProperty("jdebug.logFullQuery", "false");
     JdbcDebugSupplier.setFullQueryLogging(Boolean.valueOf(logFullQuery));
   }
 

@@ -4,13 +4,11 @@ import ru.hh.jdebug.jersey1.Jersey1DebugRecorder;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.xml.bind.JAXBException;
 
 import static ru.hh.nab.Settings.getBoolProperty;
 import java.util.Properties;
 
-@Singleton
 public class DebugInitializer {
 
   @Inject

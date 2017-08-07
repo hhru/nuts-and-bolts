@@ -1,12 +1,10 @@
 package ru.hh.nab;
 
-import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.util.Properties;
 
-@Singleton
 public class AppMetadata {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppMetadata.class);

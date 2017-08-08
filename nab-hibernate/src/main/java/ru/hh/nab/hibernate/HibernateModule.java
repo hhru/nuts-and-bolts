@@ -15,9 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.sql.DataSource;
-import org.hibernate.cfg.Environment;
 import org.hibernate.ejb.Ejb3Configuration;
-import org.hibernate.ejb.connection.InjectedDataSourceConnectionProvider;
 
 public class HibernateModule extends AbstractModule {
 
@@ -97,28 +95,11 @@ public class HibernateModule extends AbstractModule {
           cfg.addAnnotatedClass(entity);
         }
 
-        cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation())));
-        configureEjb3Configuration(cfg);
+        cfg.setDataSource(LoggingDataSourceFactory.proxyDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation()))));
         EntityManagerFactory f = cfg.buildEntityManagerFactory();
         return f;
       }
     };
-  }
-
-  /**
-   * override to configure additional stuff
-   *
-   * @param cfg
-   */
-  protected void configureEjb3Configuration(Ejb3Configuration cfg) {
-    cfg.setProperty(Environment.CONNECTION_PROVIDER, LoggingDataSourceFactoryConnectionProvider.class.getName());
-  }
-
-  public static class LoggingDataSourceFactoryConnectionProvider extends InjectedDataSourceConnectionProvider {
-    @Override
-    public DataSource getDataSource() {
-      return LoggingDataSourceFactory.proxyDataSource(super.getDataSource());
-    }
   }
 
   public static Properties subTree(String prefix, Properties properties) {

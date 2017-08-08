@@ -18,8 +18,6 @@ import javax.sql.DataSource;
 import org.hibernate.cfg.Environment;
 import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.ejb.connection.InjectedDataSourceConnectionProvider;
-import org.hibernate.event.PreLoadEventListener;
-import org.hibernate.event.def.DefaultPreLoadEventListener;
 
 public class HibernateModule extends AbstractModule {
 
@@ -99,7 +97,6 @@ public class HibernateModule extends AbstractModule {
           cfg.addAnnotatedClass(entity);
         }
 
-        cfg.setListeners("pre-load", new PreLoadEventListener[]{new GuicyHibernateLoader(injector), new DefaultPreLoadEventListener()});
         cfg.setDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation())));
         configureEjb3Configuration(cfg);
         EntityManagerFactory f = cfg.buildEntityManagerFactory();

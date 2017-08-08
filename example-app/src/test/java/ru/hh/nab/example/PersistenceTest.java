@@ -207,20 +207,20 @@ public class PersistenceTest {
       em.get().persist(e);
     }
 
-    @Transactional(optional = true)
+    @Transactional(readOnly = true)
     public void txOptionalMethod(TestHook hook2, TestHook hook3) {
       txMethod(hook2);
       postCommitActions.get().addHook(hook3);
     }
 
-    @Transactional(optional = true)
+    @Transactional(readOnly = true)
     public void txOptionalMethodWithError1(TestHook hook, TestHook hookOptional) throws PersistenceException {
       txMethod(hook);
       postCommitActions.get().addHook(hookOptional);
       throw new IllegalArgumentException("your argument is invalid");
     }
 
-    @Transactional(optional = true)
+    @Transactional(readOnly = true)
     public void txOptionalMethodWithError2(TestHook hook, TestHook hookOptional) {
       postCommitActions.get().addHook(hook);
       txMethodWithError(hook);

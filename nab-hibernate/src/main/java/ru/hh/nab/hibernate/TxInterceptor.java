@@ -16,7 +16,6 @@ public class TxInterceptor implements MethodInterceptor {
     this.entityManagerFactoryProvider = entityManagerFactoryProvider;
   }
 
-  @SuppressWarnings("deprecation")
   public <T> T invoke(Transactional ann, Callable<T> invocation) throws Exception {
     TransactionalContext txContext = txContextHolder.get();
     // Is transaction context already initialized (i.e. have we already
@@ -26,7 +25,7 @@ public class TxInterceptor implements MethodInterceptor {
         // continue previously started transaction
         txContext.enter(ann);
         return invocation.call();
-      } else if (ann.optional() || ann.readOnly()) {
+      } else if (ann.readOnly()) {
         // not in transaction, and no need to start transaction
         return invocation.call();
       } else {
@@ -43,7 +42,7 @@ public class TxInterceptor implements MethodInterceptor {
       txContextHolder.set(txContext);
 
       // call the callback...
-      if (ann.readOnly() || ann.optional()) {
+      if (ann.readOnly()) {
         // ...without transaction
         return runWithoutTransaction(invocation);
       } else {

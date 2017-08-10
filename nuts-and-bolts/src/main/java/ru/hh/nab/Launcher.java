@@ -78,8 +78,8 @@ public class Launcher {
         @Named("limits-with-names")
         @Provides
         @Singleton
-        List<SettingsModule.LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
-          List<SettingsModule.LimitWithNameAndHisto> ret = new ArrayList<>();
+        List<SettingsModule.LimitWithName> limitsWithNameAndHisto(LeakDetector leakDetector) throws IOException {
+          List<SettingsModule.LimitWithName> ret = new ArrayList<>();
 
           for (String name : limits.stringPropertyNames()) {
             String property = limits.getProperty(name);
@@ -87,7 +87,7 @@ public class Launcher {
             int max = Integer.parseInt(pos == -1 ? property : property.substring(0, pos));
             int warnThreshold = pos == -1 ? 0 : Integer.parseInt(property.substring(pos+1));
             Limit limit = new SimpleLimit(max, leakDetector, name, warnThreshold);
-            ret.add(new SettingsModule.LimitWithNameAndHisto(limit, name, null));
+            ret.add(new SettingsModule.LimitWithName(limit, name));
           }
           return ret;
         }

@@ -37,8 +37,5 @@ public class JerseyResourceFilterFactory implements ResourceFilterFactory {
   private void addCommonFilters(List<ResourceFilter> filters, AbstractMethod am) {
     filters.add(new RequestUrlFilter(am));
     filters.add(new FreemarkerModelFilter());
-    if (am.isAnnotationPresent(Cached.class)) {
-      filters.add(new CacheControlFilter(am.getAnnotation(Cached.class)));
-    }
   }
 }

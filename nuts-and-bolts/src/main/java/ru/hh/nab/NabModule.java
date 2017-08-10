@@ -54,8 +54,6 @@ import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
 import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.RequestUrlFilter;
 import ru.hh.nab.scopes.RequestScope;
-import ru.hh.nab.scopes.ThreadLocalScope;
-import ru.hh.nab.scopes.ThreadLocalScoped;
 
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
@@ -70,8 +68,6 @@ public abstract class NabModule extends AbstractModule {
   protected final void configure() {
     configureApp();
     bindScheduler();
-
-    bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 
@@ -294,7 +290,6 @@ public abstract class NabModule extends AbstractModule {
     }
     return new Limits(ls);
   }
-
 
   @Named("controller_mdc_key")
   @Provides

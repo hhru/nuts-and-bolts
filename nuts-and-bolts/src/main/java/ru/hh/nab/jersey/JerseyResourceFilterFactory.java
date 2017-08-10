@@ -5,8 +5,6 @@ import com.sun.jersey.spi.container.ResourceFilter;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
 import java.util.ArrayList;
 import java.util.List;
-import ru.hh.nab.security.PermissionLoader;
-import ru.hh.nab.security.SecurityFilter;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,17 +13,14 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @Singleton
 public class JerseyResourceFilterFactory implements ResourceFilterFactory {
-  private final PermissionLoader permissionLoader;
   private final List<ResourceFilterFactory> preFilterFactories;
   private final List<ResourceFilterFactory> postFilterFactories;
 
   @Inject
   public JerseyResourceFilterFactory(
-    PermissionLoader permissionLoader,
     @Named("JerseyPreFilterFactories") List<ResourceFilterFactory> preFilterFactories,
     @Named("JerseyPostFilterFactories") List<ResourceFilterFactory> postFilterFactories
   ) {
-    this.permissionLoader = permissionLoader;
     this.preFilterFactories = preFilterFactories;
     this.postFilterFactories = postFilterFactories;
   }
@@ -45,6 +40,5 @@ public class JerseyResourceFilterFactory implements ResourceFilterFactory {
     if (am.isAnnotationPresent(Cached.class)) {
       filters.add(new CacheControlFilter(am.getAnnotation(Cached.class)));
     }
-    filters.add(new SecurityFilter(permissionLoader));
   }
 }

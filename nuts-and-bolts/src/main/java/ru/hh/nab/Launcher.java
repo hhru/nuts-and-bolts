@@ -28,8 +28,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
-import ru.hh.nab.security.PermissionLoader;
-import ru.hh.nab.security.PropertiesPermissionLoader;
 
 public class Launcher {
   static Module module;
@@ -75,12 +73,6 @@ public class Launcher {
         protected Settings settings() throws IOException {
           settings.setProperty("port", "0");
           return new Settings(settings);
-        }
-
-        @Provides
-        @Singleton
-        protected PermissionLoader permissionLoader() {
-          return new PropertiesPermissionLoader(apiSecurity);
         }
 
         @Named("limits-with-names")

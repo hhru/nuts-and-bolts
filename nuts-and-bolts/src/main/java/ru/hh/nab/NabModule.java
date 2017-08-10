@@ -58,10 +58,6 @@ import ru.hh.nab.jersey.RequestUrlFilter;
 import ru.hh.nab.scopes.RequestScope;
 import ru.hh.nab.scopes.ThreadLocalScope;
 import ru.hh.nab.scopes.ThreadLocalScoped;
-import ru.hh.nab.security.Permissions;
-import ru.hh.nab.security.SecureInterceptor;
-import ru.hh.nab.security.SecureMatcher;
-import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
@@ -79,8 +75,6 @@ public abstract class NabModule extends AbstractModule {
 
     bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
 
-    bind(UnauthorizedExceptionJerseyMapper.class);
-    bindInterceptor(Matchers.any(), new SecureMatcher(), new SecureInterceptor(getProvider(Permissions.class)));
     schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 

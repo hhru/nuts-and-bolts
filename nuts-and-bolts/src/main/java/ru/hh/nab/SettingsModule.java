@@ -15,8 +15,6 @@ import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
 import ru.hh.nab.health.monitoring.Dumpable;
-import ru.hh.nab.security.PermissionLoader;
-import ru.hh.nab.security.PropertiesPermissionLoader;
 
 public class SettingsModule extends AbstractModule {
   private final File settingsDir;
@@ -44,18 +42,6 @@ public class SettingsModule extends AbstractModule {
     bind(Settings.class).toInstance(new Settings(settingsProperties));
   }
 
-  @Provides
-  @Singleton
-  protected PermissionLoader permissionLoader() throws IOException {
-    Properties props = new Properties();
-    File file = new File(settingsDir, "api-security.properties");
-    if (file.isFile()) {
-      try (final FileReader fileReader = new FileReader(file)) {
-        props.load(fileReader);
-      }
-    }
-    return new PropertiesPermissionLoader(props);
-  }
 
   @Named("limits-with-names")
   @Provides

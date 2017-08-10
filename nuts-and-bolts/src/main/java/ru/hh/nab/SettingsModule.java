@@ -41,11 +41,10 @@ public class SettingsModule extends AbstractModule {
     bind(Settings.class).toInstance(new Settings(settingsProperties));
   }
 
-
   @Named("limits-with-names")
   @Provides
   @Singleton
-  List<LimitWithName> limitsWithNameAndHisto(LeakDetector detector) throws IOException {
+  List<LimitWithName> limitsWithName(LeakDetector detector) throws IOException {
     Properties props = new Properties();
     File file = new File(settingsDir, "limits.properties");
     if (file.isFile()) {

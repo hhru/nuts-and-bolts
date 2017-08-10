@@ -3,7 +3,6 @@ package ru.hh.nab;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
-import com.google.inject.servlet.RequestScoped;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
@@ -16,7 +15,6 @@ import ru.hh.nab.jersey.JacksonJerseyMarshaller;
 import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.JerseyResourceFilterFactory;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 
 public class JerseyModule extends AbstractModule {
   private final WebApplication webapp;

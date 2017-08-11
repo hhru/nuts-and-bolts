@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.SimpleLimit;
-import ru.hh.nab.health.monitoring.Dumpable;
-import ru.hh.nab.security.PermissionLoader;
-import ru.hh.nab.security.PropertiesPermissionLoader;
 
 public class SettingsModule extends AbstractModule {
   private final File settingsDir;
@@ -44,23 +41,10 @@ public class SettingsModule extends AbstractModule {
     bind(Settings.class).toInstance(new Settings(settingsProperties));
   }
 
-  @Provides
-  @Singleton
-  protected PermissionLoader permissionLoader() throws IOException {
-    Properties props = new Properties();
-    File file = new File(settingsDir, "api-security.properties");
-    if (file.isFile()) {
-      try (final FileReader fileReader = new FileReader(file)) {
-        props.load(fileReader);
-      }
-    }
-    return new PropertiesPermissionLoader(props);
-  }
-
   @Named("limits-with-names")
   @Provides
   @Singleton
-  List<LimitWithNameAndHisto> limitsWithNameAndHisto(LeakDetector detector) throws IOException {
+  List<LimitWithName> limitsWithName(LeakDetector detector) throws IOException {
     Properties props = new Properties();
     File file = new File(settingsDir, "limits.properties");
     if (file.isFile()) {
@@ -68,31 +52,27 @@ public class SettingsModule extends AbstractModule {
         props.load(fileReader);
       }
     }
-    List<LimitWithNameAndHisto> ret = new ArrayList<>();
+    List<LimitWithName> ret = new ArrayList<>();
 
     for (String name : props.stringPropertyNames()) {
       String property = props.getProperty(name);
       int pos = property.indexOf(',');
       int max = Integer.parseInt(pos == -1 ? property : property.substring(0, pos));
       int warnThreshold = pos == -1 ? 0 : Integer.parseInt(property.substring(pos+1));
-// CountingHistogramImpl<Integer> histo = new CountingHistogramImpl<Integer>(Mappers.eqMapper(max));
 
       Limit limit = new SimpleLimit(max, detector, name, warnThreshold);
-      ret.add(new LimitWithNameAndHisto(limit, name, null));
-// new CountingHistogramQuantilesDumpable<Integer>(histo, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)));
+      ret.add(new LimitWithName(limit, name));
     }
     return ret;
   }
 
-  public static class LimitWithNameAndHisto {
+  public static class LimitWithName {
     public final Limit limit;
     public final String name;
-    public final Dumpable histo;
 
-    public LimitWithNameAndHisto(Limit limit, String name, Dumpable histo) {
+    public LimitWithName(Limit limit, String name) {
       this.limit = limit;
       this.name = name;
-      this.histo = histo;
     }
   }
 }

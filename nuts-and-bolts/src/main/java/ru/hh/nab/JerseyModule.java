@@ -3,7 +3,6 @@ package ru.hh.nab;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
-import com.google.inject.servlet.RequestScoped;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
@@ -15,10 +14,7 @@ import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
 import ru.hh.nab.jersey.JacksonJerseyMarshaller;
 import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.JerseyResourceFilterFactory;
-import ru.hh.nab.security.PermissionLoader;
-import ru.hh.nab.security.Permissions;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 
 public class JerseyModule extends AbstractModule {
   private final WebApplication webapp;
@@ -84,14 +80,4 @@ public class JerseyModule extends AbstractModule {
     return getInitiatedWebapp(resources, ioc);
   }
 
-  @Provides
-  @RequestScoped
-  protected Permissions permissions(HttpServletRequest req, PermissionLoader permissions) {
-    String apiKey = req.getHeader("X-Hh-Api-Key");
-    Permissions ret = permissions.forKey(apiKey);
-    if (ret != null) {
-      return permissions.forKey(apiKey);
-    }
-    return permissions.anonymous();
-  }
 }

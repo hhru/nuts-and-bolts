@@ -48,20 +48,12 @@ import ru.hh.nab.jersey.Concurrency;
 import ru.hh.nab.health.limits.LeakDetector;
 import ru.hh.nab.health.limits.Limit;
 import ru.hh.nab.health.limits.Limits;
-import ru.hh.nab.health.monitoring.Dumpable;
 import ru.hh.nab.health.monitoring.MethodProbingInterceptor;
 import ru.hh.nab.health.monitoring.Probe;
-import ru.hh.nab.health.monitoring.StatsDumper;
 import ru.hh.nab.jersey.ConcurrentJerseyMethodInterceptor;
 import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.RequestUrlFilter;
 import ru.hh.nab.scopes.RequestScope;
-import ru.hh.nab.scopes.ThreadLocalScope;
-import ru.hh.nab.scopes.ThreadLocalScoped;
-import ru.hh.nab.security.Permissions;
-import ru.hh.nab.security.SecureInterceptor;
-import ru.hh.nab.security.SecureMatcher;
-import ru.hh.nab.security.UnauthorizedExceptionJerseyMapper;
 
 @SuppressWarnings("UnusedDeclaration")
 public abstract class NabModule extends AbstractModule {
@@ -77,11 +69,6 @@ public abstract class NabModule extends AbstractModule {
     configureApp();
     bindScheduler();
 
-    bindScope(ThreadLocalScoped.class, ThreadLocalScope.THREAD_LOCAL);
-
-    bind(UnauthorizedExceptionJerseyMapper.class);
-    bindInterceptor(Matchers.any(), new SecureMatcher(), new SecureInterceptor(getProvider(Permissions.class)));
-    schedulePeriodicTask(StatsDumper.class, 10, TimeUnit.SECONDS);
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), MethodProbingInterceptor.INSTANCE);
@@ -296,24 +283,12 @@ public abstract class NabModule extends AbstractModule {
 
   @Provides
   @Singleton
-  protected Limits limits(@Named("limits-with-names") List<SettingsModule.LimitWithNameAndHisto> limits) throws IOException {
+  protected Limits limits(@Named("limits-with-names") List<SettingsModule.LimitWithName> limits) throws IOException {
     Map<String, Limit> ls = Maps.newHashMap();
-    for (SettingsModule.LimitWithNameAndHisto l : limits) {
+    for (SettingsModule.LimitWithName l : limits) {
       ls.put(l.name, l.limit);
     }
     return new Limits(ls);
-  }
-
-  @Provides
-  @Singleton
-  protected StatsDumper statsDumper(@Named("limits-with-names") List<SettingsModule.LimitWithNameAndHisto> limits) {
-    Map<String, Dumpable> ls = Maps.newHashMap();
-    for (SettingsModule.LimitWithNameAndHisto l : limits) {
-      if (l.histo != null) {
-        ls.put(l.name, l.histo);
-      }
-    }
-    return new StatsDumper(ls);
   }
 
   @Named("controller_mdc_key")

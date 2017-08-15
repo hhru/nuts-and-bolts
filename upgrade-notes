@@ -4,13 +4,48 @@
 Но и полное следование этим заметкам ничего не гарантирует, будьте внимательны!
 Если обнаружите, что Вам пришлось что-то сделать не описанное тут - добавьте.
 
-[SNAPSHOT]
+[2.2.0]
 Основное - переход на 5-ый хибер, но можно модуль с хибером не обновлять, т.е. обновить только корный НаБ.
 1.Версия jdbc драйвера обновлена до 42.1.4, можно забыть про ограничения с setFetchSize.
 2.Удалён GuicyHibernateLoader. Он инжектил поля в хибер-сущности. Проверьте, что в ваших Hibernate энтитях ничего не injectиться, это криво.
-3.Удалена задепрекейченый атрибут optional у аннотации Transactional, используйте readOnly.
+3.Удален задепрекейченый атрибут optional у аннотации Transactional, используйте readOnly.
 4.configureEjb3Configuration больше нет, использовался только для jdebug, он теперь из коробки,
-если он нужен - надо придумать, как это получше сделать в hiber5
+5.Изменения из-за hibernate 5:
+5.1. Custom org.hibernate.usertype. Некоторые хиберовские классы переехали в spi подпакет. Просто поправить Compile-time error.
+5.2. Сиквенсы.
+5.2.1.@GenericGenerator(...strategy = "sequence"...)
+  имя параметра поменялось.
+  @Parameter(name = "sequence", value = "hhid_sequence")
+    ->
+  @Parameter(name = "sequence_name", value = "hhid_sequence")
+5.2.2.@SequenceGenerator
+  если есть настройка hibernate.id.new_generator_mappings=false, то @SequenceGenerator будет интерпретирована как старый SequenceHiLoGenerator.
+  если hibernate.id.new_generator_mappings=true (default), для сохранения логики:
+  @SequenceGenerator(name = "lock-history-sequence", sequenceName = "account_lock_history_id_sequence")
+    ->
+  @GenericGenerator(name = "lock-history-sequence", strategy = "sequence",
+     parameters = {
+       @Parameter(name = SequenceStyleGenerator.SEQUENCE_PARAM, value = "account_lock_history_id_sequence"),
+       @Parameter(name = SequenceStyleGenerator.OPT_PARAM, value = "legacy-hilo"),
+       @Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "50")})
+5.3.Joda. org.joda.time.contrib.hibernate.* -> org.jadira.usertype.dateandtime.joda.* (либо лучше перейти на java8 time)
+  поменять зависимость на
+  <groupId>org.jadira.usertype</groupId>
+  <artifactId>usertype.core</artifactId>
+5.3.1. При вычитывании timestamp из базы, он обрубался до миллисекунд (микросекунды отрезались),
+  теперь используется округление с учетом микросекунд. Таким образом при получении даты она может отличаться на миллисекунду,
+  что может оказаться критичным, если по этой дате строится соль.
+5.3.2.Timezone
+  Hiber3: System.getProperty("user.timezone")
+  Hiber5: две таймзоны - javaZone и databaseZone
+  javaZone также берется из настройки, databaseZone берется по умолчанию UTC и используется при чтении и записи из базы.
+  Либо добавить @Parameter(name = "databaseZone", value = "jvm") к маппингу зонированных joda-объектов, т.е.
+  @Type(type = "org.joda.time.contrib.hibernate.PersistentDateTime")
+    ->
+  @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime", parameters = @Parameter(name = "databaseZone", value = "jvm"))
+  либо перейти на LocalDateTime/java8 (лучше)
+6.Следует поставить актуальный PostgreSQLDialect для хибера
+7.Добавлена генерация MetaModel для построения JPA2 Criteria - можно использовать в своих проектах JPA2 Criteria
 
 [2.1.0]
 Добавлен timeout на statement в базу. Чтобы его включить, нужно добавить

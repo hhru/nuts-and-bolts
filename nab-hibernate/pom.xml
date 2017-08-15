@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts Hibernate</name>
 
+    <properties>
+        <hibernate.version>5.2.10.Final</hibernate.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.inject</groupId>
@@ -32,12 +36,12 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>3.6.10.Final</version>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>3.6.10.Final</version>
+            <version>${hibernate.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javassist</groupId>
@@ -48,6 +52,11 @@
                     <artifactId>cglib</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-jpamodelgen</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>

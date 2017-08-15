@@ -7,7 +7,10 @@ import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
 import ru.hh.jdebug.jdbc.log4jdbc.LoggingDataSourceFactory;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -15,7 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.sql.DataSource;
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 
 public class HibernateModule extends AbstractModule {
 
@@ -26,7 +29,7 @@ public class HibernateModule extends AbstractModule {
 
   private final String dataSourceName;
   private final Class<? extends Annotation> annotation;
-  private final Class<?>[] entities;
+  private final List<String> entities;
 
   public HibernateModule(Class<?>... entities) {
     this("default-db", Default.class, entities);
@@ -35,7 +38,7 @@ public class HibernateModule extends AbstractModule {
   public HibernateModule(String dataSourceName, Class<? extends Annotation> annotation, Class<?>... entities) {
     this.dataSourceName = dataSourceName;
     this.annotation = annotation;
-    this.entities = entities;
+    this.entities = Arrays.stream(entities).map(Class::getName).collect(Collectors.toList());
   }
 
   @Override
@@ -67,7 +70,7 @@ public class HibernateModule extends AbstractModule {
     return dataSourceName;
   }
 
-  public Class<?>[] getEntities() {
+  public List<String> getEntities() {
     return entities;
   }
 
@@ -88,16 +91,12 @@ public class HibernateModule extends AbstractModule {
 
       @Override
       public EntityManagerFactory get() {
-        Ejb3Configuration cfg = new Ejb3Configuration();
-        cfg.setProperties(hibernateProperties);
+        final NaBPersistenceUnitInfo nabPersistenceUnitInfo = new NaBPersistenceUnitInfo(getDataSourceName(),
+                LoggingDataSourceFactory.proxyDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation()))),
+                getEntities(),
+                hibernateProperties);
 
-        for (Class<?> entity : getEntities()) {
-          cfg.addAnnotatedClass(entity);
-        }
-
-        cfg.setDataSource(LoggingDataSourceFactory.proxyDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation()))));
-        EntityManagerFactory f = cfg.buildEntityManagerFactory();
-        return f;
+        return new HibernatePersistenceProvider().createContainerEntityManagerFactory(nabPersistenceUnitInfo, null);
       }
     };
   }

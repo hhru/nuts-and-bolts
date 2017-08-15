@@ -2,6 +2,8 @@ package ru.hh.nab.hibernate;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;
+import java.util.Collections;
+import java.util.Properties;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -9,11 +11,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hsqldb.jdbc.JDBCDriver;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class HibernateTest {
+
   @Entity
   @Table(name = "test")
   public static class TestEntity {
@@ -51,19 +55,19 @@ public class HibernateTest {
   public void test() throws PropertyVetoException {
     ComboPooledDataSource ds = new ComboPooledDataSource();
     ds.setJdbcUrl("jdbc:hsqldb:mem:" + getClass().getName());
-    ds.setDriverClass("org.hsqldb.jdbcDriver");
+    ds.setDriverClass(JDBCDriver.class.getName());
     ds.setUser("sa");
     ds.setPassword("");
 
-    Ejb3Configuration cfg = new Ejb3Configuration();
+    final Properties properties = new Properties();
+    properties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    properties.setProperty("hibernate.hbm2ddl.auto", "update");
+    properties.setProperty("hibernate.format_sql", "true");
 
-    cfg.addAnnotatedClass(TestEntity.class);
-    cfg.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-    cfg.setProperty("hibernate.hbm2ddl.auto", "update");
-    cfg.setProperty("hibernate.format_sql", "true");
+    final NaBPersistenceUnitInfo nabPersistenceUnitInfo
+            = new NaBPersistenceUnitInfo("default-db", ds, Collections.singletonList(TestEntity.class.getName()), properties);
 
-    cfg.setDataSource(ds);
-    EntityManagerFactory emf = cfg.buildEntityManagerFactory();
+    final EntityManagerFactory emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(nabPersistenceUnitInfo, null);
 
     EntityManager em = emf.createEntityManager();
 

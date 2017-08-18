@@ -1,43 +1,50 @@
 package ru.hh.nab.hibernate;
 
+import com.mchange.v2.beans.BeansUtils;
 import com.mchange.v2.c3p0.C3P0Registry;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import static java.lang.Boolean.parseBoolean;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.IntConsumer;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Provider;
-import javax.sql.DataSource;
-import org.apache.commons.beanutils.BeanMap;
+import com.mchange.v2.c3p0.DriverManagerDataSource;
+import com.mchange.v2.c3p0.PoolBackedDataSource;
+import com.mchange.v2.c3p0.WrapperConnectionPoolDataSource;
+import com.mchange.v2.log.MLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.CompressedStackFactory;
 import ru.hh.jdbc.MonitoringDataSource;
+import ru.hh.jdbc.StatementTimeoutDataSource;
 import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
 
-public class MonitoringDataSourceProvider implements Provider<DataSource> {
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.sql.DataSource;
+import java.beans.IntrospectionException;
+import java.beans.PropertyVetoException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.IntConsumer;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringDataSourceProvider.class);
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
+
+class DataSourceProvider implements Provider<DataSource> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceProvider.class);
 
   private final String dataSourceName;
+  private Properties dataSourceProps;
   private String serviceName;
-  private Properties c3p0Props;
-  private Properties monitoringProps;
   private String controllerMdcKey;
   private String stackOuterClassExcluding;
   private String stackOuterMethodExcluding;
   private StatsDSender statsDSender;
 
-  public MonitoringDataSourceProvider(String dataSourceName) {
+  DataSourceProvider(String dataSourceName) {
     this.dataSourceName = dataSourceName;
   }
 
@@ -48,8 +55,7 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
   @Inject
   public void setSettingsProperties(@Named("settings.properties") Properties settingsProperties) {
-    c3p0Props = HibernateModule.subTree(dataSourceName + ".c3p0", settingsProperties);
-    monitoringProps = HibernateModule.subTree(dataSourceName + ".monitoring", settingsProperties);
+    dataSourceProps = HibernateModule.subTree(dataSourceName, settingsProperties);
   }
 
   @Inject
@@ -73,51 +79,86 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
   }
 
   @Override
-  @SuppressWarnings({ "unchecked" })
   public DataSource get() {
-    if (c3p0Props.isEmpty()) {
-      throw new IllegalStateException("c3p0 settings NOT found");
-    }
-    final DataSource dataSource = createC3P0DataSource(dataSourceName, c3p0Props);
+    DataSource underlyingDataSource = createDriverManagerDataSource();
 
-    String sendStatsString = monitoringProps.getProperty("sendStats");
-    boolean sendStats;
-    if (sendStatsString != null) {
-      sendStats = parseBoolean(sendStatsString);
-    } else {
-      throw new RuntimeException("Setting " + dataSourceName + ".monitoring.sendStats must be set");
-    }
-
-    if (sendStats) {
-      String longUsageConnectionMsString = monitoringProps.getProperty("longConnectionUsageMs");
-      int longUsageConnectionMs;
-      if (longUsageConnectionMsString != null) {
-        longUsageConnectionMs = Integer.parseInt(longUsageConnectionMsString);
-      } else {
-        throw new RuntimeException("Setting  " + dataSourceName + ".monitoring.longConnectionUsageMs must be set");
+    String statementTimeoutMsVal = dataSourceProps.getProperty("statementTimeoutMs");
+    if (statementTimeoutMsVal != null) {
+      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
+      if (statementTimeoutMs > 0) {
+        underlyingDataSource = new StatementTimeoutDataSource(underlyingDataSource, statementTimeoutMs);
       }
+    }
 
-      boolean sendSampledStats = parseBoolean(monitoringProps.getProperty("sendSampledStats"));
+    underlyingDataSource = createC3P0DataSource(underlyingDataSource);
 
+    checkDataSource(underlyingDataSource, dataSourceName);
+
+    boolean sendStats = parseBoolean(getNotNullProperty("monitoring.sendStats"));
+    if (sendStats) {
+      int longUsageConnectionMs = parseInt(getNotNullProperty("monitoring.longConnectionUsageMs"));
+      boolean sendSampledStats = parseBoolean(dataSourceProps.getProperty("monitoring.sendSampledStats"));
       return new MonitoringDataSource(
-          dataSource,
+          underlyingDataSource,
           dataSourceName,
           createConnectionGetMsConsumer(),
           createConnectionUsageMsConsumer(longUsageConnectionMs, sendSampledStats)
       );
     } else {
-      return dataSource;
+      return underlyingDataSource;
     }
   }
 
-  private static DataSource createC3P0DataSource(String name, Map<Object, Object> properties) {
-    ComboPooledDataSource ds = new ComboPooledDataSource(false);
-    ds.setDataSourceName(name);
-    ds.setIdentityToken(name);
-    new BeanMap(ds).putAll(properties);
-    C3P0Registry.reregister(ds);
-    checkDataSource(ds, name);
-    return ds;
+  private DataSource createDriverManagerDataSource() {
+    DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
+    driverManagerDataSource.setJdbcUrl(getNotNullProperty("jdbcUrl"));
+    driverManagerDataSource.setUser(getNotNullProperty("user"));
+    driverManagerDataSource.setPassword(getNotNullProperty("password"));
+    driverManagerDataSource.setIdentityToken(dataSourceName);
+    return driverManagerDataSource;
+  }
+
+  private DataSource createC3P0DataSource(DataSource unpooledDataSource) {
+    // We could use c3p0 DataSources.pooledDataSource(unpooledDataSource, c3p0Properties),
+    // but it calls constructors with "autoregister=true" property.
+    // This causes c3p0 to generate random identity token, register datasource in jmx under this random token, which pollutes jmx metrics.
+    // That is why we use constructors that allow to turn off "autoregister" property.
+
+    try {
+      Properties c3p0Props = HibernateModule.subTree("c3p0", dataSourceProps);
+
+      WrapperConnectionPoolDataSource wcpds = new WrapperConnectionPoolDataSource(false);
+      wcpds.setNestedDataSource(unpooledDataSource);
+      wcpds.setIdentityToken(dataSourceName);
+      BeansUtils.overwriteAccessiblePropertiesFromMap(
+          c3p0Props,
+          wcpds,
+          false,
+          null,
+          true,
+          MLevel.WARNING,
+          MLevel.WARNING,
+          true);
+
+      PoolBackedDataSource poolBackedDataSource = new PoolBackedDataSource(false);
+      poolBackedDataSource.setConnectionPoolDataSource(wcpds);
+      poolBackedDataSource.setIdentityToken(dataSourceName);
+      BeansUtils.overwriteAccessiblePropertiesFromMap(
+          c3p0Props,
+          poolBackedDataSource,
+          false,
+          null,
+          true,
+          MLevel.WARNING,
+          MLevel.WARNING,
+          true);
+      C3P0Registry.reregister(poolBackedDataSource.unwrap(PoolBackedDataSource.class));
+
+      return poolBackedDataSource;
+
+    } catch (IntrospectionException | SQLException | PropertyVetoException  e) {
+      throw new RuntimeException("Failed to set " + dataSourceName + ".c3p0 properties: " + e.toString(), e);
+    }
   }
 
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {
@@ -189,6 +230,14 @@ public class MonitoringDataSourceProvider implements Provider<DataSource> {
 
   private String getMetricName(String shortName) {
     return serviceName + '.' + dataSourceName + '.' + shortName;
+  }
+
+  private String getNotNullProperty(String key) {
+    String value = dataSourceProps.getProperty(key);
+    if (value == null) {
+      throw new RuntimeException(dataSourceName + '.' + key + " setting NOT found");
+    }
+    return value;
   }
 
 }

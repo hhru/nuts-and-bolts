@@ -40,10 +40,9 @@ public class PersistenceTest {
     props.put("default-db.hibernate.hbm2ddl.auto", "update");
     props.put("default-db.hibernate.format_sql", "true");
 
-    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-    props.put("default-db.c3p0.user", "sa");
-    props.put("default-db.c3p0.password", "");
+    props.put("default-db.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+    props.put("default-db.user", "sa");
+    props.put("default-db.password", "");
 
     props.put("default-db.monitoring.sendStats", "false");
     props.put("default-db.monitoring.longConnectionUsageMs", "3000");
@@ -80,10 +79,9 @@ public class PersistenceTest {
     props.put("default-db.hibernate.hbm2ddl.auto", "update");
     props.put("default-db.hibernate.format_sql", "true");
 
-    props.put("default-db.c3p0.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-    props.put("default-db.c3p0.driverClass", "org.hsqldb.jdbcDriver");
-    props.put("default-db.c3p0.user", "sa");
-    props.put("default-db.c3p0.password", "");
+    props.put("default-db.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
+    props.put("default-db.user", "sa");
+    props.put("default-db.password", "");
 
     props.put("default-db.monitoring.sendStats", "false");
     props.put("default-db.monitoring.longConnectionUsageMs", "3000");

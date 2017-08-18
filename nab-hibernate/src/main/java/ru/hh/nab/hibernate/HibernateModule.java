@@ -44,7 +44,7 @@ public class HibernateModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(DataSource.class).annotatedWith(annotation).toProvider(dataSourceProvider()).in(Scopes.SINGLETON);
+    bind(DataSource.class).annotatedWith(annotation).toProvider(new DataSourceProvider(dataSourceName)).in(Scopes.SINGLETON);
 
     bind(EntityManagerFactory.class).annotatedWith(annotation)
             .toProvider(hibernateEntityManagerFactoryProvider())
@@ -65,10 +65,6 @@ public class HibernateModule extends AbstractModule {
     bind(PostCommitHooks.class).annotatedWith(annotation).toProvider(tx::currentPostCommitHooks);
 
     bind(DebugInitializer.class).asEagerSingleton();
-  }
-
-  private Provider<DataSource> dataSourceProvider() {
-    return new MonitoringDataSourceProvider(dataSourceName);
   }
 
   public String getDataSourceName() {

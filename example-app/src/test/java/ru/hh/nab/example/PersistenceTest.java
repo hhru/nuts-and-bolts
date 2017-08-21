@@ -36,16 +36,16 @@ public class PersistenceTest {
     props.put("concurrencyLevel", "1");
     props.put("port", "0");
 
-    props.put("default-db.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
-    props.put("default-db.hibernate.hbm2ddl.auto", "update");
-    props.put("default-db.hibernate.format_sql", "true");
+    props.put("default-db2.hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    props.put("default-db2.hibernate.hbm2ddl.auto", "update");
+    props.put("default-db2.hibernate.format_sql", "true");
 
-    props.put("default-db.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName());
-    props.put("default-db.user", "sa");
-    props.put("default-db.password", "");
+    props.put("default-db2.jdbcUrl", "jdbc:hsqldb:mem:" + getClass().getName() + '2');
+    props.put("default-db2.user", "sa");
+    props.put("default-db2.password", "");
 
-    props.put("default-db.monitoring.sendStats", "false");
-    props.put("default-db.monitoring.longConnectionUsageMs", "3000");
+    props.put("default-db2.monitoring.sendStats", "false");
+    props.put("default-db2.monitoring.longConnectionUsageMs", "3000");
 
     Launcher.Instance inst = Launcher.testMode(
       Stage.DEVELOPMENT,
@@ -54,7 +54,7 @@ public class PersistenceTest {
         protected void configureApp() {
           PostCommitHooks.debug = true;
           bind(String.class).annotatedWith(Names.named("serviceName")).toInstance("serviceName");
-          install(new HibernateModule(TestEntity.class));
+          install(new HibernateModule("default-db2", Default.class, TestEntity.class));
           bind(EntityManagerWrapper.class).in(Scopes.SINGLETON);
         }
       }, props, new Properties(), new Properties());

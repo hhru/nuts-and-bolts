@@ -46,6 +46,7 @@
   либо перейти на LocalDateTime/java8 (лучше)
 6.Следует поставить актуальный PostgreSQLDialect для хибера
 7.Добавлена генерация MetaModel для построения JPA2 Criteria - можно использовать в своих проектах JPA2 Criteria
+8.Удалить если есть не нужный hibernate.cfg.xml
 
 [2.1.0]
 Добавлен timeout на statement в базу. Чтобы его включить, нужно добавить

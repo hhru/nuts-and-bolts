@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface Probe {
-  String desc();
+public @interface OutOfRequestScope {
+  String requestIdOverride() default "outOfRequestScope";
 }

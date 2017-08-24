@@ -71,6 +71,7 @@ public abstract class NabModule extends AbstractModule {
 
     schedulePeriodicTask(LeakDetector.class, 10, TimeUnit.SECONDS);
 
+    requestStaticInjection(MethodProbingInterceptor.class);
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(Probe.class), MethodProbingInterceptor.INSTANCE);
 
     ConcurrentJerseyMethodInterceptor concurrentJerseyMethodInterceptor = new ConcurrentJerseyMethodInterceptor();

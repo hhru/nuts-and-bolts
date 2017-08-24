@@ -160,6 +160,13 @@ public class RequestScope implements TransferrableScope {
     cls.decrementAfterServiceTasksLatchCounter();
   }
 
+  public static void checkNotInRequestScope() {
+    RequestScopeClosure cls = closure.get();
+    if (cls != null) {
+      throw new InScopeException("Inside of RequestScope");
+    }
+  }
+
   public static void addAfterServiceTask(Callable<Void> task) {
     RequestScopeClosure cls = closure.get();
     if (cls == null) {

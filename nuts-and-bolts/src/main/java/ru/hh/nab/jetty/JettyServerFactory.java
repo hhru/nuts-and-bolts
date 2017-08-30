@@ -5,6 +5,7 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.log.Log;
@@ -12,6 +13,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.jetty.HHServerConnector;
 import ru.hh.jetty.RequestLogger;
+import ru.hh.jetty.RequestWithCacheLogger;
 import ru.hh.nab.Settings;
 import ru.hh.nab.scopes.RequestScopeFilter;
 import javax.servlet.DispatcherType;
@@ -24,9 +26,10 @@ import static ru.hh.nab.Settings.getIntProperty;
 
 public abstract class JettyServerFactory {
 
-  public static Server create(Settings settings, HttpServlet httpServlet) {
+  public static Server create(Settings settings, HttpServlet httpServlet, FilterHolder cacheFilter) {
 
     final Properties props = settings.subTree("jetty");
+    final boolean httpCacheEnabled = cacheFilter.isInstance();
 
     HttpConfiguration httpConfiguration = new HttpConfiguration();
     httpConfiguration.setOutputBufferSize(getIntProperty(props, "outputBufferSize", 65536));
@@ -51,7 +54,7 @@ public abstract class JettyServerFactory {
     server.addBean(mbContainer);
     server.addBean(Log.getLog());
 
-    server.setRequestLog(new RequestLogger());
+    server.setRequestLog(httpCacheEnabled ? new RequestWithCacheLogger() : new RequestLogger());
 
     final HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);
 
@@ -70,19 +73,21 @@ public abstract class JettyServerFactory {
     server.setStopAtShutdown(true);
     server.setStopTimeout(getIntProperty(props, "serverStopTimeout", 10_000));
 
-    server.setHandler(createWebapp(httpServlet));
-
-    return server;
-  }
-
-  private static ServletContextHandler createWebapp(HttpServlet httpServlet) {
     ServletContextHandler context = new ServletContextHandler();
     context.setContextPath("/");
+
     context.addFilter(RequestScopeFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-    ServletHolder sh = new ServletHolder();
-    sh.setServlet(httpServlet);
-    sh.setAsyncSupported(true);
-    context.addServlet(sh, "/*");
-    return context;
+    if (httpCacheEnabled) {
+      context.addFilter(cacheFilter, "/*", EnumSet.allOf(DispatcherType.class));
+    }
+
+    ServletHolder servletHolder = new ServletHolder();
+    servletHolder.setServlet(httpServlet);
+    servletHolder.setAsyncSupported(true);
+    context.addServlet(servletHolder, "/*");
+
+    server.setHandler(context);
+
+    return server;
   }
 }

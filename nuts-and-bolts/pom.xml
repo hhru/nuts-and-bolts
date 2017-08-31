@@ -70,7 +70,7 @@
         <dependency>
             <groupId>ru.hh</groupId>
             <artifactId>jetty-utils</artifactId>
-            <version>1.5</version>
+            <version>1.7</version>
         </dependency>
         <!-- update jetty version in jetty-utils first to pass unit tests -->
         <dependency>
@@ -82,6 +82,12 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jmx</artifactId>
             <version>${jetty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.caffinitas.ohc</groupId>
+            <artifactId>ohc-core-j8</artifactId>
+            <version>0.6.1</version>
         </dependency>
 
         <!-- Jersey -->
@@ -131,7 +137,6 @@
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.26-incubating</version>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

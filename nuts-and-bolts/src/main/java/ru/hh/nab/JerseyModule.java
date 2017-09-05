@@ -11,7 +11,6 @@ import ru.hh.nab.jersey.FilteredXMLJAXBElementProvider;
 import ru.hh.nab.jersey.FilteredXMLListElementProvider;
 import ru.hh.nab.jersey.FilteredXMLRootElementProvider;
 import ru.hh.nab.jersey.FreemarkerJerseyMarshaller;
-import ru.hh.nab.jersey.JacksonJerseyMarshaller;
 import ru.hh.nab.jersey.JerseyHttpServlet;
 import ru.hh.nab.jersey.JerseyResourceFilterFactory;
 import javax.inject.Singleton;
@@ -38,7 +37,6 @@ public class JerseyModule extends AbstractModule {
   protected ResourceConfig resourceConfig(Settings settings) {
     ResourceConfig ret = new DefaultResourceConfig(
       FreemarkerJerseyMarshaller.class,
-      JacksonJerseyMarshaller.class,
       FilteredXMLRootElementProvider.App.class,
       FilteredXMLRootElementProvider.General.class,
       FilteredXMLRootElementProvider.Text.class,

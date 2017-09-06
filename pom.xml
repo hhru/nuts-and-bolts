@@ -22,7 +22,7 @@
 
     <properties>
         <guice.version>4.1.0</guice.version>
-        <jdebug.version>0.0.14</jdebug.version>
+        <jdebug.version>0.0.15</jdebug.version>
     </properties>
 
     <dependencyManagement>
@@ -77,7 +77,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>2.8.47</version>
+                <version>2.9.0</version>
             </dependency>
             <dependency>
                 <groupId>org.hsqldb</groupId>
@@ -134,7 +134,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.1</version>
+                        <version>8.2</version>
                     </dependency>
                 </dependencies>
                 <executions>

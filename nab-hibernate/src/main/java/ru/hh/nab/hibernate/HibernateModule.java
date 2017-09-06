@@ -82,17 +82,20 @@ public class HibernateModule extends AbstractModule {
     return new Provider<EntityManagerFactory>() {
       private Properties hibernateProperties;
       private Injector injector;
+      private boolean debugEnabled;
 
       @Inject
       public void inject(@Named("settings.properties") Properties settingsProperties, Injector injector) {
         this.hibernateProperties = subTree(getDataSourceName() + ".hibernate", "hibernate", settingsProperties);
         this.injector = injector;
+        debugEnabled = "true".equals(settingsProperties.getProperty("jdebug.enabled"));
       }
 
       @Override
       public EntityManagerFactory get() {
+        final DataSource originalDS = injector.getInstance(Key.get(DataSource.class, getAnnotation()));
         final NaBPersistenceUnitInfo nabPersistenceUnitInfo = new NaBPersistenceUnitInfo(getDataSourceName(),
-                LoggingDataSourceFactory.proxyDataSource(injector.getInstance(Key.get(DataSource.class, getAnnotation()))),
+                debugEnabled ? LoggingDataSourceFactory.proxyDataSource(originalDS) : originalDS,
                 getEntities(),
                 hibernateProperties);
 

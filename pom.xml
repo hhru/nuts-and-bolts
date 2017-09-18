@@ -18,7 +18,7 @@
     <packaging>pom</packaging>
 
     <name>nuts'n'bolts parent module</name>
-    <version>2.2.6-SNAPSHOT</version>
+    <version>2.2.6</version>
 
     <properties>
         <guice.version>4.1.0</guice.version>
@@ -182,6 +182,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>nuts-and-bolts-parent-2.2.6</tag>
     </scm>
 </project>

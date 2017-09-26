@@ -7,6 +7,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Stage;
+import com.google.inject.name.Names;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.WebApplicationFactory;
 import java.io.File;
@@ -59,6 +60,7 @@ public class Launcher {
       new AbstractModule() {
         @Override
         protected void configure() {
+          Names.bindProperties(binder(), settings);
         }
 
         @Provides

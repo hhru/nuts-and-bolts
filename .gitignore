@@ -10,3 +10,5 @@ target
 */.classpath
 nb-configuration.xml
 dependency-reduced-pom.xml
+
+*.log

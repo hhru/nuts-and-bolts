@@ -11,6 +11,11 @@
         <module>nuts-and-bolts</module>
         <module>example-app</module>
         <module>nab-hibernate</module>
+
+        <module>nab-spring</module>
+        <module>nab-spring-testbase</module>
+        <module>nab-spring-hibernate</module>
+        <module>nab-spring-example</module>
     </modules>
 
     <groupId>ru.hh.nab</groupId>
@@ -23,6 +28,7 @@
     <properties>
         <guice.version>4.1.0</guice.version>
         <jdebug.version>0.0.23</jdebug.version>
+        <spring.version>5.0.3.RELEASE</spring.version>
     </properties>
 
     <dependencyManagement>

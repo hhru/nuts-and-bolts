@@ -1,0 +1,95 @@
+<included>
+
+    <property file="${settingsDir}/settings.properties"/>
+    <property scope="context" name="log.dir" value="${log.dir:-logs}"/>
+    <property scope="context" name="log.immediate.flush" value="${log.immediate.flush:-true}"/>
+    <property scope="context" name="log.toConsole" value="${log.toConsole:-false}"/>
+    <property scope="context" name="log.timings" value="${log.timings:-false}"/>
+
+    <property scope="context" name="log.pattern"
+              value="[%date{ISO8601}] [%thread] %-5level %logger{36} rid:%X{request_id} - %msg%n"/>
+
+    <!-- service -->
+    <appender name="service" class="ru.hh.logging.HhRollingAppender"/>
+    <appender name="asyncService" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <appender-ref ref="service"/>
+    </appender>
+
+    <!-- timings -->
+    <!-- to enable timings logger, add log.timings=true in application settings -->
+    <if condition='"true".equals(property("log.timings"))'>
+        <then>
+            <appender name="timings" class="ru.hh.logging.HhRollingAppender"/>
+            <appender name="asyncTimings" class="ch.qos.logback.classic.AsyncAppender">
+                <queueSize>500</queueSize>
+                <appender-ref ref="timings"/>
+            </appender>
+            <logger name="ru.hh.health.monitoring.TimingsLogger" level="DEBUG" additivity="false">
+                <appender-ref ref="asyncTimings"/>
+            </logger>
+        </then>
+    </if>
+
+    <!-- requests -->
+    <appender name="requests" class="ru.hh.logging.HhRollingAppender">
+        <pattern>%date %msg%n</pattern>
+    </appender>
+    <appender name="asyncRequests" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="requests"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    <logger name="ru.hh.jetty.RequestLogger" additivity="false" level="info">
+        <appender-ref ref="asyncRequests"/>
+    </logger>
+
+    <!-- libraries -->
+    <appender name="libraries" class="ru.hh.logging.HhRollingAppender"/>
+    <appender name="asyncLibraries" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="libraries"/>
+        <queueSize>512</queueSize>
+    </appender>
+    <logger name="org.hibernate" additivity="false" level="WARN">
+        <appender-ref ref="asyncLibraries"/>
+    </logger>
+    <logger name="com.mchange" additivity="false" level="WARN">
+        <appender-ref ref="asyncLibraries"/>
+    </logger>
+
+    <logger name="net.kencochrane" additivity="false" level="OFF"/>
+
+    <!-- Sentry -->
+    <appender name="Sentry" class="net.kencochrane.raven.logback.SentryAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${sentry.level}</level>
+        </filter>
+        <dsn>${sentry.dsn}</dsn>
+    </appender>
+
+    <!-- debug -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <if condition='"true".equals(property("log.toConsole"))'>
+        <then>
+            <logger name="org.eclipse.jetty" additivity="false" level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </logger>
+        </then>
+    </if>
+
+    <root level="WARN">
+        <appender-ref ref="asyncService"/>
+        <appender-ref ref="Sentry"/>
+        <if condition='"true".equals(property("log.toConsole"))'>
+            <then>
+                <appender-ref ref="CONSOLE"/>
+            </then>
+        </if>
+    </root>
+
+</included>

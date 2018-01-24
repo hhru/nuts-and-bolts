@@ -22,7 +22,7 @@
 
     <properties>
         <guice.version>4.1.0</guice.version>
-        <jdebug.version>0.0.22</jdebug.version>
+        <jdebug.version>0.0.23</jdebug.version>
     </properties>
 
     <dependencyManagement>

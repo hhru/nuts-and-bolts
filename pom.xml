@@ -23,7 +23,7 @@
     <packaging>pom</packaging>
 
     <name>nuts'n'bolts parent module</name>
-    <version>2.2.10-SNAPSHOT</version>
+    <version>3.0-SNAPSHOT</version>
 
     <properties>
         <guice.version>4.1.0</guice.version>

@@ -7,24 +7,22 @@
         <version>1.31</version>
     </parent>
 
-    <groupId>ru.hh.nab</groupId>
+    <groupId>ru.hh.nab-retro</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.0-SNAPSHOT</version>
 
-    <name>nuts'n'bolts parent module</name>
+    <name>nuts'n'bolts retro parent</name>
+    <version>2.2.10-SNAPSHOT</version>
 
     <modules>
-        <module>nab-spring</module>
-        <module>nab-spring-testbase</module>
-        <module>nab-spring-hibernate</module>
-        <module>nab-spring-example</module>
+        <module>nuts-and-bolts</module>
+        <module>example-app</module>
+        <module>nab-hibernate</module>
     </modules>
 
     <properties>
+        <guice.version>4.1.0</guice.version>
         <jdebug.version>0.0.23</jdebug.version>
-        <spring.version>5.0.3.RELEASE</spring.version>
-        <hibernate.version>5.2.10.Final</hibernate.version>
     </properties>
 
     <dependencyManagement>

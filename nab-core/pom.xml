@@ -8,15 +8,14 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>nab-spring</artifactId>
+    <artifactId>nab-core</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts spring</name>
+    <name>nuts'n'bolts core</name>
 
     <properties>
         <jersey.version>2.21</jersey.version>
         <jetty.version>9.4.6.v20170531</jetty.version>
-        <hibernate.version>5.2.10.Final</hibernate.version>
     </properties>
 
     <dependencies>

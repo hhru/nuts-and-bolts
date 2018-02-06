@@ -15,10 +15,10 @@
     <name>nuts'n'bolts parent module</name>
 
     <modules>
-        <module>nab-spring</module>
-        <module>nab-spring-testbase</module>
-        <module>nab-spring-hibernate</module>
-        <module>nab-spring-example</module>
+        <module>nab-core</module>
+        <module>nab-testbase</module>
+        <module>nab-hibernate</module>
+        <module>nab-example</module>
     </modules>
 
     <properties>

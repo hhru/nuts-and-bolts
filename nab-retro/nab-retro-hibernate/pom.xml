@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.hh.nab-retro</groupId>
-        <artifactId>nuts-and-bolts-parent</artifactId>
+        <artifactId>nuts-and-bolts-retro-parent</artifactId>
         <version>2.2.10-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>nab-hibernate</artifactId>
+    <artifactId>nab-retro-hibernate</artifactId>
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts retro hibernate</name>

@@ -8,16 +8,14 @@
     </parent>
 
     <groupId>ru.hh.nab-retro</groupId>
-    <artifactId>nuts-and-bolts-parent</artifactId>
+    <artifactId>nuts-and-bolts-retro-parent</artifactId>
     <packaging>pom</packaging>
-
-    <name>nuts'n'bolts retro parent</name>
     <version>2.2.10-SNAPSHOT</version>
 
     <modules>
         <module>nuts-and-bolts</module>
-        <module>example-app</module>
-        <module>nab-hibernate</module>
+        <module>nab-retro-example</module>
+        <module>nab-retro-hibernate</module>
     </modules>
 
     <properties>

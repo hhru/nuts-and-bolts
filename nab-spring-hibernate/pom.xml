@@ -13,10 +13,6 @@
 
     <name>nuts'n'bolts spring and hibernate integration</name>
 
-    <properties>
-        <hibernate.version>5.2.10.Final</hibernate.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>

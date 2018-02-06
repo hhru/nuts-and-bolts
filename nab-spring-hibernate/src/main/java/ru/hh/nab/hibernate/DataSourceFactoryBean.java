@@ -16,8 +16,8 @@ import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
 import ru.hh.nab.hibernate.datasource.DataSourceType;
-import ru.hh.nab.util.FileSettings;
-import ru.hh.nab.util.MDC;
+import ru.hh.nab.core.util.FileSettings;
+import ru.hh.nab.core.util.MDC;
 
 import javax.sql.DataSource;
 import java.beans.IntrospectionException;
@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 
 import static java.lang.Integer.parseInt;
-import static ru.hh.nab.util.MDC.CONTROLLER_MDC_KEY;
+import static ru.hh.nab.core.util.MDC.CONTROLLER_MDC_KEY;
 
 public class DataSourceFactoryBean {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactoryBean.class);

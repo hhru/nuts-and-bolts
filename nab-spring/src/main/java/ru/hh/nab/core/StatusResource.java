@@ -1,4 +1,4 @@
-package ru.hh.nab;
+package ru.hh.nab.core;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

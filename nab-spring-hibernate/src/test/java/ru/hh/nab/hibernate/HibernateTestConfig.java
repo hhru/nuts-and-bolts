@@ -6,7 +6,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.hh.nab.hibernate.datasource.Default;
-import ru.hh.nab.util.FileSettings;
+import ru.hh.nab.core.util.FileSettings;
 
 import java.util.Properties;
 

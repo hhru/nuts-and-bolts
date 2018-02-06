@@ -1,4 +1,4 @@
-package ru.hh.nab;
+package ru.hh.nab.core;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -11,13 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
-import ru.hh.nab.filters.RequestIdLoggingFilter;
-import ru.hh.nab.filters.ResourceNameLoggingFilter;
-import ru.hh.nab.jersey.FilteredXmlElementProvider;
-import ru.hh.nab.jersey.FilteredXmlListElementProvider;
-import ru.hh.nab.jersey.FilteredXmlRootElementProvider;
-import ru.hh.nab.jetty.JettyFactory;
-import ru.hh.nab.util.FileSettings;
+import ru.hh.nab.core.filters.RequestIdLoggingFilter;
+import ru.hh.nab.core.filters.ResourceNameLoggingFilter;
+import ru.hh.nab.core.jersey.FilteredXmlElementProvider;
+import ru.hh.nab.core.jersey.FilteredXmlListElementProvider;
+import ru.hh.nab.core.jersey.FilteredXmlRootElementProvider;
+import ru.hh.nab.core.jetty.JettyFactory;
+import ru.hh.nab.core.util.FileSettings;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Servlet;

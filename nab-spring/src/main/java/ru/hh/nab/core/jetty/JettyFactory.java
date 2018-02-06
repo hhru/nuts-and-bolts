@@ -1,4 +1,4 @@
-package ru.hh.nab.jetty;
+package ru.hh.nab.core.jetty;
 
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Handler;
@@ -14,7 +14,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.jetty.HHServerConnector;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.jetty.RequestWithCacheLogger;
-import ru.hh.nab.util.FileSettings;
+import ru.hh.nab.core.util.FileSettings;
 
 import javax.servlet.Servlet;
 import java.lang.management.ManagementFactory;

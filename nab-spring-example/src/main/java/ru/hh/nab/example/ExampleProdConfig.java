@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import ru.hh.nab.NabProdConfig;
+import ru.hh.nab.core.NabProdConfig;
 import ru.hh.nab.hibernate.NabHibernateProdConfig;
 import ru.hh.nab.hibernate.datasource.DataSourceType;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;

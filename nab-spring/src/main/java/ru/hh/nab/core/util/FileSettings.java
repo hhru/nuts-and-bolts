@@ -1,4 +1,4 @@
-package ru.hh.nab.util;
+package ru.hh.nab.core.util;
 
 import com.google.common.base.Strings;
 

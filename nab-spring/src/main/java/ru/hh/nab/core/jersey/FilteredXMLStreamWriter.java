@@ -1,4 +1,4 @@
-package ru.hh.nab.jersey;
+package ru.hh.nab.core.jersey;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLOutputFactory;

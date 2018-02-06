@@ -15,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static ru.hh.nab.core.jetty.JettyFactory.createJettyThreadPool;
 
 @Configuration
-public class NabCommonConfig {
+public class CoreCommonConfig {
 
   @Bean(name = "serviceName")
   String serviceName(FileSettings fileSettings) {
@@ -54,15 +54,5 @@ public class NabCommonConfig {
   @Bean
   AppMetadata appMetadata(String serviceName) {
     return new AppMetadata(serviceName);
-  }
-
-  @Bean
-  StatusResource statusResource(AppMetadata appMetadata) {
-    return new StatusResource(appMetadata);
-  }
-
-  @Bean
-  StatsResource statsResource() {
-    return new StatsResource();
   }
 }

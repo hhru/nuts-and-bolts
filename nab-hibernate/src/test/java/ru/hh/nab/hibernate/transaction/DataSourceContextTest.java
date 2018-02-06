@@ -9,17 +9,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.hh.nab.hibernate.HibernateTestConfig;
-import ru.hh.nab.hibernate.NabHibernateCommonConfig;
+import ru.hh.nab.hibernate.HibernateCommonConfig;
 import ru.hh.nab.hibernate.datasource.DataSourceType;
-import ru.hh.nab.testbase.NabTestBase;
+import ru.hh.nab.testbase.CoreTestBase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.core.util.MDC.DATA_SOURCE_MDC_KEY;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class, NabHibernateCommonConfig.class})
-public class DataSourceContextTest extends NabTestBase {
+@ContextConfiguration(classes = {HibernateTestConfig.class, HibernateCommonConfig.class})
+public class DataSourceContextTest extends CoreTestBase {
 
   @BeforeClass
   public static void setUpDataSourceContextTest() {

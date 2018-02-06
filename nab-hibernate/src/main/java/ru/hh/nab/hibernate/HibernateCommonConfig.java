@@ -16,7 +16,7 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
-public class NabHibernateCommonConfig {
+public class HibernateCommonConfig {
 
   @Bean
   MappingConfig mappingConfig() {

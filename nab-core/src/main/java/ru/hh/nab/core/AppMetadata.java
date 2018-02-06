@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class AppMetadata {
 
@@ -49,6 +50,6 @@ public class AppMetadata {
   }
 
   public long getUpTimeSeconds() {
-    return (System.currentTimeMillis() - started) / 1000;
+    return TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - started);
   }
 }

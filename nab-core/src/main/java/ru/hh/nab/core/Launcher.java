@@ -28,8 +28,9 @@ import java.util.EnumSet;
 
 import static java.text.MessageFormat.format;
 
-public abstract class NabLauncher {
-  private static final Logger LOGGER = LoggerFactory.getLogger(NabLauncher.class);
+public abstract class Launcher {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
 
   protected static void doMain(ApplicationContext context) {
     SLF4JBridgeHandler.removeHandlersForRootLogger();

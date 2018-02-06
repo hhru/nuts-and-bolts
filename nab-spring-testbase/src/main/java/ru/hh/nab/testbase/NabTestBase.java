@@ -2,7 +2,7 @@ package ru.hh.nab.testbase;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import ru.hh.nab.NabCommonConfig;
+import ru.hh.nab.core.NabCommonConfig;
 
 @ContextConfiguration(classes = {NabCommonConfig.class})
 public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {

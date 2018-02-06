@@ -1,4 +1,4 @@
-package ru.hh.nab;
+package ru.hh.nab.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

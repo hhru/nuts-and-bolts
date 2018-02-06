@@ -15,9 +15,9 @@ import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import ru.hh.nab.NabLauncher;
-import ru.hh.nab.util.Classes;
-import ru.hh.nab.util.FileSettings;
+import ru.hh.nab.core.NabLauncher;
+import ru.hh.nab.testbase.util.Classes;
+import ru.hh.nab.core.util.FileSettings;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;

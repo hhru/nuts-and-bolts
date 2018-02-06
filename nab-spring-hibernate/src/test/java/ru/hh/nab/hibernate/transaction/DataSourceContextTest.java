@@ -16,7 +16,7 @@ import ru.hh.nab.testbase.NabTestBase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
-import static ru.hh.nab.util.MDC.DATA_SOURCE_MDC_KEY;
+import static ru.hh.nab.core.util.MDC.DATA_SOURCE_MDC_KEY;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class, NabHibernateCommonConfig.class})
 public class DataSourceContextTest extends NabTestBase {

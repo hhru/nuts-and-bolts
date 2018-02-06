@@ -3,11 +3,11 @@ package ru.hh.nab.hibernate.transaction;
 import com.google.common.annotations.VisibleForTesting;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.nab.hibernate.datasource.DataSourceType;
-import ru.hh.nab.util.MDC;
+import ru.hh.nab.core.util.MDC;
 
 import java.util.function.Supplier;
 
-import static ru.hh.nab.util.MDC.DATA_SOURCE_MDC_KEY;
+import static ru.hh.nab.core.util.MDC.DATA_SOURCE_MDC_KEY;
 
 public class DataSourceContext {
   private static final ThreadLocal<DataSourceType> CURRENT_DATA_SOURCE_TYPE = new ThreadLocal<>();

@@ -1,7 +1,7 @@
 package ru.hh.nab.example;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ru.hh.nab.NabLauncher;
+import ru.hh.nab.core.NabLauncher;
 
 public class ExampleMain extends NabLauncher {
 

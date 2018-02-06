@@ -1,4 +1,4 @@
-package ru.hh.nab.jmx;
+package ru.hh.nab.core.jmx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

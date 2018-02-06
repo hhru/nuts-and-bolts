@@ -1,4 +1,4 @@
-package ru.hh.nab.jersey;
+package ru.hh.nab.core.jersey;
 
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.jersey.jaxb.internal.AbstractJaxbElementProvider;

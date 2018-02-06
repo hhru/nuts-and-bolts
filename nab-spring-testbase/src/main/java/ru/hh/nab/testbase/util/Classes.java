@@ -1,6 +1,6 @@
-package ru.hh.nab.util;
+package ru.hh.nab.testbase.util;
 
-public abstract class Classes {
+public class Classes {
   public static boolean hasDeclaredMethod(Class<?> klass, String method, Class<?>... argKlasses) {
     try {
       klass.getDeclaredMethod(method, argKlasses);
@@ -8,5 +8,8 @@ public abstract class Classes {
     } catch (NoSuchMethodException e) {
       return false;
     }
+  }
+
+  private Classes() {
   }
 }

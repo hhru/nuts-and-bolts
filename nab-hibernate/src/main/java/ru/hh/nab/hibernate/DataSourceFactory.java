@@ -31,21 +31,21 @@ import java.util.function.IntConsumer;
 import static java.lang.Integer.parseInt;
 import static ru.hh.nab.core.util.MDC.CONTROLLER_MDC_KEY;
 
-public class DataSourceFactoryBean {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactoryBean.class);
+public class DataSourceFactory {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);
 
   private final FileSettings settings;
   private final String serviceName;
   private final StatsDSender statsDSender;
 
-  public DataSourceFactoryBean(FileSettings settings, String serviceName, StatsDSender statsDSender) {
+  public DataSourceFactory(FileSettings settings, String serviceName, StatsDSender statsDSender) {
     this.settings = settings;
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
   }
 
   public DataSource create(DataSourceType dataSourceType) {
-    final String dataSourceName = dataSourceType.name();
+    final String dataSourceName = dataSourceType.getId();
     final FileSettings dataSourceSettings = settings.getSubSettings(dataSourceName);
     DataSource underlyingDataSource = createDriverManagerDataSource(dataSourceName, dataSourceSettings);
 
@@ -78,6 +78,7 @@ public class DataSourceFactoryBean {
 
   private static DataSource createDriverManagerDataSource(String dataSourceName, FileSettings dataSourceSettings) {
     DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
+    driverManagerDataSource.setDriverClass(dataSourceSettings.getString("driverClass"));
     driverManagerDataSource.setJdbcUrl(dataSourceSettings.getString("jdbcUrl"));
     driverManagerDataSource.setUser(dataSourceSettings.getString("user"));
     driverManagerDataSource.setPassword(dataSourceSettings.getString("password"));

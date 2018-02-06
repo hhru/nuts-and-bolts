@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import ru.hh.nab.core.NabLauncher;
+import ru.hh.nab.core.Launcher;
 import ru.hh.nab.testbase.util.Classes;
 import ru.hh.nab.core.util.FileSettings;
 
@@ -37,7 +37,7 @@ public abstract class JerseyTest extends AbstractJUnit4SpringContextTests {
     }
     try {
       holder.get(() -> {
-        int port = NabLauncher.startApplication(applicationContext);
+        int port = Launcher.startApplication(applicationContext);
         LOGGER.info("Test server is bound to port {}", port);
         return new Instance(port);
       });

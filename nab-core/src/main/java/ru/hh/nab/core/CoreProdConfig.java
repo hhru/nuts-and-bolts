@@ -18,8 +18,9 @@ import static ru.hh.nab.core.jetty.HttpCacheFilterFactory.createCacheFilterHolde
 import static ru.hh.nab.core.util.PropertiesUtils.fromFilesInSettingsDir;
 
 @Configuration
-@Import({NabCommonConfig.class})
-public class NabProdConfig {
+@Import({CoreCommonConfig.class})
+public class CoreProdConfig {
+
   @Bean
   FileSettings fileSettings() throws Exception {
     Properties properties = fromFilesInSettingsDir("settings.properties", "settings.properties.dev");
@@ -44,5 +45,15 @@ public class NabProdConfig {
   @Bean
   MBeanExporter mBeanExporter(FileSettings settings, MBeanServer mbeanServer) {
     return MBeanExporterFactory.create(settings, mbeanServer);
+  }
+
+  @Bean
+  StatusResource statusResource(AppMetadata appMetadata) {
+    return new StatusResource(appMetadata);
+  }
+
+  @Bean
+  StatsResource statsResource() {
+    return new StatsResource();
   }
 }

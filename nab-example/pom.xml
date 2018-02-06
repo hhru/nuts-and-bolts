@@ -34,7 +34,7 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-testbase</artifactId>
+            <artifactId>nab-testbase</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

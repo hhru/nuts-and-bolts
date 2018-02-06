@@ -8,21 +8,21 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>nab-spring-hibernate</artifactId>
+    <artifactId>nab-hibernate</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts spring and hibernate integration</name>
+    <name>nuts'n'bolts hibernate and spring integration</name>
 
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring</artifactId>
+            <artifactId>nab-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-testbase</artifactId>
+            <artifactId>nab-testbase</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

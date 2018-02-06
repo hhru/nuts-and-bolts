@@ -8,16 +8,16 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>nab-spring-testbase</artifactId>
+    <artifactId>nab-testbase</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts spring test base</name>
+    <name>nuts'n'bolts test-base</name>
 
     <dependencies>
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring</artifactId>
+            <artifactId>nab-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

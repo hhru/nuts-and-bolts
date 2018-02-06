@@ -8,21 +8,21 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>nab-spring-example</artifactId>
+    <artifactId>nab-example</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts spring example</name>
+    <name>nuts'n'bolts example</name>
 
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring</artifactId>
+            <artifactId>nab-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-hibernate</artifactId>
+            <artifactId>nab-hibernate</artifactId>
             <version>${project.version}</version>
         </dependency>
 

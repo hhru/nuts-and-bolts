@@ -15,13 +15,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
+            <groupId>ru.hh.nab-retro</groupId>
             <artifactId>nuts-and-bolts</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-hibernate</artifactId>
+            <groupId>ru.hh.nab-retro</groupId>
+            <artifactId>nab-retro-hibernate</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

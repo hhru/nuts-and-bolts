@@ -22,9 +22,9 @@
     </modules>
 
     <properties>
-        <jdebug.version>0.0.23</jdebug.version>
         <spring.version>5.0.3.RELEASE</spring.version>
         <hibernate.version>5.2.10.Final</hibernate.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencyManagement>
@@ -33,11 +33,6 @@
                 <groupId>ru.hh.metrics</groupId>
                 <artifactId>hh-metrics</artifactId>
                 <version>0.12</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.inject</groupId>
-                <artifactId>guice</artifactId>
-                <version>${guice.version}</version>
             </dependency>
             <dependency>
                 <groupId>cglib</groupId>

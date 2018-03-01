@@ -1,8 +1,10 @@
 package ru.hh.nab.core.util;
 
-import com.google.common.base.Strings;
-
+import java.util.ArrayList;
+import static java.util.Arrays.asList;
+import java.util.List;
 import java.util.Properties;
+import static org.springframework.util.Assert.hasLength;
 
 public class FileSettings {
   private final Properties properties;
@@ -31,25 +33,29 @@ public class FileSettings {
   }
 
   public Properties getSubProperties(String prefix) {
-    return getSubProperties(prefix, null);
-  }
-
-  public Properties getSubProperties(String prefix, String newPrefix) {
-    final String namespacePrefix = Strings.isNullOrEmpty(prefix) ? "" : prefix + ".";
+    hasLength(prefix, "prefix should not be null or empty");
     final Properties subProperties = new Properties();
-
     properties.stringPropertyNames().stream()
-        .filter(key -> key.startsWith(namespacePrefix))
+        .filter(key -> key.startsWith(prefix + "."))
         .forEach(key -> {
-          String newKey = Strings.isNullOrEmpty(newPrefix) ? "" : newPrefix + ".";
-          newKey += prefix.isEmpty() ? key : key.substring(prefix.length() + 1);
+          String newKey = prefix.isEmpty() ? key : key.substring(prefix.length() + 1);
           subProperties.put(newKey, properties.getProperty(key));
         });
-
     return subProperties;
   }
 
   public FileSettings getSubSettings(String prefix) {
     return new FileSettings(getSubProperties(prefix));
+  }
+
+  public List<String> getStringList(String key) {
+    String value = getString(key);
+    return value != null ? asList(value.split("[,\\s]+")) : new ArrayList<>();
+  }
+
+  public Properties getProperties() {
+    Properties propertiesCopy = new Properties();
+    propertiesCopy.putAll(this.properties);
+    return propertiesCopy;
   }
 }

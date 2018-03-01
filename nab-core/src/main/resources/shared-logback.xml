@@ -1,6 +1,6 @@
 <included>
 
-    <property file="${settingsDir}/settings.properties"/>
+    <property file="${settingsDir}/service.properties"/>
     <property scope="context" name="log.dir" value="${log.dir:-logs}"/>
     <property scope="context" name="log.immediate.flush" value="${log.immediate.flush:-true}"/>
     <property scope="context" name="log.toConsole" value="${log.toConsole:-false}"/>

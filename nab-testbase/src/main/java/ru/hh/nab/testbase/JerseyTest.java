@@ -1,6 +1,6 @@
 package ru.hh.nab.testbase;
 
-import com.google.common.collect.Maps;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class JerseyTest extends AbstractJUnit4SpringContextTests {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JerseyTest.class);
-  private static final ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> INSTANCES = Maps.newConcurrentMap();
+  private static final ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
 
   @Before
   public void setUp() {

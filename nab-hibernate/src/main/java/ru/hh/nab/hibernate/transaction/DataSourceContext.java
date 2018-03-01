@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate.transaction;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.nab.hibernate.datasource.DataSourceType;
 import ru.hh.nab.core.util.MDC;
@@ -63,12 +62,10 @@ public class DataSourceContext {
     MDC.setKey(DATA_SOURCE_MDC_KEY, dataSourceType != null ? dataSourceType.getId() : DataSourceType.DEFAULT.getId());
   }
 
-  @VisibleForTesting
   static void disableTransactionCheck() {
     checkNoTransaction = false;
   }
 
-  @VisibleForTesting
   static void enableTransactionCheck() {
     checkNoTransaction = true;
   }

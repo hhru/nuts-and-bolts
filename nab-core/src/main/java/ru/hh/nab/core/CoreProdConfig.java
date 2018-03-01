@@ -23,7 +23,7 @@ public class CoreProdConfig {
 
   @Bean
   FileSettings fileSettings() throws Exception {
-    Properties properties = fromFilesInSettingsDir("settings.properties", "settings.properties.dev");
+    Properties properties = fromFilesInSettingsDir("service.properties", "service.properties.dev");
     return new FileSettings(properties);
   }
 

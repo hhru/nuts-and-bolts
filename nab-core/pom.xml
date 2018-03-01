@@ -25,12 +25,6 @@
             <version>1</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>20.0</version>
-        </dependency>
-
         <!-- Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -147,11 +141,6 @@
             <artifactId>hh-metrics</artifactId>
             <version>0.12</version>
         </dependency>
-        <dependency>
-            <groupId>ru.hh.jdebug</groupId>
-            <artifactId>jdebug-addon-jdbc</artifactId>
-            <version>${jdebug.version}</version>
-        </dependency>
         <!-- MX4J -->
         <dependency>
             <groupId>mx4j</groupId>
@@ -192,15 +181,16 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.hh</groupId>
-            <artifactId>timings</artifactId>
-            <version>1.5</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <version>3.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -141,6 +141,7 @@
             <artifactId>hh-metrics</artifactId>
             <version>0.12</version>
         </dependency>
+
         <!-- MX4J -->
         <dependency>
             <groupId>mx4j</groupId>
@@ -189,7 +190,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

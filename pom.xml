@@ -16,6 +16,7 @@
 
     <modules>
         <module>nab-core</module>
+        <module>nab-data-source</module>
         <module>nab-testbase</module>
         <module>nab-hibernate</module>
         <module>nab-example</module>
@@ -24,58 +25,16 @@
     <properties>
         <spring.version>5.0.3.RELEASE</spring.version>
         <hibernate.version>5.2.10.Final</hibernate.version>
-        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>ru.hh.metrics</groupId>
-                <artifactId>hh-metrics</artifactId>
-                <version>0.12</version>
-            </dependency>
-            <dependency>
-                <groupId>cglib</groupId>
-                <artifactId>cglib</artifactId>
-                <version>3.2.5</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>5.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-                <version>99.0-does-not-exist</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging-api</artifactId>
-                <version>99.0-does-not-exist</version>
-            </dependency>
-            <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>99.0-does-not-exist</version>
-            </dependency>
-            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>
             </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>2.9.0</version>
-            </dependency>
+
             <dependency>
                 <groupId>org.hsqldb</groupId>
                 <artifactId>hsqldb</artifactId>

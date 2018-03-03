@@ -22,6 +22,12 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-data-source</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-testbase</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -56,11 +62,6 @@
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
             <version>0.9.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.jdbc</groupId>
-            <artifactId>data-source-utils</artifactId>
-            <version>1.0</version>
         </dependency>
 
     </dependencies>

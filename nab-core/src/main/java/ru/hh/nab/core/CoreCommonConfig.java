@@ -17,7 +17,7 @@ import static ru.hh.nab.core.jetty.JettyFactory.createJettyThreadPool;
 @Configuration
 public class CoreCommonConfig {
 
-  @Bean(name = "serviceName")
+  @Bean
   String serviceName(FileSettings fileSettings) {
     String serviceName = fileSettings.getString("serviceName");
     if (serviceName == null) {
@@ -31,7 +31,7 @@ public class CoreCommonConfig {
     return createJettyThreadPool(fileSettings.getSubSettings("jetty"));
   }
 
-  @Bean(name = "stackOuterClassExcluding")
+  @Bean
   String stackOuterClassExcluding() {
     return ServletContainer.class.getName();
   }

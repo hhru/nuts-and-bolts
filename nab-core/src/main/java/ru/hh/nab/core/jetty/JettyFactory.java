@@ -22,16 +22,16 @@ import java.util.Optional;
 
 public class JettyFactory {
 
-  public static Server create(FileSettings settings, Servlet mainServlet, ThreadPool threadPool) {
-    final Handler mainHandler = createMainHandler(mainServlet);
+  public static Server create(FileSettings settings, ThreadPool threadPool, Servlet mainServlet, String servletMapping) {
+    final Handler mainHandler = createMainHandler(mainServlet, servletMapping);
     return createServer(settings.getSubSettings("jetty"), mainHandler, threadPool);
   }
 
-  private static Handler createMainHandler(final Servlet mainServlet) {
+  private static Handler createMainHandler(final Servlet mainServlet, String servletMapping) {
     final ServletHolder servletHolder = new ServletHolder("mainServlet", mainServlet);
 
     final ServletHandler servletHandler = new ServletHandler();
-    servletHandler.addServletWithMapping(servletHolder, "/*");
+    servletHandler.addServletWithMapping(servletHolder, servletMapping);
 
     final ServletContextHandler servletContextHandler = new ServletContextHandler();
     servletContextHandler.setServletHandler(servletHandler);

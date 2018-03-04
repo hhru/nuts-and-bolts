@@ -3,5 +3,5 @@
 <configuration>
     <contextName>example</contextName>
 
-    <include resource="shared-logback.xml"/>
+    <include resource="nab-shared-logback.xml"/>
 </configuration>

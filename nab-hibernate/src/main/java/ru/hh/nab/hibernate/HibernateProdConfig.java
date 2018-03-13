@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.metrics.StatsDSender;
-import ru.hh.nab.core.util.FileSettings;
 import ru.hh.nab.core.util.PropertiesUtils;
 
 import java.util.Properties;
@@ -19,7 +18,7 @@ public class HibernateProdConfig {
   }
 
   @Bean
-  DataSourceFactory dataSourceFactory(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
-    return new DataSourceFactory(fileSettings, serviceName, statsDSender);
+  DataSourceFactory dataSourceFactory(String serviceName, StatsDSender statsDSender) {
+    return new DataSourceFactory(serviceName, statsDSender);
   }
 }

@@ -26,13 +26,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-testbase</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Hibernate -->
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -62,6 +55,21 @@
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
             <version>0.9.5.2</version>
+        </dependency>
+
+        <!--tests-->
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-testbase</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.9.0</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

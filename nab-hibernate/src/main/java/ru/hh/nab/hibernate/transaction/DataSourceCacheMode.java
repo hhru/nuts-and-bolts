@@ -1,15 +1,15 @@
-package ru.hh.nab.hibernate.datasource.replica;
+package ru.hh.nab.hibernate.transaction;
 
 import org.hibernate.CacheMode;
 
-public enum ReplicaCacheMode {
+public enum DataSourceCacheMode {
 
   NORMAL(CacheMode.NORMAL),
   GET(CacheMode.GET);
 
   private final CacheMode cacheMode;
 
-  ReplicaCacheMode(CacheMode cacheMode) {
+  DataSourceCacheMode(CacheMode cacheMode) {
     this.cacheMode = cacheMode;
   }
 

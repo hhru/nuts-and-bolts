@@ -1,14 +1,12 @@
 package ru.hh.nab.hibernate;
 
+import java.util.Properties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import ru.hh.nab.hibernate.datasource.Default;
 import ru.hh.nab.core.util.FileSettings;
-
-import java.util.Properties;
 
 @Configuration
 public class HibernateTestConfig {
@@ -30,13 +28,8 @@ public class HibernateTestConfig {
     return new FileSettings(properties);
   }
 
-  @Default
   @Bean(destroyMethod = "shutdown")
   static EmbeddedDatabase dataSource() {
-    return createEmbeddedDatabase();
-  }
-
-  private static EmbeddedDatabase createEmbeddedDatabase() {
     return new EmbeddedDatabaseBuilder()
         .setType(EmbeddedDatabaseType.HSQL)
         .build();

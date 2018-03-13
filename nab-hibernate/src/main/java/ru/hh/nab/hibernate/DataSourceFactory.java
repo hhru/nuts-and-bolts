@@ -15,7 +15,6 @@ import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
 import ru.hh.nab.core.util.FileSettings;
 import ru.hh.nab.core.util.MDC;
 
@@ -29,24 +28,25 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 
 import static java.lang.Integer.parseInt;
-import static ru.hh.nab.core.util.MDC.CONTROLLER_MDC_KEY;
+import ru.hh.nab.hibernate.datasource.DataSourceType;
 
 public class DataSourceFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);
 
-  private final FileSettings settings;
   private final String serviceName;
   private final StatsDSender statsDSender;
 
-  public DataSourceFactory(FileSettings settings, String serviceName, StatsDSender statsDSender) {
-    this.settings = settings;
+  public DataSourceFactory(String serviceName, StatsDSender statsDSender) {
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
   }
 
-  public DataSource create(DataSourceType dataSourceType) {
-    final String dataSourceName = dataSourceType.getId();
-    final FileSettings dataSourceSettings = settings.getSubSettings(dataSourceName);
+  public DataSource create(DataSourceType dataSourceType, FileSettings settings) {
+    String dataSourceName = dataSourceType.getName();
+    return createDataSource(dataSourceName, settings.getSubSettings(dataSourceName));
+  }
+
+  private DataSource createDataSource(String dataSourceName, FileSettings dataSourceSettings) {
     DataSource underlyingDataSource = createDriverManagerDataSource(dataSourceName, dataSourceSettings);
 
     String statementTimeoutMsVal = dataSourceSettings.getString("statementTimeoutMs");
@@ -57,28 +57,18 @@ public class DataSourceFactory {
       }
     }
 
-    underlyingDataSource = createC3P0DataSource(dataSourceName, underlyingDataSource);
+    underlyingDataSource = createC3P0DataSource(dataSourceName, underlyingDataSource, dataSourceSettings);
 
     checkDataSource(underlyingDataSource, dataSourceName);
 
     boolean sendStats = dataSourceSettings.getBoolean("monitoring.sendStats");
-    if (sendStats) {
-      int longUsageConnectionMs = dataSourceSettings.getInteger("monitoring.longConnectionUsageMs");
-      boolean sendSampledStats = dataSourceSettings.getBoolean("monitoring.sendSampledStats");
-      return new MonitoringDataSource(
-          underlyingDataSource,
-          dataSourceName,
-          createConnectionGetMsConsumer(dataSourceName),
-          createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, sendSampledStats)
-      );
-    } else {
-      return underlyingDataSource;
-    }
+    return sendStats
+        ? createMonitoringDataSource(dataSourceSettings, underlyingDataSource, dataSourceName)
+        : underlyingDataSource;
   }
 
   private static DataSource createDriverManagerDataSource(String dataSourceName, FileSettings dataSourceSettings) {
     DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setDriverClass(dataSourceSettings.getString("driverClass"));
     driverManagerDataSource.setJdbcUrl(dataSourceSettings.getString("jdbcUrl"));
     driverManagerDataSource.setUser(dataSourceSettings.getString("user"));
     driverManagerDataSource.setPassword(dataSourceSettings.getString("password"));
@@ -86,20 +76,20 @@ public class DataSourceFactory {
     return driverManagerDataSource;
   }
 
-  private DataSource createC3P0DataSource(String dataSourceName, DataSource unpooledDataSource) {
+  private static DataSource createC3P0DataSource(String dataSourceName, DataSource unpooledDataSource, FileSettings dataSourceSettings) {
     // We could use c3p0 DataSources.pooledDataSource(unpooledDataSource, c3p0Properties),
     // but it calls constructors with "autoregister=true" property.
     // This causes c3p0 to generate random identity token, registerDataSource datasource in jmx under this random token, which pollutes jmx metrics.
     // That is why we use constructors that allow to turn off "autoregister" property.
 
     try {
-      Properties c3p0Props = settings.getSubProperties("c3p0");
+      Properties c3p0Properties = dataSourceSettings.getSubProperties("c3p0");
 
       WrapperConnectionPoolDataSource wcpds = new WrapperConnectionPoolDataSource(false);
       wcpds.setNestedDataSource(unpooledDataSource);
       wcpds.setIdentityToken(dataSourceName);
       BeansUtils.overwriteAccessiblePropertiesFromMap(
-          c3p0Props,
+          c3p0Properties,
           wcpds,
           false,
           null,
@@ -112,7 +102,7 @@ public class DataSourceFactory {
       poolBackedDataSource.setConnectionPoolDataSource(wcpds);
       poolBackedDataSource.setIdentityToken(dataSourceName);
       BeansUtils.overwriteAccessiblePropertiesFromMap(
-          c3p0Props,
+          c3p0Properties,
           poolBackedDataSource,
           false,
           null,
@@ -127,6 +117,17 @@ public class DataSourceFactory {
     } catch (IntrospectionException | SQLException | PropertyVetoException  e) {
       throw new RuntimeException("Failed to set " + dataSourceName + ".c3p0 properties: " + e.toString(), e);
     }
+  }
+
+  private DataSource createMonitoringDataSource(FileSettings dataSourceSettings, DataSource underlyingDataSource, String dataSourceName) {
+    int longUsageConnectionMs = dataSourceSettings.getInteger("monitoring.longConnectionUsageMs");
+    boolean sendSampledStats = dataSourceSettings.getBoolean("monitoring.sendSampledStats");
+    return new MonitoringDataSource(
+        underlyingDataSource,
+        dataSourceName,
+        createConnectionGetMsConsumer(dataSourceName),
+        createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, sendSampledStats)
+    );
   }
 
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {
@@ -160,7 +161,7 @@ public class DataSourceFactory {
           "ru.hh.jdbc.MonitoringConnection", "close",
           "org.glassfish.jersey.servlet.ServletContainer", "service",
           new String[]{"ru.hh."},
-          new String[]{"DataSourceContext", "TransactionManager"}
+          new String[]{"DataSourceContext", "ExecuteOnDataSource", "TransactionManager"}
       );
       sampledUsageCounters = new Counters(2000);
       statsDSender.sendCountersPeriodically(getMetricName(dataSourceName, "connection.sampled_usage_ms"), sampledUsageCounters);
@@ -181,7 +182,7 @@ public class DataSourceFactory {
 
       histogram.save(usageMs);
 
-      String controller = MDC.getKey(CONTROLLER_MDC_KEY).orElse("unknown");
+      String controller = MDC.getController().orElse("unknown");
       Tag controllerTag = new Tag("controller", controller);
       totalUsageCounter.add(usageMs, controllerTag);
 

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import ru.hh.nab.hibernate.datasource.replica.ExecuteOnReplicaAspect;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 
 import javax.sql.DataSource;
@@ -17,11 +17,6 @@ import java.util.Properties;
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
 public class HibernateCommonConfig {
-
-  @Bean
-  MappingConfig mappingConfig() {
-    return new MappingConfig();
-  }
 
   @Bean
   NabSessionFactoryBean sessionFactory(DataSource dataSource, Properties hibernateProperties, MappingConfig mappingConfig) {
@@ -40,7 +35,7 @@ public class HibernateCommonConfig {
   }
 
   @Bean
-  ExecuteOnReplicaAspect executeOnReplicaAspect(PlatformTransactionManager transactionManager, SessionFactory sessionFactory) {
-    return new ExecuteOnReplicaAspect(transactionManager, sessionFactory);
+  ExecuteOnDataSourceAspect executeOnDataSourceAspect(PlatformTransactionManager transactionManager, SessionFactory sessionFactory) {
+    return new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
   }
 }

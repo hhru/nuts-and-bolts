@@ -1,26 +1,27 @@
-package ru.hh.nab.hibernate.datasource.replica;
+package ru.hh.nab.hibernate.transaction;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.CacheMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
-public class ReplicaTransactionCallback implements TransactionCallback<Object> {
+public class ExecuteOnDataSourceTransactionCallback implements TransactionCallback<Object> {
   
   private final ProceedingJoinPoint pjp;
   private final SessionFactory factory;
-  private final ExecuteOnReplica replica;
+  private final ExecuteOnDataSource replica;
 
-  ReplicaTransactionCallback(final ProceedingJoinPoint pjp, final SessionFactory factory, final ExecuteOnReplica replica) {
+  ExecuteOnDataSourceTransactionCallback(ProceedingJoinPoint pjp, SessionFactory factory, ExecuteOnDataSource dataSource) {
     this.pjp = pjp;
     this.factory = factory;
-    this.replica = replica;
+    this.replica = dataSource;
   }
 
   @Override
-  public Object doInTransaction(final TransactionStatus status) {
+  public Object doInTransaction(@NonNull TransactionStatus status) {
     Session session = null;
     CacheMode initialCacheMode = null;
     try {

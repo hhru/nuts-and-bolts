@@ -15,6 +15,7 @@
     <name>nuts'n'bolts parent module</name>
 
     <modules>
+        <module>nab-common</module>
         <module>nab-core</module>
         <module>nab-data-source</module>
         <module>nab-testbase</module>
@@ -30,15 +31,15 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <groupId>com.mchange</groupId>
+                <artifactId>c3p0</artifactId>
+                <version>0.9.5.2</version>
             </dependency>
 
             <dependency>
-                <groupId>org.hsqldb</groupId>
-                <artifactId>hsqldb</artifactId>
-                <version>2.4.0</version>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -15,9 +15,52 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>3.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- db -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.1.4</version>
+        </dependency>
+
+        <!-- embedded -->
+        <dependency>
+            <groupId>com.opentable.components</groupId>
+            <artifactId>otj-pg-embedded</artifactId>
+            <version>0.11.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -27,17 +70,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--Testing-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

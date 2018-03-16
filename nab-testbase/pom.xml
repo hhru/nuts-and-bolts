@@ -31,10 +31,6 @@
             <version>${spring.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

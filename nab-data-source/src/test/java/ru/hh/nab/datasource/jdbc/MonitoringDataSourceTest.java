@@ -1,7 +1,6 @@
 package ru.hh.nab.datasource.jdbc;
 
 import org.junit.Test;
-import ru.hh.nab.datasource.TestDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -11,6 +10,7 @@ import java.util.function.IntConsumer;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 public class MonitoringDataSourceTest {
 
@@ -22,7 +22,11 @@ public class MonitoringDataSourceTest {
     IntConsumerStub connectionUsageMsConsumer = new IntConsumerStub();
     assertNull(connectionUsageMsConsumer.lastValue);
 
-    DataSource dataSource = new MonitoringDataSource(TestDataSource.get(), "name", connectionGetMsConsumer, connectionUsageMsConsumer);
+    DataSource dataSource = new MonitoringDataSource(
+        EmbeddedPostgresDataSourceFactory.create(),
+        "name",
+        connectionGetMsConsumer,
+        connectionUsageMsConsumer);
 
     try(Connection connection = dataSource.getConnection()) {
       assertNotNull(connectionGetMsConsumer.lastValue);
@@ -43,5 +47,4 @@ public class MonitoringDataSourceTest {
       lastValue = value;
     }
   }
-
 }

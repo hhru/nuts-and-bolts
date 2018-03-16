@@ -161,7 +161,7 @@ public class DataSourceFactory {
           "ru.hh.jdbc.MonitoringConnection", "close",
           "org.glassfish.jersey.servlet.ServletContainer", "service",
           new String[]{"ru.hh."},
-          new String[]{"DataSourceContext", "ExecuteOnDataSource", "TransactionManager"}
+          new String[]{"DataSourceContext", "DataSourceFactory", "MonitoringConnection", "ExecuteOnDataSource", "TransactionManager"}
       );
       sampledUsageCounters = new Counters(2000);
       statsDSender.sendCountersPeriodically(getMetricName(dataSourceName, "connection.sampled_usage_ms"), sampledUsageCounters);

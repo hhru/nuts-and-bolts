@@ -23,17 +23,24 @@ import java.util.Optional;
 public class JettyFactory {
 
   public static Server create(FileSettings settings, ThreadPool threadPool, Servlet mainServlet, String servletMapping) {
-    final Handler mainHandler = createMainHandler(mainServlet, servletMapping);
-    return createServer(settings.getSubSettings("jetty"), mainHandler, threadPool);
+    FileSettings jettySettings = settings.getSubSettings("jetty");
+    Boolean sessionManagerEnabled = jettySettings.getBoolean("session-manager.enabled");
+    final Handler mainHandler = createMainHandler(mainServlet, servletMapping, sessionManagerEnabled != null && sessionManagerEnabled);
+    return createServer(jettySettings, mainHandler, threadPool);
   }
 
-  private static Handler createMainHandler(final Servlet mainServlet, String servletMapping) {
+  private static Handler createMainHandler(final Servlet mainServlet, String servletMapping, boolean sessionsEnabled) {
     final ServletHolder servletHolder = new ServletHolder("mainServlet", mainServlet);
 
     final ServletHandler servletHandler = new ServletHandler();
     servletHandler.addServletWithMapping(servletHolder, servletMapping);
+    ServletContextHandler servletContextHandler;
 
-    final ServletContextHandler servletContextHandler = new ServletContextHandler();
+    if (sessionsEnabled) {
+      servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    } else {
+      servletContextHandler = new ServletContextHandler();
+    }
     servletContextHandler.setServletHandler(servletHandler);
     return servletContextHandler;
   }

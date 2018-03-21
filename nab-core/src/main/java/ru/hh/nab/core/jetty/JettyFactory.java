@@ -77,6 +77,7 @@ public class JettyFactory {
         Optional.ofNullable(jettySettings.getInteger("selectors")).orElse(-1),
         createHttpConnectionFactory());
 
+    serverConnector.setHost(jettySettings.getString("host"));
     serverConnector.setPort(jettySettings.getInteger("port"));
     serverConnector.setIdleTimeout(Optional.ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
     serverConnector.setAcceptQueueSize(Optional.ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));

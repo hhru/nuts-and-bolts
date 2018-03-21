@@ -4,10 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.core.CoreProdConfig;
-import ru.hh.nab.hibernate.HibernateProdConfig;
 
 @Configuration
-@Import({CoreProdConfig.class, HibernateProdConfig.class})
+@Import({CoreProdConfig.class})
 public class ExampleProdConfig {
 
   @Bean

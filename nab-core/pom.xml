@@ -130,7 +130,7 @@
         <dependency>
             <groupId>ru.hh.metrics</groupId>
             <artifactId>hh-metrics</artifactId>
-            <version>0.12</version>
+            <version>${hhmetrics.version}</version>
         </dependency>
 
         <!-- MX4J -->

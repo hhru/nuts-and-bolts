@@ -77,13 +77,6 @@
             <version>1.8.13</version>
         </dependency>
 
-        <!--Monitoring-->
-        <dependency>
-            <groupId>ru.hh.metrics</groupId>
-            <artifactId>hh-metrics</artifactId>
-            <version>0.12</version>
-        </dependency>
-
         <!-- db -->
         <dependency>
             <groupId>com.mchange</groupId>

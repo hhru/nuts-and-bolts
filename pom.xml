@@ -26,6 +26,7 @@
     <properties>
         <spring.version>5.0.3.RELEASE</spring.version>
         <hibernate.version>5.2.10.Final</hibernate.version>
+        <hhmetrics.version>0.12</hhmetrics.version>
     </properties>
 
     <dependencyManagement>

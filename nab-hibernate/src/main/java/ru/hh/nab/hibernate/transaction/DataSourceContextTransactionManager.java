@@ -10,9 +10,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
-import static ru.hh.nab.hibernate.datasource.DataSourceType.READONLY;
-import static ru.hh.nab.hibernate.datasource.DataSourceType.SLOW;
+import ru.hh.nab.datasource.DataSourceType;
+import static ru.hh.nab.datasource.DataSourceType.READONLY;
+import static ru.hh.nab.datasource.DataSourceType.SLOW;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 

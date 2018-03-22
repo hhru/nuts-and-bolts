@@ -1,7 +1,7 @@
 package ru.hh.nab.hibernate.transaction;
 
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourceType;
 
 import java.util.function.Supplier;
 

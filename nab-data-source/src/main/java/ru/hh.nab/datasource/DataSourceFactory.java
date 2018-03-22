@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.datasource;
 
 import com.mchange.v2.beans.BeansUtils;
 import com.mchange.v2.c3p0.C3P0Registry;
@@ -8,7 +8,6 @@ import com.mchange.v2.c3p0.WrapperConnectionPoolDataSource;
 import com.mchange.v2.log.MLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.datasource.CompressedStackFactory;
 import ru.hh.nab.datasource.jdbc.MonitoringDataSource;
 import ru.hh.nab.datasource.jdbc.StatementTimeoutDataSource;
 import ru.hh.metrics.Counters;
@@ -28,7 +27,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 
 import static java.lang.Integer.parseInt;
-import ru.hh.nab.datasource.DataSourceType;
 
 public class DataSourceFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);

@@ -3,6 +3,7 @@ package ru.hh.nab.hibernate.datasource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
+import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 
 import javax.sql.DataSource;

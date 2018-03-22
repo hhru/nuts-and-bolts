@@ -12,7 +12,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import ru.hh.nab.hibernate.HibernateTestBase;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceType;
 
 import java.lang.annotation.Annotation;

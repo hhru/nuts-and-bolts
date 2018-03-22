@@ -15,8 +15,8 @@ import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
-import ru.hh.nab.core.util.FileSettings;
-import ru.hh.nab.core.util.MDC;
+import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.util.MDC;
 
 import javax.sql.DataSource;
 import java.beans.IntrospectionException;
@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 
 import static java.lang.Integer.parseInt;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourceType;
 
 public class DataSourceFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);

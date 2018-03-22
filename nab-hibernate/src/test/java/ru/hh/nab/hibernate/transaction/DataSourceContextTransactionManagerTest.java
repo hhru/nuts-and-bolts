@@ -15,7 +15,7 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.hibernate.HibernateTestBase;
 import ru.hh.nab.hibernate.TestEntity;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourceType;
 
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 

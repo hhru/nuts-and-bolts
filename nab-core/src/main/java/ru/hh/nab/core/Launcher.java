@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContext;
 import ru.hh.nab.core.jetty.JettyFactory;
 import ru.hh.nab.core.servlet.DefaultServletConfig;
 import ru.hh.nab.core.servlet.ServletConfig;
-import ru.hh.nab.core.util.FileSettings;
+import ru.hh.nab.common.util.FileSettings;
 
 public abstract class Launcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);

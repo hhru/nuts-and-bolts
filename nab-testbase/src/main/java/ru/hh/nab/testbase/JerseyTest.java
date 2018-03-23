@@ -18,7 +18,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import ru.hh.nab.core.servlet.DefaultServletConfig;
 import ru.hh.nab.core.Launcher;
 import ru.hh.nab.testbase.util.Classes;
-import ru.hh.nab.core.util.FileSettings;
+import ru.hh.nab.common.util.FileSettings;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;

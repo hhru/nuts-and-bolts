@@ -9,7 +9,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourceType;
 
 @Aspect
 @Order(value = 0)

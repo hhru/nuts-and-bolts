@@ -21,6 +21,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
@@ -49,11 +55,6 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -99,17 +100,6 @@
             <version>${jetty.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>1.8.13</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>1.8.13</version>
-        </dependency>
-
         <!--Jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -140,7 +130,7 @@
         <dependency>
             <groupId>ru.hh.metrics</groupId>
             <artifactId>hh-metrics</artifactId>
-            <version>0.12</version>
+            <version>${hhmetrics.version}</version>
         </dependency>
 
         <!-- MX4J -->
@@ -160,13 +150,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.3</version>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>ru.hh.logging</groupId>
-            <artifactId>hh-java-logging</artifactId>
-            <version>1.12</version>
         </dependency>
 
         <!-- Sentry appender -->

@@ -1,8 +1,8 @@
 package ru.hh.nab.hibernate.transaction;
 
 import static java.util.Optional.ofNullable;
-import ru.hh.nab.hibernate.datasource.DataSourceType;
-import ru.hh.nab.core.util.MDC;
+import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.common.util.MDC;
 
 import java.util.function.Supplier;
 

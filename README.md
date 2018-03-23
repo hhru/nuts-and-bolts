@@ -4,6 +4,15 @@
 Но и полное следование этим заметкам ничего не гарантирует, будьте внимательны!
 Если обнаружите, что Вам пришлось что-то сделать не описанное тут - добавьте.
 
+#### [3.6.0]
+```
+- nab-hibernate зависит только от nab-common, а не от nab-core
+- классы FileSettings, PropertiesUtils, MDC переехали из nab-core в nab-common (потребуется изменить импорты)
+- DataSourceFactory переехал из nab-hibernate в nab-datasource (потребуется изменить импорты)
+- в nab-datasource добавлен DataSourceProdConfig, который можно использовать в приложениях, которым нужен DataSource,
+  но не нужен Hibernate
+```
+
 #### [3.5.1]
 ```
 - Добавили Embedded PostgreSQL

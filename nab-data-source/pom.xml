@@ -99,8 +99,9 @@
 
         <!--Testing-->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-testbase</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 

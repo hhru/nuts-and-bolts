@@ -77,12 +77,6 @@
             <version>1.8.13</version>
         </dependency>
 
-        <!-- db -->
-        <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
-        </dependency>
-
         <!--tests-->
         <dependency>
             <groupId>ru.hh.nab</groupId>

@@ -57,7 +57,6 @@
         <dependency>
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!--Monitoring-->

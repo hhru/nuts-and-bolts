@@ -8,7 +8,7 @@
 ```
 - nab-hibernate зависит только от nab-common, а не от nab-core
 - классы FileSettings, PropertiesUtils, MDC переехали из nab-core в nab-common (потребуется изменить импорты)
-- DataSourceFactory переехал из nab-hibernate в nab-datasource (потребуется изменить импорты)
+- DataSourceFactory переехал из nab-hibernate в nab-data-source (потребуется изменить импорты)
 - в nab-datasource добавлен DataSourceProdConfig, который можно использовать в приложениях, которым нужен DataSource,
   но не нужен Hibernate
 ```

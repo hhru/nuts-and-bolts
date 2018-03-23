@@ -7,7 +7,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.metrics.StatsDSender;
-import ru.hh.nab.core.util.FileSettings;
+import ru.hh.nab.common.util.FileSettings;
 import ru.hh.nab.core.util.HhScheduledExecutor;
 
 import java.util.concurrent.ScheduledExecutorService;

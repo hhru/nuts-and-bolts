@@ -1,5 +1,6 @@
 package ru.hh.nab.core.jetty;
 
+import static java.util.Optional.ofNullable;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -18,53 +19,49 @@ import ru.hh.nab.common.util.FileSettings;
 
 import javax.servlet.Servlet;
 import java.lang.management.ManagementFactory;
-import java.util.Optional;
 
 public class JettyFactory {
 
   public static Server create(FileSettings settings, ThreadPool threadPool, Servlet mainServlet, String servletMapping) {
     FileSettings jettySettings = settings.getSubSettings("jetty");
-    Boolean sessionManagerEnabled = jettySettings.getBoolean("session-manager.enabled");
-    final Handler mainHandler = createMainHandler(mainServlet, servletMapping, sessionManagerEnabled != null && sessionManagerEnabled);
-    return createServer(jettySettings, mainHandler, threadPool);
+    final Handler mainHandler = createMainHandler(mainServlet, servletMapping, jettySettings);
+    return createServer(mainHandler, threadPool, jettySettings);
   }
 
-  private static Handler createMainHandler(final Servlet mainServlet, String servletMapping, boolean sessionsEnabled) {
+  private static Handler createMainHandler(final Servlet mainServlet, String servletMapping, FileSettings jettySettings) {
     final ServletHolder servletHolder = new ServletHolder("mainServlet", mainServlet);
 
     final ServletHandler servletHandler = new ServletHandler();
     servletHandler.addServletWithMapping(servletHolder, servletMapping);
-    ServletContextHandler servletContextHandler;
 
-    if (sessionsEnabled) {
-      servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    } else {
-      servletContextHandler = new ServletContextHandler();
-    }
+    boolean sessionManagerEnabled = ofNullable(jettySettings.getBoolean("session-manager.enabled")).orElse(false);
+    ServletContextHandler servletContextHandler = sessionManagerEnabled
+        ? new ServletContextHandler(ServletContextHandler.SESSIONS)
+        : new ServletContextHandler();
+
     servletContextHandler.setServletHandler(servletHandler);
     return servletContextHandler;
   }
 
-  private static Server createServer(FileSettings jettySettings, Handler mainHandler, ThreadPool threadPool) {
+  private static Server createServer(Handler mainHandler, ThreadPool threadPool, FileSettings jettySettings) {
     final Server server = new Server(threadPool);
     configureServerConnector(server, jettySettings);
     configureMBeanContainer(server);
 
     boolean httpCacheEnabled = jettySettings.getBoolean("http.cache.sizeInMB") != null;
     server.setRequestLog(httpCacheEnabled ? new RequestWithCacheLogger() : new RequestLogger());
-
+    
     server.setHandler(mainHandler);
-
     server.setStopAtShutdown(true);
-    server.setStopTimeout(Optional.ofNullable(jettySettings.getInteger("stopTimeoutMs")).orElse(5_000));
+    server.setStopTimeout(ofNullable(jettySettings.getInteger("stopTimeoutMs")).orElse(5_000));
 
     return server;
   }
 
   public static ThreadPool createJettyThreadPool(FileSettings jettySettings) throws Exception {
-    int minThreads = Optional.ofNullable(jettySettings.getInteger("minThreads")).orElse(10);
-    int maxThreads = Optional.ofNullable(jettySettings.getInteger("maxThreads")).orElse(20);
-    int idleTimeoutMs = 60_000;
+    int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(4);
+    int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(10);
+    int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(60_000);
     QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs);
     threadPool.start();
     return threadPool;
@@ -73,14 +70,14 @@ public class JettyFactory {
   private static void configureServerConnector(Server server, FileSettings jettySettings) {
     ServerConnector serverConnector = new HHServerConnector(
         server,
-        Optional.ofNullable(jettySettings.getInteger("acceptors")).orElse(-1),
-        Optional.ofNullable(jettySettings.getInteger("selectors")).orElse(-1),
+        ofNullable(jettySettings.getInteger("acceptors")).orElse(1),
+        ofNullable(jettySettings.getInteger("selectors")).orElse(1),
         createHttpConnectionFactory());
 
     serverConnector.setHost(jettySettings.getString("host"));
     serverConnector.setPort(jettySettings.getInteger("port"));
-    serverConnector.setIdleTimeout(Optional.ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
-    serverConnector.setAcceptQueueSize(Optional.ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
+    serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
+    serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 
     server.addConnector(serverConnector);
   }

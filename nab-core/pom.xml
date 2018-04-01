@@ -166,6 +166,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.caffinitas.ohc</groupId>
+            <artifactId>ohc-core-j8</artifactId>
+            <version>0.6.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <version>3.0.7</version>

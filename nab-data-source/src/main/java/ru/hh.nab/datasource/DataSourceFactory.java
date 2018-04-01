@@ -6,6 +6,7 @@ import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.mchange.v2.c3p0.PoolBackedDataSource;
 import com.mchange.v2.c3p0.WrapperConnectionPoolDataSource;
 import com.mchange.v2.log.MLevel;
+import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.datasource.jdbc.MonitoringDataSource;
@@ -59,7 +60,7 @@ public class DataSourceFactory {
 
     checkDataSource(underlyingDataSource, dataSourceName);
 
-    boolean sendStats = dataSourceSettings.getBoolean("monitoring.sendStats");
+    boolean sendStats = ofNullable(dataSourceSettings.getBoolean("monitoring.sendStats")).orElse(false);
     return sendStats
         ? createMonitoringDataSource(dataSourceSettings, underlyingDataSource, dataSourceName)
         : underlyingDataSource;
@@ -156,10 +157,10 @@ public class DataSourceFactory {
     Counters sampledUsageCounters;
     if (sendSampledStats) {
       compressedStackFactory = new CompressedStackFactory(
-          "ru.hh.jdbc.MonitoringConnection", "close",
+          "MonitoringConnection", "close",
           "org.glassfish.jersey.servlet.ServletContainer", "service",
           new String[]{"ru.hh."},
-          new String[]{"DataSourceContext", "DataSourceFactory", "MonitoringConnection", "ExecuteOnDataSource", "TransactionManager"}
+          new String[]{"DataSourceContext", "ExecuteOnDataSource", "TransactionManager"}
       );
       sampledUsageCounters = new Counters(2000);
       statsDSender.sendCountersPeriodically(getMetricName(dataSourceName, "connection.sampled_usage_ms"), sampledUsageCounters);

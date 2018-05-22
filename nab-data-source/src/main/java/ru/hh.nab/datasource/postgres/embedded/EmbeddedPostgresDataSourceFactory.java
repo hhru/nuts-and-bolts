@@ -20,6 +20,7 @@ public class EmbeddedPostgresDataSourceFactory {
 
   private static final String EMBEDDED_PG_DIR = "embedded-pg";
   private static final String EMBEDDED_PG_DIR_PROPERTY = "ot.epg.working-dir";
+  private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:%s/postgres";
 
   private static final UUID instanceId = UUID.randomUUID();
 
@@ -27,10 +28,14 @@ public class EmbeddedPostgresDataSourceFactory {
   }
 
   public static DataSource create() throws SQLException {
+    return create(DEFAULT_JDBC_URL);
+  }
+
+  public static DataSource create(String jdbcUrl) throws SQLException {
     EmbeddedPostgres pgInstance = createEmbeddedPostgresInstance();
 
     DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setJdbcUrl("jdbc:postgresql://localhost:" + pgInstance.getPort() + "/postgres");
+    driverManagerDataSource.setJdbcUrl(String.format(jdbcUrl, pgInstance.getPort()));
     driverManagerDataSource.setUser("postgres");
 
     DataSource statementTimeoutDataSource = new StatementTimeoutDataSource(driverManagerDataSource, 5000);

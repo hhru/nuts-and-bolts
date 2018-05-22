@@ -10,11 +10,6 @@ import ru.hh.nab.core.CoreProdConfig;
 public class ExampleProdConfig {
 
   @Bean
-  String serviceName() {
-    return "nab-example";
-  }
-
-  @Bean
   ExampleResource exampleResource() {
     return new ExampleResource();
   }

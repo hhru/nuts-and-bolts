@@ -7,17 +7,31 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
+
 import ru.hh.nab.hibernate.HibernateTestBase;
 import ru.hh.nab.hibernate.TestEntity;
 import ru.hh.nab.datasource.DataSourceType;
 
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
+  private int existingTestEntityId;
+
+  @Before
+  public void setUpTestBaseClass() {
+    try (Session session = sessionFactory.openSession()) {
+      session.getTransaction().begin();
+      TestEntity testEntity = createTestEntity(session);
+      session.getTransaction().commit();
+      existingTestEntityId = testEntity.getId();
+    }
+  }
 
   @Test(expected = HibernateException.class)
   public void noDefaultSynchronizationInTests() {
@@ -113,7 +127,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     testDataSource(DataSourceType.SLOW);
   }
 
-  private static void testDataSource(DataSourceType dataSourceType) {
+  private void testDataSource(DataSourceType dataSourceType) {
     assertHibernateIsNotInitialized();
 
     DataSourceContextUnsafe.executeOn(dataSourceType, () -> {
@@ -141,7 +155,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     assertTrue(session.getStatistics().getEntityKeys().isEmpty());
   }
 
-  private static TransactionStatus createTransaction(boolean readOnly) {
+  private TransactionStatus createTransaction(boolean readOnly) {
     DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
     transactionDefinition.setReadOnly(readOnly);
     return transactionManager.getTransaction(transactionDefinition);
@@ -161,5 +175,19 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
   private static void assertHibernateIsNotInitialized() {
     assertFalse(isSynchronizationActive());
     assertFalse(isActualTransactionActive());
+  }
+
+  private TestEntity createTestEntity() {
+    Session session = getCurrentSession();
+    TestEntity testEntity = createTestEntity(session);
+    session.flush();
+    session.clear();
+    return testEntity;
+  }
+
+  private static TestEntity createTestEntity(Session session) {
+    TestEntity testEntity = new TestEntity("test entity");
+    session.save(testEntity);
+    return testEntity;
   }
 }

@@ -2,6 +2,7 @@ package ru.hh.nab.datasource.jdbc;
 
 import org.junit.Test;
 
+import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,9 +11,15 @@ import java.util.function.IntConsumer;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
-public class MonitoringDataSourceTest {
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import ru.hh.nab.datasource.DataSourceTestConfig;
+
+@ContextConfiguration(classes = {DataSourceTestConfig.class})
+public class MonitoringDataSourceTest extends AbstractJUnit4SpringContextTests {
+  @Inject
+  private DataSource embeddedDataSource;
 
   @Test
   public void test() throws SQLException {
@@ -23,7 +30,7 @@ public class MonitoringDataSourceTest {
     assertNull(connectionUsageMsConsumer.lastValue);
 
     DataSource dataSource = new MonitoringDataSource(
-        EmbeddedPostgresDataSourceFactory.create(),
+        embeddedDataSource,
         "name",
         connectionGetMsConsumer,
         connectionUsageMsConsumer);

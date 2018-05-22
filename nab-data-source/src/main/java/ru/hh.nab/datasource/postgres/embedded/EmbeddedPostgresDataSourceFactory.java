@@ -7,17 +7,24 @@ import ru.hh.nab.common.util.FileSystemUtils;
 import ru.hh.nab.datasource.jdbc.StatementTimeoutDataSource;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.UUID;
 
 public class EmbeddedPostgresDataSourceFactory {
 
   private static final String EMBEDDED_PG_DIR = "embedded-pg";
-  private static final String EMBEDDED_PG_DIR_PROPERTY = "ness.embedded-pg.dir";
+  private static final String EMBEDDED_PG_DIR_PROPERTY = "ot.epg.working-dir";
+
+  private static final UUID instanceId = UUID.randomUUID();
+
+  private EmbeddedPostgresDataSourceFactory() {
+  }
 
   public static DataSource create() throws SQLException {
     EmbeddedPostgres pgInstance = createEmbeddedPostgresInstance();
@@ -35,27 +42,32 @@ public class EmbeddedPostgresDataSourceFactory {
 
   private static EmbeddedPostgres createEmbeddedPostgresInstance() {
     try {
-      setEmbeddedPgDir();
+      File dataDirectory = null;
+      String embeddedPgDir = getEmbeddedPgDir();
+      if (embeddedPgDir != null) {
+        System.setProperty(EMBEDDED_PG_DIR_PROPERTY, embeddedPgDir);
+        dataDirectory = new File(embeddedPgDir, instanceId.toString());
+      }
       return EmbeddedPostgres.builder()
           .setServerConfig("autovacuum", "off")
           .setLocaleConfig("lc-collate", "C")
+          .setDataDirectory(dataDirectory)
           .start();
     } catch (IOException e) {
       throw new IllegalStateException("Can't start embedded Postgres", e);
     }
   }
 
-  private static void setEmbeddedPgDir() throws IOException {
+  private static String getEmbeddedPgDir() throws IOException {
     Path tmpfsPath = FileSystemUtils.getTmpfsPath();
-    if (tmpfsPath != null) {
-      Path pgPath = Paths.get(tmpfsPath.toString(), EMBEDDED_PG_DIR);
-      if (Files.notExists(pgPath)) {
-        Files.createDirectory(pgPath);
-      }
-      System.setProperty(EMBEDDED_PG_DIR_PROPERTY, pgPath.toString());
+    if (tmpfsPath == null) {
+      return null;
     }
-  }
 
-  private EmbeddedPostgresDataSourceFactory() {
+    Path pgPath = Paths.get(tmpfsPath.toString(), EMBEDDED_PG_DIR);
+    if (Files.notExists(pgPath)) {
+      Files.createDirectory(pgPath);
+    }
+    return pgPath.toString();
   }
 }

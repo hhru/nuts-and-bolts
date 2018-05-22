@@ -2,12 +2,13 @@ package ru.hh.nab.hibernate.transaction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.hh.nab.hibernate.HibernateTestBase;
+
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
@@ -55,14 +56,12 @@ public class DataSourceContextTest extends HibernateTestBase {
 
   @Test(expected = IllegalStateException.class)
   public void testOnReplicaInTransaction() {
-    PlatformTransactionManager transactionManager = getBean(PlatformTransactionManager.class);
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.execute(transactionStatus -> onReplica(() -> null));
   }
 
   @Test(expected = IllegalStateException.class)
   public void testOnSlowReplicaInTransaction() {
-    PlatformTransactionManager transactionManager = getBean(PlatformTransactionManager.class);
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.execute(transactionStatus -> onSlowReplica(() -> null));
   }

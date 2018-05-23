@@ -1,13 +1,41 @@
-### Running in IntelliJ IDEA:
+This example shows how to create and launch application with one simple REST-resource:
+
+```java
+@Path("/")
+@Singleton
+public class ExampleResource {
+  @GET
+  @Path("/hello")
+  public String hello(@DefaultValue("world") @QueryParam("name") String name) {
+    return String.format("Hello, %s!", name);
+  }
+}
+```
+
+The application starts on port 9999 which is configured in file `src/etc/nab-example/service.properties`:
+
+```properties
+serviceName=example
+
+jetty.port = 9999
+
+log.dir=logs
+log.immediate.flush=true
+log.toConsole=true
+log.timings=false
+``` 
+
+### Running in IntelliJ IDEA
 
 * Main class: `ru.hh.nab.example.ExampleMain`
-* VM parameters: `-DsettingsDir=src/etc/nab-spring-example`
+* VM parameters: `-DsettingsDir=src/etc/nab-example`
 * Working directory: $MODULE_DIR$
-* Use classpath of module: nab-spring-example
+* Use classpath of module: nab-example
 
-### Running with maven-exec-plugin:
+### Running with maven-exec-plugin
+
 ```
-cd nab-spring-example
+cd nab-example
 mvn exec:java
 ```
 
@@ -22,14 +50,14 @@ The output in console should look like:
 example (ver. ${project.version}) started at 2018-01-24T15:57:39.499, pid 12991, listening to port 9999
 ```
 
-### Example resource:
+### Example resource
 
 ```
-curl http://localhost:9999/hello
+curl http://localhost:9999/hello?name=Nuts
 ```
 
 should return:
 
 ```
-Hello, world!
+Hello, Nuts!
 ```

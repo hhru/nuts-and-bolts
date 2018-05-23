@@ -70,14 +70,14 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.1.4</version>
+            <version>${postgres.jdbc.version}</version>
         </dependency>
 
         <!-- embedded -->
         <dependency>
             <groupId>com.opentable.components</groupId>
             <artifactId>otj-pg-embedded</artifactId>
-            <version>0.11.0</version>
+            <version>0.12.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.postgresql</groupId>

@@ -7,26 +7,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import ru.hh.nab.hibernate.HibernateTestBase;
 import ru.hh.nab.datasource.DataSourceType;
+
+import javax.inject.Inject;
+
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceType;
 
 import java.lang.annotation.Annotation;
 
 public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
-  private static ExecuteOnDataSourceAspect executeOnDataSourceAspect;
+  @Inject
+  private ExecuteOnDataSourceAspect executeOnDataSourceAspect;
 
   private Session masterSession;
   private Session outerReadonlySession;
-
-  @BeforeClass
-  public static void setUpClass() {
-    executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
-  }
 
   @Before
   public void setUp() {

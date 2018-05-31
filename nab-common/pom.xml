@@ -37,7 +37,7 @@
         <dependency>
             <groupId>ru.hh.logging</groupId>
             <artifactId>hh-java-logging</artifactId>
-            <version>1.12</version>
+            <version>1.13</version>
         </dependency>
 
     </dependencies>

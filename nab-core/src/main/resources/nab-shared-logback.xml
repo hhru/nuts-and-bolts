@@ -1,13 +1,12 @@
 <included>
+    <!-- default pattern from hh-java-logging -->
+    <include resource="shared-pattern-logback.xml"/>
 
     <property file="${settingsDir}/service.properties"/>
     <property scope="context" name="log.dir" value="${log.dir:-logs}"/>
     <property scope="context" name="log.immediate.flush" value="${log.immediate.flush:-true}"/>
     <property scope="context" name="log.toConsole" value="${log.toConsole:-false}"/>
     <property scope="context" name="log.timings" value="${log.timings:-false}"/>
-
-    <property scope="context" name="log.pattern"
-              value="[%date{ISO8601}] [%thread] %-5level %logger{36} rid:%X{request_id} - %msg%n"/>
 
     <!-- service -->
     <appender name="service" class="ru.hh.logging.HhRollingAppender"/>
@@ -33,7 +32,9 @@
 
     <!-- requests -->
     <appender name="requests" class="ru.hh.logging.HhRollingAppender">
-        <pattern>%date %msg%n</pattern>
+        <encoder>
+            <pattern>${requests.pattern}</pattern>
+        </encoder>
     </appender>
     <appender name="asyncRequests" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="requests"/>
@@ -91,5 +92,4 @@
             </then>
         </if>
     </root>
-
 </included>

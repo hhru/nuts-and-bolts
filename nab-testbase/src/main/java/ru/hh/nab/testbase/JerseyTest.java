@@ -82,7 +82,7 @@ public abstract class JerseyTest extends AbstractJUnit4SpringContextTests {
 
     Instance(int port) {
       this.port = port;
-      this.baseUrl = String.format("http://127.0.0.1:%d/", port);
+      this.baseUrl = String.format("http://127.0.0.1:%d", port);
     }
   }
 

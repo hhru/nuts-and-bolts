@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/hhru/nuts-and-bolts.svg?branch=master)](https://travis-ci.org/hhru/nuts-and-bolts) [![Coverage Status](https://coveralls.io/repos/github/hhru/nuts-and-bolts/badge.svg?branch=master)](https://coveralls.io/github/hhru/nuts-and-bolts?branch=master)
+[![Build Status](https://travis-ci.org/hhru/nuts-and-bolts.svg?branch=master)](https://travis-ci.org/hhru/nuts-and-bolts) [![codecov](https://codecov.io/gh/hhru/nuts-and-bolts/branch/master/graph/badge.svg)](https://codecov.io/gh/hhru/nuts-and-bolts)
 
 # Nuts-and-Bolts
 

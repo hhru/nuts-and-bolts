@@ -2,5 +2,8 @@ language: java
 sudo: true
 jdk:
   - oraclejdk8
+
+script: "mvn cobertura:cobertura"
+
 after_success:
-  - mvn clean test coveralls:report
+  - bash <(curl -s https://codecov.io/bash)

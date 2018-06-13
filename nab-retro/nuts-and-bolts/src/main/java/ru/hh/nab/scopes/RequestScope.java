@@ -35,7 +35,7 @@ public class RequestScope implements TransferrableScope {
   }
 
   public static class RequestContext {
-    public static final String X_REQUEST_ID = "x-request-id";
+    public static final String X_REQUEST_ID = "request_id";
     protected static final String X_REQUEST_ID_DEFAULT = "NoRequestIdProvided";
     protected static final String X_HHID_PERFORMER = "x-hhid-performer";
     protected static final String X_HHID_PERFORMER_DEFAULT = "NoPerformerTokenProvided";
@@ -73,7 +73,7 @@ public class RequestScope implements TransferrableScope {
     }
 
     public void setLoggingContext() {
-      storeValue("req.h." + X_REQUEST_ID, requestId, X_REQUEST_ID_DEFAULT);
+      storeValue(X_REQUEST_ID, requestId, X_REQUEST_ID_DEFAULT);
       storeValue("req.h." + X_HHID_PERFORMER, performerToken, X_HHID_PERFORMER_DEFAULT);
       storeValue("req.h." + X_UID, uid, X_UID_DEFAULT);
       storeValue(REQ_REMOTE_ADDR, remoteAddr, REQ_REMOTE_ADDR_DEFAULT);

@@ -29,11 +29,13 @@ public class DataSourceContext {
     }
   }
 
-  static void disableTransactionCheck() {
+  public static void disableTransactionCheck() {
     checkTransaction = false;
   }
 
   static void enableTransactionCheck() {
     checkTransaction = true;
   }
+
+  private DataSourceContext() {}
 }

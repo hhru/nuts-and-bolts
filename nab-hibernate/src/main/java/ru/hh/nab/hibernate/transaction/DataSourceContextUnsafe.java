@@ -34,11 +34,11 @@ public class DataSourceContextUnsafe {
     return currentDataSourceType.get();
   }
 
-  static void setDefaultMDC() {
+  public static void setDefaultMDC() {
     updateMDC(DataSourceType.MASTER);
   }
 
-  static void clearMDC() {
+  public static void clearMDC() {
     MDC.deleteKey(MDC_KEY);
   }
 

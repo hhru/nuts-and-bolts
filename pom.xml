@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.6.7-SNAPSHOT</version>
+    <version>3.7.0</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -156,6 +156,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>nuts-and-bolts-parent-3.7.0</tag>
     </scm>
 </project>

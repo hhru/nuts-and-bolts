@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import ru.hh.nab.core.jmx.MBeanExporterFactory;
-import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.properties.FileSettings;
 
 import javax.management.MBeanServer;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static ru.hh.nab.core.jetty.HttpCacheFilterFactory.createCacheFilterHolder;
-import static ru.hh.nab.common.util.PropertiesUtils.fromFilesInSettingsDir;
+import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 
 @Configuration
 @Import({CoreCommonConfig.class})

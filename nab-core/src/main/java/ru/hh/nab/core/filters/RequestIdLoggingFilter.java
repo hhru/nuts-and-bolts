@@ -1,7 +1,7 @@
 package ru.hh.nab.core.filters;
 
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static ru.hh.nab.common.util.MDC.REQUEST_ID_MDC_KEY;
+import static ru.hh.nab.common.mdc.MDC.REQUEST_ID_MDC_KEY;
 
 public final class RequestIdLoggingFilter extends OncePerRequestFilter {
 

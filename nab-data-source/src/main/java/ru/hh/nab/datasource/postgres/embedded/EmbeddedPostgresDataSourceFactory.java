@@ -3,7 +3,7 @@ package ru.hh.nab.datasource.postgres.embedded;
 import com.mchange.v2.c3p0.DataSources;
 import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-import ru.hh.nab.common.util.FileSystemUtils;
+import ru.hh.nab.common.files.FileSystemUtils;
 import ru.hh.nab.datasource.jdbc.StatementTimeoutDataSource;
 
 import javax.sql.DataSource;

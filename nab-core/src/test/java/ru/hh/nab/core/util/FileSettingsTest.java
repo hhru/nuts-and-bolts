@@ -9,7 +9,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.properties.FileSettings;
 
 public class FileSettingsTest {
   private static FileSettings fileSettings;

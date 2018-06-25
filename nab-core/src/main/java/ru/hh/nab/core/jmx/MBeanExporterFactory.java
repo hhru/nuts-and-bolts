@@ -2,7 +2,7 @@ package ru.hh.nab.core.jmx;
 
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import org.springframework.jmx.export.MBeanExporter;
-import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.properties.FileSettings;
 
 import javax.management.MBeanServer;
 

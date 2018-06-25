@@ -1,7 +1,7 @@
 package ru.hh.nab.hibernate.interceptor;
 
 import org.hibernate.EmptyInterceptor;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 public class ControllerPassingInterceptor extends EmptyInterceptor {
   @Override

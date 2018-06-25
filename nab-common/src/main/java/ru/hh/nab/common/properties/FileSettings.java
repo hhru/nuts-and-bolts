@@ -1,4 +1,4 @@
-package ru.hh.nab.common.util;
+package ru.hh.nab.common.properties;
 
 import java.util.ArrayList;
 import static java.util.Arrays.asList;

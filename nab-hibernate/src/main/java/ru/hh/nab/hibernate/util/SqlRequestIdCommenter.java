@@ -3,7 +3,7 @@ package ru.hh.nab.hibernate.util;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 public final class SqlRequestIdCommenter {
 

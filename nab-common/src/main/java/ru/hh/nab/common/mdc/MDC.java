@@ -1,4 +1,4 @@
-package ru.hh.nab.common.util;
+package ru.hh.nab.common.mdc;
 
 import java.util.Optional;
 

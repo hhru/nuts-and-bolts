@@ -15,8 +15,8 @@ import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
-import ru.hh.nab.common.util.FileSettings;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.mdc.MDC;
 
 import javax.sql.DataSource;
 import java.beans.IntrospectionException;

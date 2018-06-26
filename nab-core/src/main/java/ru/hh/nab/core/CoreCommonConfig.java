@@ -7,8 +7,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.metrics.StatsDSender;
-import ru.hh.nab.common.util.FileSettings;
-import ru.hh.nab.core.util.HhScheduledExecutor;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.executor.ScheduledExecutor;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -38,7 +38,7 @@ public class CoreCommonConfig {
 
   @Bean
   ScheduledExecutorService scheduledExecutorService() {
-    return new HhScheduledExecutor();
+    return new ScheduledExecutor();
   }
 
   @Bean

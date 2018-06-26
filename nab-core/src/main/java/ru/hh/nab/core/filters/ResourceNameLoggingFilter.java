@@ -1,6 +1,6 @@
 package ru.hh.nab.core.filters;
 
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -9,7 +9,7 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.ResourceInfo;
 
-import static ru.hh.nab.common.util.MDC.CONTROLLER_MDC_KEY;
+import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 
 public class ResourceNameLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 

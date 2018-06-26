@@ -15,7 +15,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.jetty.HHServerConnector;
 import ru.hh.jetty.RequestLogger;
 import ru.hh.jetty.RequestWithCacheLogger;
-import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.properties.FileSettings;
 
 import javax.servlet.Servlet;
 import java.lang.management.ManagementFactory;

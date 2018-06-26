@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import ru.hh.nab.common.util.FileSettings;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.core.CoreCommonConfig;
 import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 

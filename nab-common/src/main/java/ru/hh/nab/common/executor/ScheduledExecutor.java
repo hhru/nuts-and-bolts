@@ -1,4 +1,4 @@
-package ru.hh.nab.core.util;
+package ru.hh.nab.common.executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +21,13 @@ import java.util.concurrent.TimeoutException;
  * - avoid stop execution of scheduleAtFixedRate and scheduleWithFixedDelay<br/>
  * - log them <br/>
  **/
-public class HhScheduledExecutor implements ScheduledExecutorService {
+public class ScheduledExecutor implements ScheduledExecutorService {
 
-  private static final Logger logger = LoggerFactory.getLogger(HhScheduledExecutor.class);
+  private static final Logger logger = LoggerFactory.getLogger(ScheduledExecutor.class);
 
   private final ScheduledExecutorService scheduledExecutorService;
 
-  public HhScheduledExecutor() {
+  public ScheduledExecutor() {
     ThreadFactory threadFactory = runnable -> {
       Thread thread = new Thread(runnable, "hh_scheduled_executor");
       thread.setDaemon(true);

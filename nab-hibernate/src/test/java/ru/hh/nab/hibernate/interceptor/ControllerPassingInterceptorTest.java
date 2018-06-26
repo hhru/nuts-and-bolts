@@ -3,7 +3,7 @@ package ru.hh.nab.hibernate.interceptor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 public class ControllerPassingInterceptorTest {
   private static final ControllerPassingInterceptor controllerPassingInterceptor = new ControllerPassingInterceptor();

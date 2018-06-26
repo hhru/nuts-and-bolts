@@ -2,7 +2,7 @@ package ru.hh.nab.hibernate.transaction;
 
 import static java.util.Optional.ofNullable;
 import ru.hh.nab.datasource.DataSourceType;
-import ru.hh.nab.common.util.MDC;
+import ru.hh.nab.common.mdc.MDC;
 
 import java.util.function.Supplier;
 

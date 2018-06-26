@@ -1,4 +1,4 @@
-package ru.hh.nab.common.util;
+package ru.hh.nab.common.files;
 
 import org.apache.commons.lang3.SystemUtils;
 

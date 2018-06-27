@@ -1,7 +1,5 @@
-package ru.hh.nab.core.util;
+package ru.hh.nab.common.properties;
 
-import java.util.List;
-import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -9,7 +7,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import ru.hh.nab.common.properties.FileSettings;
+
+import java.util.List;
+import java.util.Properties;
 
 public class FileSettingsTest {
   private static FileSettings fileSettings;
@@ -48,6 +48,7 @@ public class FileSettingsTest {
   @Test
   public void testGetSubProperties() {
     Properties subProperties = fileSettings.getSubProperties("namespace");
+
     assertEquals(2, subProperties.size());
     assertTrue(subProperties.containsKey("boolProperty1"));
     assertTrue(subProperties.containsKey("boolProperty2"));
@@ -66,6 +67,7 @@ public class FileSettingsTest {
   @Test
   public void testGetSubSettings() {
     FileSettings subSettings = fileSettings.getSubSettings("namespace");
+
     assertNotNull(subSettings.getString("boolProperty1"));
     assertNotNull(subSettings.getString("boolProperty2"));
   }
@@ -83,6 +85,7 @@ public class FileSettingsTest {
   @Test
   public void testGetStringList() {
     List<String> settings = fileSettings.getStringList("listProperty");
+
     assertEquals(3, settings.size());
     assertEquals("value1", settings.get(0));
     assertEquals("value2", settings.get(1));
@@ -96,7 +99,6 @@ public class FileSettingsTest {
 
     properties.setProperty("strProperty", "newValue");
     assertEquals("newValue", properties.getProperty("strProperty"));
-
     assertEquals("value", fileSettings.getString("strProperty"));
   }
 }

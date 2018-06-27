@@ -1,5 +1,6 @@
 package ru.hh.nab.core;
 
+import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.core.jmx.MBeanExporterFactory;
 import ru.hh.nab.common.properties.FileSettings;
 
@@ -25,6 +27,16 @@ public class CoreProdConfig {
   FileSettings fileSettings() throws Exception {
     Properties properties = fromFilesInSettingsDir("service.properties", "service.properties.dev");
     return new FileSettings(properties);
+  }
+
+  @Bean
+  StatsDClient statsDClient() {
+    return new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
+  }
+
+  @Bean
+  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient) {
+    return new StatsDSender(statsDClient, scheduledExecutorService);
   }
 
   @Bean

@@ -1,20 +1,18 @@
 package ru.hh.nab.datasource.jdbc;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import ru.hh.nab.datasource.DataSourceTestConfig;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.IntConsumer;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import ru.hh.nab.datasource.DataSourceTestConfig;
 
 @ContextConfiguration(classes = {DataSourceTestConfig.class})
 public class MonitoringDataSourceTest extends AbstractJUnit4SpringContextTests {

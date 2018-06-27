@@ -18,9 +18,9 @@
         <module>nab-common</module>
         <module>nab-core</module>
         <module>nab-data-source</module>
-        <module>nab-testbase</module>
-        <module>nab-hibernate</module>
         <module>nab-example</module>
+        <module>nab-hibernate</module>
+        <module>nab-testbase</module>
     </modules>
 
     <properties>
@@ -35,6 +35,12 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.mchange</groupId>
                 <artifactId>c3p0</artifactId>
                 <version>0.9.5.2</version>
@@ -44,6 +50,12 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>2.19.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

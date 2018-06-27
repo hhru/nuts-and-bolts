@@ -1,5 +1,6 @@
 package ru.hh.nab.datasource;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,8 +12,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import static org.junit.Assert.assertEquals;
 
 @ContextConfiguration(classes = {DataSourceTestConfig.class})
 public class JdbcTemplateTest extends AbstractJUnit4SpringContextTests {

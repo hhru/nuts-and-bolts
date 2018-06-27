@@ -1,13 +1,12 @@
 package ru.hh.nab.datasource;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class CompressedStackFactoryTest {
 
   @Test
-  public void create() throws Exception {
+  public void create() {
     CompressedStackFactory compressedStackFactory = new CompressedStackFactory(
         InnerClass.class.getName(), "inner",
         OuterClass.class.getName(), "outer",

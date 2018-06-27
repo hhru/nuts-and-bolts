@@ -10,6 +10,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.jetty.HHServerConnector;
@@ -62,7 +63,7 @@ public class JettyFactory {
     int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(4);
     int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(10);
     int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(60_000);
-    QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs);
+    QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(maxThreads));
     threadPool.start();
     return threadPool;
   }

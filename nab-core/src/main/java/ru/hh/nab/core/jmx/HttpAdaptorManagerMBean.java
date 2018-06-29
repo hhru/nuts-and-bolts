@@ -13,7 +13,7 @@ public class HttpAdaptorManagerMBean implements MBeanExporterListener {
 
   private final MBeanServer mbeanServer;
 
-  HttpAdaptorManagerMBean(MBeanServer mbeanServer) {
+  public HttpAdaptorManagerMBean(MBeanServer mbeanServer) {
     this.mbeanServer = mbeanServer;
   }
 

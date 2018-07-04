@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.hibernate.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

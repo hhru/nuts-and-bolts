@@ -12,9 +12,9 @@ import ru.hh.nab.hibernate.interceptor.RequestIdPassingInterceptor;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-public class NabSessionFactoryBean extends LocalSessionFactoryBean {
+final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 
-  public NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties) {
+  NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties) {
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
     MetadataSources metadataSources = new MetadataSources(bootstrapServiceRegistryBuilder.build());
     setMetadataSources(metadataSources);

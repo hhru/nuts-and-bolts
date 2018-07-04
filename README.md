@@ -2,13 +2,9 @@
 
 # Nuts-and-Bolts
 
-> Attention: **We provide no gurantee for support, backward compatibility and licence policy stability for the project in the future. We do not 
-recommend to use it in projects, which are not related to HeadHunter. Use at your own risk**
-
-> Внимание: **Мы не гарантируем поддержку, обратную совместимость или неизменность лицензионной политики для этого проекта в будущем. Мы не 
-рекомендуем испозовать его в проектах, не связанных с HeadHunter. Используйте на свой страх и риск**  
-
 Nuts-and-Bolts is a small Java application framework which is used at [hh.ru](https://hh.ru) to create micro-services.
+
+[Disclaimer](https://github.com/hhru/nuts-and-bolts/wiki/Disclaimer)
 
 ## Main features
 

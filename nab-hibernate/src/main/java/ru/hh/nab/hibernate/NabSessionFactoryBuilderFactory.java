@@ -13,7 +13,7 @@ import org.hibernate.service.Service;
 import org.hibernate.service.UnknownServiceException;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-public class NabSessionFactoryBuilderFactory implements SessionFactoryBuilderFactory {
+final class NabSessionFactoryBuilderFactory implements SessionFactoryBuilderFactory {
 
   @Override
   public SessionFactoryBuilder getSessionFactoryBuilder(MetadataImplementor metadata, SessionFactoryBuilderImplementor defaultBuilder) {

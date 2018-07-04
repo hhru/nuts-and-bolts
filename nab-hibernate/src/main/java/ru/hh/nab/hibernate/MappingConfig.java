@@ -1,20 +1,30 @@
 package ru.hh.nab.hibernate;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class MappingConfig {
-  private final HashSet<Class<?>> mappings = new HashSet<>();
+public final class MappingConfig {
+  private final Set<Class<?>> annotatedClasses = new LinkedHashSet<>();
+  private final Set<String> packagesToScan = new LinkedHashSet<>();
 
-  public MappingConfig(Class<?> ...classes) {
-    mappings.addAll(Arrays.asList(classes));
+  public MappingConfig(Class<?>... entityClasses) {
+    annotatedClasses.addAll(Arrays.asList(entityClasses));
   }
 
-  public void addMapping(Class<?> entityClass) {
-    mappings.add(entityClass);
+  public void addEntityClass(Class<?> entityClass) {
+    annotatedClasses.add(entityClass);
   }
 
-  public Class<?>[] getMappings() {
-    return mappings.toArray(new Class<?>[mappings.size()]);
+  public void addPackagesToScan(String... packageNames) {
+    packagesToScan.addAll(Arrays.asList(packageNames));
+  }
+
+  public Class<?>[] getAnnotatedClasses() {
+    return annotatedClasses.toArray(new Class<?>[0]);
+  }
+
+  public String[] getPackagesToScan() {
+    return packagesToScan.toArray(new String[0]);
   }
 }

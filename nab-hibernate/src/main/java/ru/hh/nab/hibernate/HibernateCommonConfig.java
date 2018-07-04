@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
@@ -19,10 +20,11 @@ import java.util.Properties;
 public class HibernateCommonConfig {
 
   @Bean
-  NabSessionFactoryBean sessionFactory(DataSource dataSource, Properties hibernateProperties, MappingConfig mappingConfig) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties);
+  LocalSessionFactoryBean sessionFactory(DataSource dataSource, Properties hibernateProperties, MappingConfig mappingConfig) {
+    LocalSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties);
     sessionFactoryBean.setDataSource(dataSource);
-    sessionFactoryBean.setAnnotatedClasses(mappingConfig.getMappings());
+    sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
+    sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
     sessionFactoryBean.setHibernateProperties(hibernateProperties);
     return sessionFactoryBean;
   }

@@ -4,7 +4,7 @@
 
 Nuts-and-Bolts is a small Java application framework which is used at [hh.ru](https://hh.ru) to create micro-services.
 
-Please read [Disclaimer](https://github.com/hhru/nuts-and-bolts/wiki/Disclaimer) before using this framework.
+> Please read [Disclaimer](https://github.com/hhru/nuts-and-bolts/wiki/Disclaimer) before using this framework.
 
 ## Main features
 

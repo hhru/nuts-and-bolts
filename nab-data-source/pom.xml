@@ -101,7 +101,7 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-core</artifactId>
+            <artifactId>nab-starter</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>

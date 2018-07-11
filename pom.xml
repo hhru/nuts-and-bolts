@@ -139,7 +139,6 @@
                         <format>xml</format>
                         <format>html</format>
                     </formats>
-                    <aggregate>true</aggregate>
                 </configuration>
             </plugin>
         </plugins>

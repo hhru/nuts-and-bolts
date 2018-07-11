@@ -1,9 +1,8 @@
-package ru.hh.nab.core.util;
+package ru.hh.nab.core.http;
 
 import org.eclipse.jetty.http.DateGenerator;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
-import ru.hh.nab.core.http.CacheUtils;
 
 import javax.servlet.http.HttpServletResponse;
 

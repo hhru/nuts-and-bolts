@@ -17,28 +17,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import ru.hh.nab.core.servlet.DefaultServletConfig;
 import ru.hh.nab.core.Launcher;
-import ru.hh.nab.testbase.util.Classes;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.core.servlet.ServletConfig;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 
-public abstract class JerseyTest extends AbstractJUnit4SpringContextTests {
+/**
+ * Launches Jetty instance with application context provided by {@link AbstractJUnit4SpringContextTests}
+ * and servlet config provided by {@link #servletConfig()} on a random port before test methods start to execute.
+ * For some examples see nab-starter-tests module.
+ */
+public abstract class JettyLauncherTestBase extends AbstractJUnit4SpringContextTests {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JerseyTest.class);
-  private static final ConcurrentMap<Class<? extends JerseyTest>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
+  private static final Logger LOGGER = LoggerFactory.getLogger(JettyLauncherTestBase.class);
+  private static final ConcurrentMap<Class<? extends JettyLauncherTestBase>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
 
   @Before
   public void setUp() {
-    Class<? extends JerseyTest> aClass = definingSubclass(getClass());
     Holder<Instance> newHolder = new Holder<>();
-    Holder<Instance> holder = INSTANCES.putIfAbsent(aClass, newHolder);
+    Holder<Instance> holder = INSTANCES.putIfAbsent(getClass(), newHolder);
     if (holder == null) {
       holder = newHolder;
     }
     try {
       holder.get(() -> {
-        int port = Launcher.startApplication(applicationContext, new DefaultServletConfig());
+        int port = Launcher.startApplication(applicationContext, servletConfig());
         LOGGER.info("Test server is bound to port {}", port);
         return new Instance(port);
       });
@@ -47,33 +50,23 @@ public abstract class JerseyTest extends AbstractJUnit4SpringContextTests {
     }
   }
 
-  private static Class<? extends JerseyTest> definingSubclass(Class<? extends JerseyTest> clazz) {
-    Class<? extends JerseyTest> current = clazz;
-    while (true) {
-      if (Classes.hasDeclaredMethod(current, "settings") ||
-          Classes.hasDeclaredMethod(current, "properties") ||
-          Classes.hasDeclaredMethod(current, "apiSecurity") ||
-          Classes.hasDeclaredMethod(current, "limits")) {
-        return current;
-      }
-      current = current.getSuperclass().asSubclass(JerseyTest.class);
-    }
+  /**
+   * Override to provide custom servlet config for Jetty instance
+   */
+  protected ServletConfig servletConfig() {
+    return new DefaultServletConfig();
   }
 
   private Instance instance() {
-    return INSTANCES.get(definingSubclass(getClass())).get();
+    return INSTANCES.get(getClass()).get();
   }
 
   protected String baseUrl() {
     return instance().baseUrl;
   }
 
-  private int port() {
+  protected int port() {
     return instance().port;
-  }
-
-  protected FileSettings settings() {
-    return applicationContext.getBean(FileSettings.class, "fileSettings");
   }
 
   public static class Instance {

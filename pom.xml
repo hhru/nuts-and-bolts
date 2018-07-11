@@ -16,11 +16,12 @@
 
     <modules>
         <module>nab-common</module>
-        <module>nab-core</module>
+        <module>nab-starter</module>
         <module>nab-data-source</module>
         <module>nab-example</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
+        <module>nab-starter-tests</module>
     </modules>
 
     <properties>
@@ -138,6 +139,7 @@
                         <format>xml</format>
                         <format>html</format>
                     </formats>
+                    <aggregate>true</aggregate>
                 </configuration>
             </plugin>
         </plugins>

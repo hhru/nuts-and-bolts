@@ -14,9 +14,8 @@ public class LauncherTest extends AbstractJUnit4SpringContextTests {
   public void startApplicationShouldRunJetty() throws Exception {
     assertNotNull(applicationContext);
 
-    int port = Launcher.startApplication(applicationContext, new DefaultServletConfig());
+    Launcher.startApplication(applicationContext, new DefaultServletConfig());
 
-    assertEquals(CoreTestConfig.TEST_PORT, port);
     assertEquals(CoreTestConfig.TEST_SERVICE_NAME, applicationContext.getBean("serviceName"));
   }
 }

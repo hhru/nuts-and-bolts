@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import ru.hh.nab.core.servlet.DefaultServletConfig;
-import ru.hh.nab.core.Launcher;
+import ru.hh.nab.core.NabApplication;
 import ru.hh.nab.core.servlet.ServletConfig;
 
 import java.util.concurrent.Callable;
@@ -41,7 +41,7 @@ public abstract class JettyLauncherTestBase extends AbstractJUnit4SpringContextT
     }
     try {
       holder.get(() -> {
-        int port = Launcher.startApplication(applicationContext, servletConfig());
+        int port = NabApplication.startJettyServer(applicationContext, servletConfig());
         LOGGER.info("Test server is bound to port {}", port);
         return new Instance(port);
       });

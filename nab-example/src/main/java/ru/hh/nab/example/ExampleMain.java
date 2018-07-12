@@ -1,11 +1,14 @@
 package ru.hh.nab.example;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ru.hh.nab.core.Launcher;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import ru.hh.nab.core.NabApplication;
 
-public class ExampleMain extends Launcher {
+@Configuration
+@Import(ExampleProdConfig.class)
+public class ExampleMain {
 
   public static void main(String[] args) {
-    doMain(new AnnotationConfigApplicationContext(ExampleProdConfig.class));
+    NabApplication.run(ExampleMain.class);
   }
 }

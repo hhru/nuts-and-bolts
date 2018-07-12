@@ -1,5 +1,6 @@
 package ru.hh.nab.core;
 
+import static java.util.Optional.ofNullable;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,14 +12,12 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Configuration
 public class CoreCommonConfig {
+  private static final String SERVICE_NAME_PROPERTY = "serviceName";
 
   @Bean
   String serviceName(FileSettings fileSettings) {
-    String serviceName = fileSettings.getString("serviceName");
-    if (serviceName == null) {
-      throw new RuntimeException("'serviceName' not found in file settings");
-    }
-    return serviceName;
+    return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY))
+        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
   }
 
   @Bean

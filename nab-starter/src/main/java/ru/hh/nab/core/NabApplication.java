@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.core.jetty.JettyFactory;
 import ru.hh.nab.core.servlet.DefaultServletConfig;
@@ -29,32 +28,38 @@ public class NabApplication {
 
   public static ApplicationContext run(ServletConfig servletConfig, Class<?>... primarySources) {
     registerSlf4JHandler();
-    AnnotationConfigApplicationContext context = null;
+    NabApplicationContext context = null;
     try {
       context = createApplicationContext(primarySources);
       int port = startJettyServer(context, servletConfig);
       printApplicationStatus(context, port);
     } catch (Exception e) {
-      LOGGER.error("Failed to start, shutting down", e);
-      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
-      System.exit(1);
+      logErrorAndExit(e);
     }
     return context;
   }
 
-  private static AnnotationConfigApplicationContext createApplicationContext(Class<?>... primarySources) {
-    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+  private static NabApplicationContext createApplicationContext(Class<?>... primarySources) {
+    final NabApplicationContext context = new NabApplicationContext();
     context.register(primarySources);
     context.refresh();
     return context;
   }
 
-  public static int startJettyServer(ApplicationContext context, ServletConfig config) throws Exception {
+  public static int startJettyServer(ApplicationContext context, ServletConfig servletConfig) throws Exception {
     final FileSettings settings = context.getBean(FileSettings.class);
-    final ServletContainer mainServlet = new ServletContainer(config.createResourceConfig(context));
-    final Server jettyServer = JettyFactory.create(settings, context.getBean(ThreadPool.class), mainServlet, config.getServletMapping());
-    config.configureServletContext((ServletContextHandler) jettyServer.getHandler(), context);
-    return startJettyServer(jettyServer);
+    final ServletContainer mainServlet = new ServletContainer(servletConfig.createResourceConfig(context));
+    final Server jettyServer = JettyFactory.create(settings, context.getBean(ThreadPool.class), mainServlet, servletConfig.getServletMapping());
+    servletConfig.configureServletContext((ServletContextHandler) jettyServer.getHandler(), context);
+    int port = startJettyServer(jettyServer);
+
+    // todo: integrate start of jetty server into spring life cycle
+    if (context instanceof NabApplicationContext) {
+      NabApplicationContext nabApplicationContext = (NabApplicationContext) context;
+      nabApplicationContext.setServer(jettyServer);
+    }
+
+    return port;
   }
 
   static void registerSlf4JHandler() {
@@ -72,6 +77,12 @@ public class NabApplication {
   private static void printApplicationStatus(ApplicationContext context, int port) {
     AppMetadata appMetadata = context.getBean(AppMetadata.class);
     System.out.println(appMetadata.getStatus() + ", pid " + getCurrentPid() + ", listening to port " + port);
+  }
+
+  private static void logErrorAndExit(Exception e) {
+    LOGGER.error("Failed to start, shutting down", e);
+    System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
+    System.exit(1);
   }
 
   private static String getCurrentPid() {

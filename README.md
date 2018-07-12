@@ -28,19 +28,16 @@ Nuts-and-Bolts is a small Java application framework which is used at [hh.ru](ht
 ## Getting started
 
 ```java
-package com.example;
-
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ru.hh.nab.core.Launcher;
-
-public class ExampleMain extends Launcher {
+@Configuration
+@Import(ExampleConfig.class)
+public class ExampleMain {
 
   public static void main(String[] args) {
-    doMain(new AnnotationConfigApplicationContext(ExampleConfig.class));
+    NabApplication.run(ExampleMain.class);
   }
 }
 ```
 
 [Full example](https://github.com/hhru/nuts-and-bolts/tree/master/nab-example)
 
-[How to release new version](https://github.com/hhru/nuts-and-bolts/wiki/How-to-release-new-version)
+[How to release a new version](https://github.com/hhru/nuts-and-bolts/wiki/How-to-release-a-new-version)

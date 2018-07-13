@@ -8,9 +8,9 @@ public class NabApplicationTest {
 
   @Test
   public void runShouldStartJetty() {
-    NabApplicationContext context = (NabApplicationContext) NabApplication.run(CoreTestConfig.class);
+    NabApplicationContext context = (NabApplicationContext) NabApplication.run(NabTestConfig.class);
 
     assertTrue(context.isServerRunning());
-    assertEquals(CoreTestConfig.TEST_SERVICE_NAME, context.getBean("serviceName"));
+    assertEquals(NabTestConfig.TEST_SERVICE_NAME, context.getBean("serviceName"));
   }
 }

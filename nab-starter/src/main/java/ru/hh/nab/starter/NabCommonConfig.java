@@ -11,7 +11,7 @@ import static ru.hh.nab.starter.jetty.JettyFactory.createJettyThreadPool;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Configuration
-public class CoreCommonConfig {
+public class NabCommonConfig {
   private static final String SERVICE_NAME_PROPERTY = "serviceName";
 
   @Bean

@@ -20,8 +20,8 @@ import static ru.hh.nab.starter.jetty.HttpCacheFilterFactory.createCacheFilterHo
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 
 @Configuration
-@Import({CoreCommonConfig.class})
-public class CoreProdConfig {
+@Import({NabCommonConfig.class})
+public class NabProdConfig {
 
   @Bean
   FileSettings fileSettings() throws Exception {

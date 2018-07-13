@@ -8,8 +8,8 @@ import ru.hh.nab.common.properties.FileSettings;
 import java.util.Properties;
 
 @Configuration
-@Import({CoreCommonConfig.class})
-public class CoreTestConfig {
+@Import({NabCommonConfig.class})
+public class NabTestConfig {
   static final String TEST_SERVICE_NAME = "testService";
 
   @Bean

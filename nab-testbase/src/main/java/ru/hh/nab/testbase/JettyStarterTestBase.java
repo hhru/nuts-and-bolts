@@ -27,10 +27,10 @@ import java.util.concurrent.ConcurrentMap;
  * and servlet config provided by {@link #servletConfig()} on a random port before test methods start to execute.
  * For some examples see nab-starter-tests module.
  */
-public abstract class JettyLauncherTestBase extends AbstractJUnit4SpringContextTests {
+public abstract class JettyStarterTestBase extends AbstractJUnit4SpringContextTests {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JettyLauncherTestBase.class);
-  private static final ConcurrentMap<Class<? extends JettyLauncherTestBase>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
+  private static final Logger LOGGER = LoggerFactory.getLogger(JettyStarterTestBase.class);
+  private static final ConcurrentMap<Class<? extends JettyStarterTestBase>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
 
   @Before
   public void setUp() {

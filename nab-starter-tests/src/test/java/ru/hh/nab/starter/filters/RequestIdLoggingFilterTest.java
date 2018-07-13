@@ -6,11 +6,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.CoreTestConfig;
-import ru.hh.nab.testbase.JettyLauncherTestBase;
+import ru.hh.nab.starter.NabTestConfig;
+import ru.hh.nab.testbase.JettyStarterTestBase;
 
-@ContextConfiguration(classes = {CoreTestConfig.class})
-public class RequestIdLoggingFilterTest extends JettyLauncherTestBase {
+@ContextConfiguration(classes = {NabTestConfig.class})
+public class RequestIdLoggingFilterTest extends JettyStarterTestBase {
 
   @Test
   public void testRequestId() throws Exception {

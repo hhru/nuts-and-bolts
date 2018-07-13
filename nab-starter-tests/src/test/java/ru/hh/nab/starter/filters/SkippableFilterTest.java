@@ -7,10 +7,10 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.CoreTestConfig;
+import ru.hh.nab.starter.NabTestConfig;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
-import ru.hh.nab.testbase.JettyLauncherTestBase;
+import ru.hh.nab.testbase.JettyStarterTestBase;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
@@ -23,8 +23,8 @@ import java.util.EnumSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@ContextConfiguration(classes = {CoreTestConfig.class})
-public class SkippableFilterTest extends JettyLauncherTestBase {
+@ContextConfiguration(classes = {NabTestConfig.class})
+public class SkippableFilterTest extends JettyStarterTestBase {
 
   public static class AddHeaderSkippableFilter extends SkippableFilter {
     public AddHeaderSkippableFilter() {}

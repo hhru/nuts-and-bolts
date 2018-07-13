@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.hh.metrics.StatsDSender;
-import ru.hh.nab.core.CoreTestConfig;
+import ru.hh.nab.starter.CoreTestConfig;
 import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 import javax.sql.DataSource;

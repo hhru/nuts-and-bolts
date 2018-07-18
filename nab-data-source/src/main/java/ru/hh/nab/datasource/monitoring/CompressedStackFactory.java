@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.monitoring;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,9 +16,9 @@ public class CompressedStackFactory {
   /** Only middle part of stack trace is retained, from inner class and method to outer class and method, both parts excluding.<br/>
       Only stack frames from the includePackages are kept.<br/>
       But if a class contains one of the excludeClassesParts, the stack frame is excluded even if it belongs to one of the includePackages.*/
-  public CompressedStackFactory(String innerClassExcluding, String innerMethodExcluding,
-                                String outerClassExcluding, String outerMethodExcluding,
-                                String[] includePackages, String[] excludeClassesParts) {
+  CompressedStackFactory(String innerClassExcluding, String innerMethodExcluding,
+                         String outerClassExcluding, String outerMethodExcluding,
+                         String[] includePackages, String[] excludeClassesParts) {
     this.innerClassExcluding = innerClassExcluding;
     this.innerMethodExcluding = innerMethodExcluding;
     this.outerClassExcluding = outerClassExcluding;
@@ -97,5 +97,4 @@ public class CompressedStackFactory {
       return className;
     }
   }
-
 }

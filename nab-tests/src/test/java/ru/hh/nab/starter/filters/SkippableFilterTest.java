@@ -7,7 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.NabTestConfig;
+import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
 import ru.hh.nab.testbase.JettyStarterTestBase;

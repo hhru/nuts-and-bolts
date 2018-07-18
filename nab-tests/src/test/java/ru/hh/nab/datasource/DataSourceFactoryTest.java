@@ -16,8 +16,8 @@ import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.monitoring.MonitoringDataSource;
 import ru.hh.nab.datasource.monitoring.MonitoringDataSourceFactory;
-import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
-import static ru.hh.nab.starter.NabTestConfig.TEST_SERVICE_NAME;
+import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
+import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 public class DataSourceFactoryTest {
   private static final DataSourceType TEST_DATA_SOURCE_TYPE = DataSourceType.MASTER;
@@ -28,7 +28,7 @@ public class DataSourceFactoryTest {
 
   @BeforeClass
   public static void setUpClass() {
-    testDb = EmbeddedPostgresDataSourceFactory.Singleton.INSTANCE.getEmbeddedPostgres();
+    testDb = EmbeddedPostgresDataSourceFactory.getEmbeddedPostgres();
     statsDSender = mock(StatsDSender.class);
     MonitoringDataSourceFactory monitoringDataSourceFactory = new MonitoringDataSourceFactory(TEST_SERVICE_NAME, statsDSender);
     dataSourceFactory = new DataSourceFactory(monitoringDataSourceFactory);

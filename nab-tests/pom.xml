@@ -9,9 +9,9 @@
     </parent>
 
     <packaging>jar</packaging>
-    <artifactId>nab-starter-tests</artifactId>
+    <artifactId>nab-tests</artifactId>
 
-    <name>nuts'n'bolts tests for nab-starter based on nab-testbase</name>
+    <name>nuts'n'bolts tests based on nab-testbase</name>
 
     <dependencies>
         <dependency>

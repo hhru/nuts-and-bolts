@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.jdbc;
+package ru.hh.nab.datasource.monitoring;
 
 import java.sql.Array;
 import java.sql.Blob;

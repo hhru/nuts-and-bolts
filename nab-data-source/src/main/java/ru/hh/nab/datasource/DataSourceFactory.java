@@ -6,17 +6,11 @@ import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.mchange.v2.c3p0.PoolBackedDataSource;
 import com.mchange.v2.c3p0.WrapperConnectionPoolDataSource;
 import com.mchange.v2.log.MLevel;
+import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.hh.nab.datasource.jdbc.MonitoringDataSource;
-import ru.hh.nab.datasource.jdbc.StatementTimeoutDataSource;
-import ru.hh.metrics.Counters;
-import ru.hh.metrics.Histogram;
-import ru.hh.metrics.StatsDSender;
-import ru.hh.metrics.Tag;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.common.mdc.MDC;
+import ru.hh.nab.datasource.monitoring.MonitoringDataSourceFactory;
+import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 
 import javax.sql.DataSource;
 import java.beans.IntrospectionException;
@@ -24,20 +18,12 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.IntConsumer;
-
-import static java.lang.Integer.parseInt;
 
 public class DataSourceFactory {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);
+  private final MonitoringDataSourceFactory monitoringDataSourceFactory;
 
-  private final String serviceName;
-  private final StatsDSender statsDSender;
-
-  public DataSourceFactory(String serviceName, StatsDSender statsDSender) {
-    this.serviceName = serviceName;
-    this.statsDSender = statsDSender;
+  DataSourceFactory(MonitoringDataSourceFactory monitoringDataSourceFactory) {
+    this.monitoringDataSourceFactory = monitoringDataSourceFactory;
   }
 
   public DataSource create(DataSourceType dataSourceType, FileSettings settings) {
@@ -48,7 +34,7 @@ public class DataSourceFactory {
   private DataSource createDataSource(String dataSourceName, FileSettings dataSourceSettings) {
     DataSource underlyingDataSource = createDriverManagerDataSource(dataSourceName, dataSourceSettings);
 
-    String statementTimeoutMsVal = dataSourceSettings.getString("statementTimeoutMs");
+    String statementTimeoutMsVal = dataSourceSettings.getString(DataSourceSettings.STATEMENT_TIMEOUT_MS);
     if (statementTimeoutMsVal != null) {
       int statementTimeoutMs = parseInt(statementTimeoutMsVal);
       if (statementTimeoutMs > 0) {
@@ -60,17 +46,17 @@ public class DataSourceFactory {
 
     checkDataSource(underlyingDataSource, dataSourceName);
 
-    boolean sendStats = ofNullable(dataSourceSettings.getBoolean("monitoring.sendStats")).orElse(false);
+    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(DataSourceSettings.MONITORING_SEND_STATS)).orElse(false);
     return sendStats
-        ? createMonitoringDataSource(dataSourceSettings, underlyingDataSource, dataSourceName)
+        ? monitoringDataSourceFactory.create(dataSourceSettings, underlyingDataSource, dataSourceName)
         : underlyingDataSource;
   }
 
   private static DataSource createDriverManagerDataSource(String dataSourceName, FileSettings dataSourceSettings) {
     DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setJdbcUrl(dataSourceSettings.getString("jdbcUrl"));
-    driverManagerDataSource.setUser(dataSourceSettings.getString("user"));
-    driverManagerDataSource.setPassword(dataSourceSettings.getString("password"));
+    driverManagerDataSource.setJdbcUrl(dataSourceSettings.getString(DataSourceSettings.JDBC_URL));
+    driverManagerDataSource.setUser(dataSourceSettings.getString(DataSourceSettings.USER));
+    driverManagerDataSource.setPassword(dataSourceSettings.getString(DataSourceSettings.PASSWORD));
     driverManagerDataSource.setIdentityToken(dataSourceName);
     return driverManagerDataSource;
   }
@@ -82,7 +68,7 @@ public class DataSourceFactory {
     // That is why we use constructors that allow to turn off "autoregister" property.
 
     try {
-      Properties c3p0Properties = dataSourceSettings.getSubProperties("c3p0");
+      Properties c3p0Properties = dataSourceSettings.getSubProperties(DataSourceSettings.C3P0_PREFIX);
 
       WrapperConnectionPoolDataSource wcpds = new WrapperConnectionPoolDataSource(false);
       wcpds.setNestedDataSource(unpooledDataSource);
@@ -118,17 +104,6 @@ public class DataSourceFactory {
     }
   }
 
-  private DataSource createMonitoringDataSource(FileSettings dataSourceSettings, DataSource underlyingDataSource, String dataSourceName) {
-    int longUsageConnectionMs = dataSourceSettings.getInteger("monitoring.longConnectionUsageMs");
-    boolean sendSampledStats = dataSourceSettings.getBoolean("monitoring.sendSampledStats");
-    return new MonitoringDataSource(
-        underlyingDataSource,
-        dataSourceName,
-        createConnectionGetMsConsumer(dataSourceName),
-        createConnectionUsageMsConsumer(dataSourceName, longUsageConnectionMs, sendSampledStats)
-    );
-  }
-
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {
     try (Connection connection = dataSource.getConnection()) {
       if (!connection.isValid(1000)) {
@@ -137,62 +112,5 @@ public class DataSourceFactory {
     } catch (SQLException e) {
       throw new RuntimeException("Failed to check data source " + dataSourceName + ": " + e.toString());
     }
-  }
-
-  private IntConsumer createConnectionGetMsConsumer(String dataSourceName) {
-    Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(getMetricName(dataSourceName, "connection.get_ms"), histogram, 50, 99, 100);
-    return histogram::save;
-  }
-
-  private IntConsumer createConnectionUsageMsConsumer(String dataSourceName, int longConnectionUsageMs, boolean sendSampledStats) {
-
-    Counters totalUsageCounter = new Counters(500);
-    statsDSender.sendCountersPeriodically(getMetricName(dataSourceName, "connection.total_usage_ms"), totalUsageCounter);
-
-    Histogram histogram = new Histogram(2000);
-    statsDSender.sendPercentilesPeriodically(getMetricName(dataSourceName, "connection.usage_ms"), histogram, 50, 97, 99, 100);
-
-    CompressedStackFactory compressedStackFactory;
-    Counters sampledUsageCounters;
-    if (sendSampledStats) {
-      compressedStackFactory = new CompressedStackFactory(
-          "MonitoringConnection", "close",
-          "org.glassfish.jersey.servlet.ServletContainer", "service",
-          new String[]{"ru.hh."},
-          new String[]{"DataSourceContext", "ExecuteOnDataSource", "TransactionManager"}
-      );
-      sampledUsageCounters = new Counters(2000);
-      statsDSender.sendCountersPeriodically(getMetricName(dataSourceName, "connection.sampled_usage_ms"), sampledUsageCounters);
-
-    } else {
-      sampledUsageCounters = null;
-      compressedStackFactory = null;
-    }
-
-    return (usageMs) -> {
-
-      if (usageMs > longConnectionUsageMs) {
-        String message = String.format(
-            "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
-            dataSourceName, longConnectionUsageMs, usageMs);
-        LOGGER.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
-      }
-
-      histogram.save(usageMs);
-
-      String controller = MDC.getController().orElse("unknown");
-      Tag controllerTag = new Tag("controller", controller);
-      totalUsageCounter.add(usageMs, controllerTag);
-
-      if (sendSampledStats && ThreadLocalRandom.current().nextInt(100) == 0) {
-        String compressedStack = compressedStackFactory.create();
-        sampledUsageCounters.add(usageMs, new Tag("stack", compressedStack));
-      }
-    };
-  }
-
-  private String getMetricName(String dataSourceName, String shortName) {
-    return serviceName + '.' + dataSourceName + '.' + shortName;
   }
 }

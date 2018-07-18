@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.jdbc;
+package ru.hh.nab.datasource.monitoring;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

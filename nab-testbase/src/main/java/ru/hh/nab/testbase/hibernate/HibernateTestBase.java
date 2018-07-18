@@ -1,8 +1,7 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.testbase.hibernate;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -11,7 +10,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.inject.Inject;
 
-@ContextConfiguration(classes = {HibernateTestBaseConfig.class})
 public abstract class HibernateTestBase extends AbstractJUnit4SpringContextTests {
   @Inject
   protected SessionFactory sessionFactory;

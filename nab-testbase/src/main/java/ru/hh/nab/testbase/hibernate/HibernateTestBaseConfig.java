@@ -1,15 +1,15 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.testbase.hibernate;
 
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import ru.hh.nab.datasource.postgres.embedded.EmbeddedPostgresDataSourceFactory;
+import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 import javax.sql.DataSource;
 
 @Configuration
-public class HibernateTestConfig {
+public class HibernateTestBaseConfig {
   @Bean
   DataSource dataSource() throws Exception {
     return EmbeddedPostgresDataSourceFactory.create();

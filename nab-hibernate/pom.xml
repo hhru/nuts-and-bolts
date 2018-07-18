@@ -77,18 +77,16 @@
             <version>1.8.13</version>
         </dependency>
 
-        <!--tests-->
+        <!--Testing-->
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-testbase</artifactId>
-            <version>${project.version}</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.9.0</version>
             <scope>test</scope>
         </dependency>
 

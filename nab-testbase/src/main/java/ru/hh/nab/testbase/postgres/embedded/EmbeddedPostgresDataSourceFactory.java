@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.postgres.embedded;
+package ru.hh.nab.testbase.postgres.embedded;
 
 import com.mchange.v2.c3p0.DataSources;
 import com.mchange.v2.c3p0.DriverManagerDataSource;
@@ -29,10 +29,8 @@ public class EmbeddedPostgresDataSourceFactory {
   }
 
   public static DataSource create(String jdbcUrl) throws SQLException {
-    EmbeddedPostgres pgInstance = Singleton.INSTANCE.getEmbeddedPostgres();
-
     DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setJdbcUrl(String.format(jdbcUrl, pgInstance.getPort()));
+    driverManagerDataSource.setJdbcUrl(String.format(jdbcUrl, getEmbeddedPostgres().getPort()));
     driverManagerDataSource.setUser(DEFAULT_USER);
 
     DataSource statementTimeoutDataSource = new StatementTimeoutDataSource(driverManagerDataSource, 5000);
@@ -73,18 +71,12 @@ public class EmbeddedPostgresDataSourceFactory {
     return pgPath.toString();
   }
 
-  public enum Singleton {
-    INSTANCE;
+  private static class EmbeddedPostgresSingleton {
+    private static final EmbeddedPostgres INSTANCE = createEmbeddedPostgres();
+  }
 
-    private final EmbeddedPostgres embeddedPostgres;
-
-    Singleton() {
-      embeddedPostgres = createEmbeddedPostgres();
-    }
-
-    public EmbeddedPostgres getEmbeddedPostgres() {
-      return embeddedPostgres;
-    }
+  public static EmbeddedPostgres getEmbeddedPostgres() {
+    return EmbeddedPostgresSingleton.INSTANCE;
   }
 
   private EmbeddedPostgresDataSourceFactory() {

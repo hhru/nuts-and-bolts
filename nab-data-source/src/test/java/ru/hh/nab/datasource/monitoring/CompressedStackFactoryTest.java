@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.monitoring;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;

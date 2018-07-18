@@ -7,9 +7,10 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 public class PropertiesUtils {
+  static final String SETINGS_DIR_PROPERTY = "settingsDir";
 
   public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws Exception {
-    final String settingsDir = System.getProperty("settingsDir");
+    final String settingsDir = System.getProperty(SETINGS_DIR_PROPERTY);
     final Properties properties = new Properties();
 
     final Path defaultPath = Paths.get(settingsDir, fileName);

@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.jdbc;
+package ru.hh.nab.datasource.monitoring;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -16,31 +16,35 @@ import java.util.function.IntConsumer;
 
 @ContextConfiguration(classes = {DataSourceTestConfig.class})
 public class MonitoringDataSourceTest extends AbstractJUnit4SpringContextTests {
+
   @Inject
   private DataSource embeddedDataSource;
 
   @Test
-  public void test() throws SQLException {
+  public void testGetAndReleaseConnection() throws SQLException {
     IntConsumerStub connectionGetMsConsumer = new IntConsumerStub();
     assertNull(connectionGetMsConsumer.lastValue);
 
     IntConsumerStub connectionUsageMsConsumer = new IntConsumerStub();
     assertNull(connectionUsageMsConsumer.lastValue);
 
-    DataSource dataSource = new MonitoringDataSource(
-        embeddedDataSource,
-        "name",
-        connectionGetMsConsumer,
-        connectionUsageMsConsumer);
+    DataSource dataSource = createTestMonitoringDataSource(embeddedDataSource, connectionGetMsConsumer, connectionUsageMsConsumer);
 
-    try(Connection connection = dataSource.getConnection()) {
+    try (Connection connection = dataSource.getConnection()) {
       assertNotNull(connectionGetMsConsumer.lastValue);
       assertTrue(connectionGetMsConsumer.lastValue >= 0);
 
       assertTrue(connection.isValid(1));
     }
+
     assertNotNull(connectionUsageMsConsumer.lastValue);
     assertTrue(connectionUsageMsConsumer.lastValue >= 0);
+  }
+
+  static MonitoringDataSource createTestMonitoringDataSource(DataSource dataSource,
+                                                             IntConsumerStub connectionGetMsConsumer,
+                                                             IntConsumerStub connectionUsageMsConsumer) {
+    return new MonitoringDataSource(dataSource, "name", connectionGetMsConsumer, connectionUsageMsConsumer);
   }
 
   static class IntConsumerStub implements IntConsumer {

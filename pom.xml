@@ -21,7 +21,7 @@
         <module>nab-example</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
-        <module>nab-starter-tests</module>
+        <module>nab-tests</module>
     </modules>
 
     <properties>

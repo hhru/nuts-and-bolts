@@ -5,7 +5,9 @@ import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
-import ru.hh.nab.hibernate.HibernateTestBase;
+import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
@@ -14,6 +16,7 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeOn;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceType;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.setDefaultMDC;
 
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextUnsafeTest extends HibernateTestBase {
 
   @Before

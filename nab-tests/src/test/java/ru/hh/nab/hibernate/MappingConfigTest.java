@@ -4,12 +4,15 @@ import org.hibernate.SessionFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
-import static ru.hh.nab.hibernate.HibernateTestBaseConfig.TEST_PACKAGE;
+import org.springframework.test.context.ContextConfiguration;
+import static ru.hh.nab.hibernate.HibernateTestConfig.TEST_PACKAGE;
 import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.hibernate.model.test.PackageScanEntity;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 import javax.inject.Inject;
 
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class MappingConfigTest extends HibernateTestBase {
 
   @Inject

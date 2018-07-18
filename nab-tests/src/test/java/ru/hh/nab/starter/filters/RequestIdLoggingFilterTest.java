@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.NabTestConfig;
+import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.JettyStarterTestBase;
 
 @ContextConfiguration(classes = {NabTestConfig.class})

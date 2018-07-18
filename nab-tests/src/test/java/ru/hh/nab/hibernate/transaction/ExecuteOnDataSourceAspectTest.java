@@ -10,7 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import ru.hh.nab.hibernate.HibernateTestBase;
+import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.datasource.DataSourceType;
 
 import javax.inject.Inject;
@@ -19,6 +21,7 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSou
 
 import java.lang.annotation.Annotation;
 
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @Inject
   private ExecuteOnDataSourceAspect executeOnDataSourceAspect;

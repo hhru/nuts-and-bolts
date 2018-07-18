@@ -6,8 +6,10 @@ import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.hibernate.HibernateTestBase;
+import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
@@ -16,6 +18,7 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSou
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
 
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTest extends HibernateTestBase {
 
   @Before

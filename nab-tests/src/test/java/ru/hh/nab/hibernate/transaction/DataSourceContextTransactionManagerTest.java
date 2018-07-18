@@ -10,16 +10,19 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 
-import ru.hh.nab.hibernate.HibernateTestBase;
+import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.datasource.DataSourceType;
 
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
   private int existingTestEntityId;
 

@@ -40,6 +40,12 @@ public class FileSettingsTest {
   }
 
   @Test
+  public void testGetLong() {
+    assertEquals(0L, fileSettings.getLong("intProperty1").longValue());
+    assertEquals(123L, fileSettings.getLong("intProperty2").longValue());
+  }
+
+  @Test
   public void testGetBoolean() {
     assertTrue(fileSettings.getBoolean("namespace.boolProperty1"));
     assertFalse(fileSettings.getBoolean("namespace.boolProperty2"));

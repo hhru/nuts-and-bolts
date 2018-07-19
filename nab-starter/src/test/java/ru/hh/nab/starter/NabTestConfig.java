@@ -11,12 +11,14 @@ import java.util.Properties;
 @Import({NabCommonConfig.class})
 public class NabTestConfig {
   static final String TEST_SERVICE_NAME = "testService";
+  static final String TEST_DATACENTER = "testDC";
 
   @Bean
   FileSettings fileSettings() {
     Properties properties = new Properties();
     properties.setProperty("jetty.port", "0");
     properties.setProperty("serviceName", TEST_SERVICE_NAME);
+    properties.setProperty("datacenter", TEST_DATACENTER);
     return new FileSettings(properties);
   }
 }

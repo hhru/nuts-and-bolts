@@ -15,11 +15,11 @@ import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.web.WebAppConfiguration;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.servlet.ServletConfig;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -27,26 +27,36 @@ import java.util.concurrent.ConcurrentMap;
  * and servlet config provided by {@link #servletConfig()} on a random port before test methods start to execute.
  * For some examples see nab-starter-tests module.
  */
+@WebAppConfiguration
 public abstract class JettyStarterTestBase extends AbstractJUnit4SpringContextTests {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyStarterTestBase.class);
-  private static final ConcurrentMap<Class<? extends JettyStarterTestBase>, Holder<Instance>> INSTANCES = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<Class<? extends JettyStarterTestBase>, Instance> INSTANCES = new ConcurrentHashMap<>();
 
   @Before
   public void setUp() {
-    Holder<Instance> newHolder = new Holder<>();
-    Holder<Instance> holder = INSTANCES.putIfAbsent(getClass(), newHolder);
-    if (holder == null) {
-      holder = newHolder;
-    }
-    try {
-      holder.get(() -> {
+    Class<? extends JettyStarterTestBase> aClass = findMostGenericBaseClass(getClass());
+
+    INSTANCES.computeIfAbsent(aClass, key -> {
+      try {
         int port = NabApplication.startJettyServer(applicationContext, servletConfig());
         LOGGER.info("Test server is bound to port {}", port);
         return new Instance(port);
-      });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      } catch (Exception e) {
+        throw new RuntimeException("Exception during Jetty startup", e);
+      }
+    });
+  }
+
+  private static Class<? extends JettyStarterTestBase> findMostGenericBaseClass(Class<? extends JettyStarterTestBase> clazz) {
+    Class<? extends JettyStarterTestBase> current = clazz;
+    while (true) {
+      try {
+        current.getDeclaredMethod("servletConfig");
+        return current;
+      } catch (NoSuchMethodException e) {
+        current = current.getSuperclass().asSubclass(JettyStarterTestBase.class);
+      }
     }
   }
 
@@ -58,7 +68,7 @@ public abstract class JettyStarterTestBase extends AbstractJUnit4SpringContextTe
   }
 
   private Instance instance() {
-    return INSTANCES.get(getClass()).get();
+    return INSTANCES.get(findMostGenericBaseClass(getClass()));
   }
 
   protected String baseUrl() {
@@ -98,21 +108,6 @@ public abstract class JettyStarterTestBase extends AbstractJUnit4SpringContextTe
     @Override
     public HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
       return super.determineRoute(target == null ? defaultHost : target, request, context);
-    }
-  }
-
-  private static class Holder<T> {
-    private T t;
-
-    public synchronized T get(Callable<T> tProvider) throws Exception {
-      if (t == null) {
-        t = tProvider.call();
-      }
-      return t;
-    }
-
-    public synchronized T get() {
-      return t;
     }
   }
 }

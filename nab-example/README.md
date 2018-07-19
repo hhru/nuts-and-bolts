@@ -16,6 +16,7 @@ The application starts on port 9999 which is configured in file `src/etc/nab-exa
 
 ```properties
 serviceName=example
+datacenter=testDC
 
 jetty.port = 9999
 

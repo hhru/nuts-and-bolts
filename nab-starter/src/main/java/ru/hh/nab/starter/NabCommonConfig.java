@@ -13,11 +13,18 @@ import java.util.concurrent.ScheduledExecutorService;
 @Configuration
 public class NabCommonConfig {
   private static final String SERVICE_NAME_PROPERTY = "serviceName";
+  private static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
   String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
+  }
+
+  @Bean
+  String datacenter(FileSettings fileSettings) {
+    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
   }
 
   @Bean

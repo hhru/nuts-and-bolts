@@ -6,6 +6,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
 import ru.hh.nab.starter.jersey.FilteredXmlElementProvider;
@@ -16,6 +17,7 @@ public class DefaultServletConfig implements ServletConfig {
 
   @Override
   public void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
+    servletContextHandler.addEventListener(new RequestContextListener());
     servletContextHandler.addFilter(RequestIdLoggingFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
     if (applicationContext.containsBean("cacheFilter")) {

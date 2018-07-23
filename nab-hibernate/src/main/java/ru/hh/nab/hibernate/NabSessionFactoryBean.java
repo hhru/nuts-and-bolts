@@ -1,9 +1,14 @@
 package ru.hh.nab.hibernate;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.service.Service;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBuilder;
 import ru.hh.nab.hibernate.interceptor.ControllerPassingInterceptor;
@@ -12,10 +17,15 @@ import ru.hh.nab.hibernate.interceptor.RequestIdPassingInterceptor;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-final class NabSessionFactoryBean extends LocalSessionFactoryBean {
+public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 
-  NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties) {
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
+  private final Collection<ServiceSupplier<?>> serviceSuppliers;
+  private final Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers;
+
+  public NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties, BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
+      Collection<ServiceSupplier<?>> serviceSuppliers, Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers) {
+    this.serviceSuppliers = new ArrayList<>(serviceSuppliers);
+    this.sessionFactoryCreationHandlers = new ArrayList<>(sessionFactoryCreationHandlers);
     MetadataSources metadataSources = new MetadataSources(bootstrapServiceRegistryBuilder.build());
     setMetadataSources(metadataSources);
 
@@ -57,7 +67,24 @@ final class NabSessionFactoryBean extends LocalSessionFactoryBean {
   @Override
   protected SessionFactory buildSessionFactory(LocalSessionFactoryBuilder sfb) {
     StandardServiceRegistryBuilder serviceRegistryBuilder = sfb.getStandardServiceRegistryBuilder();
-    serviceRegistryBuilder.addService(NabSessionFactoryBuilderFactory.BuilderService.class, new NabSessionFactoryBuilderFactory.BuilderService());
+    serviceSuppliers.forEach(serviceSupplier -> {
+      Service service = serviceSupplier.get();
+      serviceRegistryBuilder.addService(serviceSupplier.getClazz(), service);
+    });
     return sfb.buildSessionFactory();
+  }
+
+  @Override
+  public SessionFactory getObject() {
+    SessionFactory sessionFactory = super.getObject();
+    sessionFactoryCreationHandlers.forEach(handler ->  handler.accept(sessionFactory));
+    return sessionFactory;
+  }
+
+  @FunctionalInterface
+  public interface SessionFactoryCreationHandler extends Consumer<SessionFactory> {}
+
+  public interface ServiceSupplier<T extends Service> extends Supplier<T> {
+    Class<T> getClazz();
   }
 }

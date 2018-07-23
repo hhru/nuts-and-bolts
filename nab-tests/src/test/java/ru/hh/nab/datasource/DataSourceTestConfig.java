@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 @Configuration
 @Import({
   NabTestConfig.class,
-  DataSourceProdConfig.class
+  NabDataSourceProdConfig.class
 })
 public class DataSourceTestConfig {
   @Bean

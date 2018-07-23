@@ -4,13 +4,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.PropertiesUtils;
-import ru.hh.nab.datasource.DataSourceProdConfig;
+import ru.hh.nab.datasource.NabDataSourceProdConfig;
 
 import java.util.Properties;
 
 @Configuration
-@Import({HibernateCommonConfig.class, DataSourceProdConfig.class})
-public class HibernateProdConfig {
+@Import({NabHibernateCommonConfig.class, NabDataSourceProdConfig.class})
+public class NabHibernateProdConfig {
 
   @Bean
   Properties hibernateProperties() throws Exception {

@@ -9,7 +9,7 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 import javax.sql.DataSource;
 
 @Configuration
-public class HibernateTestBaseConfig {
+public class NabHibernateTestBaseConfig {
   @Bean
   DataSource dataSource() throws Exception {
     return EmbeddedPostgresDataSourceFactory.create();

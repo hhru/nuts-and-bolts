@@ -5,20 +5,19 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.hibernate.SessionFactory;
 import org.springframework.core.annotation.Order;
-import org.springframework.transaction.PlatformTransactionManager;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.hh.nab.datasource.DataSourceType;
 
 @Aspect
-@Order(value = 0)
+@Order(0)
 public class ExecuteOnDataSourceAspect {
 
-  private final PlatformTransactionManager transactionManager;
+  private final DataSourceContextTransactionManager transactionManager;
   private final SessionFactory sessionFactory;
 
-  public ExecuteOnDataSourceAspect(PlatformTransactionManager transactionManager, SessionFactory sessionFactory) {
+  public ExecuteOnDataSourceAspect(DataSourceContextTransactionManager transactionManager, SessionFactory sessionFactory) {
     this.transactionManager = transactionManager;
     this.sessionFactory = sessionFactory;
   }

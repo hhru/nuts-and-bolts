@@ -11,6 +11,7 @@ import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.common.properties.FileSettings;
+import static java.util.Optional.ofNullable;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
 
@@ -27,7 +28,7 @@ public class MonitoringDataSourceFactory {
 
   public MonitoringDataSource create(FileSettings dataSourceSettings, DataSource underlyingDataSource, String dataSourceName) {
     int longUsageConnectionMs = dataSourceSettings.getInteger(MONITORING_LONG_CONNECTION_USAGE_MS);
-    boolean sendSampledStats = dataSourceSettings.getBoolean(MONITORING_SEND_SAMPLED_STATS);
+    boolean sendSampledStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_SAMPLED_STATS)).orElse(Boolean.FALSE);
     return new MonitoringDataSource(
         underlyingDataSource,
         dataSourceName,

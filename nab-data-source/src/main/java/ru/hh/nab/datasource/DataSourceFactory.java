@@ -27,7 +27,10 @@ public class DataSourceFactory {
   }
 
   public DataSource create(DataSourceType dataSourceType, FileSettings settings) {
-    String dataSourceName = dataSourceType.getName();
+    return create(dataSourceType.getName(), settings);
+  }
+
+  public DataSource create(String dataSourceName, FileSettings settings) {
     return createDataSource(dataSourceName, settings.getSubSettings(dataSourceName));
   }
 

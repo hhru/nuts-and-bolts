@@ -43,6 +43,7 @@ public class NabApplication {
     final NabApplicationContext context = new NabApplicationContext();
     context.register(primarySources);
     context.refresh();
+    context.registerShutdownHook();
     return context;
   }
 

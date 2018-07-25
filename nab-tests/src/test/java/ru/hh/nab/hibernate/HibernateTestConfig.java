@@ -4,12 +4,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.testbase.hibernate.HibernateTestBaseConfig;
+import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 
 @Configuration
 @Import({
-    HibernateTestBaseConfig.class,
-    HibernateCommonConfig.class
+  NabHibernateCommonConfig.class,
+  NabHibernateTestBaseConfig.class
 })
 public class HibernateTestConfig {
   static final String TEST_PACKAGE = "ru.hh.nab.hibernate.model.test";

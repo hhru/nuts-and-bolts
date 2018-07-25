@@ -6,7 +6,7 @@ import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.datasource.monitoring.MonitoringDataSourceFactory;
 
 @Configuration
-public class DataSourceProdConfig {
+public class NabDataSourceProdConfig {
 
   @Bean
   DataSourceFactory dataSourceFactory(String serviceName, StatsDSender statsDSender) {

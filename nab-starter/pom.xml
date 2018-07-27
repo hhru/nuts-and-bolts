@@ -14,7 +14,7 @@
     <name>nuts'n'bolts application starter</name>
 
     <properties>
-        <jersey.version>2.21</jersey.version>
+        <jersey.version>2.27</jersey.version>
         <jetty.version>9.4.6.v20170531</jetty.version>
         <jackson.version>2.6.6</jackson.version>
     </properties>
@@ -33,6 +33,11 @@
         </dependency>
 
         <!-- Jersey -->
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-spring4</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>

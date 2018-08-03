@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.jetty;
+package ru.hh.nab.starter.server.cache;
 
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.servlet.FilterHolder;

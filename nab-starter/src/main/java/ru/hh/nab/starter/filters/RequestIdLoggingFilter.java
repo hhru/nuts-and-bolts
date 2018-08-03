@@ -26,6 +26,7 @@ public final class RequestIdLoggingFilter extends OncePerRequestFilter {
         response.addHeader(RequestHeaders.REQUEST_ID, requestId);
       }
       MDC.setKey(REQUEST_ID_MDC_KEY, requestId);
+
       filterChain.doFilter(request, response);
 
     } finally {

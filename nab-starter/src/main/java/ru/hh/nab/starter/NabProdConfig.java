@@ -3,28 +3,20 @@ package ru.hh.nab.starter;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import ru.hh.metrics.StatsDSender;
-import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
-import ru.hh.nab.starter.jersey.FilteredXmlElementProvider;
-import ru.hh.nab.starter.jersey.FilteredXmlListElementProvider;
-import ru.hh.nab.starter.jersey.FilteredXmlRootElementProvider;
-import ru.hh.nab.starter.jmx.MBeanExporterFactory;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import ru.hh.nab.starter.jmx.MBeanExporterFactory;
+import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 import javax.management.MBeanServer;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
-
-import ru.hh.nab.starter.resource.StatsResource;
-import ru.hh.nab.starter.resource.StatusResource;
-import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
-import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -34,24 +26,6 @@ public class NabProdConfig {
   FileSettings fileSettings() throws Exception {
     Properties properties = fromFilesInSettingsDir("service.properties", "service.properties.dev");
     return new FileSettings(properties);
-  }
-
-  @Bean
-  ResourceConfig resourceConfig() {
-    ResourceConfig resourceConfig = new ResourceConfig();
-    resourceConfig.register(FilteredXmlRootElementProvider.App.class);
-    resourceConfig.register(FilteredXmlRootElementProvider.General.class);
-    resourceConfig.register(FilteredXmlRootElementProvider.Text.class);
-    resourceConfig.register(FilteredXmlElementProvider.App.class);
-    resourceConfig.register(FilteredXmlElementProvider.General.class);
-    resourceConfig.register(FilteredXmlElementProvider.Text.class);
-    resourceConfig.register(FilteredXmlListElementProvider.App.class);
-    resourceConfig.register(FilteredXmlListElementProvider.General.class);
-    resourceConfig.register(FilteredXmlListElementProvider.Text.class);
-    resourceConfig.register(new ResourceNameLoggingFilter());
-    resourceConfig.register(StatusResource.class);
-    resourceConfig.register(StatsResource.class);
-    return resourceConfig;
   }
 
   @Bean

@@ -80,6 +80,9 @@
             <logger name="org.eclipse.jetty" additivity="false" level="INFO">
                 <appender-ref ref="CONSOLE"/>
             </logger>
+            <logger name="ru.hh.nab.starter" additivity="false" level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </logger>
         </then>
     </if>
 

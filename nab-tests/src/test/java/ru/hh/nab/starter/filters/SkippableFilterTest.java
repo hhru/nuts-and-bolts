@@ -1,30 +1,25 @@
 package ru.hh.nab.starter.filters;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.RequestBuilder;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
-import ru.hh.nab.testbase.JettyStarterTestBase;
+import ru.hh.nab.testbase.NabJerseyTestBase;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.EnumSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class SkippableFilterTest extends JettyStarterTestBase {
+public class SkippableFilterTest extends NabJerseyTestBase {
 
   public static class AddHeaderSkippableFilter extends SkippableFilter {
     public AddHeaderSkippableFilter() {}
@@ -38,7 +33,7 @@ public class SkippableFilterTest extends JettyStarterTestBase {
   }
 
   @Override
-  protected ServletConfig servletConfig() {
+  protected ServletConfig getServletConfig() {
     return new DefaultServletConfig() {
       @Override
       public void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
@@ -50,16 +45,16 @@ public class SkippableFilterTest extends JettyStarterTestBase {
   }
 
   @Test
-  public void testSkippableFilterExclusions() throws IOException {
-    HttpResponse response = httpClient().execute(RequestBuilder.get("/status").build());
+  public void testSkippableFilterExclusions() {
+    Response response = executeGet("status");
 
-    assertNull(response.getFirstHeader("x-passed-filter"));
+    assertNull(response.getHeaderString("x-passed-filter"));
   }
 
   @Test
-  public void testSkippableFilterNoExclusions() throws IOException {
-    HttpResponse response = httpClient().execute(RequestBuilder.get("/status-not").build());
+  public void testSkippableFilterNoExclusions() {
+    Response response = executeGet("status-not");
 
-    assertEquals(response.getFirstHeader("x-passed-filter").getValue(), "true");
+    assertEquals(response.getHeaderString("x-passed-filter"), "true");
   }
 }

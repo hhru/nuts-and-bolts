@@ -18,6 +18,7 @@ public class NabTestConfig {
   FileSettings fileSettings() {
     Properties properties = new Properties();
     properties.setProperty("jetty.port", "0");
+    properties.setProperty("jetty.maxThreads", "16");
     properties.setProperty("serviceName", TEST_SERVICE_NAME);
     properties.setProperty("datacenter", TEST_DATACENTER);
     return new FileSettings(properties);

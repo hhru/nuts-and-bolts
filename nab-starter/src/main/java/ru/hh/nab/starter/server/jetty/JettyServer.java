@@ -24,11 +24,9 @@ public final class JettyServer {
 
   private final FileSettings jettySettings;
   private final Server server;
-  private final ServletContextHandler servletContextHandler;
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
-    this.servletContextHandler = servletContextHandler;
 
     server = new Server(threadPool);
     configureConnector();
@@ -44,7 +42,7 @@ public final class JettyServer {
       server.start();
       server.setStopAtShutdown(true);
 
-      LOGGER.info(" Jetty started on port {}", getPort());
+      LOGGER.info("Jetty started on port {}", getPort());
     } catch (Exception e) {
       stopSilently();
       throw new JettyServerException("Unable to start Jetty server", e);
@@ -133,9 +131,5 @@ public final class JettyServer {
 
   public Server getServer() {
     return server;
-  }
-
-  public ServletContextHandler getServletContextHandler() {
-    return servletContextHandler;
   }
 }

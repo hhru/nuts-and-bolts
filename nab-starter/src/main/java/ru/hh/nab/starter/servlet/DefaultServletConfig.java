@@ -2,7 +2,6 @@ package ru.hh.nab.starter.servlet;
 
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
@@ -23,9 +22,5 @@ public class DefaultServletConfig implements ServletConfig {
         servletContextHandler.addFilter(cacheFilter, "/*", EnumSet.allOf(DispatcherType.class));
       }
     }
-  }
-
-  @Override
-  public void registerResources(ResourceConfig resourceConfig) {
   }
 }

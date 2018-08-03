@@ -1,33 +1,32 @@
 package ru.hh.nab.starter.filters;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.RequestBuilder;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.JettyStarterTestBase;
+import ru.hh.nab.testbase.NabJerseyTestBase;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class RequestIdLoggingFilterTest extends JettyStarterTestBase {
+import javax.ws.rs.core.Response;
+
+public class RequestIdLoggingFilterTest extends NabJerseyTestBase {
 
   @Test
-  public void testRequestId() throws Exception {
-    String testRequestId = "123";
+  public void testRequestId() {
+    final String testRequestId = "123";
 
-    RequestBuilder requestBuilder = RequestBuilder.get("/status");
-    requestBuilder.addHeader(RequestHeaders.REQUEST_ID, testRequestId);
+    Response response = createRequest("status")
+        .header(RequestHeaders.REQUEST_ID, testRequestId)
+        .get();
 
-    HttpResponse response = httpClient().execute(requestBuilder.build());
-
-    assertEquals(testRequestId, response.getFirstHeader(RequestHeaders.REQUEST_ID).getValue());
+    assertEquals(OK.getStatusCode(), response.getStatus());
+    assertEquals(testRequestId, response.getHeaderString(RequestHeaders.REQUEST_ID));
   }
 
   @Test
-  public void testNoRequestId() throws Exception {
-    HttpResponse response = httpClient().execute(RequestBuilder.get("/status").build());
+  public void testNoRequestId() {
+    Response response = executeGet("status");
 
-    assertNull(response.getFirstHeader(RequestHeaders.REQUEST_ID));
+    assertEquals(OK.getStatusCode(), response.getStatus());
+    assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID));
   }
 }

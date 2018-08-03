@@ -9,9 +9,9 @@ import ru.hh.nab.starter.servlet.JerseyServletContextInitializer;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class JettyWebAppContext extends WebAppContext {
+final class JettyWebAppContext extends WebAppContext {
 
-  public JettyWebAppContext(JerseyServletContextInitializer servletContextInitializer, boolean sessionEnabled) {
+  JettyWebAppContext(JerseyServletContextInitializer servletContextInitializer, boolean sessionEnabled) {
     super(null, null, null, null, null, null,
         sessionEnabled ? SESSIONS: 0);
 
@@ -20,7 +20,7 @@ public final class JettyWebAppContext extends WebAppContext {
     setConfigurations(configurations.toArray(new Configuration[0]));
   }
 
-  private static class ServletContextInitializerConfiguration extends AbstractConfiguration {
+  private static final class ServletContextInitializerConfiguration extends AbstractConfiguration {
     private final JerseyServletContextInitializer servletContextInitializer;
 
     ServletContextInitializerConfiguration(JerseyServletContextInitializer servletContextInitializer) {
@@ -32,7 +32,7 @@ public final class JettyWebAppContext extends WebAppContext {
       context.addBean(new InitializingLifeCycle(context), true);
     }
 
-    class InitializingLifeCycle extends AbstractLifeCycle {
+    final class InitializingLifeCycle extends AbstractLifeCycle {
       private final WebAppContext context;
 
       InitializingLifeCycle(WebAppContext context) {

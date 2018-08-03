@@ -4,10 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.text.MessageFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -17,11 +13,11 @@ public class AppMetadata {
 
   private static final String PROJECT_PROPERTIES = "/project.properties";
 
-  private final String name;
+  private final String serviceName;
   private final String version;
   private final long started;
 
-  AppMetadata(String name) {
+  AppMetadata(String serviceName) {
     Properties projectProps = new Properties();
 
     try (InputStream s = AppMetadata.class.getResourceAsStream(PROJECT_PROPERTIES)) {
@@ -31,18 +27,14 @@ public class AppMetadata {
       LOGGER.warn("Failed to load {}, project version will be unknown, ignoring", PROJECT_PROPERTIES, e);
     }
 
-    this.name = name;
+    this.serviceName = serviceName;
+
     version = projectProps.getProperty("project.version", "unknown");
     started = System.currentTimeMillis();
   }
 
-  public String getStatus() {
-    LocalDateTime start = Instant.ofEpochMilli(started).atZone(ZoneId.systemDefault()).toLocalDateTime();
-    return MessageFormat.format("[{0}] {1} (ver. {2}) started at {3}", LocalDateTime.now(), name, version, start);
-  }
-
-  public String getName() {
-    return name;
+  public String getServiceName() {
+    return serviceName;
   }
 
   public String getVersion() {

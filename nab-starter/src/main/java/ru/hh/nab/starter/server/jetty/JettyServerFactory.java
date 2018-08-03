@@ -15,7 +15,7 @@ import ru.hh.nab.starter.servlet.ServletConfig;
 
 import javax.servlet.Servlet;
 
-public class JettyServerFactory {
+public final class JettyServerFactory {
 
   public static JettyServer create(FileSettings fileSettings,
                                    ThreadPool threadPool,

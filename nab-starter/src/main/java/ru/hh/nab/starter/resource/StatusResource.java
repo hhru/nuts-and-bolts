@@ -24,7 +24,7 @@ public class StatusResource {
   @Produces(MediaType.TEXT_XML)
   public String status() {
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        + "<project name=\"" + appMetaData.getName() + "\">\n"
+        + "<project name=\"" + appMetaData.getServiceName() + "\">\n"
         + " <version>" + appMetaData.getVersion() + "</version>\n"
         + " <uptime>" + appMetaData.getUpTimeSeconds() + "</uptime>\n"
         + "</project>\n";

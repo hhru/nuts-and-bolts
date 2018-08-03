@@ -8,19 +8,18 @@ import org.springframework.context.ApplicationContextException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.jersey.DefaultResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.ServletConfig;
 
-import java.lang.management.ManagementFactory;
-
-public class NabApplicationContext extends AnnotationConfigWebApplicationContext {
+public final class NabApplicationContext extends AnnotationConfigWebApplicationContext {
 
   private volatile JettyServer jettyServer;
 
   private final ServletConfig servletConfig;
 
-  public NabApplicationContext(ServletConfig servletConfig, Class<?>... primarySources) {
+  NabApplicationContext(ServletConfig servletConfig, Class<?>... primarySources) {
     this.servletConfig = servletConfig;
     register(primarySources);
     registerShutdownHook();
@@ -30,7 +29,6 @@ public class NabApplicationContext extends AnnotationConfigWebApplicationContext
   protected void finishRefresh() {
     super.finishRefresh();
     startJettyServer();
-    printStartupInfo();
   }
 
   private void startJettyServer() {
@@ -39,7 +37,7 @@ public class NabApplicationContext extends AnnotationConfigWebApplicationContext
       if (jettyServer == null) {
         FileSettings jettySettings = getBean(FileSettings.class);
         ThreadPool threadPool = getBean(ThreadPool.class);
-        ResourceConfig resourceConfig = getBean(ResourceConfig.class);
+        ResourceConfig resourceConfig = new DefaultResourceConfig();
 
         this.jettyServer = JettyServerFactory.create(jettySettings, threadPool, resourceConfig, servletConfig, (contextHandler) -> {
           configureServletContext(contextHandler, this, servletConfig);
@@ -60,14 +58,5 @@ public class NabApplicationContext extends AnnotationConfigWebApplicationContext
 
   boolean isServerRunning() {
     return jettyServer.isRunning();
-  }
-
-  private void printStartupInfo() {
-    AppMetadata appMetadata = getBean(AppMetadata.class);
-    System.out.println(appMetadata.getStatus() + ", pid " + getCurrentPid());
-  }
-
-  private static String getCurrentPid() {
-    return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 }

@@ -8,21 +8,23 @@ import org.springframework.context.ApplicationContext;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
 
+import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 
-public class NabApplication {
+public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
 
-  public static ApplicationContext run(Class<?>... primarySources) {
-    return run(new DefaultServletConfig(), primarySources);
+  public static NabApplicationContext run(Class<?>... configurationClasses) {
+    return run(new DefaultServletConfig(), configurationClasses);
   }
 
-  public static ApplicationContext run(ServletConfig servletConfig, Class<?>... primarySources) {
+  public static NabApplicationContext run(ServletConfig servletConfig, Class<?>... configurationClasses) {
     configureLogger();
     NabApplicationContext context = null;
     try {
-      context = new NabApplicationContext(servletConfig, primarySources);
+      context = new NabApplicationContext(servletConfig, configurationClasses);
       context.refresh();
+      logStartupInfo(context);
     } catch (Exception e) {
       logErrorAndExit(e);
     }
@@ -32,6 +34,15 @@ public class NabApplication {
   public static void configureLogger() {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
+  }
+
+  private static void logStartupInfo(ApplicationContext context) {
+    AppMetadata appMetadata = context.getBean(AppMetadata.class);
+    LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
+  }
+
+  private static String getCurrentPid() {
+    return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 
   private static void logErrorAndExit(Exception e) {

@@ -19,19 +19,6 @@
             <artifactId>nab-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-hibernate</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-testbase</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

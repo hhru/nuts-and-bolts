@@ -1,15 +1,21 @@
-package ru.hh.nab.starter;
+package ru.hh.nab.starter.resource;
 
+import ru.hh.nab.starter.AppMetadata;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/status")
+@Singleton
 public class StatusResource {
   
   private final AppMetadata appMetaData;
 
+  @Inject
   public StatusResource(AppMetadata appMetaData) {
     this.appMetaData = appMetaData;
   }

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.starter.jetty.JettyFactory.createJettyThreadPool;
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 
 import java.util.concurrent.ScheduledExecutorService;
 

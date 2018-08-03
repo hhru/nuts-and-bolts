@@ -12,5 +12,5 @@ public interface ServletConfig {
 
   void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext);
 
-  ResourceConfig createResourceConfig(ApplicationContext context);
+  void registerResources(ResourceConfig resourceConfig);
 }

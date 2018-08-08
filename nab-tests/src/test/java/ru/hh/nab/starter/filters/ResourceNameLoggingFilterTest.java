@@ -6,16 +6,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
-import ru.hh.nab.testbase.NabJerseyTestBase;
+import ru.hh.nab.testbase.NabTestBase;
+import ru.hh.nab.testbase.NabTestConfig;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-public class ResourceNameLoggingFilterTest extends NabJerseyTestBase {
+@ContextConfiguration(classes = {NabTestConfig.class})
+public class ResourceNameLoggingFilterTest extends NabTestBase {
 
   @Override
   protected ServletConfig getServletConfig() {

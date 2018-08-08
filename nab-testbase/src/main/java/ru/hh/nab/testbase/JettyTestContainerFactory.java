@@ -1,17 +1,13 @@
 package ru.hh.nab.testbase;
 
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.test.DeploymentContext;
-import org.glassfish.jersey.test.spi.TestContainer;
-import org.glassfish.jersey.test.spi.TestContainerException;
-import org.glassfish.jersey.test.spi.TestContainerFactory;
-import org.glassfish.jersey.test.spi.TestHelper;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.context.ApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.starter.NabApplicationContext.configureServletContext;
+import ru.hh.nab.starter.jersey.DefaultResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.ServletConfig;
@@ -21,95 +17,85 @@ import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-final class JettyTestContainerFactory implements TestContainerFactory {
+final class JettyTestContainerFactory {
+  private static final Logger LOGGER = LoggerFactory.getLogger(JettyTestContainer.class);
 
-  private static final ConcurrentMap<Class<? extends NabJerseyTestBase>, TestContainer> INSTANCES = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<Class<? extends NabTestBase>, JettyTestContainer> INSTANCES = new ConcurrentHashMap<>();
+  private static final String BASE_URI = "http://127.0.0.1/";
 
-  private final WebApplicationContext springContext;
+  private final ApplicationContext applicationContext;
   private final ServletConfig servletConfig;
-  private final Class<? extends NabJerseyTestBase> testClass;
+  private final Class<? extends NabTestBase> testClass;
 
-  JettyTestContainerFactory(WebApplicationContext context, ServletConfig servletConfig, Class<? extends NabJerseyTestBase> testClass) {
-    this.springContext = context;
+  JettyTestContainerFactory(ApplicationContext applicationContext, ServletConfig servletConfig, Class<? extends NabTestBase> testClass) {
+    this.applicationContext = applicationContext;
     this.servletConfig = servletConfig;
     this.testClass = testClass;
   }
 
-  @Override
-  public TestContainer create(URI baseUri, DeploymentContext deploymentContext) {
-    Class<? extends NabJerseyTestBase> baseClass = findMostGenericBaseClass(testClass);
-    return INSTANCES.computeIfAbsent(baseClass,
-        key -> new JettyServerTestContainer(baseUri, servletConfig, deploymentContext, springContext));
+  JettyTestContainer createTestContainer() {
+    Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
+    JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
+        key -> new JettyTestContainer(new DefaultResourceConfig(), servletConfig, applicationContext));
+    testContainer.start();
+    return testContainer;
   }
 
-  private static Class<? extends NabJerseyTestBase> findMostGenericBaseClass(Class<? extends NabJerseyTestBase> clazz) {
-    Class<? extends NabJerseyTestBase> current = clazz;
+  private static Class<? extends NabTestBase> findMostGenericBaseClass(Class<? extends NabTestBase> clazz) {
+    Class<? extends NabTestBase> current = clazz;
     while (true) {
       try {
         current.getDeclaredMethod("getServletConfig");
         return current;
       } catch (NoSuchMethodException e) {
-        current = current.getSuperclass().asSubclass(NabJerseyTestBase.class);
+        current = current.getSuperclass().asSubclass(NabTestBase.class);
       }
     }
   }
 
-  private static class JettyServerTestContainer implements TestContainer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JettyServerTestContainer.class);
-
+  static class JettyTestContainer {
     private final JettyServer jettyServer;
     private URI baseUri;
 
-    JettyServerTestContainer(URI baseUri, ServletConfig servletConfig, DeploymentContext deploymentContext, WebApplicationContext springContext) {
-      final URI base = UriBuilder.fromUri(baseUri).path(deploymentContext.getContextPath()).build();
+    JettyTestContainer(ResourceConfig resourceConfig, ServletConfig servletConfig, ApplicationContext applicationContext) {
+      final URI base = UriBuilder.fromUri(BASE_URI).path("").build();
 
       if (!"/".equals(base.getRawPath())) {
-        throw new TestContainerException(
+        throw new IllegalStateException(
             String.format("Cannot deploy on %s. Jetty HTTP container only supports deployment on root path.", base.getRawPath()));
       }
 
       this.baseUri = base;
 
-      LOGGER.info("Creating JettyServerTestContainer configured at the base URI " + TestHelper.zeroPortToAvailablePort(baseUri));
+      LOGGER.info("Creating JettyTestContainer...");
 
-      final FileSettings fileSettings = springContext.getBean(FileSettings.class);
-      final ThreadPool threadPool = springContext.getBean(ThreadPool.class);
+      final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
+      final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
 
-      jettyServer = JettyServerFactory.create(
-          fileSettings,
-          threadPool,
-          deploymentContext.getResourceConfig(),
-          servletConfig,
-          (contextHandler) -> configureServletContext(contextHandler, springContext, servletConfig));
+      jettyServer = JettyServerFactory.create(fileSettings, threadPool, resourceConfig, servletConfig,
+          (contextHandler) -> configureServletContext(contextHandler, applicationContext, servletConfig));
     }
 
-    @Override
-    public ClientConfig getClientConfig() {
-      return null;
-    }
-
-    @Override
-    public URI getBaseUri() {
-      return baseUri;
-    }
-
-    @Override
-    public void start() {
+    void start() {
       if (jettyServer.isRunning()) {
-        LOGGER.warn("Ignoring start request - JettyServerTestContainer is already started.");
+        LOGGER.warn("Ignoring start request - JettyTestContainer is already started.");
         return;
       }
 
-      LOGGER.info("Starting JettyServerTestContainer...");
+      LOGGER.info("Starting JettyTestContainer...");
 
       jettyServer.start();
       baseUri = UriBuilder.fromUri(baseUri).port(jettyServer.getPort()).build();
 
-      LOGGER.info("Started JettyServerTestContainer at the base URI " + baseUri);
+      LOGGER.info("Started JettyTestContainer at the base URI " + baseUri);
     }
 
-    @Override
-    public void stop() {
+    String getBaseUrl() {
+      return baseUri.toString();
+    }
+
+    int getPort() {
+      return jettyServer.getPort();
     }
   }
 }

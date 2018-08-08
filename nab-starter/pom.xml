@@ -154,13 +154,6 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!--HTTP client-->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
-        </dependency>
-
         <!-- Sentry appender -->
         <dependency>
             <groupId>net.kencochrane.raven</groupId>

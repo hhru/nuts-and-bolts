@@ -6,9 +6,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
-import ru.hh.nab.testbase.NabJerseyTestBase;
+import ru.hh.nab.testbase.NabTestBase;
+import ru.hh.nab.testbase.NabTestConfig;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
@@ -19,7 +21,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.EnumSet;
 
-public class SkippableFilterTest extends NabJerseyTestBase {
+@ContextConfiguration(classes = {NabTestConfig.class})
+public class SkippableFilterTest extends NabTestBase {
 
   public static class AddHeaderSkippableFilter extends SkippableFilter {
     public AddHeaderSkippableFilter() {}

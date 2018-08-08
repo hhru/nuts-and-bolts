@@ -4,11 +4,14 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
-import ru.hh.nab.testbase.NabJerseyTestBase;
+import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.testbase.NabTestBase;
+import ru.hh.nab.testbase.NabTestConfig;
 
 import javax.ws.rs.core.Response;
 
-public class RequestIdLoggingFilterTest extends NabJerseyTestBase {
+@ContextConfiguration(classes = {NabTestConfig.class})
+public class RequestIdLoggingFilterTest extends NabTestBase {
 
   @Test
   public void testRequestId() {

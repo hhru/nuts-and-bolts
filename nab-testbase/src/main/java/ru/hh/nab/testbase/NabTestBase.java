@@ -14,6 +14,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 /**
  * Launches Jetty instance with application context provided by {@link AbstractJUnit4SpringContextTests}
@@ -27,7 +28,7 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   private Client client;
 
   @Before
-  public void setUp() {
+  public void setUpNabTestBase() {
     configureLogger();
     JettyTestContainerFactory containerFactory = new JettyTestContainerFactory(applicationContext, getServletConfig(), getClass());
     testContainer = containerFactory.createTestContainer();
@@ -63,8 +64,12 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
     assertEquals(expectedResponse, response.readEntity(String.class));
   }
 
-  protected Response executeGet(String url) {
-    return createRequest(url).get();
+  protected Response executeGet(String path) {
+    return createRequest(path).get();
+  }
+
+  protected String jerseyUrl(String path, Object... values) {
+    return UriBuilder.fromPath(path).build(values).toString();
   }
 
   protected Invocation.Builder createRequest(String url) {

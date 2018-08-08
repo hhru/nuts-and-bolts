@@ -2,15 +2,23 @@ package ru.hh.nab.datasource.monitoring;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
+import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
 
 public class CompressedStackFactoryTest {
 
   @Test
   public void create() {
-    CompressedStackFactory compressedStackFactory = new CompressedStackFactory(
-        InnerClass.class.getName(), "inner",
-        OuterClass.class.getName(), "outer",
-        new String[]{"ru.hh."}, new String[]{"ExcludeClass"});
+    CompressedStackFactoryConfig config = new CompressedStackFactoryConfig.Builder()
+        .withInnerClassExcluding(InnerClass.class.getName())
+        .withInnerMethodExcluding("inner")
+        .withOuterClassExcluding(OuterClass.class.getName())
+        .withOuterMethodExcluding("outer")
+        .withIncludePackages(new String[]{"ru.hh."})
+        .withExcludeClassesParts(new String[]{"ExcludeClass"})
+        .build();
+
+    CompressedStackFactory compressedStackFactory = new CompressedStackFactory(config);
 
     String compressedStack = OuterClass.outer(compressedStackFactory);
 

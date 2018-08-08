@@ -17,7 +17,7 @@ public class RequestIdLoggingFilterTest extends NabTestBase {
   public void testRequestId() {
     final String testRequestId = "123";
 
-    Response response = createRequest("status")
+    Response response = createRequest("/status")
         .header(RequestHeaders.REQUEST_ID, testRequestId)
         .get();
 
@@ -27,7 +27,7 @@ public class RequestIdLoggingFilterTest extends NabTestBase {
 
   @Test
   public void testNoRequestId() {
-    Response response = executeGet("status");
+    Response response = executeGet("/status");
 
     assertEquals(OK.getStatusCode(), response.getStatus());
     assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID));

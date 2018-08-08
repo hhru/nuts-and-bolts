@@ -21,7 +21,7 @@ final class JettyTestContainerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyTestContainer.class);
 
   private static final ConcurrentMap<Class<? extends NabTestBase>, JettyTestContainer> INSTANCES = new ConcurrentHashMap<>();
-  private static final String BASE_URI = "http://127.0.0.1/";
+  private static final String BASE_URI = "http://127.0.0.1";
 
   private final ApplicationContext applicationContext;
   private final ServletConfig servletConfig;
@@ -58,17 +58,9 @@ final class JettyTestContainerFactory {
     private URI baseUri;
 
     JettyTestContainer(ResourceConfig resourceConfig, ServletConfig servletConfig, ApplicationContext applicationContext) {
-      final URI base = UriBuilder.fromUri(BASE_URI).path("").build();
-
-      if (!"/".equals(base.getRawPath())) {
-        throw new IllegalStateException(
-            String.format("Cannot deploy on %s. Jetty HTTP container only supports deployment on root path.", base.getRawPath()));
-      }
-
-      this.baseUri = base;
+      this.baseUri = UriBuilder.fromUri(BASE_URI).build();
 
       LOGGER.info("Creating JettyTestContainer...");
-
       final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
       final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
 

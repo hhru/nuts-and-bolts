@@ -22,7 +22,7 @@ import java.util.Properties;
 public class DataSourceFactory {
   private final MonitoringDataSourceFactory monitoringDataSourceFactory;
 
-  DataSourceFactory(MonitoringDataSourceFactory monitoringDataSourceFactory) {
+  public DataSourceFactory(MonitoringDataSourceFactory monitoringDataSourceFactory) {
     this.monitoringDataSourceFactory = monitoringDataSourceFactory;
   }
 

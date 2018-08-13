@@ -32,7 +32,11 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
     configureLogger();
     JettyTestContainerFactory containerFactory = new JettyTestContainerFactory(applicationContext, getServletConfig(), getClass());
     testContainer = containerFactory.createTestContainer();
-    client = ClientBuilder.newClient();
+    client = getClientBuilder().build();
+  }
+
+  protected ClientBuilder getClientBuilder() {
+    return ClientBuilder.newBuilder();
   }
 
   /**
@@ -74,5 +78,9 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
 
   protected Invocation.Builder createRequest(String url) {
     return client.target(baseUrl() + url).request();
+  }
+
+  protected Invocation.Builder createRequestFromFullUrl(String fullUrl) {
+    return client.target(fullUrl).request();
   }
 }

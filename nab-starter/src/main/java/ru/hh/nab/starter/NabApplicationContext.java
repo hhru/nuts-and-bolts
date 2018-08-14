@@ -35,9 +35,9 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     JettyServer jettyServer = this.jettyServer;
     try {
       if (jettyServer == null) {
-        FileSettings jettySettings = getBean(FileSettings.class);
-        ThreadPool threadPool = getBean(ThreadPool.class);
-        ResourceConfig resourceConfig = new DefaultResourceConfig();
+        final FileSettings jettySettings = getBean(FileSettings.class);
+        final ThreadPool threadPool = getBean(ThreadPool.class);
+        final ResourceConfig resourceConfig = createResourceConfig(this);
 
         this.jettyServer = JettyServerFactory.create(jettySettings, threadPool, resourceConfig, servletConfig, (contextHandler) -> {
           configureServletContext(contextHandler, this, servletConfig);
@@ -54,6 +54,13 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
   public static void configureServletContext(ServletContextHandler handler, ApplicationContext applicationContext, ServletConfig servletConfig) {
     handler.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
     servletConfig.configureServletContext(handler, applicationContext);
+  }
+
+  public static ResourceConfig createResourceConfig(ApplicationContext applicationContext) {
+    ResourceConfig resourceConfig = new DefaultResourceConfig();
+    applicationContext.getBeansWithAnnotation(javax.ws.rs.Path.class)
+        .forEach((name, bean) -> resourceConfig.register(bean));
+    return resourceConfig;
   }
 
   boolean isServerRunning() {

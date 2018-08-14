@@ -80,7 +80,7 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
     return client.target(baseUrl() + url).request();
   }
 
-  protected Invocation.Builder createRequestFromFullUrl(String fullUrl) {
-    return client.target(fullUrl).request();
+  protected Invocation.Builder createRequestFromAbsoluteUrl(String absoluteUrl) {
+    return client.target(absoluteUrl).request();
   }
 }

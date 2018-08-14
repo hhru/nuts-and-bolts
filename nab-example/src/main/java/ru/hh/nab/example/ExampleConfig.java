@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Import;
 import ru.hh.nab.starter.NabProdConfig;
 
 @Configuration
-@Import(NabProdConfig.class)
+@Import({
+    NabProdConfig.class,
+    ExampleResource.class
+})
 public class ExampleConfig {
 }

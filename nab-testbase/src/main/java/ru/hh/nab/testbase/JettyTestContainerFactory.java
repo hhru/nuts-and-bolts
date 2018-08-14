@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.starter.NabApplicationContext.configureServletContext;
-import ru.hh.nab.starter.jersey.DefaultResourceConfig;
+import static ru.hh.nab.starter.NabApplicationContext.createResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.ServletConfig;
@@ -36,7 +36,7 @@ final class JettyTestContainerFactory {
   JettyTestContainer createTestContainer() {
     Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
     JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
-        key -> new JettyTestContainer(new DefaultResourceConfig(), servletConfig, applicationContext));
+        key -> new JettyTestContainer(servletConfig, applicationContext));
     testContainer.start();
     return testContainer;
   }
@@ -57,12 +57,14 @@ final class JettyTestContainerFactory {
     private final JettyServer jettyServer;
     private URI baseUri;
 
-    JettyTestContainer(ResourceConfig resourceConfig, ServletConfig servletConfig, ApplicationContext applicationContext) {
+    JettyTestContainer(ServletConfig servletConfig, ApplicationContext applicationContext) {
       this.baseUri = UriBuilder.fromUri(BASE_URI).build();
 
       LOGGER.info("Creating JettyTestContainer...");
+
       final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
       final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
+      final ResourceConfig resourceConfig = createResourceConfig(applicationContext);
 
       jettyServer = JettyServerFactory.create(fileSettings, threadPool, resourceConfig, servletConfig,
           (contextHandler) -> configureServletContext(contextHandler, applicationContext, servletConfig));

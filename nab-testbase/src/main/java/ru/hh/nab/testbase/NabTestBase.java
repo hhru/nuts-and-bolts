@@ -13,13 +13,14 @@ import ru.hh.nab.testbase.JettyTestContainerFactory.JettyTestContainer;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 /**
  * Launches Jetty instance with application context provided by {@link AbstractJUnit4SpringContextTests}
  * and servlet config provided by {@link #getServletConfig()} on a random port before test methods start to execute.
- * For some examples see nab-starter-tests module.
+ * For some examples see nab-tests module.
  */
 @WebAppConfiguration
 public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
@@ -77,7 +78,11 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   }
 
   protected Invocation.Builder createRequest(String url) {
-    return client.target(baseUrl() + url).request();
+    return target(url).request();
+  }
+
+  protected WebTarget target(String url) {
+    return client.target(baseUrl() + url);
   }
 
   protected Invocation.Builder createRequestFromAbsoluteUrl(String absoluteUrl) {

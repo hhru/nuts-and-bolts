@@ -20,8 +20,8 @@ import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheF
 @Configuration
 @Import({NabCommonConfig.class})
 public class NabProdConfig {
-  private static final String PROPERTIES_FILE_NAME = "service.properties";
-  private static final String DATACENTER_NAME_PROPERTY = "datacenter";
+  static final String PROPERTIES_FILE_NAME = "service.properties";
+  static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
   FileSettings fileSettings() throws Exception {

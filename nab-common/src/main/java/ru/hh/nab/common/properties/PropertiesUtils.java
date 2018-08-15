@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 public class PropertiesUtils {
-  static final String SETINGS_DIR_PROPERTY = "settingsDir";
+  public static final String SETINGS_DIR_PROPERTY = "settingsDir";
   static final String DEFAULT_DEV_FILE_EXT = ".dev";
 
   public static Properties fromFilesInSettingsDir(String fileName) throws IOException {

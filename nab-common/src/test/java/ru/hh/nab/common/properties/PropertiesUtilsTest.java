@@ -1,15 +1,16 @@
 package ru.hh.nab.common.properties;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
+import static ru.hh.nab.common.properties.PropertiesUtils.DEFAULT_DEV_FILE_EXT;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Properties;
 
 public class PropertiesUtilsTest {
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
@@ -21,7 +22,7 @@ public class PropertiesUtilsTest {
   public void setUp() throws Exception {
     System.setProperty(SETINGS_DIR_PROPERTY, TMP_DIR);
     propertiesFile = Files.createTempFile(TEST_FILE_PREFIX, "");
-    devPropertiesFile = Files.createTempFile(TEST_FILE_PREFIX, "");
+    devPropertiesFile = Files.createFile(Paths.get(propertiesFile.toString() + DEFAULT_DEV_FILE_EXT));
   }
 
   @After
@@ -37,8 +38,7 @@ public class PropertiesUtilsTest {
     String testValue = "123";
     Files.write(propertiesFile, String.format("%s=%s", testKey, testValue).getBytes());
 
-    Properties properties = fromFilesInSettingsDir(
-        propertiesFile.getFileName().toString(), devPropertiesFile.getFileName().toString());
+    Properties properties = fromFilesInSettingsDir(propertiesFile.getFileName().toString());
 
     assertEquals(1, properties.size());
     assertEquals(testValue, properties.getProperty(testKey));
@@ -52,8 +52,7 @@ public class PropertiesUtilsTest {
     Files.write(propertiesFile, String.format("%s=%s", testKey, testValue).getBytes());
     Files.write(devPropertiesFile, String.format("%s=%s", testKey, testOverrideValue).getBytes());
 
-    Properties properties = fromFilesInSettingsDir(
-        propertiesFile.getFileName().toString(), devPropertiesFile.getFileName().toString());
+    Properties properties = fromFilesInSettingsDir(propertiesFile.getFileName().toString());
 
     assertEquals(1, properties.size());
     assertEquals(testOverrideValue, properties.getProperty(testKey));

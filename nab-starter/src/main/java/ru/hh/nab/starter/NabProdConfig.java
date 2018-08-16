@@ -2,6 +2,9 @@ package ru.hh.nab.starter;
 
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
+import static java.util.Optional.ofNullable;
+import java.util.concurrent.ScheduledExecutorService;
+import javax.management.MBeanServer;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,18 +17,21 @@ import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir
 import ru.hh.nab.starter.jmx.MBeanExporterFactory;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
-import javax.management.MBeanServer;
-import java.util.Properties;
-import java.util.concurrent.ScheduledExecutorService;
-
 @Configuration
 @Import({NabCommonConfig.class})
 public class NabProdConfig {
+  static final String PROPERTIES_FILE_NAME = "service.properties";
+  static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
   FileSettings fileSettings() throws Exception {
-    Properties properties = fromFilesInSettingsDir("service.properties", "service.properties.dev");
-    return new FileSettings(properties);
+    return new FileSettings(fromFilesInSettingsDir(PROPERTIES_FILE_NAME));
+  }
+
+  @Bean
+  String datacenter(FileSettings fileSettings) {
+    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
+        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
   }
 
   @Bean

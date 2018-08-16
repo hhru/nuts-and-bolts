@@ -1,5 +1,6 @@
 package ru.hh.nab.common.properties;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,9 +8,14 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 public class PropertiesUtils {
-  static final String SETINGS_DIR_PROPERTY = "settingsDir";
+  public static final String SETINGS_DIR_PROPERTY = "settingsDir";
+  static final String DEFAULT_DEV_FILE_EXT = ".dev";
 
-  public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws Exception {
+  public static Properties fromFilesInSettingsDir(String fileName) throws IOException {
+    return fromFilesInSettingsDir(fileName, fileName + DEFAULT_DEV_FILE_EXT);
+  }
+
+  public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws IOException {
     final String settingsDir = System.getProperty(SETINGS_DIR_PROPERTY);
     final Properties properties = new Properties();
 

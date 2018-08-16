@@ -12,7 +12,6 @@ import java.util.Properties;
 @Import({NabCommonConfig.class})
 public class NabTestConfig {
   public static final String TEST_SERVICE_NAME = "testService";
-  static final String TEST_DATACENTER = "testDC";
 
   @Bean
   FileSettings fileSettings() {
@@ -20,7 +19,6 @@ public class NabTestConfig {
     properties.setProperty("jetty.port", "0");
     properties.setProperty("jetty.maxThreads", "16");
     properties.setProperty("serviceName", TEST_SERVICE_NAME);
-    properties.setProperty("datacenter", TEST_DATACENTER);
     return new FileSettings(properties);
   }
 }

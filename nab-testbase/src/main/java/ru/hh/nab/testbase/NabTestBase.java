@@ -1,11 +1,21 @@
 package ru.hh.nab.testbase;
 
+import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.junit.Before;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestExecutionListener;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.web.AnnotationConfigWebContextLoader;
 import org.springframework.test.context.web.WebAppConfiguration;
 import static ru.hh.nab.starter.NabApplication.configureLogger;
+import org.springframework.test.context.web.WebMergedContextConfiguration;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
 import ru.hh.nab.testbase.JettyTestContainerFactory.JettyTestContainer;
@@ -23,7 +33,11 @@ import javax.ws.rs.core.UriBuilder;
  * For some examples see nab-tests module.
  */
 @WebAppConfiguration
+@TestExecutionListeners(NabTestBase.TestInstanceInjectionListener.class)
+@ContextConfiguration(loader = NabTestBase.ContextInjectionAnnotationConfigWebContextLoader.class)
 public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
+
+  private static final ConcurrentMap<Class<? extends NabTestBase>, NabTestBase> INSTANCES = new ConcurrentHashMap<>();
 
   private JettyTestContainer testContainer;
   private Client client;
@@ -87,5 +101,41 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
 
   protected Invocation.Builder createRequestFromAbsoluteUrl(String absoluteUrl) {
     return client.target(absoluteUrl).request();
+  }
+
+  public interface NabTestContext {
+    int port();
+    String baseUrl();
+  }
+
+  public static final class ContextInjectionAnnotationConfigWebContextLoader extends AnnotationConfigWebContextLoader {
+
+    @Override
+    protected void loadBeanDefinitions(GenericWebApplicationContext context, WebMergedContextConfiguration webMergedConfig) {
+      super.loadBeanDefinitions(context, webMergedConfig);
+      context.registerBean(NabTestContext.class, () -> new NabTestContext() {
+        final Class<?> cls = webMergedConfig.getTestClass();
+        @Override
+        public int port() {
+          return ofNullable(INSTANCES.get(cls)).map(NabTestBase::port)
+            .orElseThrow(() -> new IllegalStateException("Test instance is not injected"));
+        }
+
+        @Override
+        public String baseUrl() {
+          return ofNullable(INSTANCES.get(cls)).map(NabTestBase::baseUrl)
+            .orElseThrow(() -> new IllegalStateException("Test instance is not injected"));
+        }
+      });
+
+    }
+  }
+
+  static final class TestInstanceInjectionListener implements TestExecutionListener {
+    @Override
+    public void prepareTestInstance(TestContext testContext) throws Exception {
+      NabTestBase testInstance = (NabTestBase) testContext.getTestInstance();
+      INSTANCES.put(testInstance.getClass(), testInstance);
+    }
   }
 }

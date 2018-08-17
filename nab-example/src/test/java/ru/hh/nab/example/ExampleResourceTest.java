@@ -1,5 +1,7 @@
 package ru.hh.nab.example;
 
+import java.util.function.Function;
+import javax.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
@@ -12,8 +14,11 @@ import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
+@ContextConfiguration(classes = {NabTestConfig.class, ExampleTestConfig.class})
 public class ExampleResourceTest extends NabTestBase {
+
+  @Inject
+  private Function<String, String> serverPortAwareBean;
 
   @Test
   public void hello() {
@@ -32,6 +37,15 @@ public class ExampleResourceTest extends NabTestBase {
     Response response = createRequest("/hello").get();
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     assertEquals(String.format("Hello, %s!", name), response.readEntity(String.class));
+  }
+
+  @Test
+  public void testBeanWithNabTestContext() {
+    final String name = "world";
+    try (Response response = createRequestFromAbsoluteUrl(serverPortAwareBean.apply("/hello")).get()) {
+      assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+      assertEquals(String.format("Hello, %s!", name), response.readEntity(String.class));
+    }
   }
 
   @Override

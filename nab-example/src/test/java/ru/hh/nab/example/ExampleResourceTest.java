@@ -28,10 +28,9 @@ public class ExampleResourceTest extends NabTestBase {
 
   @Test
   public void helloWithoutParams() {
-    final String name = "world";
     Response response = createRequest("/hello").get();
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    assertEquals(String.format("Hello, %s!", name), response.readEntity(String.class));
+    assertEquals("Hello, world!", response.readEntity(String.class));
   }
 
   @Override

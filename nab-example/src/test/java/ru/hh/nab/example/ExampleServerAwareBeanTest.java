@@ -23,10 +23,9 @@ public class ExampleServerAwareBeanTest extends NabTestBase {
 
   @Test
   public void testBeanWithNabTestContext() {
-    final String name = "world";
     try (Response response = createRequestFromAbsoluteUrl(serverPortAwareBean.apply("/hello")).get()) {
       assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-      assertEquals(String.format("Hello, %s!", name), response.readEntity(String.class));
+      assertEquals("Hello, world!", response.readEntity(String.class));
     }
   }
 

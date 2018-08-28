@@ -3,6 +3,8 @@ package ru.hh.nab.starter;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import static java.util.Optional.ofNullable;
+
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.management.MBeanServer;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -23,8 +25,8 @@ public class NabProdConfig {
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
-  FileSettings fileSettings() throws Exception {
-    return new FileSettings(fromFilesInSettingsDir(PROPERTIES_FILE_NAME));
+  Properties serviceProperties() throws Exception {
+    return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 
   @Bean

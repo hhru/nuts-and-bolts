@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.starter.jmx.MBeanExporterFactory;
@@ -37,11 +36,6 @@ public class NabProdConfig {
   @Bean
   StatsDClient statsDClient() {
     return new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
-  }
-
-  @Bean
-  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient) {
-    return new StatsDSender(statsDClient, scheduledExecutorService);
   }
 
   @Bean

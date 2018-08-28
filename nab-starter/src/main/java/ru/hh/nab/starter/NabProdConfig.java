@@ -3,6 +3,8 @@ package ru.hh.nab.starter;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import static java.util.Optional.ofNullable;
+
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.management.MBeanServer;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -11,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.starter.jmx.MBeanExporterFactory;
@@ -24,8 +25,8 @@ public class NabProdConfig {
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
-  FileSettings fileSettings() throws Exception {
-    return new FileSettings(fromFilesInSettingsDir(PROPERTIES_FILE_NAME));
+  Properties serviceProperties() throws Exception {
+    return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 
   @Bean
@@ -37,11 +38,6 @@ public class NabProdConfig {
   @Bean
   StatsDClient statsDClient() {
     return new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
-  }
-
-  @Bean
-  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient) {
-    return new StatsDSender(statsDClient, scheduledExecutorService);
   }
 
   @Bean

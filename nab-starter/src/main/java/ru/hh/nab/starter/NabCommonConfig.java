@@ -1,6 +1,8 @@
 package ru.hh.nab.starter;
 
 import static java.util.Optional.ofNullable;
+
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.timgroup.statsd.StatsDClient;
@@ -25,6 +27,11 @@ public class NabCommonConfig {
   @Bean
   ThreadPool jettyThreadPool(FileSettings fileSettings) throws Exception {
     return createJettyThreadPool(fileSettings.getSubSettings("jetty"));
+  }
+
+  @Bean
+  FileSettings fileSettings(Properties serviceProperties) {
+    return new FileSettings(serviceProperties);
   }
 
   @Bean

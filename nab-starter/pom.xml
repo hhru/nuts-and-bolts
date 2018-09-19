@@ -177,14 +177,10 @@
 
         <!-- Sentry appender -->
         <dependency>
-            <groupId>net.kencochrane.raven</groupId>
-            <artifactId>raven-logback</artifactId>
-            <version>6.0.0</version>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-logback</artifactId>
+            <version>1.7.9</version>
             <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
@@ -196,12 +192,6 @@
             <groupId>org.caffinitas.ohc</groupId>
             <artifactId>ohc-core-j8</artifactId>
             <version>0.6.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.janino</groupId>
-            <artifactId>janino</artifactId>
-            <version>3.0.7</version>
         </dependency>
 
         <!--Testing-->

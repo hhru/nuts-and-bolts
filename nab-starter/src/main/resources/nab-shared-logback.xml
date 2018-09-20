@@ -58,14 +58,11 @@
         <appender-ref ref="asyncLibraries"/>
     </logger>
 
-    <logger name="net.kencochrane" additivity="false" level="OFF"/>
-
     <!-- Sentry -->
-    <appender name="Sentry" class="net.kencochrane.raven.logback.SentryAppender">
+    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>${sentry.level}</level>
         </filter>
-        <dsn>${sentry.dsn}</dsn>
     </appender>
 
     <!-- debug -->

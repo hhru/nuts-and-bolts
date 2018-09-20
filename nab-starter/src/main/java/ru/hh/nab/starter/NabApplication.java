@@ -1,10 +1,13 @@
 package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
+
+import io.sentry.Sentry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.servlet.DefaultServletConfig;
 import ru.hh.nab.starter.servlet.ServletConfig;
 
@@ -24,6 +27,7 @@ public final class NabApplication {
     try {
       context = new NabApplicationContext(servletConfig, configurationClasses);
       context.refresh();
+      configureSentry(context);
       logStartupInfo(context);
     } catch (Exception e) {
       logErrorAndExit(e);
@@ -34,6 +38,11 @@ public final class NabApplication {
   public static void configureLogger() {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
+  }
+
+  public static void configureSentry(ApplicationContext context) {
+    FileSettings settings = context.getBean(FileSettings.class);
+    Sentry.init(settings.getString("sentry.dsn"));
   }
 
   private static void logStartupInfo(ApplicationContext context) {

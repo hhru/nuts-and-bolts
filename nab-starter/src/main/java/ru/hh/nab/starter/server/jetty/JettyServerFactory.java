@@ -48,8 +48,9 @@ public final class JettyServerFactory {
   public static ThreadPool createJettyThreadPool(FileSettings jettySettings) throws Exception {
     int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(4);
     int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(12);
+    int queueSize = ofNullable(jettySettings.getInteger("queueSize")).orElse(maxThreads);
     int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(60_000);
-    QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(maxThreads));
+    QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(queueSize));
     threadPool.start();
     return threadPool;
   }

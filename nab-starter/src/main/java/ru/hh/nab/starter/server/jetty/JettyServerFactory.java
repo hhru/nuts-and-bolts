@@ -1,7 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import static java.util.Optional.ofNullable;
-import java.util.Collections;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -9,7 +9,6 @@ import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.servlet.JerseyServletContextInitializer;
@@ -55,7 +54,6 @@ public final class JettyServerFactory {
   }
 
   private static ServletContainer createServletContainer(ResourceConfig resourceConfig, ServletConfig servletConfig) {
-    resourceConfig.addProperties(Collections.singletonMap(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE));
     servletConfig.registerResources(resourceConfig);
     return new ServletContainer(resourceConfig);
   }

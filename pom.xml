@@ -30,6 +30,8 @@
         <hibernate.version>5.2.10.Final</hibernate.version>
         <postgres.jdbc.version>42.2.2</postgres.jdbc.version>
         <hhmetrics.version>0.16</hhmetrics.version>
+        <jetty.version>9.4.8.v20171121</jetty.version>
+        <jackson.version>2.6.6</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
     </properties>

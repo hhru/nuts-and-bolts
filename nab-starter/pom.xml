@@ -13,11 +13,6 @@
 
     <name>nuts'n'bolts application starter</name>
 
-    <properties>
-        <jetty.version>9.4.8.v20171121</jetty.version>
-        <jackson.version>2.6.6</jackson.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>

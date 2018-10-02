@@ -54,7 +54,7 @@ public final class JettyServerFactory {
   }
 
   private static ServletContainer createServletContainer(ResourceConfig resourceConfig, ServletConfig servletConfig) {
-    servletConfig.registerResources(resourceConfig);
+    servletConfig.setupResourceConfig(resourceConfig);
     return new ServletContainer(resourceConfig);
   }
 

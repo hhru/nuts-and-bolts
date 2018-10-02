@@ -33,7 +33,7 @@ public class ExampleServerAwareBeanTest extends NabTestBase {
   protected ServletConfig getServletConfig() {
     return new DefaultServletConfig() {
       @Override
-      public void registerResources(ResourceConfig resourceConfig) {
+      public void setupResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(ExampleResource.class);
       }
     };

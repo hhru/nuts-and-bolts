@@ -10,8 +10,7 @@ public interface ServletConfig {
     return "/*";
   }
 
-  void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext);
+  void setupServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext);
 
-  default void registerResources(ResourceConfig resourceConfig) {
-  }
+  default void setupResourceConfig(ResourceConfig resourceConfig) { }
 }

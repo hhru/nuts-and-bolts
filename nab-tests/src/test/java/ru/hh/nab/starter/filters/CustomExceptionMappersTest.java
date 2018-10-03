@@ -13,7 +13,6 @@ import ru.hh.nab.starter.servlet.ServletConfig;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
-import javax.annotation.Priority;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
@@ -84,7 +83,6 @@ public class CustomExceptionMappersTest extends NabTestBase {
     }
   }
 
-  @Priority(1)
   public static class CustomExceptionMapper extends NabExceptionMapper<IllegalArgumentException> {
     public CustomExceptionMapper() {
       super(SERVICE_UNAVAILABLE, LoggingLevel.ERROR_WITH_STACK_TRACE);

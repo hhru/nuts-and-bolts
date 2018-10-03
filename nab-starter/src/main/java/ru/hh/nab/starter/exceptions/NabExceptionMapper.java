@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -21,6 +22,8 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
  * {@link ExceptionSerializer} beans must be present in application context.
  */
 public abstract class NabExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
+  public static final int LOW_PRIORITY = Priorities.USER + 1;
+
   protected static final Logger LOGGER = LoggerFactory.getLogger(NabExceptionMapper.class);
 
   private final Response.StatusType statusCode;

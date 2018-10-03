@@ -12,7 +12,7 @@ import java.util.EnumSet;
 public class DefaultServletConfig implements ServletConfig {
 
   @Override
-  public void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
+  public void setupServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
     servletContextHandler.addEventListener(new RequestContextListener());
     servletContextHandler.addFilter(RequestIdLoggingFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 

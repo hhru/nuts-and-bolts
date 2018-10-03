@@ -53,7 +53,7 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
 
   public static void configureServletContext(ServletContextHandler handler, ApplicationContext applicationContext, ServletConfig servletConfig) {
     handler.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
-    servletConfig.configureServletContext(handler, applicationContext);
+    servletConfig.setupServletContext(handler, applicationContext);
   }
 
   public static ResourceConfig createResourceConfig(ApplicationContext applicationContext) {

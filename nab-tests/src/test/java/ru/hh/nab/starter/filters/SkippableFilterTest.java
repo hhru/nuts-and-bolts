@@ -39,7 +39,7 @@ public class SkippableFilterTest extends NabTestBase {
   protected ServletConfig getServletConfig() {
     return new DefaultServletConfig() {
       @Override
-      public void configureServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
+      public void setupServletContext(ServletContextHandler servletContextHandler, ApplicationContext applicationContext) {
         FilterHolder holder = new FilterHolder(AddHeaderSkippableFilter.class);
         holder.setInitParameter("exclusionsString", "/status");
         servletContextHandler.addFilter(holder, "/*", EnumSet.allOf(DispatcherType.class));

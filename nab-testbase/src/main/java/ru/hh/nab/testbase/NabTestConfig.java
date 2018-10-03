@@ -18,7 +18,7 @@ public class NabTestConfig {
   Properties serviceProperties() {
     Properties properties = new Properties();
     properties.setProperty("jetty.port", "0");
-    properties.setProperty("jetty.maxThreads", "16");
+    properties.setProperty("jetty.maxThreads", "32");
     properties.setProperty("serviceName", TEST_SERVICE_NAME);
     return properties;
   }

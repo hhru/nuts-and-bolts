@@ -1,8 +1,14 @@
 package ru.hh.nab.starter.exceptions;
 
+import javax.annotation.Priority;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
+import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
+
+@Provider
+@Priority(LOW_PRIORITY)
 public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplicationException> {
   public WebApplicationExceptionMapper() {
     super(null, LoggingLevel.ERROR_WITH_STACK_TRACE);

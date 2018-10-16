@@ -15,18 +15,36 @@
 
     <dependencies>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-testbase</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-common</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
-
         <dependency>
-            <groupId>ru.hh.nab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>nab-starter</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-data-source</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-example</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-hibernate</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-testbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
@@ -43,6 +61,19 @@
                 <configuration>
                     <skip>true</skip>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

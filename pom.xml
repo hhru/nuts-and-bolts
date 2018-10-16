@@ -22,6 +22,7 @@
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
+        <module>code-coverage-report</module>
     </modules>
 
     <properties>
@@ -113,13 +114,6 @@
                     <execution>
                         <goals>
                             <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>

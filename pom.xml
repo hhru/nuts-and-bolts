@@ -22,7 +22,6 @@
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
-        <module>code-coverage-report</module>
     </modules>
 
     <properties>

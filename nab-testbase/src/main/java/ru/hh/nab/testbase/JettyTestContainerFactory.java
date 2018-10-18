@@ -1,21 +1,21 @@
 package ru.hh.nab.testbase;
 
+import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.starter.NabApplicationContext.configureServletContext;
-import static ru.hh.nab.starter.NabApplicationContext.createResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
-import ru.hh.nab.starter.servlet.ServletConfig;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import ru.hh.nab.starter.NabServletContextConfig;
 
 final class JettyTestContainerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyTestContainer.class);
@@ -24,10 +24,10 @@ final class JettyTestContainerFactory {
   private static final String BASE_URI = "http://127.0.0.1";
 
   private final ApplicationContext applicationContext;
-  private final ServletConfig servletConfig;
+  private final NabServletContextConfig servletConfig;
   private final Class<? extends NabTestBase> testClass;
 
-  JettyTestContainerFactory(ApplicationContext applicationContext, ServletConfig servletConfig, Class<? extends NabTestBase> testClass) {
+  JettyTestContainerFactory(ApplicationContext applicationContext, NabServletContextConfig servletConfig, Class<? extends NabTestBase> testClass) {
     this.applicationContext = applicationContext;
     this.servletConfig = servletConfig;
     this.testClass = testClass;
@@ -36,7 +36,7 @@ final class JettyTestContainerFactory {
   JettyTestContainer createTestContainer() {
     Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
     JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
-        key -> new JettyTestContainer(servletConfig, applicationContext));
+        key -> new JettyTestContainer(servletConfig, (WebApplicationContext) applicationContext));
     testContainer.start();
     return testContainer;
   }
@@ -57,17 +57,25 @@ final class JettyTestContainerFactory {
     private final JettyServer jettyServer;
     private URI baseUri;
 
-    JettyTestContainer(ServletConfig servletConfig, ApplicationContext applicationContext) {
+    JettyTestContainer(NabServletContextConfig servletContextConfig, WebApplicationContext applicationContext) {
       this.baseUri = UriBuilder.fromUri(BASE_URI).build();
 
       LOGGER.info("Creating JettyTestContainer...");
 
       final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
       final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
-      final ResourceConfig resourceConfig = createResourceConfig(applicationContext);
 
-      jettyServer = JettyServerFactory.create(fileSettings, threadPool, resourceConfig, servletConfig,
-          (contextHandler) -> configureServletContext(contextHandler, applicationContext, servletConfig));
+      jettyServer = JettyServerFactory.create(fileSettings, threadPool, webApp -> {
+        NabServletContextConfig.TestBridge publicBridge = servletContextConfig.getPublicMorozovBridge();
+        publicBridge.preConfigureWebApp(webApp, applicationContext);
+        webApp.addEventListener(new ContextLoaderListener(applicationContext) {
+          @Override
+          public void contextInitialized(ServletContextEvent event) {
+            super.contextInitialized(event);
+            publicBridge.onWebAppStarted(event.getServletContext(), applicationContext);
+          }
+        });
+      });
     }
 
     void start() {
@@ -81,7 +89,7 @@ final class JettyTestContainerFactory {
       jettyServer.start();
       baseUri = UriBuilder.fromUri(baseUri).port(jettyServer.getPort()).build();
 
-      LOGGER.info("Started JettyTestContainer at the base URI " + baseUri);
+      LOGGER.info("Started JettyTestContainer at the base URI {}", baseUri);
     }
 
     String getBaseUrl() {

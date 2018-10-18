@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
 
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
@@ -18,15 +16,15 @@ public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
 
   public static NabApplicationContext run(Class<?>... configurationClasses) {
-    return run(new DefaultServletConfig(), configurationClasses);
+    return run(new NabServletContextConfig(), configurationClasses);
   }
 
-  public static NabApplicationContext run(ServletConfig servletConfig, Class<?>... configurationClasses) {
+  public static NabApplicationContext run(NabServletContextConfig servletContextConfig, Class<?>... configurationClasses) {
     configureLogger();
     NabApplicationContext context = null;
     try {
-      context = new NabApplicationContext(servletConfig, configurationClasses);
-      context.refresh();
+      context = new NabApplicationContext(servletContextConfig, configurationClasses);
+      context.startApplication();
       configureSentry(context);
       logStartupInfo(context);
     } catch (Exception e) {
@@ -55,8 +53,11 @@ public final class NabApplication {
   }
 
   private static void logErrorAndExit(Exception e) {
-    LOGGER.error("Failed to start, shutting down", e);
-    System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
-    System.exit(1);
+    try {
+      LOGGER.error("Failed to start, shutting down", e);
+      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
+    } finally {
+      System.exit(1);
+    }
   }
 }

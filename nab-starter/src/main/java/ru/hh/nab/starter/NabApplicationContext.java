@@ -1,49 +1,43 @@
 package ru.hh.nab.starter;
 
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContextException;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.starter.jersey.DefaultResourceConfig;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
-import ru.hh.nab.starter.servlet.ServletConfig;
+import ru.hh.nab.starter.servlet.WebAppInitializer;
 
 public final class NabApplicationContext extends AnnotationConfigWebApplicationContext {
 
-  private volatile JettyServer jettyServer;
+  private final WebAppInitializer webAppInitializer;
+  private JettyServer jettyServer;
 
-  private final ServletConfig servletConfig;
-
-  NabApplicationContext(ServletConfig servletConfig, Class<?>... primarySources) {
-    this.servletConfig = servletConfig;
+  NabApplicationContext(NabServletContextConfig servletConfig, Class<?>... primarySources) {
     register(primarySources);
     registerShutdownHook();
+    webAppInitializer = createWebAppInitializer(servletConfig);
   }
 
-  @Override
-  protected void finishRefresh() {
-    super.finishRefresh();
+  public void startApplication() {
+    //partial refresh to get beans required for jetty, but without state change
+    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+    prepareBeanFactory(beanFactory);
+    postProcessBeanFactory(beanFactory);
+    invokeBeanFactoryPostProcessors(beanFactory);
+
     startJettyServer();
   }
 
   private void startJettyServer() {
-    JettyServer jettyServer = this.jettyServer;
     try {
       if (jettyServer == null) {
         final FileSettings jettySettings = getBean(FileSettings.class);
         final ThreadPool threadPool = getBean(ThreadPool.class);
-        final ResourceConfig resourceConfig = createResourceConfig(this);
-
-        this.jettyServer = JettyServerFactory.create(jettySettings, threadPool, resourceConfig, servletConfig, (contextHandler) -> {
-          configureServletContext(contextHandler, this, servletConfig);
-          setServletContext(contextHandler.getServletContext());
-        });
-
+        this.jettyServer = JettyServerFactory.create(jettySettings, threadPool, webAppInitializer);
         this.jettyServer.start();
       }
     } catch (Throwable t) {
@@ -51,19 +45,27 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     }
   }
 
-  public static void configureServletContext(ServletContextHandler handler, ApplicationContext applicationContext, ServletConfig servletConfig) {
-    handler.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
-    servletConfig.setupServletContext(handler, applicationContext);
+  public WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig) {
+    return webApp -> {
+      servletContextConfig.preConfigureWebApp(webApp, this);
+      webApp.addEventListener(new ContextLoaderListener(this) {
+        @Override
+        public void contextInitialized(ServletContextEvent event) {
+          super.contextInitialized(event);
+          servletContextConfig.onWebAppStarted(event.getServletContext(), NabApplicationContext.this);
+          servletContextConfig.getListeners(NabApplicationContext.this).forEach(listener -> listener.contextInitialized(event));
+        }
+
+        @Override
+        public void contextDestroyed(ServletContextEvent event) {
+          super.contextDestroyed(event);
+          servletContextConfig.getListeners(NabApplicationContext.this).forEach(listener -> listener.contextDestroyed(event));
+        }
+      });
+    };
   }
 
-  public static ResourceConfig createResourceConfig(ApplicationContext applicationContext) {
-    ResourceConfig resourceConfig = new DefaultResourceConfig();
-    applicationContext.getBeansWithAnnotation(javax.ws.rs.Path.class)
-        .forEach((name, bean) -> resourceConfig.register(bean));
-    return resourceConfig;
-  }
-
-  boolean isServerRunning() {
+  public boolean isServerRunning() {
     return jettyServer.isRunning();
   }
 }

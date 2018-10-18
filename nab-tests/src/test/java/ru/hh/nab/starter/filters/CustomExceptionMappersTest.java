@@ -1,15 +1,14 @@
 package ru.hh.nab.starter.filters;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.exceptions.ExceptionSerializer;
 import ru.hh.nab.starter.exceptions.NabExceptionMapper;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
+import ru.hh.nab.starter.servlet.NabJerseyConfig;
+import ru.hh.nab.starter.NabServletContextConfig;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -27,13 +26,11 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(classes = {NabTestConfig.class, CustomExceptionMappersTest.CustomExceptionMapperConfig.class})
 public class CustomExceptionMappersTest extends NabTestBase {
   @Override
-  protected ServletConfig getServletConfig() {
-    return new DefaultServletConfig() {
+  protected NabServletContextConfig getServletConfig() {
+    return new NabServletContextConfig() {
       @Override
-      public void setupResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(TestResource.class);
-        resourceConfig.register(CustomExceptionMapper.class);
-        resourceConfig.register(JacksonFeature.class);
+      protected NabJerseyConfig getJerseyConfig() {
+        return NabJerseyConfig.forResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class);
       }
     };
   }

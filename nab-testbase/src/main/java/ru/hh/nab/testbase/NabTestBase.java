@@ -15,8 +15,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import static ru.hh.nab.starter.NabApplication.configureLogger;
 import org.springframework.test.context.web.WebMergedContextConfiguration;
 import org.springframework.web.context.support.GenericWebApplicationContext;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
+import ru.hh.nab.starter.NabServletContextConfig;
 import ru.hh.nab.testbase.JettyTestContainerFactory.JettyTestContainer;
 
 import javax.ws.rs.client.Client;
@@ -52,8 +51,8 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   /**
    * Override to provide custom servlet config for Jetty instance
    */
-  protected ServletConfig getServletConfig() {
-    return new DefaultServletConfig();
+  protected NabServletContextConfig getServletConfig() {
+    return new NabServletContextConfig();
   }
 
   protected String baseUrl() {

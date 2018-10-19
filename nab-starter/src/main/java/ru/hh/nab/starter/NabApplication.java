@@ -15,6 +15,22 @@ import java.time.LocalDateTime;
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
 
+  private final NabServletContextConfig servletContextConfig;
+  private final Class<?>[] configurations;
+
+  NabApplication(NabServletContextConfig servletContextConfig, Class<?>[] configurations) {
+    this.servletContextConfig = servletContextConfig;
+    this.configurations = configurations;
+  }
+
+  public NabApplicationContext run() {
+    return run(servletContextConfig, configurations);
+  }
+
+  public static NabApplicationBuilder builder(Class<?>... configurations) {
+    return new NabApplicationBuilder(configurations);
+  }
+
   public static NabApplicationContext run(Class<?>... configurationClasses) {
     return run(new NabServletContextConfig(), configurationClasses);
   }

@@ -10,14 +10,18 @@ public interface NabServletConfig {
 
   String getName();
 
-  default AnnotationConfigWebApplicationContext createActiveChildCtx(WebApplicationContext rootCtx, Class<?>... cfgClasses) {
+  default AnnotationConfigWebApplicationContext createActiveChildCtx(WebApplicationContext rootContext, Class<?>... cfgClasses) {
     AnnotationConfigWebApplicationContext childConfig = new AnnotationConfigWebApplicationContext();
-    childConfig.setParent(rootCtx);
-    childConfig.setServletContext(rootCtx.getServletContext());
+    childConfig.setParent(rootContext);
+    childConfig.setServletContext(rootContext.getServletContext());
     childConfig.register(cfgClasses);
     childConfig.refresh();
     return childConfig;
   }
 
   Servlet createServlet(WebApplicationContext rootCtx);
+
+  default boolean isDisabled() {
+    return false;
+  }
 }

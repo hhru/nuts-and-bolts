@@ -66,7 +66,7 @@ final class JettyTestContainerFactory {
       final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
 
       jettyServer = JettyServerFactory.create(fileSettings, threadPool, webApp -> {
-        NabServletContextConfig.TestBridge publicBridge = servletContextConfig.getPublicMorozovBridge();
+        NabServletContextConfig.TestBridge publicBridge = servletContextConfig.getTestBridge();
         publicBridge.preConfigureWebApp(webApp, applicationContext);
         webApp.addEventListener(new ContextLoaderListener(applicationContext) {
           @Override

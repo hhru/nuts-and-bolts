@@ -1,18 +1,25 @@
 package ru.hh.nab.starter.servlet;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
+import javax.servlet.Servlet;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.springframework.web.context.WebApplicationContext;
+import ru.hh.nab.starter.jersey.DefaultResourceConfig;
+import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 
-public class NabJerseyConfig {
+public abstract class NabJerseyConfig implements NabServletConfig {
 
-  private static final String[] DEFAULT_MAPPING = {"/*"};
-
-  public static final NabJerseyConfig NONE = new NabJerseyConfig(true);
+  public static final NabJerseyConfig DISABLED = new NabJerseyConfig(true) {
+    @Override
+    public void configure(ResourceConfig resourceConfig) { }
+  };
 
   private final boolean disabled;
 
-  public NabJerseyConfig() {
+  protected NabJerseyConfig() {
     this.disabled = false;
   }
 
@@ -29,23 +36,39 @@ public class NabJerseyConfig {
     };
   }
 
+  @Override
   public String[] getMapping() {
     return DEFAULT_MAPPING;
   }
 
+  @Override
   public String getName() {
     return "jersey";
   }
 
-  public List<String> getAllowedPackages() {
-    return Arrays.asList("ru.hh", "com.headhunter");
+  @Override
+  public Servlet createServlet(WebApplicationContext rootCtx) {
+    ResourceConfig resourceConfig = createResourceConfig(rootCtx);
+    configure(resourceConfig);
+    return new ServletContainer(resourceConfig);
   }
 
-  public void configure(ResourceConfig resourceConfig) {
-
+  public Set<String> getAllowedPackages() {
+    return Collections.singleton("ru.hh");
   }
 
+  public abstract void configure(ResourceConfig resourceConfig);
+
+  @Override
   public final boolean isDisabled() {
     return disabled;
+  }
+
+  private ResourceConfig createResourceConfig(WebApplicationContext ctx) {
+    ResourceConfig resourceConfig = new DefaultResourceConfig();
+    ctx.getBeansWithAnnotation(javax.ws.rs.Path.class).values().stream()
+      .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
+      .forEach(resourceConfig::register);
+    return resourceConfig;
   }
 }

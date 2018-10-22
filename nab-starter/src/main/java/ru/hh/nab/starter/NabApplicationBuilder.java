@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,7 +34,7 @@ public final class NabApplicationBuilder {
   private JerseyBuilder jerseyBuilder;
   private String contextPath;
   private String resourceBase;
-  private boolean skipDefaultConfig;
+  private ClassLoader classLoader;
 
   NabApplicationBuilder(Class<?>[] configs) {
     this.configs = configs;
@@ -43,6 +45,14 @@ public final class NabApplicationBuilder {
 
   public NabApplication build() {
     return new NabApplication(new NabServletContextConfig() {
+
+      @Override
+      protected ClassLoader getClassLoader() {
+        if (classLoader == null) {
+          return super.getClassLoader();
+        }
+        return classLoader;
+      }
 
       @Override
       protected String getResourceBase() {
@@ -74,9 +84,7 @@ public final class NabApplicationBuilder {
 
       @Override
       protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
-        if (!skipDefaultConfig) {
-          super.configureServletContext(servletContext, rootCtx);
-        }
+        super.configureServletContext(servletContext, rootCtx);
         servletConfigConfigurers.forEach(configAction -> configAction.accept(servletContext, rootCtx));
       }
     }, configs);
@@ -92,6 +100,11 @@ public final class NabApplicationBuilder {
     return this;
   }
 
+  public NabApplicationBuilder setClassLoader(ClassLoader classLoader) {
+    this.classLoader = classLoader;
+    return this;
+  }
+
   public NabApplicationBuilder addListener(ServletContextListener listener) {
     listenerProviders.add(ctx -> listener);
     return this;
@@ -99,11 +112,6 @@ public final class NabApplicationBuilder {
 
   public NabApplicationBuilder addListenerBean(Function<WebApplicationContext, ServletContextListener> listenerProvider) {
     listenerProviders.add(listenerProvider);
-    return this;
-  }
-
-  public NabApplicationBuilder skipDefaultServletContextConfiguration(boolean skipDefaultConfig) {
-    this.skipDefaultConfig = skipDefaultConfig;
     return this;
   }
 
@@ -287,12 +295,7 @@ public final class NabApplicationBuilder {
 
         @Override
         public Servlet createServlet(WebApplicationContext rootCtx) {
-          WebApplicationContext context;
-          if (servletBuilder.childConfigurations.length == 0) {
-            context = rootCtx;
-          } else {
-            context = createActiveChildCtx(rootCtx, servletBuilder.childConfigurations);
-          }
+          WebApplicationContext context = createActiveChildCtx(rootCtx, servletBuilder.childConfigurations);
           return servletBuilder.servletInitializer.apply(context);
         }
       }).collect(Collectors.toList());
@@ -302,13 +305,13 @@ public final class NabApplicationBuilder {
   public static final class JerseyBuilder {
     private final NabApplicationBuilder nabApplicationBuilder;
     private String[] mappings;
-    private final List<String> allowedPackages;
+    private final Set<String> allowedPackages;
     private String servletName;
     private final List<Consumer<ResourceConfig>> configurationActions;
 
     public JerseyBuilder(NabApplicationBuilder nabApplicationBuilder) {
       this.nabApplicationBuilder = nabApplicationBuilder;
-      allowedPackages = new ArrayList<>();
+      allowedPackages = new HashSet<>();
       configurationActions = new ArrayList<>();
     }
 
@@ -371,7 +374,7 @@ public final class NabApplicationBuilder {
         }
 
         @Override
-        public List<String> getAllowedPackages() {
+        public Set<String> getAllowedPackages() {
           if (jerseyBuilder.allowedPackages.isEmpty()) {
             return super.getAllowedPackages();
           }

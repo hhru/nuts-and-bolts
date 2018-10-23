@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -18,6 +19,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -30,17 +32,17 @@ public final class NabApplicationBuilder {
   private final Class<?>[] configs;
   private final List<ServletBuilder> servletBuilders;
   private final List<Function<WebApplicationContext, ServletContextListener>> listenerProviders;
-  private final List<BiConsumer<ServletContext, WebApplicationContext>> servletConfigConfigurers;
+  private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
+  private BiConsumer<ServletContextHandler, WebApplicationContext> servletContextHandlerConfigurer;
   private JerseyBuilder jerseyBuilder;
   private String contextPath;
-  private String resourceBase;
   private ClassLoader classLoader;
 
   NabApplicationBuilder(Class<?>[] configs) {
     this.configs = configs;
     servletBuilders = new ArrayList<>();
+    servletContextConfigurers = new ArrayList<>();
     listenerProviders = new ArrayList<>();
-    servletConfigConfigurers = new ArrayList<>();
   }
 
   public NabApplication build() {
@@ -55,13 +57,13 @@ public final class NabApplicationBuilder {
       }
 
       @Override
-      protected String getResourceBase() {
-        return StringUtils.isEmpty(resourceBase) ? super.getResourceBase() : resourceBase;
+      protected String getContextPath() {
+        return StringUtils.isEmpty(contextPath) ? super.getContextPath() : contextPath;
       }
 
       @Override
-      protected String getContextPath() {
-        return StringUtils.isEmpty(contextPath) ? super.getContextPath() : contextPath;
+      protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
+        Optional.ofNullable(servletContextHandlerConfigurer).ifPresent(cfg -> cfg.accept(servletContextHandler, rootCtx));
       }
 
       @Override
@@ -81,22 +83,11 @@ public final class NabApplicationBuilder {
         }
         return JerseyBuilder.prepareNabJerseyConfig(jerseyBuilder);
       }
-
-      @Override
-      protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
-        super.configureServletContext(servletContext, rootCtx);
-        servletConfigConfigurers.forEach(configAction -> configAction.accept(servletContext, rootCtx));
-      }
     }, configs);
   }
 
   public NabApplicationBuilder setContextPath(String contextPath) {
     this.contextPath = contextPath;
-    return this;
-  }
-
-  public NabApplicationBuilder setResourceBase(String resourceBase) {
-    this.resourceBase = resourceBase;
     return this;
   }
 
@@ -135,8 +126,8 @@ public final class NabApplicationBuilder {
     return new FilterBuilder(this, filterProvider);
   }
 
-  public NabApplicationBuilder addConfigurationAction(BiConsumer<ServletContext, WebApplicationContext> configurationAction) {
-    servletConfigConfigurers.add(configurationAction);
+  public NabApplicationBuilder configureWebapp(BiConsumer<ServletContextHandler, WebApplicationContext> servletContextHandlerConfigurer) {
+    this.servletContextHandlerConfigurer = servletContextHandlerConfigurer;
     return this;
   }
 
@@ -160,7 +151,7 @@ public final class NabApplicationBuilder {
   }
 
   private NabApplicationBuilder acceptFilter(FilterBuilder filterBuilder) {
-    servletConfigConfigurers.add(filterBuilder.registrationAction);
+    servletContextConfigurers.add(filterBuilder.registrationAction);
     return this;
   }
 

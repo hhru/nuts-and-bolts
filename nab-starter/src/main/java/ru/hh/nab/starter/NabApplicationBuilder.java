@@ -67,6 +67,11 @@ public final class NabApplicationBuilder {
       }
 
       @Override
+      protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
+        servletContextConfigurers.forEach(cfg -> cfg.accept(servletContext, rootCtx));
+      }
+
+      @Override
       protected List<ServletContextListener> getListeners(WebApplicationContext rootCtx) {
         return listenerProviders.stream().map(provider -> provider.apply(rootCtx)).collect(Collectors.toList());
       }

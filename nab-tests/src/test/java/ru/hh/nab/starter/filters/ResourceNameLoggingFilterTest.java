@@ -7,8 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.starter.servlet.NabJerseyConfig;
-import ru.hh.nab.starter.NabServletContextConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -20,13 +19,8 @@ import javax.ws.rs.core.Response;
 public class ResourceNameLoggingFilterTest extends NabTestBase {
 
   @Override
-  protected NabServletContextConfig getServletConfig() {
-    return new NabServletContextConfig() {
-      @Override
-      protected NabJerseyConfig getJerseyConfig() {
-        return NabJerseyConfig.forResources(TestResource.class);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder().configureJersey().registerResources(TestResource.class).applyToRoot().build();
   }
 
   @Test

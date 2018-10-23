@@ -3,14 +3,18 @@ package ru.hh.nab.starter;
 import static java.text.MessageFormat.format;
 
 import io.sentry.Sentry;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
+import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
@@ -25,6 +29,13 @@ public final class NabApplication {
 
   public NabApplicationContext run() {
     return run(servletContextConfig, configurations);
+  }
+
+  public JettyServer runOnCustomContext(WebApplicationContext webApplicationContext) {
+    final FileSettings fileSettings = webApplicationContext.getBean(FileSettings.class);
+    final ThreadPool threadPool = webApplicationContext.getBean(ThreadPool.class);
+    return JettyServerFactory.create(fileSettings, threadPool,
+      NabApplicationContext.createWebAppInitializer(webApplicationContext, servletContextConfig));
   }
 
   public static NabApplicationBuilder builder(Class<?>... configurations) {

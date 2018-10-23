@@ -14,7 +14,9 @@ public interface NabServletConfig {
     AnnotationConfigWebApplicationContext childConfig = new AnnotationConfigWebApplicationContext();
     childConfig.setParent(rootContext);
     childConfig.setServletContext(rootContext.getServletContext());
-    childConfig.register(cfgClasses);
+    if (cfgClasses.length > 0) {
+      childConfig.register(cfgClasses);
+    }
     childConfig.refresh();
     return childConfig;
   }

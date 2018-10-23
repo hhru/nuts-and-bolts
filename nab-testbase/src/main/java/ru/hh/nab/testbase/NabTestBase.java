@@ -15,7 +15,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import static ru.hh.nab.starter.NabApplication.configureLogger;
 import org.springframework.test.context.web.WebMergedContextConfiguration;
 import org.springframework.web.context.support.GenericWebApplicationContext;
-import ru.hh.nab.starter.NabServletContextConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.JettyTestContainerFactory.JettyTestContainer;
 
 import javax.ws.rs.client.Client;
@@ -27,7 +27,7 @@ import javax.ws.rs.core.UriBuilder;
 
 /**
  * Launches Jetty instance with application context provided by {@link AbstractJUnit4SpringContextTests}
- * and servlet config provided by {@link #getServletConfig()} on a random port before test methods start to execute.
+ * and servlet config provided by {@link #getApplication()} on a random port before test methods start to execute.
  * For some examples see nab-tests module.
  */
 @WebAppConfiguration
@@ -39,7 +39,7 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   @Before
   public void setUpNabTestBase() {
     configureLogger();
-    JettyTestContainerFactory containerFactory = new JettyTestContainerFactory(applicationContext, getServletConfig(), getClass());
+    JettyTestContainerFactory containerFactory = new JettyTestContainerFactory(applicationContext, getApplication(), getClass());
     testContainer = containerFactory.createTestContainer();
     client = getClientBuilder().build();
   }
@@ -51,8 +51,8 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   /**
    * Override to provide custom servlet config for Jetty instance
    */
-  protected NabServletContextConfig getServletConfig() {
-    return new NabServletContextConfig();
+  protected NabApplication getApplication() {
+    return NabApplication.builder().build();
   }
 
   protected String baseUrl() {

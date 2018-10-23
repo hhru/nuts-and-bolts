@@ -4,8 +4,7 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.servlet.NabJerseyConfig;
-import ru.hh.nab.starter.NabServletContextConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -29,13 +28,7 @@ public class ExampleServerAwareBeanTest extends NabTestBase {
   }
 
   @Override
-  protected NabServletContextConfig getServletConfig() {
-    return new NabServletContextConfig() {
-
-      @Override
-      protected NabJerseyConfig getJerseyConfig() {
-        return NabJerseyConfig.forResources(ExampleResource.class);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder().configureJersey().registerResources(ExampleResource.class).applyToRoot().build();
   }
 }

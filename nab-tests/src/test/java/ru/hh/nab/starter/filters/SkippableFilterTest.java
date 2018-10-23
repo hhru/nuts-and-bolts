@@ -1,15 +1,10 @@
 package ru.hh.nab.starter.filters;
 
-import java.util.EnumSet;
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-import org.eclipse.jetty.servlet.FilterHolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.web.context.WebApplicationContext;
-import ru.hh.nab.starter.NabServletContextConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -35,16 +30,8 @@ public class SkippableFilterTest extends NabTestBase {
   }
 
   @Override
-  protected NabServletContextConfig getServletConfig() {
-    return new NabServletContextConfig() {
-
-      @Override
-      protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
-        FilterHolder holder = new FilterHolder(AddHeaderSkippableFilter.class);
-        holder.setInitParameter("exclusionsString", "/status");
-        registerFilter(servletContext, holder.getName(), holder, EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").applyToRoot().build();
   }
 
   @Test

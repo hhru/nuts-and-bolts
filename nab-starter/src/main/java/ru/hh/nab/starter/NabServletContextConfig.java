@@ -164,22 +164,4 @@ public class NabServletContextConfig {
       }
     };
   }
-
-  public TestBridge getTestBridge() {
-    return new TestBridge();
-  }
-
-  public final class TestBridge {
-
-    private TestBridge() {
-    }
-
-    public void preConfigureWebApp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
-      NabServletContextConfig.this.preConfigureWebApp(servletContextHandler, rootCtx);
-    }
-
-    public void onWebAppStarted(ServletContext servletContext, WebApplicationContext rootCtx) {
-      NabServletContextConfig.this.onWebAppStarted(servletContext, rootCtx);
-    }
-  }
 }

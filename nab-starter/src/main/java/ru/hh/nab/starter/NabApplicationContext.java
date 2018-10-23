@@ -5,6 +5,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.server.jetty.JettyServer;
@@ -19,7 +20,7 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
   NabApplicationContext(NabServletContextConfig servletConfig, Class<?>... primarySources) {
     register(primarySources);
     registerShutdownHook();
-    webAppInitializer = createWebAppInitializer(servletConfig);
+    webAppInitializer = createWebAppInitializer(this, servletConfig);
   }
 
   public void startApplication() {
@@ -45,21 +46,21 @@ public final class NabApplicationContext extends AnnotationConfigWebApplicationC
     }
   }
 
-  public WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig) {
+  static WebAppInitializer createWebAppInitializer(WebApplicationContext ctx, NabServletContextConfig servletContextConfig) {
     return webApp -> {
-      servletContextConfig.preConfigureWebApp(webApp, this);
-      webApp.addEventListener(new ContextLoaderListener(this) {
+      servletContextConfig.preConfigureWebApp(webApp, ctx);
+      webApp.addEventListener(new ContextLoaderListener(ctx) {
         @Override
         public void contextInitialized(ServletContextEvent event) {
           super.contextInitialized(event);
-          servletContextConfig.onWebAppStarted(event.getServletContext(), NabApplicationContext.this);
-          servletContextConfig.getListeners(NabApplicationContext.this).forEach(listener -> listener.contextInitialized(event));
+          servletContextConfig.onWebAppStarted(event.getServletContext(), ctx);
+          servletContextConfig.getListeners(ctx).forEach(listener -> listener.contextInitialized(event));
         }
 
         @Override
         public void contextDestroyed(ServletContextEvent event) {
           super.contextDestroyed(event);
-          servletContextConfig.getListeners(NabApplicationContext.this).forEach(listener -> listener.contextDestroyed(event));
+          servletContextConfig.getListeners(ctx).forEach(listener -> listener.contextDestroyed(event));
         }
       });
     };

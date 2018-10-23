@@ -5,10 +5,9 @@ import org.junit.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.exceptions.ExceptionSerializer;
 import ru.hh.nab.starter.exceptions.NabExceptionMapper;
-import ru.hh.nab.starter.servlet.NabJerseyConfig;
-import ru.hh.nab.starter.NabServletContextConfig;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -26,13 +25,10 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(classes = {NabTestConfig.class, CustomExceptionMappersTest.CustomExceptionMapperConfig.class})
 public class CustomExceptionMappersTest extends NabTestBase {
   @Override
-  protected NabServletContextConfig getServletConfig() {
-    return new NabServletContextConfig() {
-      @Override
-      protected NabJerseyConfig getJerseyConfig() {
-        return NabJerseyConfig.forResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder()
+      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class).applyToRoot()
+      .build();
   }
 
   @Test

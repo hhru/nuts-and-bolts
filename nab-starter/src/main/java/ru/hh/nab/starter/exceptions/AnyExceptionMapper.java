@@ -16,7 +16,7 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   }
 
   @Override
-  protected Response serializeException(Response.StatusType statusCode, Exception exception) {
+  public Response toResponse(Exception exception) {
     Throwable cause, lastNotNullCause = exception;
     while ((cause = lastNotNullCause.getCause()) != null) {
       lastNotNullCause = cause;
@@ -24,8 +24,9 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
 
     if ("com.mchange.v2.resourcepool".equals(lastNotNullCause.getClass().getCanonicalName())) {
       statusCode = SERVICE_UNAVAILABLE;
+      loggingLevel = LoggingLevel.INFO_WITHOUT_STACK_TRACE;
     }
 
-    return super.serializeException(statusCode, exception);
+    return super.toResponse(exception);
   }
 }

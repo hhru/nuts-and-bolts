@@ -19,15 +19,7 @@ public final class DefaultResourceConfig extends ResourceConfig {
   public DefaultResourceConfig() {
     addProperties(Collections.singletonMap(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE));
 
-    register(FilteredXmlRootElementProvider.App.class);
-    register(FilteredXmlRootElementProvider.General.class);
-    register(FilteredXmlRootElementProvider.Text.class);
-    register(FilteredXmlElementProvider.App.class);
-    register(FilteredXmlElementProvider.General.class);
-    register(FilteredXmlElementProvider.Text.class);
-    register(FilteredXmlListElementProvider.App.class);
-    register(FilteredXmlListElementProvider.General.class);
-    register(FilteredXmlListElementProvider.Text.class);
+    register(MarshallerContextResolver.class);
 
     register(AnyExceptionMapper.class);
     register(IllegalArgumentExceptionMapper.class);

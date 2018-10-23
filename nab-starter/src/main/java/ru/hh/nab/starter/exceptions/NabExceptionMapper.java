@@ -26,8 +26,8 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(NabExceptionMapper.class);
 
-  private final Response.StatusType statusCode;
-  private final LoggingLevel loggingLevel;
+  protected Response.StatusType statusCode;
+  protected LoggingLevel loggingLevel;
 
   @Context
   protected HttpServletRequest request;

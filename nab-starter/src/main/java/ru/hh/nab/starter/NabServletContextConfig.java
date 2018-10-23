@@ -49,12 +49,19 @@ public class NabServletContextConfig {
   void preConfigureWebApp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
     servletContextHandler.setContextPath(getContextPath());
     servletContextHandler.setClassLoader(getClassLoader());
+    registerFilter(servletContextHandler.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
+      Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
+    if (rootCtx.containsBean("cacheFilter")) {
+      FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
+      if (cacheFilter.isInstance()) {
+        registerFilter(servletContextHandler.getServletContext(), cacheFilter.getName(), cacheFilter,
+          EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
+      }
+    }
     configureWebapp(servletContextHandler, rootCtx);
   }
 
-  protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
-
-  }
+  protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) { }
 
   protected String getContextPath() {
     return "/";
@@ -70,6 +77,7 @@ public class NabServletContextConfig {
    * org.eclipse.jetty.servlet.FilterHolder#initialize() won't be called anymore
    */
   void onWebAppStarted(ServletContext servletContext, WebApplicationContext rootCtx) {
+    servletContext.addListener(new RequestContextListener());
     configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
     registerServlets(servletContext, rootCtx, servletConfigs);
@@ -88,17 +96,7 @@ public class NabServletContextConfig {
     return Collections.unmodifiableList(servletConfigs);
   }
 
-  private static void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
-    servletContext.addListener(new RequestContextListener());
-    registerFilter(servletContext, RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class, Collections.emptyMap(),
-      EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
-    if (rootCtx.containsBean("cacheFilter")) {
-      FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
-      if (cacheFilter.isInstance()) {
-        registerFilter(servletContext, cacheFilter.getName(), cacheFilter, EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
-      }
-    }
-  }
+  protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
 
   private static void registerServlets(ServletContext servletContext, WebApplicationContext rootCtx, List<NabServletConfig> servletConfigs) {
     servletConfigs.stream().filter(servletConfig -> !servletConfig.isDisabled()).forEach(nabServletConfig -> {

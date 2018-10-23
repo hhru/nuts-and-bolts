@@ -28,6 +28,7 @@ public class NabServletContextConfig {
 
   public static final String[] DEFAULT_MAPPING = {"/*"};
 
+
   protected List<ServletContextListener> getListeners(WebApplicationContext rootCtx) {
     return Collections.emptyList();
   }
@@ -47,12 +48,12 @@ public class NabServletContextConfig {
    */
   void preConfigureWebApp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
     servletContextHandler.setContextPath(getContextPath());
-    servletContextHandler.setResourceBase(getResourceBase());
     servletContextHandler.setClassLoader(getClassLoader());
+    configureWebapp(servletContextHandler, rootCtx);
   }
 
-  protected String getResourceBase() {
-    return "src/main/webapp";
+  protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
+
   }
 
   protected String getContextPath() {
@@ -87,7 +88,7 @@ public class NabServletContextConfig {
     return Collections.unmodifiableList(servletConfigs);
   }
 
-  protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
+  private static void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
     servletContext.addListener(new RequestContextListener());
     registerFilter(servletContext, RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class, Collections.emptyMap(),
       EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);

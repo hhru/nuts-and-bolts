@@ -20,14 +20,14 @@ public class ResourceNameLoggingFilterTest extends NabTestBase {
 
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(TestResource.class).applyToRoot().build();
+    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindTo("/test/*").build();
   }
 
   @Test
   public void testResourceName() {
     assertFalse(MDC.getController().isPresent());
 
-    Response response = executeGet("/test");
+    Response response = executeGet("/test/test");
 
     assertEquals(OK.getStatusCode(), response.getStatus());
 

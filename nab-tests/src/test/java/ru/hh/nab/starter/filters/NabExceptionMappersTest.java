@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 public class NabExceptionMappersTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(TestResource.class).applyToRoot().build();
+    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build();
   }
 
   @Test

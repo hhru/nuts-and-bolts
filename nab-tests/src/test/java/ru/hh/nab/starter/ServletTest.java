@@ -20,7 +20,7 @@ public class ServletTest extends NabTestBase {
 
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().addServlet(ctx -> ctx.getBean(TestServlet.class), Cfg.class).applyTo("/springservlet").build();
+    return NabApplication.builder().addServlet(ctx -> ctx.getBean(TestServlet.class), Cfg.class).bindTo("/springservlet").build();
   }
 
   @Test

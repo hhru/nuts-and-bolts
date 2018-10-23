@@ -27,7 +27,7 @@ public class CustomExceptionMappersTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
     return NabApplication.builder()
-      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class).applyToRoot()
+      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class).bindToRoot()
       .build();
   }
 

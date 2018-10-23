@@ -31,7 +31,7 @@ public class SkippableFilterTest extends NabTestBase {
 
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").applyToRoot().build();
+    return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").bindToRoot().build();
   }
 
   @Test

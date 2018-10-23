@@ -233,12 +233,12 @@ public final class NabApplicationBuilder {
       return this;
     }
 
-    public NabApplicationBuilder applyTo(String... mappings) {
+    public NabApplicationBuilder bindTo(String... mappings) {
       this.mappings = mappings;
       return nabApplicationBuilder.acceptFilter(this);
     }
 
-    public NabApplicationBuilder applyToRoot() {
+    public NabApplicationBuilder bindToRoot() {
       this.mappings = ROOT_MAPPING;
       return nabApplicationBuilder.acceptFilter(this);
     }
@@ -264,12 +264,12 @@ public final class NabApplicationBuilder {
       return this;
     }
 
-    public NabApplicationBuilder applyTo(String... mappings) {
+    public NabApplicationBuilder bindTo(String... mappings) {
       this.mappings = mappings;
       return nabApplicationBuilder.addServlet(this);
     }
 
-    public NabApplicationBuilder applyToRoot() {
+    public NabApplicationBuilder bindToRoot() {
       this.mappings = ROOT_MAPPING;
       return nabApplicationBuilder.addServlet(this);
     }
@@ -341,12 +341,12 @@ public final class NabApplicationBuilder {
       return this;
     }
 
-    public NabApplicationBuilder applyTo(String... mappings) {
+    public NabApplicationBuilder bindTo(String... mappings) {
       this.mappings = mappings;
       return nabApplicationBuilder.configureJersey(this);
     }
 
-    public NabApplicationBuilder applyToRoot() {
+    public NabApplicationBuilder bindToRoot() {
       this.mappings = ROOT_MAPPING;
       return nabApplicationBuilder.configureJersey(this);
     }

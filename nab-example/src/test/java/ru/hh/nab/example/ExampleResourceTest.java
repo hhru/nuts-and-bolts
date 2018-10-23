@@ -33,6 +33,6 @@ public class ExampleResourceTest extends NabTestBase {
 
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(ExampleResource.class).applyToRoot().build();
+    return NabApplication.builder().configureJersey().registerResources(ExampleResource.class).bindToRoot().build();
   }
 }

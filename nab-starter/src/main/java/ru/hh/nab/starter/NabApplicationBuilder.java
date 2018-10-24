@@ -29,7 +29,6 @@ import ru.hh.nab.starter.servlet.NabServletConfig;
 public final class NabApplicationBuilder {
   private static final String[] ROOT_MAPPING = {"/*"};
 
-  private final Class<?>[] configs;
   private final List<ServletBuilder> servletBuilders;
   private final List<Function<WebApplicationContext, ServletContextListener>> listenerProviders;
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
@@ -38,8 +37,7 @@ public final class NabApplicationBuilder {
   private String contextPath;
   private ClassLoader classLoader;
 
-  NabApplicationBuilder(Class<?>[] configs) {
-    this.configs = configs;
+  NabApplicationBuilder() {
     servletBuilders = new ArrayList<>();
     servletContextConfigurers = new ArrayList<>();
     listenerProviders = new ArrayList<>();
@@ -88,7 +86,7 @@ public final class NabApplicationBuilder {
         }
         return JerseyBuilder.prepareNabJerseyConfig(jerseyBuilder);
       }
-    }, configs);
+    });
   }
 
   public NabApplicationBuilder setContextPath(String contextPath) {

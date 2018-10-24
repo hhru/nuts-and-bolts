@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import static java.util.Optional.ofNullable;
+import javax.servlet.ServletContext;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -24,6 +25,7 @@ public final class JettyServer {
 
   private final FileSettings jettySettings;
   private final Server server;
+  private final ServletContextHandler servletContextHandler;
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
@@ -33,7 +35,7 @@ public final class JettyServer {
     configureMBeanContainer();
     configureRequestLogger();
     configureStopTimeout();
-
+    this.servletContextHandler = servletContextHandler;
     server.setHandler(servletContextHandler);
   }
 
@@ -131,5 +133,9 @@ public final class JettyServer {
 
   public Server getServer() {
     return server;
+  }
+
+  public ServletContext getServletContext() {
+    return servletContextHandler.getServletContext();
   }
 }

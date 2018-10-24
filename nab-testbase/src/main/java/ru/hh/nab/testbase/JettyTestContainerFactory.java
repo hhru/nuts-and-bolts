@@ -32,7 +32,6 @@ final class JettyTestContainerFactory {
     Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
     JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
         key -> new JettyTestContainer(application, (WebApplicationContext) applicationContext));
-    testContainer.start();
     return testContainer;
   }
 
@@ -50,28 +49,13 @@ final class JettyTestContainerFactory {
 
   static class JettyTestContainer {
     private final JettyServer jettyServer;
-    private URI baseUri;
+    private final URI baseUri;
 
     JettyTestContainer(NabApplication application, WebApplicationContext applicationContext) {
-      this.baseUri = UriBuilder.fromUri(BASE_URI).build();
-
       LOGGER.info("Creating JettyTestContainer...");
 
-      jettyServer = application.runOnCustomContext(applicationContext);
-    }
-
-    void start() {
-      if (jettyServer.isRunning()) {
-        LOGGER.warn("Ignoring start request - JettyTestContainer is already started.");
-        return;
-      }
-
-      LOGGER.info("Starting JettyTestContainer...");
-
-      jettyServer.start();
-      baseUri = UriBuilder.fromUri(baseUri).port(jettyServer.getPort()).build();
-
-      LOGGER.info("Started JettyTestContainer at the base URI {}", baseUri);
+      jettyServer = application.run(applicationContext);
+      baseUri = UriBuilder.fromUri(BASE_URI).port(jettyServer.getPort()).build();
     }
 
     String getBaseUrl() {

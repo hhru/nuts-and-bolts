@@ -10,6 +10,7 @@ import javax.servlet.ServletResponse;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
@@ -39,15 +40,14 @@ public class ServletTest extends NabTestBase {
 
     @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
-
       try (PrintWriter writer = res.getWriter()) {
         writer.write(textValue);
       }
     }
   }
 
+  @Configuration
   static class Cfg {
-
     @Bean
     TestServlet testServlet(Properties serviceProperties) {
       return new TestServlet(serviceProperties.getProperty("customTestProperty"));

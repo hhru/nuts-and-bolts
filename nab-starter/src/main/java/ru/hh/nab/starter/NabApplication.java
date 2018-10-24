@@ -18,6 +18,7 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -54,18 +55,22 @@ public final class NabApplication {
   }
 
   public JettyServer run(WebApplicationContext baseContext) {
-    if (!(baseContext instanceof ConfigurableWebApplicationContext)) {
-      throw new IllegalArgumentException("base context must be of " + ConfigurableWebApplicationContext.class.getSimpleName() + " type");
-    }
-    if (!((ConfigurableApplicationContext) baseContext).isActive()) {
-      throw new IllegalArgumentException("base context must be already active");
-    }
+    return run(baseContext, false);
+  }
+
+  /**
+   *
+   * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
+   * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
+   */
+  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
     configureLogger();
     try {
       FileSettings fileSettings = baseContext.getBean(FileSettings.class);
       ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
       configureSentry(baseContext);
-      JettyServer jettyServer = JettyServerFactory.create(fileSettings, threadPool, createWebAppInitializer(baseContext, servletContextConfig));
+      JettyServer jettyServer = JettyServerFactory.create(fileSettings, threadPool,
+        createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot));
       jettyServer.start();
       logStartupInfo(baseContext);
       return jettyServer;
@@ -107,32 +112,39 @@ public final class NabApplication {
     }
   }
 
-  private static WebAppInitializer createWebAppInitializer(WebApplicationContext baseCtx, NabServletContextConfig servletContextConfig) {
-    AnnotationConfigWebApplicationContext webAppRootCtx = new HierarchialWebApplicationContext(baseCtx);
-    webAppRootCtx.setParent(baseCtx);
-    if (baseCtx.getServletContext() != null) {
-      webAppRootCtx.setServletContext(baseCtx.getServletContext());
-    }
+  private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig, WebApplicationContext baseCtx,
+      boolean directWebappRoot) {
+    WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
     return webApp -> {
       servletContextConfig.preConfigureWebApp(webApp, baseCtx);
-      webApp.addEventListener(new ContextLoaderListener(webAppRootCtx) {
+      webApp.addEventListener(new ContextLoaderListener(targetCtx) {
         @Override
         public void contextInitialized(ServletContextEvent event) {
           super.contextInitialized(event);
-          servletContextConfig.onWebAppStarted(event.getServletContext(), webAppRootCtx);
-          servletContextConfig.getListeners(webAppRootCtx).forEach(listener -> listener.contextInitialized(event));
+          servletContextConfig.onWebAppStarted(event.getServletContext(), targetCtx);
+          servletContextConfig.getListeners(targetCtx).forEach(listener -> listener.contextInitialized(event));
         }
 
         @Override
         public void contextDestroyed(ServletContextEvent event) {
           super.contextDestroyed(event);
-          servletContextConfig.getListeners(webAppRootCtx).forEach(listener -> listener.contextDestroyed(event));
-          if (baseCtx instanceof ConfigurableWebApplicationContext) {
-            ((ConfigurableWebApplicationContext) baseCtx).close();
+          servletContextConfig.getListeners(targetCtx).forEach(listener -> listener.contextDestroyed(event));
+          if (baseCtx instanceof ConfigurableApplicationContext) {
+            ((ConfigurableApplicationContext) baseCtx).close();
           }
         }
       });
     };
+  }
+
+  private static AnnotationConfigWebApplicationContext createChildWebAppCtx(WebApplicationContext baseCtx) {
+    AnnotationConfigWebApplicationContext webAppRootCtx = new HierarchialWebApplicationContext(baseCtx);
+    webAppRootCtx.setParent(baseCtx);
+    webAppRootCtx.registerShutdownHook();
+    if (baseCtx.getServletContext() != null) {
+      webAppRootCtx.setServletContext(baseCtx.getServletContext());
+    }
+    return webAppRootCtx;
   }
 
   private static final class HierarchialWebApplicationContext extends AnnotationConfigWebApplicationContext {

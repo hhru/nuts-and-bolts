@@ -8,6 +8,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.lang.management.ManagementFactory;
@@ -150,6 +152,18 @@ public final class NabApplication {
   private static final class HierarchialWebApplicationContext extends AnnotationConfigWebApplicationContext {
     private HierarchialWebApplicationContext(WebApplicationContext parentCtx) {
       setParent(parentCtx);
+    }
+
+    @Override
+    public void setServletContext(ServletContext servletContext) {
+      super.setServletContext(servletContext);
+      ConfigurableWebApplicationContext ctx = this;
+      while (ctx.getParent() instanceof ConfigurableWebApplicationContext) {
+        ctx = (ConfigurableWebApplicationContext) ctx.getParent();
+        if (!(ctx instanceof GenericWebApplicationContext) && ctx.getServletConfig() == null) {
+          ctx.setServletContext(servletContext);
+        }
+      }
     }
 
     @Override

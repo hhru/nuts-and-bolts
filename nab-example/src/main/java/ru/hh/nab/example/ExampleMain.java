@@ -5,6 +5,6 @@ import ru.hh.nab.starter.NabApplication;
 public class ExampleMain {
 
   public static void main(String[] args) {
-    NabApplication.run(ExampleConfig.class);
+    NabApplication.runDefaultWebApp(ExampleConfig.class);
   }
 }

@@ -2,11 +2,9 @@ package ru.hh.nab.example;
 
 import java.util.function.Function;
 import javax.inject.Inject;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -30,12 +28,7 @@ public class ExampleServerAwareBeanTest extends NabTestBase {
   }
 
   @Override
-  protected ServletConfig getServletConfig() {
-    return new DefaultServletConfig() {
-      @Override
-      public void setupResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(ExampleResource.class);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder().configureJersey().registerResources(ExampleResource.class).bindToRoot().build();
   }
 }

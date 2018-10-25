@@ -9,8 +9,6 @@ import ru.hh.nab.starter.exceptions.NotFoundExceptionMapper;
 import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
 import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
-import ru.hh.nab.starter.resource.StatsResource;
-import ru.hh.nab.starter.resource.StatusResource;
 
 import java.util.Collections;
 
@@ -29,7 +27,5 @@ public final class DefaultResourceConfig extends ResourceConfig {
     register(WebApplicationExceptionMapper.class);
 
     register(ResourceNameLoggingFilter.class);
-    register(StatusResource.class);
-    register(StatsResource.class);
   }
 }

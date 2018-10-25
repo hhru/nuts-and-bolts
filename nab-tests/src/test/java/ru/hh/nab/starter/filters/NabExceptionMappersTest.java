@@ -1,10 +1,8 @@
 package ru.hh.nab.starter.filters;
 
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.servlet.DefaultServletConfig;
-import ru.hh.nab.starter.servlet.ServletConfig;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -26,13 +24,8 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(classes = {NabTestConfig.class})
 public class NabExceptionMappersTest extends NabTestBase {
   @Override
-  protected ServletConfig getServletConfig() {
-    return new DefaultServletConfig() {
-      @Override
-      public void setupResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(TestResource.class);
-      }
-    };
+  protected NabApplication getApplication() {
+    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build();
   }
 
   @Test

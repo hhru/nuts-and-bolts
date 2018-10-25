@@ -1,16 +1,11 @@
 package ru.hh.nab.testbase;
 
-import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.starter.NabApplicationContext.configureServletContext;
-import static ru.hh.nab.starter.NabApplicationContext.createResourceConfig;
+import org.springframework.web.context.WebApplicationContext;
+import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.server.jetty.JettyServer;
-import ru.hh.nab.starter.server.jetty.JettyServerFactory;
-import ru.hh.nab.starter.servlet.ServletConfig;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -24,20 +19,19 @@ final class JettyTestContainerFactory {
   private static final String BASE_URI = "http://127.0.0.1";
 
   private final ApplicationContext applicationContext;
-  private final ServletConfig servletConfig;
+  private final NabApplication application;
   private final Class<? extends NabTestBase> testClass;
 
-  JettyTestContainerFactory(ApplicationContext applicationContext, ServletConfig servletConfig, Class<? extends NabTestBase> testClass) {
+  JettyTestContainerFactory(ApplicationContext applicationContext, NabApplication application, Class<? extends NabTestBase> testClass) {
     this.applicationContext = applicationContext;
-    this.servletConfig = servletConfig;
+    this.application = application;
     this.testClass = testClass;
   }
 
   JettyTestContainer createTestContainer() {
     Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
     JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
-        key -> new JettyTestContainer(servletConfig, applicationContext));
-    testContainer.start();
+        key -> new JettyTestContainer(application, (WebApplicationContext) applicationContext));
     return testContainer;
   }
 
@@ -45,7 +39,7 @@ final class JettyTestContainerFactory {
     Class<? extends NabTestBase> current = clazz;
     while (true) {
       try {
-        current.getDeclaredMethod("getServletConfig");
+        current.getDeclaredMethod("getApplication");
         return current;
       } catch (NoSuchMethodException e) {
         current = current.getSuperclass().asSubclass(NabTestBase.class);
@@ -55,33 +49,13 @@ final class JettyTestContainerFactory {
 
   static class JettyTestContainer {
     private final JettyServer jettyServer;
-    private URI baseUri;
+    private final URI baseUri;
 
-    JettyTestContainer(ServletConfig servletConfig, ApplicationContext applicationContext) {
-      this.baseUri = UriBuilder.fromUri(BASE_URI).build();
-
+    JettyTestContainer(NabApplication application, WebApplicationContext applicationContext) {
       LOGGER.info("Creating JettyTestContainer...");
 
-      final FileSettings fileSettings = applicationContext.getBean(FileSettings.class);
-      final ThreadPool threadPool = applicationContext.getBean(ThreadPool.class);
-      final ResourceConfig resourceConfig = createResourceConfig(applicationContext);
-
-      jettyServer = JettyServerFactory.create(fileSettings, threadPool, resourceConfig, servletConfig,
-          (contextHandler) -> configureServletContext(contextHandler, applicationContext, servletConfig));
-    }
-
-    void start() {
-      if (jettyServer.isRunning()) {
-        LOGGER.warn("Ignoring start request - JettyTestContainer is already started.");
-        return;
-      }
-
-      LOGGER.info("Starting JettyTestContainer...");
-
-      jettyServer.start();
-      baseUri = UriBuilder.fromUri(baseUri).port(jettyServer.getPort()).build();
-
-      LOGGER.info("Started JettyTestContainer at the base URI " + baseUri);
+      jettyServer = application.run(applicationContext);
+      baseUri = UriBuilder.fromUri(BASE_URI).port(jettyServer.getPort()).build();
     }
 
     String getBaseUrl() {

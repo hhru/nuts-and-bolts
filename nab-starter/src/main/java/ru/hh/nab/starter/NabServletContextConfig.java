@@ -80,7 +80,7 @@ public class NabServletContextConfig {
     servletContext.addListener(new RequestContextListener());
     configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
-    registerServlets(servletContext, rootCtx, servletConfigs);
+    registerServlets(servletConfigs, servletContext, rootCtx);
   }
 
   private List<NabServletConfig> compileFullServletConfiguration(WebApplicationContext rootCtx) {
@@ -98,17 +98,20 @@ public class NabServletContextConfig {
 
   protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
 
-  private static void registerServlets(ServletContext servletContext, WebApplicationContext rootCtx, List<NabServletConfig> servletConfigs) {
-    servletConfigs.stream().filter(servletConfig -> !servletConfig.isDisabled()).forEach(nabServletConfig -> {
-      Servlet servlet = nabServletConfig.createServlet(rootCtx);
-      registerServlet(servletContext, servlet, nabServletConfig.getName(), nabServletConfig.getMapping());
-    });
+  private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
+    servletConfigs.stream()
+      .filter(servletConfig -> !servletConfig.isDisabled())
+      .forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
   }
 
-  private static void registerServlet(ServletContext servletContext, Servlet servlet, String servletName, String... mappings) {
-    validateMappings(mappings);
-    ServletRegistration.Dynamic dynamic = servletContext.addServlet(servletName, servlet);
-    dynamic.addMapping(mappings);
+  private static void registerServlet(NabServletConfig nabServletConfig, ServletContext servletContext, WebApplicationContext rootCtx) {
+    validateMappings(nabServletConfig.getMapping());
+
+    Servlet servlet = nabServletConfig.createServlet(rootCtx);
+    ServletRegistration.Dynamic dynamic = servletContext.addServlet(nabServletConfig.getName(), servlet);
+    dynamic.addMapping(nabServletConfig.getMapping());
+    dynamic.setInitParameters(nabServletConfig.getInitParameters());
+    dynamic.setAsyncSupported(Boolean.parseBoolean(nabServletConfig.getInitParameters().getOrDefault("async-supported", "true")));
   }
 
   private static void validateMappings(String[] mappings) {
@@ -120,9 +123,11 @@ public class NabServletContextConfig {
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, Class<F> filterClass,
     Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
     validateMappings(mappings);
+
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filterClass);
     dynamic.setInitParameters(initParameters);
     dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
+    dynamic.setAsyncSupported(Boolean.parseBoolean(initParameters.getOrDefault("async-supported", "true")));
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
@@ -142,7 +147,6 @@ public class NabServletContextConfig {
         dispatcherTypes, mappings);
     }
   }
-
 
   private static NabServletConfig createStatusServletConfig() {
     return new NabServletConfig() {

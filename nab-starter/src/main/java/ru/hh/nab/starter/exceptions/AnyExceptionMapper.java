@@ -24,7 +24,7 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
 
     if ("com.mchange.v2.resourcepool".equals(lastNotNullCause.getClass().getCanonicalName())) {
       statusCode = SERVICE_UNAVAILABLE;
-      loggingLevel = LoggingLevel.INFO_WITHOUT_STACK_TRACE;
+      loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }
 
     return super.toResponse(exception);

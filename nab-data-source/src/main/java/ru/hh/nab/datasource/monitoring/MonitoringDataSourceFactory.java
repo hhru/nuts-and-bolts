@@ -81,7 +81,7 @@ public class MonitoringDataSourceFactory {
         String message = String.format(
             "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
             dataSourceName, longConnectionUsageMs, usageMs);
-        LOGGER.error(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
+        LOGGER.warn(message, new RuntimeException(dataSourceName + " connection usage duration exceeded"));
       }
 
       histogram.save(usageMs);

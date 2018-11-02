@@ -11,7 +11,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRegistration;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
@@ -46,22 +46,22 @@ public class NabServletContextConfig {
    * Can be used to preconfigure things that required to be inited. Ex: for class-based FilterHolder
    * org.eclipse.jetty.servlet.FilterHolder#initialize() will be called by the container later
    */
-  void preConfigureWebApp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
-    servletContextHandler.setContextPath(getContextPath());
-    servletContextHandler.setClassLoader(getClassLoader());
-    registerFilter(servletContextHandler.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
+  void preConfigureWebApp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
+    webAppContext.setContextPath(getContextPath());
+    webAppContext.setClassLoader(getClassLoader());
+    registerFilter(webAppContext.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
       Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
     if (rootCtx.containsBean("cacheFilter")) {
       FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
       if (cacheFilter.isInstance()) {
-        registerFilter(servletContextHandler.getServletContext(), cacheFilter.getName(), cacheFilter,
+        registerFilter(webAppContext.getServletContext(), cacheFilter.getName(), cacheFilter,
           EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
       }
     }
-    configureWebapp(servletContextHandler, rootCtx);
+    configureWebapp(webAppContext, rootCtx);
   }
 
-  protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) { }
+  protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) { }
 
   protected String getContextPath() {
     return "/";

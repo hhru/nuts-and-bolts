@@ -19,7 +19,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -32,7 +32,7 @@ public final class NabApplicationBuilder {
   private final List<ServletBuilder> servletBuilders;
   private final List<Function<WebApplicationContext, ServletContextListener>> listenerProviders;
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
-  private BiConsumer<ServletContextHandler, WebApplicationContext> servletContextHandlerConfigurer;
+  private BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer;
   private JerseyBuilder jerseyBuilder;
   private String contextPath;
   private ClassLoader classLoader;
@@ -60,8 +60,8 @@ public final class NabApplicationBuilder {
       }
 
       @Override
-      protected void configureWebapp(ServletContextHandler servletContextHandler, WebApplicationContext rootCtx) {
-        Optional.ofNullable(servletContextHandlerConfigurer).ifPresent(cfg -> cfg.accept(servletContextHandler, rootCtx));
+      protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
+        Optional.ofNullable(servletContextHandlerConfigurer).ifPresent(cfg -> cfg.accept(webAppContext, rootCtx));
       }
 
       @Override
@@ -129,7 +129,7 @@ public final class NabApplicationBuilder {
     return new FilterBuilder(this, filterProvider);
   }
 
-  public NabApplicationBuilder configureWebapp(BiConsumer<ServletContextHandler, WebApplicationContext> servletContextHandlerConfigurer) {
+  public NabApplicationBuilder configureWebapp(BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer) {
     this.servletContextHandlerConfigurer = servletContextHandlerConfigurer;
     return this;
   }

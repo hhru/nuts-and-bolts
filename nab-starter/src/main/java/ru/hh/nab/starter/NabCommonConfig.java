@@ -7,8 +7,10 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.util.thread.ThreadPool;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
@@ -45,7 +47,15 @@ public class NabCommonConfig {
   }
 
   @Bean
-  AppMetadata appMetadata(String serviceName) {
-    return new AppMetadata(serviceName);
+  PropertiesFactoryBean projectProperties() {
+    PropertiesFactoryBean projectProps = new PropertiesFactoryBean();
+    projectProps.setLocation(new ClassPathResource(AppMetadata.PROJECT_PROPERTIES));
+    projectProps.setIgnoreResourceNotFound(true);
+    return projectProps;
+  }
+
+  @Bean
+  AppMetadata appMetadata(String serviceName, Properties projectProperties) {
+    return new AppMetadata(serviceName, projectProperties);
   }
 }

@@ -51,9 +51,13 @@ public final class NabApplication {
 
   public JettyServer run(Class<?>... configs) {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
-    aggregateCtx.register(configs);
-    aggregateCtx.refresh();
-    return run(aggregateCtx);
+    try {
+      aggregateCtx.register(configs);
+      aggregateCtx.refresh();
+      return run(aggregateCtx);
+    } catch (Exception e) {
+      return logErrorAndExit(e);
+    }
   }
 
   public JettyServer run(WebApplicationContext baseContext) {
@@ -66,8 +70,8 @@ public final class NabApplication {
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
    */
   public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
-    configureLogger();
     try {
+      configureLogger();
       FileSettings fileSettings = baseContext.getBean(FileSettings.class);
       ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
       configureSentry(baseContext);

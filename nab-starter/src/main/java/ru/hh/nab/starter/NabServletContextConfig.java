@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
 import javax.servlet.Servlet;
@@ -109,7 +110,10 @@ public class NabServletContextConfig {
 
     Servlet servlet = nabServletConfig.createServlet(rootCtx);
     ServletRegistration.Dynamic dynamic = servletContext.addServlet(nabServletConfig.getName(), servlet);
-    dynamic.addMapping(nabServletConfig.getMapping());
+    Set<String> mappingConflicts = dynamic.addMapping(nabServletConfig.getMapping());
+    if (!mappingConflicts.isEmpty()) {
+      throw new RuntimeException("Servlet [" + nabServletConfig.getName() + "] has conflicting mappings: " + String.join(",", mappingConflicts));
+    }
     dynamic.setInitParameters(nabServletConfig.getInitParameters());
     dynamic.setAsyncSupported(Boolean.parseBoolean(nabServletConfig.getInitParameters().getOrDefault("async-supported", "true")));
   }

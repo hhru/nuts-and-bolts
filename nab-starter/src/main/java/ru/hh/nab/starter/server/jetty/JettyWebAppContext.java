@@ -11,6 +11,7 @@ final class JettyWebAppContext extends WebAppContext {
     super(null, null, null, null, null, null,
         sessionEnabled ? SESSIONS: 0);
     webAppInitializer.configureWebApp(this);
+    setThrowUnavailableOnStartupException(true);
   }
 
   @Override

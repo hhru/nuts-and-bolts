@@ -22,7 +22,7 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
       lastNotNullCause = cause;
     }
 
-    if ("com.mchange.v2.resourcepool".equals(lastNotNullCause.getClass().getCanonicalName())) {
+    if ("com.mchange.v2.resourcepool.TimeoutException".equals(lastNotNullCause.getClass().getCanonicalName())) {
       statusCode = SERVICE_UNAVAILABLE;
       loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }

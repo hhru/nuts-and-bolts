@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.filters;
 
+import com.mchange.v2.resourcepool.TimeoutException;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.NabApplication;
@@ -18,6 +19,7 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.junit.Assert.assertEquals;
 
@@ -63,6 +65,10 @@ public class NabExceptionMappersTest extends NabTestBase {
 
     assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
+
+    response = executeGet("/c3p0");
+
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
 
   @Path("/")
@@ -90,6 +96,11 @@ public class NabExceptionMappersTest extends NabTestBase {
     @Path("/any")
     public Response any() {
       throw new RuntimeException("Any exception");
+    }
+
+    @Path("/c3p0")
+    public Response c3p0() throws Exception {
+      throw new TimeoutException();
     }
   }
 }

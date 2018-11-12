@@ -138,8 +138,8 @@ public final class NabApplicationBuilder {
     return new ServletBuilder(this, servletInitializer, childConfigs);
   }
 
-  public JerseyBuilder configureJersey() {
-    return new JerseyBuilder(this);
+  public JerseyBuilder configureJersey(Class<?>... childConfigs) {
+    return new JerseyBuilder(this, childConfigs);
   }
 
   public NabApplicationBuilder addServlet(ServletBuilder servletBuilder) {
@@ -298,13 +298,15 @@ public final class NabApplicationBuilder {
 
   public static final class JerseyBuilder {
     private final NabApplicationBuilder nabApplicationBuilder;
+    private final Class<?>[] childConfigs;
     private String[] mappings;
     private final Set<String> allowedPackages;
     private String servletName;
     private final List<Consumer<ResourceConfig>> configurationActions;
 
-    public JerseyBuilder(NabApplicationBuilder nabApplicationBuilder) {
+    public JerseyBuilder(NabApplicationBuilder nabApplicationBuilder, Class<?>... childConfigs) {
       this.nabApplicationBuilder = nabApplicationBuilder;
+      this.childConfigs = childConfigs;
       allowedPackages = new HashSet<>();
       configurationActions = new ArrayList<>();
     }
@@ -350,7 +352,7 @@ public final class NabApplicationBuilder {
     }
 
     private static NabJerseyConfig prepareNabJerseyConfig(JerseyBuilder jerseyBuilder) {
-      return new NabJerseyConfig() {
+      return new NabJerseyConfig(jerseyBuilder.childConfigs) {
         @Override
         public String[] getMapping() {
           if (jerseyBuilder.mappings.length == 0) {

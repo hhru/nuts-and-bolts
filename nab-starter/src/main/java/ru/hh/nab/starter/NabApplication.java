@@ -1,21 +1,13 @@
 package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
-import static java.util.stream.Collectors.toMap;
 
 import io.sentry.Sentry;
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.function.Function;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -23,7 +15,6 @@ import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.lang.management.ManagementFactory;
@@ -31,6 +22,7 @@ import java.time.LocalDateTime;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
+import ru.hh.nab.starter.spring.HierarchialWebApplicationContext;
 
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
@@ -39,10 +31,6 @@ public final class NabApplication {
 
   NabApplication(NabServletContextConfig servletContextConfig) {
     this.servletContextConfig = servletContextConfig;
-  }
-
-  public static JettyServer runDefaultWebApp(Class<?>... configurationClasses) {
-    return runWebApp(new NabServletContextConfig(), configurationClasses);
   }
 
   public static JettyServer runWebApp(NabServletContextConfig servletContextConfig, Class<?>... configurationClasses) {
@@ -153,32 +141,4 @@ public final class NabApplication {
     return webAppRootCtx;
   }
 
-  private static final class HierarchialWebApplicationContext extends AnnotationConfigWebApplicationContext {
-    private HierarchialWebApplicationContext(WebApplicationContext parentCtx) {
-      setParent(parentCtx);
-    }
-
-    @Override
-    public void setServletContext(ServletContext servletContext) {
-      super.setServletContext(servletContext);
-      ConfigurableWebApplicationContext ctx = this;
-      while (ctx.getParent() instanceof ConfigurableWebApplicationContext) {
-        ctx = (ConfigurableWebApplicationContext) ctx.getParent();
-        if (!(ctx instanceof GenericWebApplicationContext) && ctx.getServletConfig() == null) {
-          ctx.setServletContext(servletContext);
-        }
-      }
-    }
-
-    @Override
-    public <T> Map<String, T> getBeansOfType(Class<T> type) throws BeansException {
-      return BeanFactoryUtils.beansOfTypeIncludingAncestors(getBeanFactory(), type);
-    }
-
-    @Override
-    public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) throws BeansException {
-      return Arrays.stream(BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors(getBeanFactory(), annotationType))
-        .collect(toMap(Function.identity(), this::getBean));
-    }
-  }
 }

@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.starter.server.jetty.JettyServer;
 
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -30,9 +27,14 @@ final class JettyTestContainerFactory {
 
   JettyTestContainer createTestContainer() {
     Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
-    JettyTestContainer testContainer = INSTANCES.computeIfAbsent(baseClass,
-        key -> new JettyTestContainer(application, (WebApplicationContext) applicationContext));
-    return testContainer;
+    return INSTANCES.compute(baseClass, (key, value) -> {
+      if (value != null) {
+        LOGGER.info("Reusing JettyTestContainer: {}", value);
+        return value;
+      }
+      LOGGER.info("Creating new JettyTestContainer...");
+      return new JettyTestContainer(application, (WebApplicationContext) applicationContext, BASE_URI);
+    });
   }
 
   private static Class<? extends NabTestBase> findMostGenericBaseClass(Class<? extends NabTestBase> clazz) {
@@ -44,26 +46,6 @@ final class JettyTestContainerFactory {
       } catch (NoSuchMethodException e) {
         current = current.getSuperclass().asSubclass(NabTestBase.class);
       }
-    }
-  }
-
-  static class JettyTestContainer {
-    private final JettyServer jettyServer;
-    private final URI baseUri;
-
-    JettyTestContainer(NabApplication application, WebApplicationContext applicationContext) {
-      LOGGER.info("Creating JettyTestContainer...");
-
-      jettyServer = application.run(applicationContext);
-      baseUri = UriBuilder.fromUri(BASE_URI).port(jettyServer.getPort()).build();
-    }
-
-    String getBaseUrl() {
-      return baseUri.toString();
-    }
-
-    int getPort() {
-      return jettyServer.getPort();
     }
   }
 }

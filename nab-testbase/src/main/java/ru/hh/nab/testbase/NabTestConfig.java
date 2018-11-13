@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
+import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.NabCommonConfig;
 
@@ -39,5 +40,13 @@ public class NabTestConfig {
   @Bean
   StatsDClient statsDClient() {
     return new NoOpStatsDClient();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  JettyTestContainer jettyTestContainer(WebApplicationContext context) {
+    NabTestBase testInstance = NabTestBase.NabRunner.get();
+    JettyTestContainerFactory factory = new JettyTestContainerFactory(context, testInstance.getApplication(), testInstance.getClass());
+    return factory.createTestContainer();
   }
 }

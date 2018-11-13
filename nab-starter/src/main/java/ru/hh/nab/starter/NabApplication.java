@@ -1,8 +1,11 @@
 package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
+import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY_PORT;
 
 import io.sentry.Sentry;
+import java.util.Properties;
+import java.util.function.Function;
 import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
@@ -22,7 +25,7 @@ import java.time.LocalDateTime;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
-import ru.hh.nab.starter.spring.HierarchialWebApplicationContext;
+import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
@@ -49,23 +52,36 @@ public final class NabApplication {
   }
 
   public JettyServer run(WebApplicationContext baseContext) {
-    return run(baseContext, false);
+    return run(baseContext, false, serverCreateFunction -> serverCreateFunction.apply(null));
   }
+
+
 
   /**
    *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
+   * @param serverStarter function which allows to synchronize server start with external action
    */
-  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
+  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot,
+    Function<Function<Integer, JettyServer>, JettyServer> serverStarter) {
     try {
       configureLogger();
+      configureSentry(baseContext);
       FileSettings fileSettings = baseContext.getBean(FileSettings.class);
       ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
-      configureSentry(baseContext);
-      JettyServer jettyServer = JettyServerFactory.create(fileSettings, threadPool,
-        createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot));
-      jettyServer.start();
+      WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
+      JettyServer jettyServer = serverStarter.apply(port -> {
+        FileSettings effectiveSettings = fileSettings;
+        if (port != null) {
+          Properties properties = fileSettings.getProperties();
+          properties.setProperty(JETTY_PORT, String.valueOf(port));
+          effectiveSettings = new FileSettings(properties);
+        }
+        JettyServer server = JettyServerFactory.create(effectiveSettings, threadPool, webAppInitializer);
+        server.start();
+        return server;
+      });
       logStartupInfo(baseContext);
       return jettyServer;
     } catch (Exception e) {
@@ -132,7 +148,7 @@ public final class NabApplication {
   }
 
   private static AnnotationConfigWebApplicationContext createChildWebAppCtx(WebApplicationContext baseCtx) {
-    AnnotationConfigWebApplicationContext webAppRootCtx = new HierarchialWebApplicationContext(baseCtx);
+    AnnotationConfigWebApplicationContext webAppRootCtx = new HierarchicalWebApplicationContext(baseCtx);
     webAppRootCtx.setParent(baseCtx);
     webAppRootCtx.registerShutdownHook();
     if (baseCtx.getServletContext() != null) {

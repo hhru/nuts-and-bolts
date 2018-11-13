@@ -13,9 +13,9 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import static java.util.stream.Collectors.toMap;
 
-public class HierarchialWebApplicationContext extends AnnotationConfigWebApplicationContext {
+public class HierarchicalWebApplicationContext extends AnnotationConfigWebApplicationContext {
 
-  public HierarchialWebApplicationContext(WebApplicationContext parentCtx) {
+  public HierarchicalWebApplicationContext(WebApplicationContext parentCtx) {
     setParent(parentCtx);
   }
 

@@ -8,7 +8,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.jersey.DefaultResourceConfig;
-import ru.hh.nab.starter.spring.HierarchialWebApplicationContext;
+import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 
 public abstract class NabJerseyConfig implements NabServletConfig {
@@ -70,7 +70,7 @@ public abstract class NabJerseyConfig implements NabServletConfig {
 
   private ResourceConfig createResourceConfig(WebApplicationContext rootCtx, Class<?>... childContexts) {
     ResourceConfig resourceConfig = new DefaultResourceConfig();
-    HierarchialWebApplicationContext jerseyContext = new HierarchialWebApplicationContext(rootCtx);
+    HierarchicalWebApplicationContext jerseyContext = new HierarchicalWebApplicationContext(rootCtx);
     if (childContexts.length > 0) {
       jerseyContext.register(childContexts);
     }

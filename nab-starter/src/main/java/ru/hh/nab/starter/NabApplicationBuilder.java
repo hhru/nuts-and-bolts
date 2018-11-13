@@ -109,24 +109,24 @@ public final class NabApplicationBuilder {
     return this;
   }
 
-  public <F extends Filter> FilterBuilder addFilter(Class<F> filterClass) {
-    return new FilterBuilder(this, filterClass);
+  public <F extends Filter> FilterBuilder<F> addFilter(Class<F> filterClass) {
+    return new FilterBuilder<>(filterClass);
   }
 
-  public <F extends Filter> FilterBuilder addFilter(F filter, Class<? super F> filterClass) {
-    return new FilterBuilder(ctx -> filter, this);
+  public <F extends Filter> FilterProviderBuilder<F> addFilter(F filter) {
+    return new FilterProviderBuilder<>(ctx -> filter);
   }
 
-  public <F extends Filter> FilterBuilder addFilterBean(Function<WebApplicationContext, F> filterProvider) {
-    return new FilterBuilder(filterProvider, this);
+  public <F extends Filter> FilterProviderBuilder<F> addFilterBean(Function<WebApplicationContext, F> filterProvider) {
+    return new FilterProviderBuilder<>(filterProvider);
   }
 
-  public FilterBuilder addFilter(FilterHolder filterHolder) {
-    return new FilterBuilder(this, ctx -> filterHolder);
+  public FilterHolderBuilder addFilter(FilterHolder filterHolder) {
+    return new FilterHolderBuilder(ctx -> filterHolder);
   }
 
-  public FilterBuilder addFilterHolderBean(Function<WebApplicationContext, FilterHolder> filterProvider) {
-    return new FilterBuilder(this, filterProvider);
+  public FilterHolderBuilder addFilterHolderBean(Function<WebApplicationContext, FilterHolder> filterProvider) {
+    return new FilterHolderBuilder(filterProvider);
   }
 
   public NabApplicationBuilder configureWebapp(BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer) {
@@ -153,92 +153,146 @@ public final class NabApplicationBuilder {
     return this;
   }
 
-  private NabApplicationBuilder acceptFilter(FilterBuilder filterBuilder) {
-    servletContextConfigurers.add(filterBuilder.registrationAction);
+  private NabApplicationBuilder acceptFilter(AbstractFilterBuilder<?> filterBuilder) {
+    servletContextConfigurers.add(filterBuilder::registrationAction);
     return this;
   }
 
-  public static final class FilterBuilder {
-    private final NabApplicationBuilder nabApplicationBuilder;
-    private final BiConsumer<ServletContext, WebApplicationContext> registrationAction;
-    private final Map<String, String> initParameters;
+  private abstract class AbstractFilterBuilder<IMPL extends AbstractFilterBuilder<IMPL>> {
+
     private String[] mappings;
     private String filterName;
-    private EnumSet<DispatcherType> dispatcherTypes;
+    private EnumSet<DispatcherType> dispatcherTypes = EnumSet.allOf(DispatcherType.class);
 
-    private <F extends Filter> FilterBuilder(NabApplicationBuilder nabApplicationBuilder, Class<F> filterClass) {
-      this.nabApplicationBuilder = nabApplicationBuilder;
-      initParameters = new HashMap<>();
-      dispatcherTypes = EnumSet.allOf(DispatcherType.class);
-      registrationAction = (servletContext, ctx) -> {
-        NabServletContextConfig.registerFilter(
-          servletContext,
-          !StringUtils.isEmpty(filterName) ? filterName : filterClass.getName(),
-          filterClass,
-          initParameters,
-          dispatcherTypes,
-          mappings
-        );
-      };
+    abstract IMPL self();
+
+    abstract void registrationAction(ServletContext servletContext, WebApplicationContext webApplicationContext);
+
+    String[] getMappings() {
+      return mappings;
     }
 
-    private <F extends Filter> FilterBuilder(Function<WebApplicationContext, F> filterProvider, NabApplicationBuilder nabApplicationBuilder) {
-      this.nabApplicationBuilder = nabApplicationBuilder;
-      initParameters = new HashMap<>();
-      dispatcherTypes = EnumSet.allOf(DispatcherType.class);
-      registrationAction = (servletContext, ctx) -> {
-        F filter = filterProvider.apply(ctx);
-        NabServletContextConfig.registerFilter(
-          servletContext,
-          !StringUtils.isEmpty(filterName) ? filterName : filter.getClass().getName(),
-          filter,
-          dispatcherTypes,
-          mappings
-        );
-      };
+    String getFilterName() {
+      return filterName;
     }
 
-    private FilterBuilder(NabApplicationBuilder nabApplicationBuilder,
-      Function<WebApplicationContext, FilterHolder> filterProvider) {
-      this.nabApplicationBuilder = nabApplicationBuilder;
-      initParameters = new HashMap<>();
-      dispatcherTypes = EnumSet.allOf(DispatcherType.class);
-      registrationAction = (servletContext, ctx) -> {
-        FilterHolder filterHolder = filterProvider.apply(ctx);
-        initParameters.forEach(filterHolder::setInitParameter);
-        NabServletContextConfig.registerFilter(
-          servletContext,
-          !StringUtils.isEmpty(filterName) ? filterName : filterHolder.getName(),
-          filterHolder,
-          dispatcherTypes,
-          mappings
-        );
-      };
+    EnumSet<DispatcherType> getDispatcherTypes() {
+      return dispatcherTypes;
     }
 
-    public FilterBuilder setFilterName(String filterName) {
+    public IMPL setFilterName(String filterName) {
       this.filterName = filterName;
-      return this;
+      return self();
     }
 
-    public FilterBuilder addInitParameter(String key, String value) {
-      this.initParameters.put(key, value);
-      return this;
-    }
-
-    public FilterBuilder setDispatchTypes(EnumSet<DispatcherType> dispatcherTypes) {
+    public IMPL setDispatchTypes(EnumSet<DispatcherType> dispatcherTypes) {
       this.dispatcherTypes = EnumSet.copyOf(dispatcherTypes);
-      return this;
+      return self();
     }
 
     public NabApplicationBuilder bindTo(String... mappings) {
       this.mappings = mappings;
-      return nabApplicationBuilder.acceptFilter(this);
+      return acceptFilter(this);
     }
 
     public NabApplicationBuilder bindToRoot() {
       this.mappings = ROOT_MAPPING;
-      return nabApplicationBuilder.acceptFilter(this);
+      return acceptFilter(this);
+    }
+  }
+
+  private abstract class ParameterizableFilterBuilder<IMPL extends AbstractFilterBuilder<IMPL>> extends AbstractFilterBuilder<IMPL> {
+    private final Map<String, String> initParameters = new HashMap<>();
+
+    Map<String, String> getInitParameters() {
+      return initParameters;
+    }
+
+    public IMPL addInitParameter(String key, String value) {
+      this.initParameters.put(key, value);
+      return self();
+    }
+  }
+
+  public final class FilterBuilder<F extends Filter> extends ParameterizableFilterBuilder<FilterBuilder<F>> {
+
+    private final Class<F> filterClass;
+
+    private FilterBuilder(Class<F> filterClass) {
+      this.filterClass = filterClass;
+    }
+
+    @Override
+    FilterBuilder<F> self() {
+      return this;
+    }
+
+    @Override
+    void registrationAction(ServletContext servletContext, WebApplicationContext webApplicationContext) {
+      final String filterName = getFilterName();
+      NabServletContextConfig.registerFilter(
+              servletContext,
+              !StringUtils.isEmpty(filterName) ? filterName : filterClass.getName(),
+              filterClass,
+              getInitParameters(),
+              getDispatcherTypes(),
+              getMappings()
+      );
+    }
+  }
+
+  public final class FilterProviderBuilder<F extends Filter> extends AbstractFilterBuilder<FilterProviderBuilder<F>> {
+
+    private final Function<WebApplicationContext, F> filterProvider;
+
+    private FilterProviderBuilder(Function<WebApplicationContext, F> filterProvider) {
+      this.filterProvider = filterProvider;
+    }
+
+    @Override
+    FilterProviderBuilder<F> self() {
+      return this;
+    }
+
+    @Override
+    void registrationAction(ServletContext servletContext, WebApplicationContext webApplicationContext) {
+      final String filterName = getFilterName();
+      F filter = filterProvider.apply(webApplicationContext);
+      NabServletContextConfig.registerFilter(
+              servletContext,
+              !StringUtils.isEmpty(filterName) ? filterName : filter.getClass().getName(),
+              filter,
+              getDispatcherTypes(),
+              getMappings()
+      );
+    }
+  }
+
+  public final class FilterHolderBuilder extends ParameterizableFilterBuilder<FilterHolderBuilder> {
+
+    private final Function<WebApplicationContext, FilterHolder> filterHolderProvider;
+
+    private FilterHolderBuilder(Function<WebApplicationContext, FilterHolder> filterHolderProvider) {
+      this.filterHolderProvider = filterHolderProvider;
+    }
+
+    @Override
+    FilterHolderBuilder self() {
+      return this;
+    }
+
+    @Override
+    void registrationAction(ServletContext servletContext, WebApplicationContext webApplicationContext) {
+      final String filterName = getFilterName();
+      FilterHolder filterHolder = filterHolderProvider.apply(webApplicationContext);
+      getInitParameters().forEach(filterHolder::setInitParameter);
+      NabServletContextConfig.registerFilter(
+              servletContext,
+              !StringUtils.isEmpty(filterName) ? filterName : filterHolder.getName(),
+              filterHolder,
+              getDispatcherTypes(),
+              getMappings()
+      );
     }
   }
 

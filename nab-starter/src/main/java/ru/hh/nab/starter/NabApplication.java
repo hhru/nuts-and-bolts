@@ -41,10 +41,6 @@ public final class NabApplication {
     this.servletContextConfig = servletContextConfig;
   }
 
-  public static JettyServer runDefaultWebApp(Class<?>... configurationClasses) {
-    return runWebApp(new NabServletContextConfig(), configurationClasses);
-  }
-
   public static JettyServer runWebApp(NabServletContextConfig servletContextConfig, Class<?>... configurationClasses) {
     return new NabApplication(servletContextConfig).run(configurationClasses);
   }

@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import static java.util.Optional.ofNullable;
+import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
 
 import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -14,7 +15,7 @@ public final class JettyServerFactory {
 
   public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, WebAppInitializer webAppInitializer) {
 
-    FileSettings jettySettings = fileSettings.getSubSettings("jetty");
+    FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
     ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
     return new JettyServer(threadPool, jettySettings, contextHandler);
   }

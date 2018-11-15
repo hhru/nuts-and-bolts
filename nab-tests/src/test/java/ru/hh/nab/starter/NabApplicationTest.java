@@ -27,7 +27,7 @@ public class NabApplicationTest {
 
   @Test
   public void runShouldStartJetty() {
-    JettyServer server = NabApplication.runDefaultWebApp(NabTestConfig.class);
+    JettyServer server = NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class);
     WebApplicationContext webApplicationContext = getWebApplicationContext(server.getServletContext());
     AppMetadata appMetadata = webApplicationContext.getBean(AppMetadata.class);
     long upTimeSeconds = appMetadata.getUpTimeSeconds();
@@ -54,7 +54,7 @@ public class NabApplicationTest {
   @Test
   public void runShouldFailOnContextRefreshFail() {
     exit.expectSystemExitWithStatus(1);
-    NabApplication.runDefaultWebApp(NabTestConfig.class, BrokenCtx.class);
+    NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class, BrokenCtx.class);
   }
 
   @XmlRootElement

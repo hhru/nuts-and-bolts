@@ -12,6 +12,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.NabCommonConfig;
 
 import java.util.Properties;
+
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 
 @Configuration

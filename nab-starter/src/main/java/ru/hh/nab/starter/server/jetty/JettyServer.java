@@ -22,6 +22,9 @@ import java.util.Optional;
 
 public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
+  public static final String JETTY = "jetty";
+  public static final String PORT = "port";
+  public static final String JETTY_PORT = String.join(".", JETTY, PORT);
 
   private final FileSettings jettySettings;
   private final Server server;
@@ -47,7 +50,8 @@ public final class JettyServer {
       LOGGER.info("Jetty started on port {}", getPort());
     } catch (Exception e) {
       stopSilently();
-      throw new JettyServerException("Unable to start Jetty server", e);
+      String msg = ofNullable(jettySettings.getInteger("port")).filter(port -> port != 0).map(port -> ", port=" + port).orElse("");
+      throw new JettyServerException("Unable to start Jetty server" + msg, e);
     }
   }
 
@@ -80,7 +84,7 @@ public final class JettyServer {
         createHttpConnectionFactory());
 
     serverConnector.setHost(jettySettings.getString("host"));
-    serverConnector.setPort(jettySettings.getInteger("port"));
+    serverConnector.setPort(jettySettings.getInteger(PORT));
     serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
     serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 

@@ -8,6 +8,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.jersey.DefaultResourceConfig;
+import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 
 public abstract class NabJerseyConfig implements NabServletConfig {
@@ -17,14 +18,17 @@ public abstract class NabJerseyConfig implements NabServletConfig {
     public void configure(ResourceConfig resourceConfig) { }
   };
 
+  private final Class<?>[] childContexts;
   private final boolean disabled;
 
-  protected NabJerseyConfig() {
-    this.disabled = false;
+  protected NabJerseyConfig(Class<?>... childContexts) {
+    disabled = false;
+    this.childContexts = childContexts;
   }
 
   private NabJerseyConfig(boolean disabled) {
     this.disabled = disabled;
+    childContexts = new Class<?>[0];
   }
 
   public static NabJerseyConfig forResources(Class<?>... resources) {
@@ -48,7 +52,7 @@ public abstract class NabJerseyConfig implements NabServletConfig {
 
   @Override
   public Servlet createServlet(WebApplicationContext rootCtx) {
-    ResourceConfig resourceConfig = createResourceConfig(rootCtx);
+    ResourceConfig resourceConfig = createResourceConfig(rootCtx, childContexts);
     configure(resourceConfig);
     return new ServletContainer(resourceConfig);
   }
@@ -64,9 +68,15 @@ public abstract class NabJerseyConfig implements NabServletConfig {
     return disabled;
   }
 
-  private ResourceConfig createResourceConfig(WebApplicationContext ctx) {
+  private ResourceConfig createResourceConfig(WebApplicationContext rootCtx, Class<?>... childContexts) {
     ResourceConfig resourceConfig = new DefaultResourceConfig();
-    ctx.getBeansWithAnnotation(javax.ws.rs.Path.class).values().stream()
+    HierarchicalWebApplicationContext jerseyContext = new HierarchicalWebApplicationContext(rootCtx);
+    if (childContexts.length > 0) {
+      jerseyContext.register(childContexts);
+    }
+    jerseyContext.setParent(rootCtx);
+    jerseyContext.refresh();
+    jerseyContext.getBeansWithAnnotation(javax.ws.rs.Path.class).values().stream()
       .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
       .forEach(resourceConfig::register);
     return resourceConfig;

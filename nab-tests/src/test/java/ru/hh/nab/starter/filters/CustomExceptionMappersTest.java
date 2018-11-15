@@ -1,6 +1,5 @@
 package ru.hh.nab.starter.filters;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,7 +26,7 @@ public class CustomExceptionMappersTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
     return NabApplication.builder()
-      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class, JacksonFeature.class).bindToRoot()
+      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class).bindToRoot()
       .build();
   }
 

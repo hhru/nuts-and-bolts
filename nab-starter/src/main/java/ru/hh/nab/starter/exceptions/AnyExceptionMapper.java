@@ -4,6 +4,8 @@ import javax.annotation.Priority;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import java.sql.SQLTransientConnectionException;
+
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
@@ -17,12 +19,7 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
 
   @Override
   public Response toResponse(Exception exception) {
-    Throwable cause, lastNotNullCause = exception;
-    while ((cause = lastNotNullCause.getCause()) != null) {
-      lastNotNullCause = cause;
-    }
-
-    if ("com.mchange.v2.resourcepool.TimeoutException".equals(lastNotNullCause.getClass().getCanonicalName())) {
+    if (exception instanceof SQLTransientConnectionException) {
       statusCode = SERVICE_UNAVAILABLE;
       loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }

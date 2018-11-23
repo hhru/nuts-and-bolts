@@ -1,43 +1,44 @@
 package ru.hh.nab.datasource;
 
-import com.mchange.v2.beans.BeansUtils;
-import com.mchange.v2.c3p0.C3P0Registry;
-import com.mchange.v2.c3p0.DriverManagerDataSource;
-import com.mchange.v2.c3p0.PoolBackedDataSource;
-import com.mchange.v2.c3p0.WrapperConnectionPoolDataSource;
-import com.mchange.v2.log.MLevel;
 import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
+import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS;
+import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
+import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
+import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
+import static ru.hh.nab.datasource.DataSourceSettings.POOL_SETTINGS_PREFIX;
+import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
+import static ru.hh.nab.datasource.DataSourceSettings.USER;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.datasource.monitoring.MonitoringDataSourceFactory;
+import ru.hh.nab.datasource.monitoring.AbstractMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 
 import javax.sql.DataSource;
-import java.beans.IntrospectionException;
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Properties;
 
 public class DataSourceFactory {
-  private final MonitoringDataSourceFactory monitoringDataSourceFactory;
+  private final AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
 
-  public DataSourceFactory(MonitoringDataSourceFactory monitoringDataSourceFactory) {
-    this.monitoringDataSourceFactory = monitoringDataSourceFactory;
+  public DataSourceFactory(AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
+    this.metricsTrackerFactoryProvider = metricsTrackerFactoryProvider;
   }
 
   public DataSource create(DataSourceType dataSourceType, FileSettings settings) {
-    return create(dataSourceType.getName(), settings);
+    return create(dataSourceType.getName(), dataSourceType.isReadonly(), settings);
   }
 
-  public DataSource create(String dataSourceName, FileSettings settings) {
-    return createDataSource(dataSourceName, settings.getSubSettings(dataSourceName));
+  public DataSource create(String dataSourceName, boolean isReadonly, FileSettings settings) {
+    return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
   }
 
-  private DataSource createDataSource(String dataSourceName, FileSettings dataSourceSettings) {
-    DataSource underlyingDataSource = createDriverManagerDataSource(dataSourceName, dataSourceSettings);
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+    DataSource underlyingDataSource = createPooledDatasource(dataSourceName, isReadonly, dataSourceSettings);
 
-    String statementTimeoutMsVal = dataSourceSettings.getString(DataSourceSettings.STATEMENT_TIMEOUT_MS);
+    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
     if (statementTimeoutMsVal != null) {
       int statementTimeoutMs = parseInt(statementTimeoutMsVal);
       if (statementTimeoutMs > 0) {
@@ -45,66 +46,26 @@ public class DataSourceFactory {
       }
     }
 
-    underlyingDataSource = createC3P0DataSource(dataSourceName, underlyingDataSource, dataSourceSettings);
-
     checkDataSource(underlyingDataSource, dataSourceName);
 
-    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(DataSourceSettings.MONITORING_SEND_STATS)).orElse(false);
-    return sendStats
-        ? monitoringDataSourceFactory.create(dataSourceSettings, underlyingDataSource, dataSourceName)
-        : underlyingDataSource;
+    return underlyingDataSource;
   }
 
-  private static DataSource createDriverManagerDataSource(String dataSourceName, FileSettings dataSourceSettings) {
-    DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setJdbcUrl(dataSourceSettings.getString(DataSourceSettings.JDBC_URL));
-    driverManagerDataSource.setUser(dataSourceSettings.getString(DataSourceSettings.USER));
-    driverManagerDataSource.setPassword(dataSourceSettings.getString(DataSourceSettings.PASSWORD));
-    driverManagerDataSource.setIdentityToken(dataSourceName);
-    return driverManagerDataSource;
-  }
+  private DataSource createPooledDatasource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+    HikariConfig config = new HikariConfig(dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX));
+    config.setJdbcUrl(dataSourceSettings.getString(JDBC_URL));
+    config.setUsername(dataSourceSettings.getString(USER));
+    config.setPassword(dataSourceSettings.getString(PASSWORD));
+    config.setPoolName(dataSourceName);
+    config.setReadOnly(isReadonly);
+    config.setValidationTimeout(config.getConnectionTimeout() + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS);
 
-  private static DataSource createC3P0DataSource(String dataSourceName, DataSource unpooledDataSource, FileSettings dataSourceSettings) {
-    // We could use c3p0 DataSources.pooledDataSource(unpooledDataSource, c3p0Properties),
-    // but it calls constructors with "autoregister=true" property.
-    // This causes c3p0 to generate random identity token, registerDataSource datasource in jmx under this random token, which pollutes jmx metrics.
-    // That is why we use constructors that allow to turn off "autoregister" property.
-
-    try {
-      Properties c3p0Properties = dataSourceSettings.getSubProperties(DataSourceSettings.C3P0_PREFIX);
-
-      WrapperConnectionPoolDataSource wcpds = new WrapperConnectionPoolDataSource(false);
-      wcpds.setNestedDataSource(unpooledDataSource);
-      wcpds.setIdentityToken(dataSourceName);
-      BeansUtils.overwriteAccessiblePropertiesFromMap(
-          c3p0Properties,
-          wcpds,
-          false,
-          null,
-          true,
-          MLevel.WARNING,
-          MLevel.WARNING,
-          true);
-
-      PoolBackedDataSource poolBackedDataSource = new PoolBackedDataSource(false);
-      poolBackedDataSource.setConnectionPoolDataSource(wcpds);
-      poolBackedDataSource.setIdentityToken(dataSourceName);
-      BeansUtils.overwriteAccessiblePropertiesFromMap(
-          c3p0Properties,
-          poolBackedDataSource,
-          false,
-          null,
-          true,
-          MLevel.WARNING,
-          MLevel.WARNING,
-          true);
-      C3P0Registry.reregister(poolBackedDataSource.unwrap(PoolBackedDataSource.class));
-
-      return poolBackedDataSource;
-
-    } catch (IntrospectionException | SQLException | PropertyVetoException  e) {
-      throw new RuntimeException("Failed to set " + dataSourceName + ".c3p0 properties: " + e.toString(), e);
+    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
+    if (sendStats && metricsTrackerFactoryProvider != null) {
+      config.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
     }
+
+    return new HikariDataSource(config);
   }
 
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {

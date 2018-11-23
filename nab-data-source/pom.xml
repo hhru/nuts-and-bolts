@@ -48,11 +48,6 @@
             <version>${spring.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
-        </dependency>
-
         <!--Monitoring-->
         <dependency>
             <groupId>ru.hh.metrics</groupId>
@@ -65,6 +60,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgres.jdbc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.2.0</version>
         </dependency>
 
         <dependency>
@@ -80,7 +80,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>

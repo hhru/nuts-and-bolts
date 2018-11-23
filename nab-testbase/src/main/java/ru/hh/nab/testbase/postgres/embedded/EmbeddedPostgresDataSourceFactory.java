@@ -1,10 +1,10 @@
 package ru.hh.nab.testbase.postgres.embedded;
 
-import com.mchange.v2.c3p0.DataSources;
-import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import ru.hh.nab.common.files.FileSystemUtils;
-import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -12,11 +12,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.UUID;
 
-public class EmbeddedPostgresDataSourceFactory {
+import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
+import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
+import static ru.hh.nab.datasource.DataSourceSettings.USER;
+
+public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:%s/postgres";
   public static final String DEFAULT_USER = "postgres";
 
@@ -24,20 +27,20 @@ public class EmbeddedPostgresDataSourceFactory {
   private static final String PG_DIR_PROPERTY = "ot.epg.working-dir";
   private static final UUID INSTANCE_ID = UUID.randomUUID();
 
-  public static DataSource create() throws SQLException {
-    return create(DEFAULT_JDBC_URL);
+  public EmbeddedPostgresDataSourceFactory() {
+    super(null);
   }
 
-  public static DataSource create(String jdbcUrl) throws SQLException {
-    DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource(false);
-    driverManagerDataSource.setJdbcUrl(String.format(jdbcUrl, getEmbeddedPostgres().getPort()));
-    driverManagerDataSource.setUser(DEFAULT_USER);
+  public EmbeddedPostgresDataSourceFactory(MetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
+    super(metricsTrackerFactoryProvider);
+  }
 
-    DataSource statementTimeoutDataSource = new StatementTimeoutDataSource(driverManagerDataSource, 5000);
-
-    Properties poolProperties = new Properties();
-    poolProperties.setProperty("acquireIncrement", "1");
-    return DataSources.pooledDataSource(statementTimeoutDataSource, poolProperties);
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings settings) {
+    Properties properties = settings.getProperties();
+    properties.setProperty(JDBC_URL, String.format(DEFAULT_JDBC_URL, getEmbeddedPostgres().getPort()));
+    properties.setProperty(USER, DEFAULT_USER);
+    properties.setProperty(PASSWORD, "");
+    return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
   }
 
   private static EmbeddedPostgres createEmbeddedPostgres() {
@@ -77,8 +80,5 @@ public class EmbeddedPostgresDataSourceFactory {
 
   public static EmbeddedPostgres getEmbeddedPostgres() {
     return EmbeddedPostgresSingleton.INSTANCE;
-  }
-
-  private EmbeddedPostgresDataSourceFactory() {
   }
 }

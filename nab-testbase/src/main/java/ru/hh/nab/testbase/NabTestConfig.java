@@ -30,7 +30,6 @@ public class NabTestConfig {
     return properties;
   }
 
-
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ThreadPool jettyThreadPool(FileSettings fileSettings) throws Exception {

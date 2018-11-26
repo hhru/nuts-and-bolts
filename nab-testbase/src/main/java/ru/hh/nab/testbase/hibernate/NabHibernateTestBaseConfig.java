@@ -4,15 +4,14 @@ import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
-
-import javax.sql.DataSource;
 
 @Configuration
 public class NabHibernateTestBaseConfig {
   @Bean
-  DataSource dataSource() throws Exception {
-    return EmbeddedPostgresDataSourceFactory.create();
+  DataSourceFactory dataSourceFactory() {
+    return new EmbeddedPostgresDataSourceFactory();
   }
 
   @Bean

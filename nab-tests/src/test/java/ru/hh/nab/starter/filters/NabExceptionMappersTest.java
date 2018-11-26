@@ -1,6 +1,5 @@
 package ru.hh.nab.starter.filters;
 
-import com.mchange.v2.resourcepool.TimeoutException;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.NabApplication;
@@ -11,6 +10,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.sql.SQLTransientConnectionException;
 
 import static javax.ws.rs.core.MediaType.TEXT_HTML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
@@ -61,12 +62,12 @@ public class NabExceptionMappersTest extends NabTestBase {
     assertEquals("Any exception", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/notfound");
+    response = executeGet("/notFound");
 
     assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
 
-    response = executeGet("/c3p0");
+    response = executeGet("/connectionPool");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
@@ -98,9 +99,9 @@ public class NabExceptionMappersTest extends NabTestBase {
       throw new RuntimeException("Any exception");
     }
 
-    @Path("/c3p0")
-    public Response c3p0() throws Exception {
-      throw new TimeoutException();
+    @Path("/connectionPool")
+    public Response connectionPool() throws Exception {
+      throw new SQLTransientConnectionException();
     }
   }
 }

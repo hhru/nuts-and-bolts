@@ -31,6 +31,7 @@ import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.ACQUISITION_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.CONNECTION_TIMEOUTS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.CREATION_MS;
+import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
@@ -74,7 +75,7 @@ public class DataSourceFactoryTest {
     HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
     assertNotNull(dataSource.getMetricsTrackerFactory());
 
-    Mockito.verify(statsDSender, atLeast(1)).sendCountersPeriodically(eq(getMetricName(USAGE_MS)), any());
+    Mockito.verify(statsDSender, atLeast(1)).sendCountersPeriodically(eq(getMetricName(TOTAL_USAGE_MS)), any());
     Mockito.verify(statsDSender, atLeast(1)).sendCountersPeriodically(eq(getMetricName(CONNECTION_TIMEOUTS)), any());
     Mockito.verify(statsDSender, atLeast(1)).sendPercentilesPeriodically(eq(getMetricName(USAGE_MS)), (Histogram) any(), any());
     Mockito.verify(statsDSender, atLeast(1)).sendPercentilesPeriodically(eq(getMetricName(CREATION_MS)), (Histogram) any(), any());

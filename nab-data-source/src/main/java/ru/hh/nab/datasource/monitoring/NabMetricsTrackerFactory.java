@@ -30,6 +30,7 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.MIN_CONNECTI
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.PENDING_THREADS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.SAMPLED_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNECTIONS;
+import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
@@ -73,7 +74,7 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       statsDSender.sendPercentilesPeriodically(getMetricName(poolName, CREATION_MS), creationHistogram, 50, 99, 100);
       statsDSender.sendPercentilesPeriodically(getMetricName(poolName, ACQUISITION_MS), acquisitionHistogram, 50, 99, 100);
       statsDSender.sendPercentilesPeriodically(getMetricName(poolName, USAGE_MS), usageHistogram, 50, 99, 100);
-      statsDSender.sendCountersPeriodically(getMetricName(poolName, USAGE_MS), usageCounters);
+      statsDSender.sendCountersPeriodically(getMetricName(poolName, TOTAL_USAGE_MS), usageCounters);
       statsDSender.sendCountersPeriodically(getMetricName(poolName, CONNECTION_TIMEOUTS), timeoutCounters);
 
       statsDSender.sendMetricPeriodically(getMetricName(poolName, ACTIVE_CONNECTIONS), () -> (long) poolStats.getActiveConnections());

@@ -9,7 +9,18 @@
     <property scope="context" name="log.timings" value="${log.timings:-false}"/>
 
     <!-- service -->
-    <appender name="service" class="ru.hh.logging.HhRollingAppender"/>
+    <appender name="service" class="ru.hh.logging.HhRollingAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                    <prettyPrint>false</prettyPrint>
+                </jsonFormatter>
+                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+                <appendLineSeparator>true</appendLineSeparator>
+                <includeContextName>false</includeContextName>
+            </layout>
+        </encoder>
+    </appender>
     <appender name="asyncService" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>500</queueSize>
         <appender-ref ref="service"/>
@@ -32,8 +43,14 @@
 
     <!-- requests -->
     <appender name="requests" class="ru.hh.logging.HhRollingAppender">
-        <encoder>
-            <pattern>${requests.pattern}</pattern>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ru.hh.logging.StructuredRequestJsonLayout">
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                    <prettyPrint>false</prettyPrint>
+                </jsonFormatter>
+                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+                <appendLineSeparator>true</appendLineSeparator>
+            </layout>
         </encoder>
     </appender>
     <appender name="asyncRequests" class="ch.qos.logback.classic.AsyncAppender">
@@ -41,12 +58,23 @@
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
     </appender>
-    <logger name="ru.hh.jetty.RequestLogger" additivity="false" level="info">
+    <logger name="ru.hh.logging.StructuredRequestLogger" additivity="false" level="info">
         <appender-ref ref="asyncRequests"/>
     </logger>
 
     <!-- libraries -->
-    <appender name="libraries" class="ru.hh.logging.HhRollingAppender"/>
+    <appender name="libraries" class="ru.hh.logging.HhRollingAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                    <prettyPrint>false</prettyPrint>
+                </jsonFormatter>
+                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+                <appendLineSeparator>true</appendLineSeparator>
+                <includeContextName>false</includeContextName>
+            </layout>
+        </encoder>
+    </appender>
     <appender name="asyncLibraries" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="libraries"/>
         <queueSize>512</queueSize>

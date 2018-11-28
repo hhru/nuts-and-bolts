@@ -3,7 +3,7 @@ package ru.hh.nab.common.mdc;
 import java.util.Optional;
 
 public class MDC {
-  public static final String REQUEST_ID_MDC_KEY = "request_id";
+  public static final String REQUEST_ID_MDC_KEY = "rid";
   public static final String CONTROLLER_MDC_KEY = "controller";
 
   public static Optional<String> getRequestId() {

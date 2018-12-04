@@ -1,7 +1,9 @@
 package ru.hh.nab.starter.server.jetty;
 
 import static java.util.Optional.ofNullable;
+
 import javax.servlet.ServletContext;
+
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -13,8 +15,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jetty.HHServerConnector;
-import ru.hh.jetty.RequestLogger;
-import ru.hh.jetty.RequestWithCacheLogger;
+import ru.hh.logging.StructuredRequestLogger;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.lang.management.ManagementFactory;
@@ -78,10 +79,10 @@ public final class JettyServer {
 
   private void configureConnector() {
     ServerConnector serverConnector = new HHServerConnector(
-        server,
-        ofNullable(jettySettings.getInteger("acceptors")).orElse(1),
-        ofNullable(jettySettings.getInteger("selectors")).orElse(1),
-        createHttpConnectionFactory());
+      server,
+      ofNullable(jettySettings.getInteger("acceptors")).orElse(1),
+      ofNullable(jettySettings.getInteger("selectors")).orElse(1),
+      createHttpConnectionFactory());
 
     serverConnector.setHost(jettySettings.getString("host"));
     serverConnector.setPort(jettySettings.getInteger(PORT));
@@ -98,8 +99,7 @@ public final class JettyServer {
   }
 
   private void configureRequestLogger() {
-    boolean httpCacheEnabled = jettySettings.getBoolean("http.cache.sizeInMB") != null;
-    server.setRequestLog(httpCacheEnabled ? new RequestWithCacheLogger() : new RequestLogger());
+    server.setRequestLog(new StructuredRequestLogger());
   }
 
   private void configureStopTimeout() {
@@ -119,7 +119,7 @@ public final class JettyServer {
 
   private Optional<ServerConnector> getServerConnector() {
     Connector[] connectors = server.getConnectors();
-    for (Connector connector: connectors) {
+    for (Connector connector : connectors) {
       if (connector instanceof ServerConnector) {
         return Optional.of((ServerConnector) connector);
       }

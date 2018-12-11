@@ -19,6 +19,9 @@ public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplica
     if (wae.getCause() == null) {
       return;
     }
+    if (wae.getResponse().getStatus() < 500) {
+      loggingLevel = LoggingLevel.INFO_WITH_STACK_TRACE;
+    }
     super.logException(wae, loggingLevel);
   }
 

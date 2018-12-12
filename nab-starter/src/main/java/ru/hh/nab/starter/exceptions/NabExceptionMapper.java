@@ -40,6 +40,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
     NOTHING,
     ERROR_WITH_STACK_TRACE,
     WARN_WITHOUT_STACK_TRACE,
+    INFO_WITH_STACK_TRACE,
     INFO_WITHOUT_STACK_TRACE
   }
 
@@ -65,6 +66,10 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
       }
       case WARN_WITHOUT_STACK_TRACE: {
         LOGGER.warn(exception.getMessage());
+        break;
+      }
+      case INFO_WITH_STACK_TRACE: {
+        LOGGER.info(exception.getMessage(), exception);
         break;
       }
       case INFO_WITHOUT_STACK_TRACE: {

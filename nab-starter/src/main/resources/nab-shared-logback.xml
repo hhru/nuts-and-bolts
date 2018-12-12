@@ -11,7 +11,7 @@
     <!-- service -->
     <appender name="service" class="ru.hh.logging.HhRollingAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+            <layout class="ru.hh.logging.StructuredJsonLayout">
                 <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                     <prettyPrint>false</prettyPrint>
                 </jsonFormatter>
@@ -65,7 +65,7 @@
     <!-- libraries -->
     <appender name="libraries" class="ru.hh.logging.HhRollingAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+            <layout class="ru.hh.logging.StructuredJsonLayout">
                 <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                     <prettyPrint>false</prettyPrint>
                 </jsonFormatter>

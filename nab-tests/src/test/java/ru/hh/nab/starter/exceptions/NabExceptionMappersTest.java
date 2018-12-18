@@ -1,5 +1,6 @@
-package ru.hh.nab.starter.filters;
+package ru.hh.nab.starter.exceptions;
 
+import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.NabApplication;
@@ -11,6 +12,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
 
 import static javax.ws.rs.core.MediaType.TEXT_HTML_TYPE;
@@ -67,7 +69,11 @@ public class NabExceptionMappersTest extends NabTestBase {
     assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
 
-    response = executeGet("/connectionPool");
+    response = executeGet("/connectionTimeout");
+
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+
+    response = executeGet("/connectionTimeoutWrapped");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
@@ -99,9 +105,14 @@ public class NabExceptionMappersTest extends NabTestBase {
       throw new RuntimeException("Any exception");
     }
 
-    @Path("/connectionPool")
-    public Response connectionPool() throws Exception {
+    @Path("/connectionTimeout")
+    public Response connectionTimeout() throws SQLException {
       throw new SQLTransientConnectionException();
+    }
+
+    @Path("/connectionTimeoutWrapped")
+    public Response connectionTimeoutWrapped() {
+      throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException());
     }
   }
 }

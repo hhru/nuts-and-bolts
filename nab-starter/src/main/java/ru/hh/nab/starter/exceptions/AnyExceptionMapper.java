@@ -1,9 +1,10 @@
 package ru.hh.nab.starter.exceptions;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import javax.annotation.Priority;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
 import java.sql.SQLTransientConnectionException;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -19,7 +20,9 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
 
   @Override
   public Response toResponse(Exception exception) {
-    if (exception instanceof SQLTransientConnectionException) {
+    Throwable cause = ExceptionUtils.getRootCause(exception);
+
+    if (exception instanceof SQLTransientConnectionException || cause instanceof SQLTransientConnectionException) {
       statusCode = SERVICE_UNAVAILABLE;
       loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }

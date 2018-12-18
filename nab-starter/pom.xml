@@ -202,7 +202,7 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!-- Sentry appender -->
+        <!-- logging -->
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-logback</artifactId>
@@ -213,6 +213,12 @@
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- painless syslog appender that allows multilines -->
+        <dependency>
+            <groupId>com.papertrailapp</groupId>
+            <artifactId>logback-syslog4j</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>

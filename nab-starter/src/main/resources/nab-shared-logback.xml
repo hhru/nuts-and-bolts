@@ -9,49 +9,40 @@
     <property scope="context" name="log.timings" value="${log.timings:-false}"/>
 
     <!-- service -->
-    <appender name="service" class="ru.hh.logging.HhRollingAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ru.hh.logging.StructuredJsonLayout">
-                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
-                    <prettyPrint>false</prettyPrint>
-                </jsonFormatter>
-                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
-                <appendLineSeparator>true</appendLineSeparator>
-                <includeContextName>false</includeContextName>
-            </layout>
-        </encoder>
+    <appender name="service" class="com.papertrailapp.logback.Syslog4jAppender">
+        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
+            <host>${log.syslogHost:-localhost}</host>
+            <port>${log.syslogPort:-10534}</port>
+            <ident>service</ident>
+        </syslogConfig>
+        <layout class="ru.hh.logging.StructuredJsonLayout">
+            <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                <prettyPrint>false</prettyPrint>
+            </jsonFormatter>
+            <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+            <appendLineSeparator>true</appendLineSeparator>
+            <includeContextName>false</includeContextName>
+        </layout>
     </appender>
     <appender name="asyncService" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>500</queueSize>
         <appender-ref ref="service"/>
     </appender>
 
-    <!-- timings -->
-    <!-- to enable timings logger, add log.timings=true in application settings -->
-    <if condition='"true".equals(property("log.timings"))'>
-        <then>
-            <appender name="timings" class="ru.hh.logging.HhRollingAppender"/>
-            <appender name="asyncTimings" class="ch.qos.logback.classic.AsyncAppender">
-                <queueSize>500</queueSize>
-                <appender-ref ref="timings"/>
-            </appender>
-            <logger name="ru.hh.health.monitoring.TimingsLogger" level="DEBUG" additivity="false">
-                <appender-ref ref="asyncTimings"/>
-            </logger>
-        </then>
-    </if>
-
     <!-- requests -->
-    <appender name="requests" class="ru.hh.logging.HhRollingAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ru.hh.logging.StructuredRequestJsonLayout">
-                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
-                    <prettyPrint>false</prettyPrint>
-                </jsonFormatter>
-                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
-                <appendLineSeparator>true</appendLineSeparator>
-            </layout>
-        </encoder>
+    <appender name="requests" class="com.papertrailapp.logback.Syslog4jAppender">
+        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
+            <host>${log.syslogHost:-localhost}</host>
+            <port>${log.syslogPort:-10534}</port>
+            <ident>requests</ident>
+        </syslogConfig>
+        <layout class="ru.hh.logging.StructuredRequestJsonLayout">
+            <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                <prettyPrint>false</prettyPrint>
+            </jsonFormatter>
+            <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+            <appendLineSeparator>true</appendLineSeparator>
+        </layout>
     </appender>
     <appender name="asyncRequests" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="requests"/>
@@ -63,17 +54,20 @@
     </logger>
 
     <!-- libraries -->
-    <appender name="libraries" class="ru.hh.logging.HhRollingAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ru.hh.logging.StructuredJsonLayout">
-                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
-                    <prettyPrint>false</prettyPrint>
-                </jsonFormatter>
-                <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
-                <appendLineSeparator>true</appendLineSeparator>
-                <includeContextName>false</includeContextName>
-            </layout>
-        </encoder>
+    <appender name="libraries" class="com.papertrailapp.logback.Syslog4jAppender">
+        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
+            <host>${log.syslogHost:-localhost}</host>
+            <port>${log.syslogPort:-10534}</port>
+            <ident>libraries</ident>
+        </syslogConfig>
+        <layout class="ru.hh.logging.StructuredJsonLayout">
+            <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                <prettyPrint>false</prettyPrint>
+            </jsonFormatter>
+            <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSSZ</timestampFormat>
+            <appendLineSeparator>true</appendLineSeparator>
+            <includeContextName>false</includeContextName>
+        </layout>
     </appender>
     <appender name="asyncLibraries" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="libraries"/>

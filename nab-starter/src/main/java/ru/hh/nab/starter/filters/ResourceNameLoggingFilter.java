@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.filters;
 
+import org.springframework.util.ClassUtils;
 import ru.hh.nab.common.mdc.MDC;
 
 import javax.inject.Inject;
@@ -16,7 +17,7 @@ public class ResourceNameLoggingFilter implements ContainerRequestFilter, Contai
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
-    String methodName = resourceInfo.getResourceClass().getSimpleName() + '.' + resourceInfo.getResourceMethod().getName();
+    String methodName = ClassUtils.getUserClass(resourceInfo.getResourceClass()).getSimpleName() + '#' + resourceInfo.getResourceMethod().getName();
     MDC.setController(methodName);
   }
 

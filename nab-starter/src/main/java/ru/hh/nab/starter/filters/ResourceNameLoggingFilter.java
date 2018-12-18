@@ -9,8 +9,6 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.ResourceInfo;
 
-import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
-
 public class ResourceNameLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
   @Inject
@@ -19,11 +17,11 @@ public class ResourceNameLoggingFilter implements ContainerRequestFilter, Contai
   @Override
   public void filter(ContainerRequestContext requestContext) {
     String methodName = resourceInfo.getResourceClass().getSimpleName() + '.' + resourceInfo.getResourceMethod().getName();
-    MDC.setKey(CONTROLLER_MDC_KEY, methodName);
+    MDC.setController(methodName);
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-    MDC.deleteKey(CONTROLLER_MDC_KEY);
+    MDC.clearController();
   }
 }

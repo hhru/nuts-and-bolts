@@ -19,6 +19,7 @@ import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DataSourceFactory {
   private final AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
@@ -52,7 +53,16 @@ public class DataSourceFactory {
   }
 
   private DataSource createPooledDatasource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    HikariConfig config = new HikariConfig(dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX));
+    Properties poolProperties = dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX);
+    if (poolProperties.isEmpty()) {
+      throw new RuntimeException(String.format(
+        "Exception during %1$s pooled datasource initialization: could not find %1$s.%2$s settings in config file. " +
+        "To prevent misconfiguration application startup will be aborted.",
+        dataSourceName, POOL_SETTINGS_PREFIX
+      ));
+    }
+
+    HikariConfig config = new HikariConfig(poolProperties);
     config.setJdbcUrl(dataSourceSettings.getString(JDBC_URL));
     config.setUsername(dataSourceSettings.getString(USER));
     config.setPassword(dataSourceSettings.getString(PASSWORD));

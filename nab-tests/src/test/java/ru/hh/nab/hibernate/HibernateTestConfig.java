@@ -29,7 +29,9 @@ public class HibernateTestConfig {
 
   @Bean
   FileSettings fileSettings() {
-    return new FileSettings(new Properties());
+    Properties properties = new Properties();
+    properties.setProperty("master.pool.maximumPoolSize", "2");
+    return new FileSettings(properties);
   }
 
   @Bean

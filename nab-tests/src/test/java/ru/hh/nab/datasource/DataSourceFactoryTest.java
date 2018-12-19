@@ -10,6 +10,7 @@ import org.junit.BeforeClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
@@ -50,6 +51,18 @@ public class DataSourceFactoryTest {
   }
 
   @Test
+  public void testCreateDataSourceWithIncompleteSettings() {
+    Properties properties = createIncompleteTestProperties();
+
+    try {
+      createTestDataSource(properties);
+      fail();
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains("master.pool"));
+    }
+  }
+
+  @Test
   public void testCreateDataSource() {
     Properties properties = createTestProperties();
 
@@ -87,6 +100,12 @@ public class DataSourceFactoryTest {
   }
 
   private static Properties createTestProperties() {
+    Properties properties = createIncompleteTestProperties();
+    properties.put(getProperty(DataSourceSettings.POOL_SETTINGS_PREFIX + ".maximumPoolSize"), "2");
+    return properties;
+  }
+
+  private static Properties createIncompleteTestProperties() {
     Properties properties = new Properties();
     String jdbcUrl = String.format(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL, testDb.getPort());
     properties.put(getProperty(DataSourceSettings.JDBC_URL), jdbcUrl);

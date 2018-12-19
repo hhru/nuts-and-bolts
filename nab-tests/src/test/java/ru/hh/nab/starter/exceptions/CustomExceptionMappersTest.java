@@ -1,12 +1,10 @@
-package ru.hh.nab.starter.filters;
+package ru.hh.nab.starter.exceptions;
 
 import org.junit.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.starter.exceptions.ExceptionSerializer;
-import ru.hh.nab.starter.exceptions.NabExceptionMapper;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 

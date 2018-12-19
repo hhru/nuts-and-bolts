@@ -10,12 +10,12 @@ public class ControllerPassingInterceptorTest {
 
   @After
   public void tearDown() {
-    MDC.deleteKey(MDC.CONTROLLER_MDC_KEY);
+    MDC.clearController();
   }
 
   @Test
-  public void controllerExistShouldReturnWithComment() throws Exception {
-    MDC.setKey(MDC.CONTROLLER_MDC_KEY, "resume");
+  public void controllerExistShouldReturnWithComment() {
+    MDC.setController("resume");
 
     String originalSql = "select * from resume;";
 
@@ -25,8 +25,8 @@ public class ControllerPassingInterceptorTest {
   }
 
   @Test
-  public void controllerExistAndHasStarShouldReturnWithComment() throws Exception {
-    MDC.setKey(MDC.CONTROLLER_MDC_KEY, "resume*");
+  public void controllerExistAndHasStarShouldReturnWithComment() {
+    MDC.setController("resume*");
 
     String originalSql = "select * from resume;";
 
@@ -36,7 +36,7 @@ public class ControllerPassingInterceptorTest {
   }
 
   @Test
-  public void controllerDoesNotExistShouldReturnWithoutComment() throws Exception {
+  public void controllerDoesNotExistShouldReturnWithoutComment() {
     Assert.assertFalse(MDC.getController().isPresent());
 
     String originalSql = "select * from resume;";

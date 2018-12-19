@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static ru.hh.nab.common.mdc.MDC.REQUEST_ID_MDC_KEY;
-
 public final class RequestIdLoggingFilter extends OncePerRequestFilter {
 
   @Override
@@ -25,12 +23,12 @@ public final class RequestIdLoggingFilter extends OncePerRequestFilter {
       } else {
         response.addHeader(RequestHeaders.REQUEST_ID, requestId);
       }
-      MDC.setKey(REQUEST_ID_MDC_KEY, requestId);
+      MDC.setRequestId(requestId);
 
       filterChain.doFilter(request, response);
 
     } finally {
-      MDC.deleteKey(REQUEST_ID_MDC_KEY);
+      MDC.clearRequestId();
     }
   }
 }

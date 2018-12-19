@@ -31,7 +31,7 @@ public class ResourceNameLoggingFilterTest extends NabTestBase {
 
     assertEquals(OK.getStatusCode(), response.getStatus());
 
-    assertEquals("TestResource.test", response.readEntity(String.class));
+    assertEquals("TestResource#test", response.readEntity(String.class));
     assertFalse(MDC.getController().isPresent());
   }
 

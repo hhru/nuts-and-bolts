@@ -4,6 +4,7 @@
 
     <property file="${settingsDir}/service.properties"/>
     <property scope="context" name="log.dir" value="${log.dir:-logs}"/>
+    <property scope="context" name="log.level" value="${log.level:-WARN}"/>
     <property scope="context" name="log.immediate.flush" value="${log.immediate.flush:-true}"/>
     <property scope="context" name="log.toConsole" value="${log.toConsole:-false}"/>
     <property scope="context" name="log.timings" value="${log.timings:-false}"/>
@@ -111,7 +112,7 @@
         </then>
     </if>
 
-    <root level="WARN">
+    <root level="${log.level}">
         <appender-ref ref="asyncService"/>
         <appender-ref ref="Sentry"/>
         <if condition='"true".equals(property("log.toConsole"))'>

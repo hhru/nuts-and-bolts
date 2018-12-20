@@ -24,10 +24,6 @@
             <includeContextName>false</includeContextName>
         </layout>
     </appender>
-    <appender name="asyncService" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>500</queueSize>
-        <appender-ref ref="service"/>
-    </appender>
 
     <!-- requests -->
     <appender name="requests" class="com.papertrailapp.logback.Syslog4jAppender">
@@ -44,13 +40,8 @@
             <appendLineSeparator>true</appendLineSeparator>
         </layout>
     </appender>
-    <appender name="asyncRequests" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="requests"/>
-        <queueSize>512</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-    </appender>
     <logger name="ru.hh.logging.StructuredRequestLogger" additivity="false" level="info">
-        <appender-ref ref="asyncRequests"/>
+        <appender-ref ref="requests"/>
     </logger>
 
     <!-- libraries -->
@@ -69,15 +60,11 @@
             <includeContextName>false</includeContextName>
         </layout>
     </appender>
-    <appender name="asyncLibraries" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="libraries"/>
-        <queueSize>512</queueSize>
-    </appender>
     <logger name="org.hibernate" additivity="false" level="WARN">
-        <appender-ref ref="asyncLibraries"/>
+        <appender-ref ref="libraries"/>
     </logger>
     <logger name="com.mchange" additivity="false" level="WARN">
-        <appender-ref ref="asyncLibraries"/>
+        <appender-ref ref="libraries"/>
     </logger>
 
     <!-- Sentry -->
@@ -106,7 +93,7 @@
     </if>
 
     <root level="WARN">
-        <appender-ref ref="asyncService"/>
+        <appender-ref ref="service"/>
         <appender-ref ref="Sentry"/>
         <if condition='"true".equals(property("log.toConsole"))'>
             <then>

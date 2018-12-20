@@ -27,6 +27,7 @@ public class NabTestConfig {
     properties.setProperty("jetty.maxThreads", "8");
     properties.setProperty("serviceName", TEST_SERVICE_NAME);
     properties.setProperty("customTestProperty", "testValue");
+    properties.setProperty("master.pool.maximumPoolSize", "2");
     return properties;
   }
 

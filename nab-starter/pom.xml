@@ -214,12 +214,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- painless syslog appender that allows multilines -->
-        <dependency>
-            <groupId>com.papertrailapp</groupId>
-            <artifactId>logback-syslog4j</artifactId>
-            <version>1.0.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.caffinitas.ohc</groupId>

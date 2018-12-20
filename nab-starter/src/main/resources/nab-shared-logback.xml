@@ -7,14 +7,11 @@
     <property scope="context" name="log.immediate.flush" value="${log.immediate.flush:-true}"/>
     <property scope="context" name="log.toConsole" value="${log.toConsole:-false}"/>
     <property scope="context" name="log.timings" value="${log.timings:-false}"/>
+    <property scope="context" name="log.syslogHost" value="${log.syslogHost:-localhost}"/>
+    <property scope="context" name="log.syslogPort" value="${log.syslogPort:-10534}"/>
 
     <!-- service -->
-    <appender name="service" class="com.papertrailapp.logback.Syslog4jAppender">
-        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
-            <host>${log.syslogHost:-localhost}</host>
-            <port>${log.syslogPort:-10534}</port>
-            <ident>service</ident>
-        </syslogConfig>
+    <appender name="service" class="ru.hh.nab.common.logging.HhSyslogAppender">
         <layout class="ru.hh.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
@@ -26,12 +23,7 @@
     </appender>
 
     <!-- requests -->
-    <appender name="requests" class="com.papertrailapp.logback.Syslog4jAppender">
-        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
-            <host>${log.syslogHost:-localhost}</host>
-            <port>${log.syslogPort:-10534}</port>
-            <ident>requests</ident>
-        </syslogConfig>
+    <appender name="requests" class="ru.hh.nab.common.logging.HhSyslogAppender">
         <layout class="ru.hh.logging.StructuredRequestJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
@@ -45,12 +37,7 @@
     </logger>
 
     <!-- libraries -->
-    <appender name="libraries" class="com.papertrailapp.logback.Syslog4jAppender">
-        <syslogConfig class="org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig">
-            <host>${log.syslogHost:-localhost}</host>
-            <port>${log.syslogPort:-10534}</port>
-            <ident>libraries</ident>
-        </syslogConfig>
+    <appender name="libraries" class="ru.hh.nab.common.logging.HhSyslogAppender">
         <layout class="ru.hh.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>

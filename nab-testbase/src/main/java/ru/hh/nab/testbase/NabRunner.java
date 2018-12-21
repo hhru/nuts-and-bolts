@@ -11,6 +11,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.test.context.BootstrapContext;
+import org.springframework.test.context.CacheAwareContextLoaderDelegate;
 import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestContextManager;
@@ -58,6 +59,11 @@ public class NabRunner extends SpringJUnit4ClassRunner {
     public NabTestContext.PortHolder getPort(Class<? extends NabTestBase> testClass) {
       Class<? extends NabTestBase> baseClass = findMostGenericBaseClass(testClass);
       return PORTS.computeIfAbsent(baseClass, cls -> new NabTestContext.PortHolder());
+    }
+
+    @Override
+    protected CacheAwareContextLoaderDelegate getCacheAwareContextLoaderDelegate() {
+      return new NabCacheAwareLoaderDelegate();
     }
 
     public JettyTestContainer getJetty(NabTestBase testInstance, WebApplicationContext webApplicationContext) {

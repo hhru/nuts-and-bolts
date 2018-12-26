@@ -8,6 +8,9 @@ import ch.qos.logback.core.Context;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +27,10 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test: [1970-01-01 03:00:00,000] ERROR logger:1 mdc={} - message");
+    LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test: ["
+      + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+      + "] ERROR logger:1 mdc={} - message");
   }
 
   @Test

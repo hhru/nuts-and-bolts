@@ -2,6 +2,7 @@
 
 <configuration>
     <contextName>example</contextName>
+    <property scope="context" name="root.log.level" value="DEBUG"/>
 
     <include resource="nab-shared-logback.xml"/>
 </configuration>

@@ -61,7 +61,7 @@
         </filter>
     </appender>
 
-    <root level="WARN">
+    <root level="${root.log.level:-WARN}">
         <appender-ref ref="service"/>
         <appender-ref ref="Sentry"/>
     </root>

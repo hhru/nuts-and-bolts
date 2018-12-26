@@ -22,6 +22,8 @@ public class HhSyslogAppender extends Syslog4jAppender {
     String port = context.getProperty("log.syslogPort");
     UDPNetSyslogConfig udpNetSyslogConfig = new UDPNetSyslogConfig(SyslogConstants.FACILITY_USER, host, Integer.valueOf(port));
     udpNetSyslogConfig.setIdent(getName());
+    //better truncate than garbage file
+    udpNetSyslogConfig.setTruncateMessage(true);
     udpNetSyslogConfig.setSendLocalName(false);
     udpNetSyslogConfig.setSendLocalTimestamp(false);
     int maxMessageLength = Optional.ofNullable(context.getProperty("log.syslogMaxMessageLength")).map(length -> {

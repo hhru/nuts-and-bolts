@@ -123,12 +123,6 @@
 
         <!-- Jetty -->
         <dependency>
-            <groupId>ru.hh</groupId>
-            <artifactId>jetty-utils</artifactId>
-            <version>1.7.12</version>
-        </dependency>
-        <!-- update jetty version in jetty-utils first to pass unit tests -->
-        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
             <version>${jetty.version}</version>
@@ -203,6 +197,17 @@
         </dependency>
 
         <!-- logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback.contrib</groupId>
+            <artifactId>logback-json-classic</artifactId>
+            <version>0.1.5</version>
+        </dependency>
+
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-logback</artifactId>

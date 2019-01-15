@@ -12,15 +12,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import org.apache.commons.text.StringSubstitutor;
 
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
-  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:%s/postgres";
+  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${user}";
   public static final String DEFAULT_USER = "postgres";
 
   private static final String PG_DIR = "embedded-pg";
@@ -35,9 +38,17 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     super(metricsTrackerFactoryProvider);
   }
 
+  @Override
   protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings settings) {
     Properties properties = settings.getProperties();
-    properties.setProperty(JDBC_URL, String.format(DEFAULT_JDBC_URL, getEmbeddedPostgres().getPort()));
+
+    final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
+            "port", getEmbeddedPostgres().getPort(),
+            "host", "localhost",
+            "user", DEFAULT_USER
+    ));
+    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(settings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
+    properties.setProperty(JDBC_URL, jdbcUrl);
     properties.setProperty(USER, DEFAULT_USER);
     properties.setProperty(PASSWORD, "");
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));

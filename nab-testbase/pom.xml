@@ -29,7 +29,7 @@
         <dependency>
             <groupId>com.opentable.components</groupId>
             <artifactId>otj-pg-embedded</artifactId>
-            <version>0.12.5</version>
+            <version>0.13.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.postgresql</groupId>
@@ -62,7 +62,11 @@
             <artifactId>jersey-test-framework-core</artifactId>
             <version>${jersey.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
-

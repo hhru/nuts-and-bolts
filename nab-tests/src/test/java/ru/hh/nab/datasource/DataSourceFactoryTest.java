@@ -5,6 +5,8 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.Map;
+import org.apache.commons.text.StringSubstitutor;
 import org.junit.BeforeClass;
 
 import static org.junit.Assert.assertEquals;
@@ -107,8 +109,14 @@ public class DataSourceFactoryTest {
 
   private static Properties createIncompleteTestProperties() {
     Properties properties = new Properties();
-    String jdbcUrl = String.format(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL, testDb.getPort());
-    properties.put(getProperty(DataSourceSettings.JDBC_URL), jdbcUrl);
+
+    final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
+            "port", testDb.getPort(),
+            "host", "localhost",
+            "user", EmbeddedPostgresDataSourceFactory.DEFAULT_USER
+    ));
+    properties.put(getProperty(DataSourceSettings.JDBC_URL), jdbcUrlParamsSubstitutor.replace(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL));
+
     properties.put(getProperty(DataSourceSettings.USER), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
     properties.put(getProperty(DataSourceSettings.PASSWORD), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
     return properties;

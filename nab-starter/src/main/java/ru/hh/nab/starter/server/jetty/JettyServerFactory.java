@@ -1,9 +1,9 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.time.Duration;
 import static java.util.Optional.ofNullable;
 import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
 
-import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -12,6 +12,8 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 
 public final class JettyServerFactory {
+
+  private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
   public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, WebAppInitializer webAppInitializer) {
 
@@ -29,8 +31,7 @@ public final class JettyServerFactory {
     int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(4);
     int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(12);
     int queueSize = ofNullable(jettySettings.getInteger("queueSize")).orElse(maxThreads);
-    int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs"))
-      .orElseGet(() -> new Long(TimeUnit.MINUTES.toMillis(1)).intValue());
+    int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(DEFAULT_IDLE_TIMEOUT_MS);
     QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(queueSize));
     threadPool.start();
     return threadPool;

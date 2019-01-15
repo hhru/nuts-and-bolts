@@ -14,9 +14,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.jetty.HHServerConnector;
-import ru.hh.logging.StructuredRequestLogger;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 import java.lang.management.ManagementFactory;
 import java.util.Optional;

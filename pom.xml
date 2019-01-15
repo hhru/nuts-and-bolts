@@ -84,9 +84,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <release>${java.version}</release>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>

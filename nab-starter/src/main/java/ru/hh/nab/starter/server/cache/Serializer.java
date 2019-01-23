@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.filter;
+package ru.hh.nab.starter.server.cache;
 
 import org.caffinitas.ohc.CacheSerializer;
 

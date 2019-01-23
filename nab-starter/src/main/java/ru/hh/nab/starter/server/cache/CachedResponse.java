@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.filter;
+package ru.hh.nab.starter.server.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

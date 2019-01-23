@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.jetty;
+package ru.hh.nab.starter.server.logging;
 
 public abstract class RequestInfo {
   public static final String LOG_FORMAT =            "%s %s %s %3d ms %s %s";

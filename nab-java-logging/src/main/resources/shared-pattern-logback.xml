@@ -1,0 +1,8 @@
+<included>
+
+    <property scope="context" name="log.pattern"
+              value="[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n"/>
+    <property scope="context" name="requests.pattern"
+              value="[%date{ISO8601}] %msg%n"/>
+
+</included>

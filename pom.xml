@@ -22,6 +22,7 @@
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
+        <module>nab-java-logging</module>
     </modules>
 
     <properties>
@@ -34,6 +35,7 @@
         <jackson.version>2.9.8</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
+        <slf4j.version>1.7.25</slf4j.version>
     </properties>
 
     <dependencyManagement>

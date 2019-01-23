@@ -6,7 +6,7 @@ import ch.qos.logback.core.Context;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import org.apache.commons.lang3.StringUtils;
-import ru.hh.logging.HhRollingAppender;
+import ru.hh.nab.logging.HhRollingAppender;
 
 public class HhSwitchingAppender<E> extends AppenderBase<E> {
 

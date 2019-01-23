@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.filter;
+package ru.hh.nab.starter.server.cache;
 
 import com.timgroup.statsd.StatsDClient;
 import org.caffinitas.ohc.OHCache;
@@ -23,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
-import static ru.hh.nab.starter.server.filter.CachedResponse.PLACEHOLDER;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.CACHE_ATTRIBUTE;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.HIT;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.MISS;
+import static ru.hh.nab.starter.server.cache.CachedResponse.PLACEHOLDER;
+import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
+import static ru.hh.nab.starter.server.logging.RequestInfo.HIT;
+import static ru.hh.nab.starter.server.logging.RequestInfo.MISS;
 
 public class CacheFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CacheFilter.class);

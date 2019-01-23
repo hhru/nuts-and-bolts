@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import static java.lang.System.currentTimeMillis;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.CACHE_ATTRIBUTE;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.EMPTY_REQUEST_ID;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.NO_CACHE;
-import static ru.hh.nab.starter.server.jetty.RequestInfo.REQUEST_ID_HEADER;
+import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
+import static ru.hh.nab.starter.server.logging.RequestInfo.EMPTY_REQUEST_ID;
+import static ru.hh.nab.starter.server.logging.RequestInfo.NO_CACHE;
+import static ru.hh.nab.starter.server.logging.RequestInfo.REQUEST_ID_HEADER;
 
 public class StructuredRequestLogger extends AbstractLifeCycle implements RequestLog {
   private static final Logger log = LoggerFactory.getLogger(StructuredRequestLogger.class);

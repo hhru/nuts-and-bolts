@@ -3,7 +3,6 @@ package ru.hh.nab.starter.server.cache;
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.servlet.FilterHolder;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.starter.server.filter.CacheFilter;
 
 import java.util.concurrent.ScheduledExecutorService;
 

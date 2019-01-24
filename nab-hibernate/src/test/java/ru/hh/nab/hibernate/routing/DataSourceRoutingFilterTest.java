@@ -50,7 +50,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class);
-    DataSourceContext.executeOn(eq(DataSourceType.READONLY.getName()), any(Supplier.class));
+    DataSourceContext.executeOn(eq(DataSourceType.READONLY), any(Supplier.class));
   }
 
   @Test

@@ -31,8 +31,8 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onReplica(() -> {
-      assertEquals(READONLY.getName(), getDataSourceType());
-      assertEquals(READONLY.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(READONLY, getDataSourceType());
+      assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
@@ -44,8 +44,8 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onSlowReplica(() -> {
-      assertEquals(SLOW.getName(), getDataSourceType());
-      assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
@@ -54,7 +54,7 @@ public class DataSourceContextTest extends HibernateTestBase {
 
   private static void assertIsCurrentDataSourceMaster() {
     assertNull(getDataSourceType());
-    assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test(expected = IllegalStateException.class)

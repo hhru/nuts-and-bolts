@@ -16,11 +16,6 @@ public class DataSourceContext {
     return executeOn(DataSourceType.SLOW, supplier);
   }
 
-  public static <T> T executeOn(DataSourceType dataSourceType, Supplier<T> supplier) {
-    checkSameDataSourceInTransaction(dataSourceType.getName());
-    return DataSourceContextUnsafe.executeOn(dataSourceType.getName(), supplier);
-  }
-
   public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
     checkSameDataSourceInTransaction(dataSourceName);
     return DataSourceContextUnsafe.executeOn(dataSourceName, supplier);

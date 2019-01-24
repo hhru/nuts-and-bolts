@@ -130,10 +130,10 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     testDataSource(DataSourceType.SLOW);
   }
 
-  private void testDataSource(DataSourceType dataSourceType) {
+  private void testDataSource(String dataSourceName) {
     assertHibernateIsNotInitialized();
 
-    DataSourceContextUnsafe.executeOn(dataSourceType, () -> {
+    DataSourceContextUnsafe.executeOn(dataSourceName, () -> {
       TransactionStatus transactionStatus = createTransaction(false);
 
       assertReadOnlyMode();

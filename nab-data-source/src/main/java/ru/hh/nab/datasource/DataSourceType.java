@@ -1,23 +1,10 @@
 package ru.hh.nab.datasource;
 
-public enum DataSourceType {
-  MASTER("master", false),
-  READONLY("readonly", true),
-  SLOW("slow", true);
+public final class DataSourceType {
+  public static final String MASTER = "master";
+  public static final String READONLY = "readonly";
+  public static final String SLOW = "slow";
 
-  private final String name;
-  private final boolean readonly;
-
-  DataSourceType(String name, boolean readonly) {
-    this.name = name;
-    this.readonly = readonly;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public boolean isReadonly() {
-    return readonly;
+  private DataSourceType() {
   }
 }

@@ -27,7 +27,7 @@ public class DataSourceRoutingFilter implements Filter {
         wrapInDataSource(request, response, chain, targetDataSource);
       } else if (Boolean.parseBoolean(request.getParameter(REPLICA_ONLY_RQ))) {
         LOG.debug(REPLICA_ONLY_RQ + " used. It's deprecated, use " + NAB_TARGET_DATA_SOURCE + " parameter");
-        wrapInDataSource(request, response, chain, DataSourceType.READONLY.getName());
+        wrapInDataSource(request, response, chain, DataSourceType.READONLY);
       } else {
         DataSourceContextUnsafe.setDefaultMDC();
         chain.doFilter(request, response);

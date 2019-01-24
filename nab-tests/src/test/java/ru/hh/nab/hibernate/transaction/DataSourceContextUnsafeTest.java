@@ -27,30 +27,30 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
   @Test
   public void testExecuteOn() {
     assertNull(getDataSourceType());
-    assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     executeOn(SLOW, () -> {
-      assertEquals(SLOW.getName(), getDataSourceType());
-      assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, () -> {
-        assertEquals(READONLY.getName(), getDataSourceType());
-        assertEquals(READONLY.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+        assertEquals(READONLY, getDataSourceType());
+        assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW.getName(), getDataSourceType());
-      assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
     assertNull(getDataSourceType());
-    assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test
   public void testClearMDC() {
-    assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     clearMDC();
 

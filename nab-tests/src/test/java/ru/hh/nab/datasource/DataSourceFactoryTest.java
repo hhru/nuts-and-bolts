@@ -39,7 +39,7 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 public class DataSourceFactoryTest {
-  private static final DataSourceType TEST_DATA_SOURCE_TYPE = DataSourceType.MASTER;
+  private static final String TEST_DATA_SOURCE_TYPE = DataSourceType.MASTER;
 
   private static EmbeddedPostgres testDb;
   private static StatsDSender statsDSender;
@@ -69,13 +69,13 @@ public class DataSourceFactoryTest {
     Properties properties = createTestProperties();
 
     HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
-    assertEquals(TEST_DATA_SOURCE_TYPE.getName(), dataSource.getPoolName());
+    assertEquals(TEST_DATA_SOURCE_TYPE, dataSource.getPoolName());
   }
 
   @Test
   public void testCreateStatementTimeoutDataSource() {
     Properties properties = createTestProperties();
-    properties.put(getProperty(STATEMENT_TIMEOUT_MS), "100");
+    properties.setProperty(getProperty(STATEMENT_TIMEOUT_MS), "100");
 
     assertTrue(createTestDataSource(properties) instanceof StatementTimeoutDataSource);
   }
@@ -83,9 +83,9 @@ public class DataSourceFactoryTest {
   @Test
   public void testCreateDataSourceWithMetrics() {
     Properties properties = createTestProperties();
-    properties.put(getProperty(MONITORING_SEND_STATS), "true");
-    properties.put(getProperty(MONITORING_LONG_CONNECTION_USAGE_MS), "10");
-    properties.put(getProperty(MONITORING_SEND_SAMPLED_STATS), "true");
+    properties.setProperty(getProperty(MONITORING_SEND_STATS), "true");
+    properties.setProperty(getProperty(MONITORING_LONG_CONNECTION_USAGE_MS), "10");
+    properties.setProperty(getProperty(MONITORING_SEND_SAMPLED_STATS), "true");
 
     HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
     assertNotNull(dataSource.getMetricsTrackerFactory());
@@ -98,12 +98,12 @@ public class DataSourceFactoryTest {
   }
 
   private static DataSource createTestDataSource(Properties properties) {
-    return dataSourceFactory.create(TEST_DATA_SOURCE_TYPE, new FileSettings(properties));
+    return dataSourceFactory.create(TEST_DATA_SOURCE_TYPE, false, new FileSettings(properties));
   }
 
   private static Properties createTestProperties() {
     Properties properties = createIncompleteTestProperties();
-    properties.put(getProperty(DataSourceSettings.POOL_SETTINGS_PREFIX + ".maximumPoolSize"), "2");
+    properties.setProperty(getProperty(DataSourceSettings.POOL_SETTINGS_PREFIX + ".maximumPoolSize"), "2");
     return properties;
   }
 
@@ -115,18 +115,19 @@ public class DataSourceFactoryTest {
             "host", "localhost",
             "user", EmbeddedPostgresDataSourceFactory.DEFAULT_USER
     ));
-    properties.put(getProperty(DataSourceSettings.JDBC_URL), jdbcUrlParamsSubstitutor.replace(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL));
+    properties.setProperty(getProperty(DataSourceSettings.JDBC_URL),
+      jdbcUrlParamsSubstitutor.replace(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL));
 
-    properties.put(getProperty(DataSourceSettings.USER), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
-    properties.put(getProperty(DataSourceSettings.PASSWORD), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
+    properties.setProperty(getProperty(DataSourceSettings.USER), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
+    properties.setProperty(getProperty(DataSourceSettings.PASSWORD), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
     return properties;
   }
 
   private static String getProperty(String propertyName) {
-    return String.format("%s.%s", TEST_DATA_SOURCE_TYPE.getName(), propertyName);
+    return String.format("%s.%s", TEST_DATA_SOURCE_TYPE, propertyName);
   }
 
-  private String getMetricName(String metricName) {
-    return String.format("%s.%s.%s", TEST_SERVICE_NAME, TEST_DATA_SOURCE_TYPE.getName(), metricName);
+  private static String getMetricName(String metricName) {
+    return String.format("%s.%s.%s", TEST_SERVICE_NAME, TEST_DATA_SOURCE_TYPE, metricName);
   }
 }

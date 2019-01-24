@@ -10,10 +10,6 @@ public class DataSourceContextUnsafe {
   static final String MDC_KEY = "db";
   private static final ThreadLocal<String> currentDataSourceType = new ThreadLocal<>();
 
-  public static <T> T executeOn(DataSourceType dataSourceType, Supplier<T> supplier) {
-    return executeOn(dataSourceType.getName(), supplier);
-  }
-
   public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
     String previousDataSourceName = currentDataSourceType.get();
     if (dataSourceName.equals(previousDataSourceName)) {
@@ -39,7 +35,7 @@ public class DataSourceContextUnsafe {
   }
 
   public static void setDefaultMDC() {
-    updateMDC(DataSourceType.MASTER.getName());
+    updateMDC(DataSourceType.MASTER);
   }
 
   public static void clearMDC() {
@@ -47,7 +43,7 @@ public class DataSourceContextUnsafe {
   }
 
   private static void updateMDC(String dataSourceName) {
-    MDC.setKey(MDC_KEY, ofNullable(dataSourceName).orElseGet(DataSourceType.MASTER::getName));
+    MDC.setKey(MDC_KEY, ofNullable(dataSourceName).orElse(DataSourceType.MASTER));
   }
 
   private DataSourceContextUnsafe() {

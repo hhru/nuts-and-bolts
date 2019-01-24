@@ -10,7 +10,7 @@ import ru.hh.nab.datasource.DataSourceType;
 @Target(ElementType.METHOD)
 public @interface ExecuteOnDataSource {
 
-  DataSourceType dataSourceType() default DataSourceType.READONLY;
+  String dataSourceType() default "readonly";
 
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 }

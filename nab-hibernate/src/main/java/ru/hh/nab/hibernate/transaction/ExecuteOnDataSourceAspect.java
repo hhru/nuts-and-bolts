@@ -24,18 +24,18 @@ public class ExecuteOnDataSourceAspect {
 
   @Around(value = "@annotation(executeOnDataSource)", argNames = "pjp,executeOnDataSource")
   public Object executeOnSpecialDataSource(final ProceedingJoinPoint pjp, final ExecuteOnDataSource executeOnDataSource) throws Throwable {
-    DataSourceType dataSourceType = executeOnDataSource.dataSourceType();
-    if (dataSourceType == DataSourceType.MASTER) {
+    String dataSourceName = executeOnDataSource.dataSourceType();
+    if ("master".equals(dataSourceName)) {
       throw new IllegalStateException("Can't use annotation @executeOnDataSource for master data source");
     }
-    if (dataSourceType.equals(DataSourceContextUnsafe.getDataSourceType())
+    if (dataSourceName.equals(DataSourceContextUnsafe.getDataSourceType())
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(true);
-    return DataSourceContextUnsafe.executeOn(dataSourceType,
+    return DataSourceContextUnsafe.executeOn(dataSourceName,
         () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(pjp, sessionFactory, executeOnDataSource)));
   }
 }

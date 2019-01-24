@@ -50,7 +50,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   }
 
   private Object readonlyOuter() throws Throwable {
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY.getName(), getDataSourceType());
     outerReadonlySession = getCurrentSession();
     assertNotEquals(masterSession, outerReadonlySession);
 
@@ -58,14 +58,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock());
 
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY.getName(), getDataSourceType());
     assertEquals(outerReadonlySession, getCurrentSession());
 
     return null;
   }
 
   private Object readonlyInner() {
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY.getName(), getDataSourceType());
     assertEquals(outerReadonlySession, getCurrentSession());
     return null;
   }

@@ -31,7 +31,7 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onReplica(() -> {
-      assertEquals(READONLY, getDataSourceType());
+      assertEquals(READONLY.getName(), getDataSourceType());
       assertEquals(READONLY.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
@@ -44,7 +44,7 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onSlowReplica(() -> {
-      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW.getName(), getDataSourceType());
       assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });

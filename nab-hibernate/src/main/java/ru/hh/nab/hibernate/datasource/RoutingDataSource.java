@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class RoutingDataSource extends AbstractRoutingDataSource {
 
-  private final Map<DataSourceType, DataSource> replicas = new HashMap<>();
+  private final Map<String, DataSource> replicas = new HashMap<>();
   private DataSourceProxyFactory proxyFactory;
 
   public RoutingDataSource(DataSource defaultDataSource) {
@@ -38,7 +38,11 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   }
 
   public void addDataSource(DataSourceType dataSourceType, DataSource dataSource) {
-    replicas.put(dataSourceType, dataSource);
+    addDataSource(dataSourceType.getName(), dataSource);
+  }
+
+  public void addDataSource(String dataSourceName, DataSource dataSource) {
+    replicas.put(dataSourceName, dataSource);
   }
 
   public void setProxyFactory(DataSourceProxyFactory proxyFactory) {

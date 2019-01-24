@@ -30,16 +30,16 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
     assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     executeOn(SLOW, () -> {
-      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW.getName(), getDataSourceType());
       assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, () -> {
-        assertEquals(READONLY, getDataSourceType());
+        assertEquals(READONLY.getName(), getDataSourceType());
         assertEquals(READONLY.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceType());
+      assertEquals(SLOW.getName(), getDataSourceType());
       assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });

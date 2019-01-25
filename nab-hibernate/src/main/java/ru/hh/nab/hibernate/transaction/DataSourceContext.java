@@ -22,7 +22,7 @@ public class DataSourceContext {
   }
 
   private static void checkSameDataSourceInTransaction(String dataSourceName) {
-    if (!dataSourceName.equals(DataSourceContextUnsafe.getDataSourceType())
+    if (!DataSourceContextUnsafe.getDataSourceType().equals(dataSourceName)
         && checkTransaction
         && TransactionSynchronizationManager.isActualTransactionActive()) {
       throw new IllegalStateException("Attempt to change data source in transaction");

@@ -27,7 +27,7 @@ public class ExecuteOnDataSourceAspect {
     if ("master".equals(dataSourceName)) {
       throw new IllegalStateException("Can't use annotation @executeOnDataSource for master data source");
     }
-    if (dataSourceName.equals(DataSourceContextUnsafe.getDataSourceType())
+    if (DataSourceContextUnsafe.getDataSourceType().equals(dataSourceName)
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }

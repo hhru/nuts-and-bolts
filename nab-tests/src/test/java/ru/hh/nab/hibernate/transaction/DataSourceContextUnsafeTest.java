@@ -26,7 +26,7 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
 
   @Test
   public void testExecuteOn() {
-    assertNull(getDataSourceType());
+    assertEquals(MASTER, getDataSourceType());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     executeOn(SLOW, () -> {
@@ -44,7 +44,7 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
       return null;
     });
 
-    assertNull(getDataSourceType());
+    assertEquals(MASTER, getDataSourceType());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 

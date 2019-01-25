@@ -1,7 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public class DataSourceContextTest extends HibernateTestBase {
   }
 
   private static void assertIsCurrentDataSourceMaster() {
-    assertNull(getDataSourceType());
+    assertEquals(MASTER, getDataSourceType());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 

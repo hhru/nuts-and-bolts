@@ -42,19 +42,8 @@
         <!-- Logging -->
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-java-logging</artifactId>
+            <artifactId>nab-logging</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.papertrailapp</groupId>
-            <artifactId>logback-syslog4j</artifactId>
-            <version>1.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!--Testing-->

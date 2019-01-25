@@ -1,4 +1,4 @@
-package ru.hh.nab.common.logging;
+package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;

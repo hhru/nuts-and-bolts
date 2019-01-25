@@ -11,6 +11,7 @@ import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Is a combo of {@link RollingFileAppender}, {@link FixedWindowRollingPolicy},
@@ -250,7 +251,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
 
     if (getTriggeringPolicy() == null) {
       DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> triggering = new DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent>() {
-        private static final long DAY_MILLIS = 24 * 60 * 60 * 1000;
+        private final long dayMillis = TimeUnit.DAYS.toMillis(1);
 
         @Override
         protected void computeNextCheck() {
@@ -260,8 +261,8 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
             nextCheck = nowMillis + rollOffset; // use jitter for old logs
           } else {
             nextCheck += rollOffset + (rollHour * 60L + rollMinute) * 60 * 1000;
-            if (nextCheck - DAY_MILLIS > nowMillis) {
-              nextCheck -= DAY_MILLIS;
+            if (nextCheck - dayMillis > nowMillis) {
+              nextCheck -= dayMillis;
             }
           }
         }

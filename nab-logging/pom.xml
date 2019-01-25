@@ -6,13 +6,14 @@
         <artifactId>nuts-and-bolts-parent</artifactId>
         <groupId>ru.hh.nab</groupId>
         <version>4.10.2-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>nab-java-logging</artifactId>
+    <artifactId>nab-logging</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts java logging</name>
+    <name>nuts'n'bolts logging</name>
 
     <dependencies>
         <dependency>
@@ -37,8 +38,35 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.papertrailapp</groupId>
+            <artifactId>logback-syslog4j</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

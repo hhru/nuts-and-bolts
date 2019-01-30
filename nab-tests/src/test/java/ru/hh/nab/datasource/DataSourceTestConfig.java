@@ -29,7 +29,7 @@ public class DataSourceTestConfig {
 
   @Bean
   DataSource dataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
-    return dataSourceFactory.create(DataSourceType.MASTER, fileSettings);
+    return dataSourceFactory.create(DataSourceType.MASTER, false, fileSettings);
   }
 
   @Bean

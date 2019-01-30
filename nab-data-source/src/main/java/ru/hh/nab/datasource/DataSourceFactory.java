@@ -28,10 +28,6 @@ public class DataSourceFactory {
     this.metricsTrackerFactoryProvider = metricsTrackerFactoryProvider;
   }
 
-  public DataSource create(DataSourceType dataSourceType, FileSettings settings) {
-    return create(dataSourceType.getName(), dataSourceType.isReadonly(), settings);
-  }
-
   public DataSource create(String dataSourceName, boolean isReadonly, FileSettings settings) {
     return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
   }

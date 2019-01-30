@@ -3,7 +3,6 @@ package ru.hh.nab.hibernate.datasource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
-import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 
 import javax.sql.DataSource;
@@ -12,7 +11,7 @@ import java.util.Map;
 
 public class RoutingDataSource extends AbstractRoutingDataSource {
 
-  private final Map<DataSourceType, DataSource> replicas = new HashMap<>();
+  private final Map<String, DataSource> replicas = new HashMap<>();
   private DataSourceProxyFactory proxyFactory;
 
   public RoutingDataSource(DataSource defaultDataSource) {
@@ -37,8 +36,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     super.afterPropertiesSet();
   }
 
-  public void addDataSource(DataSourceType dataSourceType, DataSource dataSource) {
-    replicas.put(dataSourceType, dataSource);
+  public void addDataSource(String dataSourceName, DataSource dataSource) {
+    replicas.put(dataSourceName, dataSource);
   }
 
   public void setProxyFactory(DataSourceProxyFactory proxyFactory) {

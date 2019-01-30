@@ -1,7 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +31,7 @@ public class DataSourceContextTest extends HibernateTestBase {
 
     onReplica(() -> {
       assertEquals(READONLY, getDataSourceType());
-      assertEquals(READONLY.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
@@ -45,7 +44,7 @@ public class DataSourceContextTest extends HibernateTestBase {
 
     onSlowReplica(() -> {
       assertEquals(SLOW, getDataSourceType());
-      assertEquals(SLOW.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
@@ -53,8 +52,8 @@ public class DataSourceContextTest extends HibernateTestBase {
   }
 
   private static void assertIsCurrentDataSourceMaster() {
-    assertNull(getDataSourceType());
-    assertEquals(MASTER.getName(), MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, getDataSourceType());
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test(expected = IllegalStateException.class)

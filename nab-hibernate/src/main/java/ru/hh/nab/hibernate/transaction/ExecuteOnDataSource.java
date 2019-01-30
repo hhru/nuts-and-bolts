@@ -4,13 +4,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import ru.hh.nab.datasource.DataSourceType;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ExecuteOnDataSource {
 
-  DataSourceType dataSourceType() default DataSourceType.READONLY;
+  String dataSourceType() default "readonly";
 
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 }

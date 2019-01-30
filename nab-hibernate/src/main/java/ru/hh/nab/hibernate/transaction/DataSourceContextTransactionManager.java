@@ -10,9 +10,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.datasource.DataSourceType;
-import static ru.hh.nab.datasource.DataSourceType.READONLY;
-import static ru.hh.nab.datasource.DataSourceType.SLOW;
+import static ru.hh.nab.datasource.DataSourceType.MASTER;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
@@ -66,7 +64,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
   }
 
   private static boolean isMasterDataSource() {
-    DataSourceType dataSourceType = DataSourceContextUnsafe.getDataSourceType();
-    return dataSourceType != READONLY && dataSourceType != SLOW;
+    String dataSourceName = DataSourceContextUnsafe.getDataSourceType();
+    return MASTER.equals(dataSourceName);
   }
 }

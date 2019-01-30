@@ -5,7 +5,6 @@ import org.hibernate.Session;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
@@ -15,6 +14,7 @@ import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.datasource.DataSourceType;
 
+import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceType;
 
 import java.lang.annotation.Annotation;
@@ -38,14 +38,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
   @Test
   public void test() throws Throwable {
-    assertNull(getDataSourceType());
+    assertEquals(MASTER, getDataSourceType());
     masterSession = getCurrentSession();
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock());
 
-    assertNull(getDataSourceType());
+    assertEquals(MASTER, getDataSourceType());
     assertEquals(masterSession, getCurrentSession());
   }
 
@@ -79,7 +79,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       }
 
       @Override
-      public DataSourceType dataSourceType() {
+      public String dataSourceType() {
         return DataSourceType.READONLY;
       }
 

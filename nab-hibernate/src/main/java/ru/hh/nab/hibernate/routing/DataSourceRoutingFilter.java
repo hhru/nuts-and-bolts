@@ -38,19 +38,14 @@ public class DataSourceRoutingFilter implements Filter {
   }
 
   protected void wrapInDataSource(ServletRequest request, ServletResponse response, FilterChain chain, String targetDataSource) {
-    try {
-      DataSourceContextUnsafe.setRequestScopeDataSourceKey(targetDataSource);
-      DataSourceContext.executeOn(targetDataSource, () -> {
-        try {
-          chain.doFilter(request, response);
-        } catch (IOException | ServletException e) {
-          throw new RuntimeException(e);
-        }
-        return null;
-      });
-    } finally {
-      DataSourceContextUnsafe.clearRequestScopeDataSourceKey();
-    }
+    DataSourceContextUnsafe.executeInScope(targetDataSource, () -> DataSourceContext.executeOn(targetDataSource, () -> {
+      try {
+        chain.doFilter(request, response);
+      } catch (IOException | ServletException e) {
+        throw new RuntimeException(e);
+      }
+      return null;
+    }));
   }
 
   @Override

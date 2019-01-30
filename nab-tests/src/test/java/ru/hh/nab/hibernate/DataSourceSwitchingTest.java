@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 import org.hibernate.Session;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,8 @@ import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +44,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   @Named("secondDataSourceSpy")
   private DataSource secondDataSourceSpy;
 
+  @Before
+  public void setUp() {
+    reset(firstDataSourceSpy);
+    reset(secondDataSourceSpy);
+  }
+
   @Test
   public void testDsManageInsideTxScope() throws SQLException, ExecutionException, InterruptedException {
     Executor executor = Executors.newFixedThreadPool(1);
@@ -52,8 +61,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         TargetMethod<TestEntity> method = () -> executeOn("second", supplier);
         return transactionalScope.read(method);
     }, executor).get();
-    //on init it calls 3 times before first query
-    verify(firstDataSourceSpy, times(3)).getConnection();
+    verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();
   }
 
@@ -66,13 +74,11 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
           return currentSession.find(TestEntity.class, 1);
         };
         Supplier<TestEntity> supplier = () -> {
-          transactionalScope.read(method);
-          return null;
+          return transactionalScope.read(method);
         };
         return executeOn("second", supplier);
       }, executor).get();
-    //on init it calls 3 times before first query
-    verify(firstDataSourceSpy, times(3)).getConnection();
+    verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();
   }
 
@@ -100,7 +106,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     @Bean
     RoutingDataSource dataSource(DataSource firstDataSourceSpy, DataSource secondDataSourceSpy) {
       RoutingDataSource routingDataSource = new RoutingDataSource(firstDataSourceSpy);
-      routingDataSource.addDataSource("two", secondDataSourceSpy);
+      routingDataSource.addDataSource("second", secondDataSourceSpy);
       return routingDataSource;
     }
 

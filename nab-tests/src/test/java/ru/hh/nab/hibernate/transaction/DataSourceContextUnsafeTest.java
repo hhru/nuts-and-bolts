@@ -12,6 +12,7 @@ import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.clearMDC;
+import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeInScope;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeOn;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.setDefaultMDC;
@@ -61,8 +62,7 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
   public void testRequestScopeSetOverrideDisabled() {
 
     DataSourceContextUnsafe.setRequestScopeDataSourceKey("test");
-
-    executeOn(SLOW, false, () -> {
+    executeInScope("test", () -> executeOn(SLOW, false, () -> {
       assertEquals(SLOW, getDataSourceKey());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
@@ -75,16 +75,14 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
       assertEquals(SLOW, getDataSourceKey());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
-    });
+    }));
   }
 
   @Test
   public void testRequestScopeSetOverrideEnabled() {
 
     var testKey = "test";
-    DataSourceContextUnsafe.setRequestScopeDataSourceKey(testKey);
-
-    executeOn(SLOW, true, () -> {
+    executeInScope(testKey, () -> executeOn(SLOW, true, () -> {
       assertEquals(testKey, getDataSourceKey());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
@@ -97,7 +95,7 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
       assertEquals(testKey, getDataSourceKey());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
-    });
+    }));
   }
 
   @Test

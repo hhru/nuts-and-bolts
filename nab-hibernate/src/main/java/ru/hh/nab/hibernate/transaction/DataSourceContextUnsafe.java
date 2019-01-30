@@ -35,6 +35,15 @@ public final class DataSourceContextUnsafe {
     }
   }
 
+  public static void executeInScope(String dataSourceKey, Runnable action) {
+    try {
+      setRequestScopeDataSourceKey(dataSourceKey);
+      action.run();
+    } finally {
+      clearRequestScopeDataSourceKey();
+    }
+  }
+
   @Nonnull
   public static String getDataSourceKey() {
     return ofNullable(currentDataSourceKey.get()).orElse(DataSourceType.MASTER);

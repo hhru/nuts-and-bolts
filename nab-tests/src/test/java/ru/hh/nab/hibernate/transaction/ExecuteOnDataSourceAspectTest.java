@@ -15,7 +15,7 @@ import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.datasource.DataSourceType;
 
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceType;
+import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
 
 import java.lang.annotation.Annotation;
 
@@ -38,19 +38,19 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
   @Test
   public void test() throws Throwable {
-    assertEquals(MASTER, getDataSourceType());
+    assertEquals(MASTER, getDataSourceKey());
     masterSession = getCurrentSession();
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock());
 
-    assertEquals(MASTER, getDataSourceType());
+    assertEquals(MASTER, getDataSourceKey());
     assertEquals(masterSession, getCurrentSession());
   }
 
   private Object readonlyOuter() throws Throwable {
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY, getDataSourceKey());
     outerReadonlySession = getCurrentSession();
     assertNotEquals(masterSession, outerReadonlySession);
 
@@ -58,14 +58,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock());
 
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY, getDataSourceKey());
     assertEquals(outerReadonlySession, getCurrentSession());
 
     return null;
   }
 
   private Object readonlyInner() {
-    assertEquals(DataSourceType.READONLY, getDataSourceType());
+    assertEquals(DataSourceType.READONLY, getDataSourceKey());
     assertEquals(outerReadonlySession, getCurrentSession());
     return null;
   }
@@ -81,6 +81,11 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       @Override
       public String dataSourceType() {
         return DataSourceType.READONLY;
+      }
+
+      @Override
+      public boolean overrideByRequestScopeDs() {
+        return false;
       }
 
       @Override

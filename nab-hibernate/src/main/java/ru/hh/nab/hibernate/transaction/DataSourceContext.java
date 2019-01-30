@@ -18,11 +18,16 @@ public class DataSourceContext {
 
   public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
     checkSameDataSourceInTransaction(dataSourceName);
-    return DataSourceContextUnsafe.executeOn(dataSourceName, supplier);
+    return DataSourceContextUnsafe.executeOn(dataSourceName, false, supplier);
+  }
+
+  public static <T> T executeOn(String dataSourceName, boolean overrideByRequestScopeDs, Supplier<T> supplier) {
+    checkSameDataSourceInTransaction(dataSourceName);
+    return DataSourceContextUnsafe.executeOn(dataSourceName, overrideByRequestScopeDs, supplier);
   }
 
   private static void checkSameDataSourceInTransaction(String dataSourceName) {
-    if (!DataSourceContextUnsafe.getDataSourceType().equals(dataSourceName)
+    if (!DataSourceContextUnsafe.getDataSourceKey().equals(dataSourceName)
         && checkTransaction
         && TransactionSynchronizationManager.isActualTransactionActive()) {
       throw new IllegalStateException("Attempt to change data source in transaction");

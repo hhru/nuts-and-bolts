@@ -7,33 +7,37 @@ import ru.hh.nab.common.mdc.MDC;
 
 import java.util.function.Supplier;
 
-public class DataSourceContextUnsafe {
+public final class DataSourceContextUnsafe {
   static final String MDC_KEY = "db";
-  private static final ThreadLocal<String> currentDataSourceType = new ThreadLocal<>();
+  private static final ThreadLocal<String> currentDataSourceKey = new ThreadLocal<>();
+  private static final ThreadLocal<String> requestScopeDataSourceKey = new ThreadLocal<>();
 
-  public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
-    String previousDataSourceName = currentDataSourceType.get();
-    if (dataSourceName.equals(previousDataSourceName)) {
+  public static <T> T executeOn(String dataSourceKey, boolean allowOverrideByRqDs, Supplier<T> supplier) {
+    var requestDataSourceKey = requestScopeDataSourceKey.get();
+    if (requestDataSourceKey != null && allowOverrideByRqDs && !dataSourceKey.equals(requestDataSourceKey)) {
+      dataSourceKey = requestDataSourceKey;
+    }
+    var previousDataSourceKey = currentDataSourceKey.get();
+    if (dataSourceKey.equals(previousDataSourceKey)) {
       return supplier.get();
     }
-
-    currentDataSourceType.set(dataSourceName);
+    currentDataSourceKey.set(dataSourceKey);
     try {
-      updateMDC(dataSourceName);
+      updateMDC(dataSourceKey);
       return supplier.get();
     } finally {
-      if (previousDataSourceName == null) {
-        currentDataSourceType.remove();
+      if (previousDataSourceKey == null) {
+        currentDataSourceKey.remove();
       } else {
-        currentDataSourceType.set(previousDataSourceName);
+        currentDataSourceKey.set(previousDataSourceKey);
       }
-      updateMDC(previousDataSourceName);
+      updateMDC(previousDataSourceKey);
     }
   }
 
   @Nonnull
-  public static String getDataSourceType() {
-    return ofNullable(currentDataSourceType.get()).orElse(DataSourceType.MASTER);
+  public static String getDataSourceKey() {
+    return ofNullable(currentDataSourceKey.get()).orElse(DataSourceType.MASTER);
   }
 
   public static void setDefaultMDC() {
@@ -44,8 +48,16 @@ public class DataSourceContextUnsafe {
     MDC.deleteKey(MDC_KEY);
   }
 
-  private static void updateMDC(String dataSourceName) {
-    MDC.setKey(MDC_KEY, ofNullable(dataSourceName).orElse(DataSourceType.MASTER));
+  private static void updateMDC(String dataSourceKey) {
+    MDC.setKey(MDC_KEY, ofNullable(dataSourceKey).orElse(DataSourceType.MASTER));
+  }
+
+  public static void setRequestScopeDataSourceKey(String dataSourceKey) {
+    requestScopeDataSourceKey.set(dataSourceKey);
+  }
+
+  public static void clearRequestScopeDataSourceKey() {
+    requestScopeDataSourceKey.remove();
   }
 
   private DataSourceContextUnsafe() {

@@ -27,14 +27,14 @@ public class ExecuteOnDataSourceAspect {
     if ("master".equals(dataSourceName)) {
       throw new IllegalStateException("Can't use annotation @executeOnDataSource for master data source");
     }
-    if (DataSourceContextUnsafe.getDataSourceType().equals(dataSourceName)
+    if (DataSourceContextUnsafe.getDataSourceKey().equals(dataSourceName)
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(true);
-    return DataSourceContextUnsafe.executeOn(dataSourceName,
+    return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScopeDs(),
         () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(pjp, sessionFactory, executeOnDataSource)));
   }
 }

@@ -50,6 +50,7 @@ public class NabServletContextConfig {
   void preConfigureWebApp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
     webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
+    webAppContext.addEventListener(new RequestContextListener());
     registerFilter(webAppContext.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
       Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
     if (rootCtx.containsBean("cacheFilter")) {
@@ -78,7 +79,6 @@ public class NabServletContextConfig {
    * org.eclipse.jetty.servlet.FilterHolder#initialize() won't be called anymore
    */
   void onWebAppStarted(ServletContext servletContext, WebApplicationContext rootCtx) {
-    servletContext.addListener(new RequestContextListener());
     configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
     registerServlets(servletConfigs, servletContext, rootCtx);

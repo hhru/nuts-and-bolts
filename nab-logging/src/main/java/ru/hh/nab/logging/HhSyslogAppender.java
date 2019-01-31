@@ -1,4 +1,4 @@
-package ru.hh.nab.common.logging;
+package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.core.Layout;

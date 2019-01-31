@@ -1,15 +1,5 @@
 package ru.hh.nab.starter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,6 +9,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
 
 public class NabApplicationTest {
 

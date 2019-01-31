@@ -22,6 +22,7 @@
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
+        <module>nab-logging</module>
     </modules>
 
     <properties>
@@ -30,10 +31,11 @@
         <hibernate.version>5.2.10.Final</hibernate.version>
         <postgres.jdbc.version>42.2.5</postgres.jdbc.version>
         <hhmetrics.version>0.16</hhmetrics.version>
-        <jetty.version>9.4.8.v20171121</jetty.version>
+        <jetty.version>9.4.14.v20181114</jetty.version>
         <jackson.version>2.9.8</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
+        <slf4j.version>1.7.25</slf4j.version>
     </properties>
 
     <dependencyManagement>
@@ -84,9 +86,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <release>${java.version}</release>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>

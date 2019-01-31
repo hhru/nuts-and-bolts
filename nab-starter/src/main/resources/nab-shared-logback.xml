@@ -11,7 +11,7 @@
     <property scope="context" name="log.syslogPort" value="${log.syslogPort}"/>
 
     <!-- service -->
-    <appender name="service" class="ru.hh.nab.common.logging.HhSwitchingAppender">
+    <appender name="service" class="ru.hh.nab.logging.HhSwitchingAppender">
         <layout class="ru.hh.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
@@ -23,7 +23,7 @@
     </appender>
 
     <!-- requests -->
-    <appender name="requests" class="ru.hh.nab.common.logging.HhSwitchingAppender">
+    <appender name="requests" class="ru.hh.nab.logging.HhSwitchingAppender">
         <layout class="ru.hh.logging.StructuredRequestJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
@@ -37,7 +37,7 @@
     </logger>
 
     <!-- libraries -->
-    <appender name="libraries" class="ru.hh.nab.common.logging.HhSwitchingAppender">
+    <appender name="libraries" class="ru.hh.nab.logging.HhSwitchingAppender">
         <layout class="ru.hh.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>

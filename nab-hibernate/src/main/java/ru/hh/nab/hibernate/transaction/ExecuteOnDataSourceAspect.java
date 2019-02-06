@@ -34,7 +34,7 @@ public class ExecuteOnDataSourceAspect {
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(true);
-    return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScopeDs(),
+    return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScope(),
         () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(pjp, sessionFactory, executeOnDataSource)));
   }
 }

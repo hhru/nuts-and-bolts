@@ -11,7 +11,7 @@ public @interface ExecuteOnDataSource {
 
   String dataSourceType() default "readonly";
 
-  boolean overrideByRequestScopeDs() default false;
+  boolean overrideByRequestScope() default false;
 
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 }

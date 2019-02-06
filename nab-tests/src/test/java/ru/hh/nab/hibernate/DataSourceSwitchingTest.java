@@ -101,7 +101,6 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
       return createDsSpy(dataSourceFactory, "second");
     }
 
-
     @Primary
     @Bean
     RoutingDataSource dataSource(DataSource firstDataSourceSpy, DataSource secondDataSourceSpy) {

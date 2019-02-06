@@ -84,7 +84,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       }
 
       @Override
-      public boolean overrideByRequestScopeDs() {
+      public boolean overrideByRequestScope() {
         return false;
       }
 

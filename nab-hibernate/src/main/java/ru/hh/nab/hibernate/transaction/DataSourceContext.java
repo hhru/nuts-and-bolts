@@ -21,9 +21,9 @@ public class DataSourceContext {
     return DataSourceContextUnsafe.executeOn(dataSourceName, false, supplier);
   }
 
-  public static <T> T executeOn(String dataSourceName, boolean overrideByRequestScopeDs, Supplier<T> supplier) {
+  public static <T> T executeOn(String dataSourceName, boolean overrideByRequestScope, Supplier<T> supplier) {
     checkSameDataSourceInTransaction(dataSourceName);
-    return DataSourceContextUnsafe.executeOn(dataSourceName, overrideByRequestScopeDs, supplier);
+    return DataSourceContextUnsafe.executeOn(dataSourceName, overrideByRequestScope, supplier);
   }
 
   private static void checkSameDataSourceInTransaction(String dataSourceName) {

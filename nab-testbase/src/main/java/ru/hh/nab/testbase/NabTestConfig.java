@@ -2,12 +2,15 @@ package ru.hh.nab.testbase;
 
 import com.timgroup.statsd.NoOpStatsDClient;
 import com.timgroup.statsd.StatsDClient;
+import java.io.IOException;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.NabCommonConfig;
 
@@ -21,14 +24,8 @@ public class NabTestConfig {
   public static final String TEST_SERVICE_NAME = "testService";
 
   @Bean
-  Properties serviceProperties() {
-    Properties properties = new Properties();
-    properties.setProperty("jetty.port", "0");
-    properties.setProperty("jetty.maxThreads", "8");
-    properties.setProperty("serviceName", TEST_SERVICE_NAME);
-    properties.setProperty("customTestProperty", "testValue");
-    properties.setProperty("master.pool.maximumPoolSize", "2");
-    return properties;
+  Properties serviceProperties() throws IOException {
+    return createProperties("service-test.properties");
   }
 
   @Bean
@@ -40,5 +37,13 @@ public class NabTestConfig {
   @Bean
   StatsDClient statsDClient() {
     return new NoOpStatsDClient();
+  }
+
+  public static Properties createProperties(String propertiesName) throws IOException {
+    PropertiesFactoryBean properties = new PropertiesFactoryBean();
+    properties.setSingleton(false);
+    properties.setIgnoreResourceNotFound(true);
+    properties.setLocations(new ClassPathResource(propertiesName));
+    return properties.getObject();
   }
 }

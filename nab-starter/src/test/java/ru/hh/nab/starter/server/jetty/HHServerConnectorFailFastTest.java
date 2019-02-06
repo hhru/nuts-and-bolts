@@ -7,6 +7,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.servlet.GenericServlet;
@@ -93,6 +94,7 @@ public class HHServerConnectorFailFastTest {
     }
   }
 
+  @Ignore("HH-88210")
   @Test
   public void testHHServerConnectorResetsNewIncomingConnectionIfLowOnThreads() throws Exception {
     server.addConnector(new HHServerConnector(server, acceptors, selectors));

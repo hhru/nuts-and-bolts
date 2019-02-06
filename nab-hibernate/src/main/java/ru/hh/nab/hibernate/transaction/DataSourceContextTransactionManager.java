@@ -64,7 +64,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
   }
 
   private static boolean isMasterDataSource() {
-    String dataSourceName = DataSourceContextUnsafe.getDataSourceType();
+    String dataSourceName = DataSourceContextUnsafe.getDataSourceKey();
     return MASTER.equals(dataSourceName);
   }
 }

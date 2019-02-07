@@ -1,5 +1,4 @@
 <included>
-    <!-- default pattern from hh-java-logging -->
     <include resource="shared-pattern-logback.xml"/>
 
     <property file="${settingsDir}/service.properties"/>
@@ -12,7 +11,7 @@
 
     <!-- service -->
     <appender name="service" class="ru.hh.nab.logging.HhSwitchingAppender">
-        <layout class="ru.hh.logging.StructuredJsonLayout">
+        <layout class="ru.hh.nab.starter.server.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
             </jsonFormatter>
@@ -24,7 +23,7 @@
 
     <!-- requests -->
     <appender name="requests" class="ru.hh.nab.logging.HhSwitchingAppender">
-        <layout class="ru.hh.logging.StructuredRequestJsonLayout">
+        <layout class="ru.hh.nab.starter.server.logging.StructuredRequestJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
             </jsonFormatter>
@@ -32,13 +31,13 @@
             <appendLineSeparator>true</appendLineSeparator>
         </layout>
     </appender>
-    <logger name="ru.hh.logging.StructuredRequestLogger" additivity="false" level="info">
+    <logger name="ru.hh.nab.starter.server.logging.StructuredRequestLogger" additivity="false" level="info">
         <appender-ref ref="requests"/>
     </logger>
 
     <!-- libraries -->
     <appender name="libraries" class="ru.hh.nab.logging.HhSwitchingAppender">
-        <layout class="ru.hh.logging.StructuredJsonLayout">
+        <layout class="ru.hh.nab.starter.server.logging.StructuredJsonLayout">
             <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
                 <prettyPrint>false</prettyPrint>
             </jsonFormatter>

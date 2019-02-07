@@ -26,18 +26,6 @@ Nuts-and-Bolts is a small Java application framework which is used at [hh.ru](ht
     * extended logging for queries (requestId, controller name)            
 
 ## Getting started
-
-```java
-@Configuration
-@Import(ExampleConfig.class)
-public class ExampleMain {
-
-  public static void main(String[] args) {
-    NabApplication.run(ExampleMain.class);
-  }
-}
-```
-
 [Full example](https://github.com/hhru/nuts-and-bolts/tree/master/nab-example)
 
 [How to release a new version](https://github.com/hhru/nuts-and-bolts/wiki/How-to-release-a-new-version)

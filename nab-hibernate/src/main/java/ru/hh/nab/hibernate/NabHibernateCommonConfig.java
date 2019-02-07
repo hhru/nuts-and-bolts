@@ -35,13 +35,13 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, Properties hibernateProperties,
+  NabSessionFactoryBean sessionFactoryBean(DataSource routingDataSource, Properties hibernateProperties,
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
     Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
     Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
+    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(routingDataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
       serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
-    sessionFactoryBean.setDataSource(dataSource);
+    sessionFactoryBean.setDataSource(routingDataSource);
     sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
     sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
     sessionFactoryBean.setHibernateProperties(hibernateProperties);

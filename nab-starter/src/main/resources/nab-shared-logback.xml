@@ -48,9 +48,19 @@
     </appender>
     <logger name="org.hibernate" additivity="false" level="WARN">
         <appender-ref ref="libraries"/>
+        <appender-ref ref="Sentry"/>
     </logger>
     <logger name="com.mchange" additivity="false" level="WARN">
         <appender-ref ref="libraries"/>
+        <appender-ref ref="Sentry"/>
+    </logger>
+    <logger name="org.glassfish.jersey" additivity="false" level="INFO">
+        <appender-ref ref="libraries" />
+        <appender-ref ref="Sentry" />
+    </logger>
+    <logger name="com.datastax.driver" additivity="false" level="INFO">
+        <appender-ref ref="libraries" />
+        <appender-ref ref="Sentry" />
     </logger>
 
     <!-- Sentry -->

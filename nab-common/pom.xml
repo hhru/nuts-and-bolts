@@ -40,10 +40,23 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--Monitoring-->
+        <dependency>
+            <groupId>ru.hh.metrics</groupId>
+            <artifactId>hh-metrics</artifactId>
+            <version>${hhmetrics.version}</version>
+            <optional>true</optional>
+        </dependency>
+
         <!--Testing-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
 

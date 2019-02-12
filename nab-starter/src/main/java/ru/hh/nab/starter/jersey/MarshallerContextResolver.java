@@ -3,19 +3,13 @@ package ru.hh.nab.starter.jersey;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
-import javax.annotation.Priority;
 import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.util.Collections;
 import java.util.Map;
 
-import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
-
-@Provider
-@Priority(LOW_PRIORITY)
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
   private static final Map<Class<?>, JAXBContext> jaxbContexts =
     new ConcurrentReferenceHashMap<>(16, 0.75f, 16, ConcurrentReferenceHashMap.ReferenceType.WEAK);

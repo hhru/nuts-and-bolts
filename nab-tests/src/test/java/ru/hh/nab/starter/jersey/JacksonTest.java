@@ -13,7 +13,9 @@ import static org.junit.Assert.assertEquals;
 public class JacksonTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build();
+    return NabApplication.builder().configureJersey()
+      .registerResources(TestResource.class, ObjectMapperContextResolver.class)
+      .bindToRoot().build();
   }
 
   @Test

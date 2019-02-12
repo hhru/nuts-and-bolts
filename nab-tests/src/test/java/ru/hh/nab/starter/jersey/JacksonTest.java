@@ -6,13 +6,6 @@ import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.junit.Assert.assertEquals;
 
@@ -24,29 +17,20 @@ public class JacksonTest extends NabTestBase {
   }
 
   @Test
-  public void testJaxsonJaxb() {
-    Response response = createRequest("/").accept(APPLICATION_JSON).get();
+  public void testJacksonJaxb() {
+    var response = createRequest("/").accept(APPLICATION_JSON).get();
     assertEquals("{\"string\":\"test\"}", response.readEntity(String.class));
-  }
 
-  @Path("/")
-  @Produces(APPLICATION_JSON)
-  public static class TestResource {
-    @GET
-    public DTO c() {
-      return new DTO("test");
-    }
-  }
+    response = createRequest("/0C").accept(APPLICATION_JSON).get();
+    assertEquals("{\"string\":\"\uFFFD\"}", response.readEntity(String.class));
 
-  @XmlRootElement(name = "dto")
-  public static class DTO {
-    @XmlElement
-    public String string;
+    response = createRequest("/FFFE").accept(APPLICATION_JSON).get();
+    assertEquals("{\"string\":\"\uFFFD\"}", response.readEntity(String.class));
 
-    public DTO() {}
+    response = createRequest("/0A").accept(APPLICATION_JSON).get();
+    assertEquals("{\"string\":\"\\n\"}", response.readEntity(String.class));
 
-    public DTO(String string) {
-      this.string = string;
-    }
+    response = createRequest("/special").accept(APPLICATION_JSON).get();
+    assertEquals("{\"string\":\"&<\"}", response.readEntity(String.class));
   }
 }

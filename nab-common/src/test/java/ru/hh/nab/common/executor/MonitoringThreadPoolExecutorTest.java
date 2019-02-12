@@ -38,11 +38,14 @@ public class MonitoringThreadPoolExecutorTest {
     }
 
     assertTrue(rejected);
+    latch.countDown();
   }
+
+  private static CountDownLatch latch = new CountDownLatch(1);
 
   private static Runnable TASK = () -> {
     try {
-      new CountDownLatch(1).await();
+      latch.await();
     } catch (InterruptedException e) {
       //
     }

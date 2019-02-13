@@ -38,13 +38,13 @@ public class DataSourceFactory {
     return new HikariDataSource(hikariConfig);
   }
 
-  public static HikariConfig createBasesHikariConfig(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+  private static HikariConfig createBaseHikariConfig(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
     Properties poolProperties = dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX);
     if (poolProperties.isEmpty()) {
       throw new RuntimeException(String.format(
-          "Exception during %1$s pooled datasource initialization: could not find %1$s.%2$s settings in config file. " +
-              "To prevent misconfiguration application startup will be aborted.",
-          dataSourceName, POOL_SETTINGS_PREFIX
+        "Exception during %1$s pooled datasource initialization: could not find %1$s.%2$s settings in config file. " +
+        "To prevent misconfiguration application startup will be aborted.",
+        dataSourceName, POOL_SETTINGS_PREFIX
       ));
     }
 
@@ -59,7 +59,7 @@ public class DataSourceFactory {
   }
 
   protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    HikariConfig hikariConfig = createBasesHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
+    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
     DataSource underlyingDataSource = create(hikariConfig, dataSourceSettings);
 
     String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);

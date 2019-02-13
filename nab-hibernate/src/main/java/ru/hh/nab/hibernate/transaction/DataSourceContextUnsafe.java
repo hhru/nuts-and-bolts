@@ -13,7 +13,7 @@ public final class DataSourceContextUnsafe {
   private static final ThreadLocal<String> requestScopeDataSourceKey = new ThreadLocal<>();
 
   public static <T> T executeOn(String dataSourceKey, boolean overrideByRequestScope, Supplier<T> supplier) {
-    var requestDataSourceKey = requestScopeDataSourceKey.get();
+    var requestDataSourceKey = getRequestDataSourceKey();
     if (requestDataSourceKey != null && overrideByRequestScope && !dataSourceKey.equals(requestDataSourceKey)) {
       dataSourceKey = requestDataSourceKey;
     }
@@ -67,6 +67,10 @@ public final class DataSourceContextUnsafe {
 
   public static void clearRequestScopeDataSourceKey() {
     requestScopeDataSourceKey.remove();
+  }
+
+  public static String getRequestDataSourceKey() {
+    return requestScopeDataSourceKey.get();
   }
 
   private DataSourceContextUnsafe() {

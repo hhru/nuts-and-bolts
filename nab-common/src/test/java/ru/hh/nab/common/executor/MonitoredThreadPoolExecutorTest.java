@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-public class MonitoringThreadPoolExecutorTest {
+public class MonitoredThreadPoolExecutorTest {
   @Test
   public void testRejecting() {
     var properties = new Properties();
@@ -21,7 +21,7 @@ public class MonitoringThreadPoolExecutorTest {
     properties.setProperty("maxSize", "4");
     properties.setProperty("queueSize", "4");
 
-    var tpe = new MonitoringThreadPoolExecutor("test", "test", new FileSettings(properties), mock(StatsDSender.class));
+    var tpe = new MonitoredThreadPoolExecutor("test", "test", new FileSettings(properties), mock(StatsDSender.class));
 
     tpe.execute(TASK);
     tpe.execute(TASK);

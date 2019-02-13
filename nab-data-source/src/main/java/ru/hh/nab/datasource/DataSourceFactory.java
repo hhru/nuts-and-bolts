@@ -1,7 +1,14 @@
 package ru.hh.nab.datasource;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import static java.lang.Integer.parseInt;
+import java.sql.Connection;
+import java.sql.SQLException;
 import static java.util.Optional.ofNullable;
+import java.util.Properties;
+import javax.sql.DataSource;
+import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
@@ -9,17 +16,8 @@ import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.POOL_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.monitoring.AbstractMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Properties;
 
 public class DataSourceFactory {
   private final AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
@@ -32,23 +30,15 @@ public class DataSourceFactory {
     return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
   }
 
-  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    DataSource underlyingDataSource = createPooledDatasource(dataSourceName, isReadonly, dataSourceSettings);
-
-    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
-    if (statementTimeoutMsVal != null) {
-      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
-      if (statementTimeoutMs > 0) {
-        underlyingDataSource = new StatementTimeoutDataSource(underlyingDataSource, statementTimeoutMs);
-      }
+  public DataSource create(HikariConfig hikariConfig, FileSettings monitoringSettings) {
+    boolean sendStats = ofNullable(monitoringSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
+    if (sendStats && metricsTrackerFactoryProvider != null) {
+      hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(monitoringSettings));
     }
-
-    checkDataSource(underlyingDataSource, dataSourceName);
-
-    return underlyingDataSource;
+    return new HikariDataSource(hikariConfig);
   }
 
-  private DataSource createPooledDatasource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+  private static HikariConfig createBaseHikariConfig(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
     Properties poolProperties = dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX);
     if (poolProperties.isEmpty()) {
       throw new RuntimeException(String.format(
@@ -65,13 +55,24 @@ public class DataSourceFactory {
     config.setPoolName(dataSourceName);
     config.setReadOnly(isReadonly);
     config.setValidationTimeout(config.getConnectionTimeout() + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS);
+    return config;
+  }
 
-    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
-    if (sendStats && metricsTrackerFactoryProvider != null) {
-      config.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
+    DataSource underlyingDataSource = create(hikariConfig, dataSourceSettings);
+
+    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
+    if (statementTimeoutMsVal != null) {
+      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
+      if (statementTimeoutMs > 0) {
+        underlyingDataSource = new StatementTimeoutDataSource(underlyingDataSource, statementTimeoutMs);
+      }
     }
 
-    return new HikariDataSource(config);
+    checkDataSource(underlyingDataSource, dataSourceName);
+
+    return underlyingDataSource;
   }
 
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {

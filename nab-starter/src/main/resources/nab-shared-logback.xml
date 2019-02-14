@@ -9,6 +9,13 @@
     <property scope="context" name="log.syslogHost" value="${log.syslogHost}"/>
     <property scope="context" name="log.syslogPort" value="${log.syslogPort}"/>
 
+    <!-- sentry -->
+    <appender name="sentry" class="io.sentry.logback.SentryAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${sentry.level}</level>
+        </filter>
+    </appender>
+
     <!-- service -->
     <appender name="service" class="ru.hh.nab.logging.HhSwitchingAppender">
         <layout class="ru.hh.nab.starter.server.logging.StructuredJsonLayout">
@@ -48,30 +55,23 @@
     </appender>
     <logger name="org.hibernate" additivity="false" level="WARN">
         <appender-ref ref="libraries"/>
-        <appender-ref ref="Sentry"/>
+        <appender-ref ref="sentry"/>
     </logger>
     <logger name="com.mchange" additivity="false" level="WARN">
         <appender-ref ref="libraries"/>
-        <appender-ref ref="Sentry"/>
+        <appender-ref ref="sentry"/>
     </logger>
     <logger name="org.glassfish.jersey" additivity="false" level="INFO">
         <appender-ref ref="libraries" />
-        <appender-ref ref="Sentry" />
+        <appender-ref ref="sentry" />
     </logger>
     <logger name="com.datastax.driver" additivity="false" level="INFO">
         <appender-ref ref="libraries" />
-        <appender-ref ref="Sentry" />
+        <appender-ref ref="sentry" />
     </logger>
-
-    <!-- Sentry -->
-    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>${sentry.level}</level>
-        </filter>
-    </appender>
 
     <root level="${root.log.level:-WARN}">
         <appender-ref ref="service"/>
-        <appender-ref ref="Sentry"/>
+        <appender-ref ref="sentry"/>
     </root>
 </included>

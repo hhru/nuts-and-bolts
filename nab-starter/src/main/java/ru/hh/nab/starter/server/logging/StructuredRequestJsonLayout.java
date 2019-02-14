@@ -6,7 +6,7 @@ import ch.qos.logback.contrib.json.classic.JsonLayout;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static ru.hh.nab.starter.server.logging.StructuredJsonLayoutField.TIMESTAMP;
+import static ru.hh.nab.logging.layout.StructuredJsonLayoutField.TIMESTAMP;
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_CACHE_MDC_KEY;
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_IP_MDC_KEY;
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_METHOD_MDC_KEY;

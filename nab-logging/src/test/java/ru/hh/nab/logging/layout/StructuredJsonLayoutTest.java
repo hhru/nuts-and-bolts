@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.logging;
+package ru.hh.nab.logging.layout;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.LoggingEvent;
@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 
+@SuppressWarnings("rawtypes")
 public class StructuredJsonLayoutTest {
 
   @Test

@@ -61,6 +61,26 @@
         <appender-ref ref="libraries"/>
         <appender-ref ref="sentry"/>
     </logger>
+    <logger name="com.zaxxer.hikari" additivity="false" level="WARN">
+        <appender-ref ref="libraries"/>
+        <appender-ref ref="sentry" />
+    </logger>
+    <logger name="io.sentry" additivity="false" level="WARN">
+        <appender-ref ref="libraries"/>
+        <appender-ref ref="sentry" />
+    </logger>
+    <logger name="com.rabbitmq" additivity="false" level="WARN">
+        <appender-ref ref="libraries"/>
+        <appender-ref ref="sentry" />
+    </logger>
+    <logger name="org.springframework.amqp" additivity="false" level="WARN">
+        <appender-ref ref="libraries"/>
+        <appender-ref ref="sentry" />
+    </logger>
+    <logger name="net.spy.memcached" additivity="false" level="WARN">
+        <appender-ref ref="libraries"/>
+        <appender-ref ref="sentry" />
+    </logger>
     <logger name="org.glassfish.jersey" additivity="false" level="INFO">
         <appender-ref ref="libraries" />
         <appender-ref ref="sentry" />

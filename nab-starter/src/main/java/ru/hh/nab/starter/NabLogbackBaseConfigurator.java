@@ -53,8 +53,8 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     var rootLogger = getRootLogger(context);
     rootLogger.setLevel(Level.valueOf(context.getProperty("log.root.level", Level.WARN.toString())));
 
-    configure(context, service, libraries);
+    configure(context, service, libraries, sentry);
   }
 
-  public abstract void configure(LoggingContextWrapper context, HhMultiAppender service, HhMultiAppender libraries);
+  public abstract void configure(LoggingContextWrapper context, HhMultiAppender service, HhMultiAppender libraries, SentryAppender sentryAppender);
 }

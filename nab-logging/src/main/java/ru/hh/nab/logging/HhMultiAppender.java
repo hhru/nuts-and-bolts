@@ -133,6 +133,7 @@ public class HhMultiAppender extends AppenderBase {
           var layout = new PatternLayout();
           layout.setPattern(pattern);
           return layout;
+        //need to throw Error because logback logs and ignores any Exception type
         }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
 

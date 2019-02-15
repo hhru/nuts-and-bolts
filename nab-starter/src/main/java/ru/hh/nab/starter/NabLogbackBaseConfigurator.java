@@ -16,7 +16,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
   protected Properties createLoggingProperties() {
     var settingsDir = System.getProperty("settingsDir");
     Properties properties = loadPropertiesFile(Path.of(settingsDir).resolve("service.properties"));
-//    setPropertyIfNotSet(properties, "log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
+    setPropertyIfNotSet(properties, "log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
     setPropertyIfNotSet(properties, "log.dir", "logs");
     setPropertyIfNotSet(properties, "log.immediate.flush", Boolean.TRUE.toString());
     setPropertyIfNotSet(properties, "log.toConsole", Boolean.FALSE.toString());

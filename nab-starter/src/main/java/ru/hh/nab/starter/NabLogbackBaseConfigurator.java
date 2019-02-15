@@ -52,7 +52,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
     var rootLogger = getRootLogger(context);
     rootLogger.setLevel(Level.valueOf(context.getProperty("log.root.level", Level.WARN.toString())));
-
+    rootLogger.addAppenders(service, sentry);
     configure(context, service, libraries, sentry);
   }
 

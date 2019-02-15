@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
@@ -118,6 +119,10 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
     public void setAdditivity(boolean additivity) {
       logger.setAdditive(additivity);
+    }
+
+    public void addAppenders(Appender... appenders) {
+      Stream.of(appenders).forEach(logger::addAppender);
     }
   }
 

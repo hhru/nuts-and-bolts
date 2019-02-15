@@ -133,7 +133,7 @@ public class HhMultiAppender extends AppenderBase {
           var layout = new PatternLayout();
           layout.setPattern(pattern);
           return layout;
-        }).orElseThrow(() -> new RuntimeException("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
+        }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
 
     private static StructuredJsonLayout createJsonLayout() {

@@ -196,12 +196,6 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!-- logging -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>nab-logging</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!--cache-->
         <dependency>
             <groupId>org.caffinitas.ohc</groupId>

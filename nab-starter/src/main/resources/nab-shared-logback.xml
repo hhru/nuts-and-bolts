@@ -65,7 +65,7 @@
         <appender-ref ref="sentry" />
     </logger>
 
-    <root level="${root.log.level:-WARN}">
+    <root level="${log.root.level:-WARN}">
         <appender-ref ref="service"/>
         <appender-ref ref="sentry"/>
     </root>

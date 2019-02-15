@@ -1,0 +1,60 @@
+package ru.hh.nab.starter;
+
+import ch.qos.logback.classic.filter.ThresholdFilter;
+import io.sentry.logback.SentryAppender;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Properties;
+import org.slf4j.event.Level;
+import ru.hh.nab.logging.HhMultiAppender;
+import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
+import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
+
+public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
+
+  @Override
+  protected Properties createLoggingProperties() {
+    var settingsDir = System.getProperty("settingsDir");
+    Properties properties = loadPropertiesFile(Path.of(settingsDir).resolve("service.properties"));
+    setPropertyIfNotSet(properties, "log.dir", "logs");
+    setPropertyIfNotSet(properties, "log.immediate.flush", Boolean.TRUE.toString());
+    setPropertyIfNotSet(properties, "log.toConsole", Boolean.FALSE.toString());
+    setPropertyIfNotSet(properties, "log.timings", Boolean.FALSE.toString());
+    return properties;
+  }
+
+  @Override
+  public final void configure(LoggingContextWrapper context) {
+    SentryAppender sentry = createAppender(context, "sentry", () -> {
+      var sentryAppender = new SentryAppender();
+      var filter = new ThresholdFilter();
+      filter.setLevel(context.getProperty("sentry.level", Level.ERROR.toString()));
+      sentryAppender.addFilter(filter);
+      return sentryAppender;
+    });
+
+    HhMultiAppender service = createAppender(context, "service", () -> new HhMultiAppender(true));
+
+    HhMultiAppender requests = createAppender(context, "requests", () -> new HhMultiAppender(true));
+
+    HhMultiAppender libraries = createAppender(context, "requests", () -> new HhMultiAppender(true));
+
+    createLogger(context, StructuredRequestLogger.class, Level.INFO, requests);
+    createLogger(context, "org.hibernate", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "com.mchange", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "com.zaxxer.hikari", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "io.sentry", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "com.rabbitmq", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "org.springframework.amqp", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
+    createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
+
+    var rootLogger = getRootLogger(context);
+    rootLogger.setLevel(Level.valueOf(context.getProperty("log.root.level", Level.WARN.toString())));
+
+    configure(context, service, libraries);
+  }
+
+  public abstract void configure(LoggingContextWrapper context, HhMultiAppender service, HhMultiAppender libraries);
+}

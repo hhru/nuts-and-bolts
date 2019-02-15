@@ -18,6 +18,13 @@ import static java.util.Optional.ofNullable;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class HhMultiAppender extends AppenderBase {
 
+  public HhMultiAppender() {
+  }
+
+  public HhMultiAppender(boolean json) {
+    this.json = json;
+  }
+
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
@@ -148,5 +155,6 @@ public class HhMultiAppender extends AppenderBase {
     if (!configItem.isStarted()) {
       configItem.start();
     }
+    context.register(configItem);
   }
 }

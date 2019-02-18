@@ -18,6 +18,13 @@ import static java.util.Optional.ofNullable;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class HhMultiAppender extends AppenderBase {
 
+  public HhMultiAppender() {
+  }
+
+  public HhMultiAppender(boolean json) {
+    this.json = json;
+  }
+
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
@@ -126,7 +133,8 @@ public class HhMultiAppender extends AppenderBase {
           var layout = new PatternLayout();
           layout.setPattern(pattern);
           return layout;
-        }).orElseThrow(() -> new RuntimeException("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
+        //need to throw Error because logback logs and ignores any Exception type
+        }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
 
     private static StructuredJsonLayout createJsonLayout() {
@@ -148,5 +156,6 @@ public class HhMultiAppender extends AppenderBase {
     if (!configItem.isStarted()) {
       configItem.start();
     }
+    context.register(configItem);
   }
 }

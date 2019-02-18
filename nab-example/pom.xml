@@ -44,7 +44,7 @@
                     <systemProperties>
                         <systemProperty>
                             <key>settingsDir</key>
-                            <value>${basedir}/src/etc/nab-example</value>
+                            <value>src/etc/nab-example</value>
                         </systemProperty>
                     </systemProperties>
                     <mainClass>ru.hh.nab.example.ExampleMain</mainClass>

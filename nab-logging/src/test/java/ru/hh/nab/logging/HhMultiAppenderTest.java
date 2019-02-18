@@ -97,7 +97,7 @@ public class HhMultiAppenderTest {
     assertEquals(pattern, layout.getPattern());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = AssertionError.class)
   public void testIfNoPatternAvailableExceptionIsThrown() throws Exception {
     LoggerContext context = new LoggerContext();
     HhMultiAppender multiAppender = createHhMultiAppender(context);

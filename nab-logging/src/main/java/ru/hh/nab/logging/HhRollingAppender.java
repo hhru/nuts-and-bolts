@@ -64,8 +64,8 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
   private Integer maxIndex;
 
   // these two parameters are especially useful for testing
-  private Integer rollHour = null;
-  private Integer rollMinute = null;
+  private Integer rollHour;
+  private Integer rollMinute;
 
   private Boolean compress;
   private Boolean immediateFlush;
@@ -78,7 +78,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
 
   private long rollOffset;
 
-  private Thread shutdownHook = null;
+  private Thread shutdownHook;
 
   public Integer getMinIndex() {
     return minIndex;
@@ -130,6 +130,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
     return immediateFlush;
   }
 
+  @Override
   public void setImmediateFlush(boolean immediateFlush) {
     this.immediateFlush = immediateFlush;
   }
@@ -250,7 +251,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
     }
 
     if (getTriggeringPolicy() == null) {
-      DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> triggering = new DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent>() {
+      DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> triggering = new DefaultTimeBasedFileNamingAndTriggeringPolicy<>() {
         private final long dayMillis = TimeUnit.DAYS.toMillis(1);
 
         @Override
@@ -260,7 +261,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
           if (nextCheck < nowMillis) {
             nextCheck = nowMillis + rollOffset; // use jitter for old logs
           } else {
-            nextCheck += rollOffset + (rollHour * 60L + rollMinute) * 60 * 1000;
+            nextCheck += rollOffset + TimeUnit.HOURS.toMillis(rollHour) + TimeUnit.MINUTES.toMillis(rollMinute);
             if (nextCheck - dayMillis > nowMillis) {
               nextCheck -= dayMillis;
             }
@@ -295,7 +296,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
     }
 
     if (encoder instanceof LayoutWrappingEncoder) {
-      ((LayoutWrappingEncoder)encoder).setImmediateFlush(immediateFlush);
+      ((LayoutWrappingEncoder<?>)encoder).setImmediateFlush(immediateFlush);
     }
 
     if (collectPackagingInfo != null) {
@@ -308,12 +309,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
 
     synchronized (this) {
       if (shutdownHook == null) {
-        shutdownHook = new Thread() {
-          @Override
-          public void run() {
-            HhRollingAppender.this.stop();
-          }
-        };
+        shutdownHook = new Thread(this::stop);
         try {
           Runtime.getRuntime().addShutdownHook(shutdownHook);
         } catch (IllegalStateException ex) {

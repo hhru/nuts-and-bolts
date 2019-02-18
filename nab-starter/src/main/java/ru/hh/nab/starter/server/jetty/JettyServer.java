@@ -15,10 +15,10 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 import java.lang.management.ManagementFactory;
 import java.util.Optional;
+import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);

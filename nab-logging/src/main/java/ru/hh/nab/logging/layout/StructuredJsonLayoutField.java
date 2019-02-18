@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.server.logging;
+package ru.hh.nab.logging.layout;
 
 public interface StructuredJsonLayoutField {
   String TIMESTAMP = "ts";

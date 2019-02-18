@@ -7,6 +7,9 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedMap;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.datasource.DataSourceType;
@@ -22,10 +25,12 @@ public class DataSourceRoutingFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     try {
-      String targetDataSource = request.getParameter(NAB_TARGET_DATA_SOURCE);
+      HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+      MultivaluedMap<String, String> queryParams = UriComponent.decodeQuery(httpServletRequest.getQueryString(), false);
+      String targetDataSource = queryParams.getFirst(NAB_TARGET_DATA_SOURCE);
       if (targetDataSource != null && !targetDataSource.isEmpty()) {
         wrapInDataSource(request, response, chain, targetDataSource);
-      } else if (Boolean.parseBoolean(request.getParameter(REPLICA_ONLY_RQ))) {
+      } else if (Boolean.parseBoolean(queryParams.getFirst(REPLICA_ONLY_RQ))) {
         LOG.debug(REPLICA_ONLY_RQ + " used. It's deprecated, use " + NAB_TARGET_DATA_SOURCE + " parameter");
         wrapInDataSource(request, response, chain, DataSourceType.READONLY);
       } else {

@@ -7,7 +7,9 @@ import ch.qos.logback.core.Appender;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -20,10 +22,21 @@ import org.slf4j.event.Level;
 @SuppressWarnings("rawtypes")
 public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
+  private List<String> appenderNames = new ArrayList<>() {
+    @Override
+    public boolean add(String name) {
+      if (contains(name)) {
+        throw new AssertionError("Appender with name " + name + " already configured");
+      }
+      return super.add(name);
+    }
+  };
+
   @Override
   public final void configure(LoggerContext lc) {
     Properties properties = createLoggingProperties();
     configure(new LoggingContextWrapper(lc, properties));
+    appenderNames = null;
   }
 
   protected abstract Properties createLoggingProperties();
@@ -31,6 +44,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   public abstract void configure(LoggingContextWrapper context);
 
   protected <A extends Appender> A createAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
+    appenderNames.add(name);
     A appender = instanceCreator.get();
     appender.setName(name);
     appender.setContext(context.getContext());

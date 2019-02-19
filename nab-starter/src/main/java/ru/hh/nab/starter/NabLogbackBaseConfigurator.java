@@ -38,7 +38,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
     HhMultiAppender requests = createAppender(context, "requests", () -> new HhMultiAppender(true));
 
-    HhMultiAppender libraries = createAppender(context, "requests", () -> new HhMultiAppender(true));
+    HhMultiAppender libraries = createAppender(context, "libraries", () -> new HhMultiAppender(true));
 
     createLogger(context, StructuredRequestLogger.class, Level.INFO, requests);
     createLogger(context, "org.hibernate", Level.WARN, false, List.of(libraries, sentry));

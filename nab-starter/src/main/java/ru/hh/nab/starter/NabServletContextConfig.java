@@ -17,6 +17,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
+import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 
 import javax.servlet.DispatcherType;
@@ -52,6 +53,8 @@ public class NabServletContextConfig {
     webAppContext.setClassLoader(getClassLoader());
     webAppContext.addEventListener(new RequestContextListener());
     registerFilter(webAppContext.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
+      Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
+    registerFilter(webAppContext.getServletContext(), CommonHeadersFilter.class.getName(), CommonHeadersFilter.class,
       Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
     if (rootCtx.containsBean("cacheFilter")) {
       FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);

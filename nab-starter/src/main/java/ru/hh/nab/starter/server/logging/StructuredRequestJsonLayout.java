@@ -1,10 +1,10 @@
 package ru.hh.nab.starter.server.logging;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.contrib.json.classic.JsonLayout;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import ru.hh.nab.logging.layout.StructuredJsonLayout;
 
 import static ru.hh.nab.logging.layout.StructuredJsonLayoutField.TIMESTAMP;
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_CACHE_MDC_KEY;
@@ -15,7 +15,7 @@ import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_S
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_TIME_MDC_KEY;
 import static ru.hh.nab.starter.server.logging.StructuredRequestLogger.REQUEST_URI_MDC_KEY;
 
-public class StructuredRequestJsonLayout extends JsonLayout {
+public class StructuredRequestJsonLayout extends StructuredJsonLayout {
 
   public StructuredRequestJsonLayout() {
     super();

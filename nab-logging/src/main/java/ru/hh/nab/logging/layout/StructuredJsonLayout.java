@@ -1,6 +1,8 @@
 package ru.hh.nab.logging.layout;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.contrib.jackson.JacksonJsonFormatter;
+import ch.qos.logback.contrib.json.JsonFormatter;
 import ch.qos.logback.contrib.json.classic.JsonLayout;
 
 import java.util.HashMap;
@@ -13,6 +15,24 @@ import static ru.hh.nab.logging.layout.StructuredJsonLayoutField.THREAD;
 import static ru.hh.nab.logging.layout.StructuredJsonLayoutField.TIMESTAMP;
 
 public class StructuredJsonLayout extends JsonLayout {
+
+  public static final String DEFAULT_TIMESTAMP_FORMAT = "yyyy-MM-dd' 'HH:mm:ss.SSSZ";
+
+  private Boolean appendSeparator;
+
+  @Override
+  public void start() {
+    if (getJsonFormatter() == null) {
+      setJsonFormatter(createDefaultJsonFormatter());
+    }
+    if (getTimestampFormat() == null || getTimestampFormat().isEmpty()) {
+      setTimestampFormat(DEFAULT_TIMESTAMP_FORMAT);
+    }
+    if (appendSeparator == null) {
+      setAppendLineSeparator(true);
+    }
+    super.start();
+  }
 
   @Override
   protected Map toJsonMap(ILoggingEvent event) {
@@ -27,5 +47,17 @@ public class StructuredJsonLayout extends JsonLayout {
     add(MESSAGE, this.includeFormattedMessage, event.getFormattedMessage(), map);
     addThrowableInfo(JsonLayout.EXCEPTION_ATTR_NAME, this.includeException, event, map);
     return map;
+  }
+
+  @Override
+  public void setAppendLineSeparator(boolean appendSeparator) {
+    super.setAppendLineSeparator(appendSeparator);
+    this.appendSeparator = appendSeparator;
+  }
+
+  private static JsonFormatter createDefaultJsonFormatter() {
+    var formatter = new JacksonJsonFormatter();
+    formatter.setPrettyPrint(false);
+    return formatter;
   }
 }

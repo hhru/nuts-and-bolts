@@ -1,7 +1,6 @@
 package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.contrib.jackson.JacksonJsonFormatter;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
@@ -139,12 +138,7 @@ public class HhMultiAppender extends AppenderBase {
 
     private static StructuredJsonLayout createJsonLayout() {
       var jsonLayout = new StructuredJsonLayout();
-      jsonLayout.setTimestampFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ");
-      jsonLayout.setAppendLineSeparator(true);
       jsonLayout.setIncludeContextName(false);
-      JacksonJsonFormatter formatter = new JacksonJsonFormatter();
-      formatter.setPrettyPrint(false);
-      jsonLayout.setJsonFormatter(formatter);
       return jsonLayout;
     }
   }

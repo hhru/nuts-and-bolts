@@ -39,18 +39,19 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   }
 
   @Override
-  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings settings) {
-    Properties properties = settings.getProperties();
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+    Properties properties = dataSourceSettings.getProperties();
 
     final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
             "port", getEmbeddedPostgres().getPort(),
             "host", "localhost",
             "user", DEFAULT_USER
     ));
-    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(settings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
+    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
     properties.setProperty(JDBC_URL, jdbcUrl);
     properties.setProperty(USER, DEFAULT_USER);
     properties.setProperty(PASSWORD, "");
+
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
   }
 

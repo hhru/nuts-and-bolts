@@ -43,8 +43,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
     HhMultiAppender requests = createAppender(context, "requests", () -> {
       var multiAppender = new HhMultiAppender(true);
-      StructuredRequestJsonLayout layout = new StructuredRequestJsonLayout();
-      multiAppender.setLayout(layout);
+      multiAppender.setLayout(new StructuredRequestJsonLayout());
       return multiAppender;
     });
 

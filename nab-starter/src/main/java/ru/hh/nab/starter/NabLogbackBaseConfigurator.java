@@ -35,6 +35,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
       var sentryAppender = new SentryAppender();
       var filter = new ThresholdFilter();
       filter.setLevel(context.getProperty("sentry.level", Level.ERROR.toString()));
+      filter.start();
       sentryAppender.addFilter(filter);
       return sentryAppender;
     });

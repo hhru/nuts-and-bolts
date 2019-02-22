@@ -30,12 +30,30 @@ public class DataSourceFactory {
     return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
   }
 
-  public DataSource create(HikariConfig hikariConfig, FileSettings monitoringSettings) {
-    boolean sendStats = ofNullable(monitoringSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
+  public DataSource create(HikariConfig hikariConfig, FileSettings dataSourceSettings) {
+    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
     if (sendStats && metricsTrackerFactoryProvider != null) {
-      hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(monitoringSettings));
+      hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
     }
-    return new HikariDataSource(hikariConfig);
+
+    DataSource hikariDataSource = new HikariDataSource(hikariConfig);
+
+    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
+    if (statementTimeoutMsVal != null) {
+      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
+      if (statementTimeoutMs > 0) {
+        hikariDataSource = new StatementTimeoutDataSource(hikariDataSource, statementTimeoutMs);
+      }
+    }
+
+    checkDataSource(hikariDataSource, hikariConfig.getPoolName());
+
+    return hikariDataSource;
+  }
+
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
+    return create(hikariConfig, dataSourceSettings);
   }
 
   private static HikariConfig createBaseHikariConfig(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
@@ -56,23 +74,6 @@ public class DataSourceFactory {
     config.setReadOnly(isReadonly);
     config.setValidationTimeout(config.getConnectionTimeout() + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS);
     return config;
-  }
-
-  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
-    DataSource underlyingDataSource = create(hikariConfig, dataSourceSettings);
-
-    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
-    if (statementTimeoutMsVal != null) {
-      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
-      if (statementTimeoutMs > 0) {
-        underlyingDataSource = new StatementTimeoutDataSource(underlyingDataSource, statementTimeoutMs);
-      }
-    }
-
-    checkDataSource(underlyingDataSource, dataSourceName);
-
-    return underlyingDataSource;
   }
 
   private static void checkDataSource(DataSource dataSource, String dataSourceName) {

@@ -22,24 +22,24 @@ public class MonitoredThreadPoolExecutor implements Executor {
 
   private final ThreadPoolExecutor delegate;
   private final String threadPoolName;
-  private final Max poolSizeMax = new Max(0);
-  private final Max activeCountMax = new Max(0);
-  private final Max queueSizeMax = new Max(0);
+  private final Max poolSize = new Max(0);
+  private final Max activeCount = new Max(0);
+  private final Max queueSize = new Max(0);
 
   public MonitoredThreadPoolExecutor(String threadPoolName, String serviceName, FileSettings threadPoolSettings, StatsDSender statsDSender) {
     this.threadPoolName = threadPoolName;
     this.delegate = createThreadPoolExecutor(threadPoolSettings);
 
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "size"), poolSizeMax);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "activeCount"), activeCountMax);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "queueSize"), queueSizeMax);
+    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "size"), poolSize);
+    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "activeCount"), activeCount);
+    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "queueSize"), queueSize);
   }
 
   @Override
   public void execute(Runnable command) {
-    poolSizeMax.save(delegate.getPoolSize());
-    activeCountMax.save(delegate.getActiveCount());
-    queueSizeMax.save(delegate.getQueue().size());
+    poolSize.save(delegate.getPoolSize());
+    activeCount.save(delegate.getActiveCount());
+    queueSize.save(delegate.getQueue().size());
 
     delegate.execute(command);
   }

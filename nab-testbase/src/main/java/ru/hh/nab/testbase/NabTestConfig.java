@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.NabCommonConfig;
 
@@ -30,8 +31,8 @@ public class NabTestConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ThreadPool jettyThreadPool(FileSettings fileSettings) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings("jetty"));
+  ThreadPool jettyThreadPool(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) throws Exception {
+    return createJettyThreadPool(fileSettings.getSubSettings("jetty"), serviceName, statsDSender);
   }
 
   @Bean

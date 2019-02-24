@@ -4,7 +4,6 @@ import static java.util.Optional.ofNullable;
 
 import javax.servlet.ServletContext;
 
-import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 
-import java.lang.management.ManagementFactory;
 import java.util.Optional;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
@@ -35,7 +33,6 @@ public final class JettyServer {
 
     server = new Server(threadPool);
     configureConnector();
-    configureMBeanContainer();
     configureRequestLogger();
     configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
@@ -89,12 +86,6 @@ public final class JettyServer {
     serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 
     server.addConnector(serverConnector);
-  }
-
-  private void configureMBeanContainer() {
-    final MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
-    server.addEventListener(mbContainer);
-    server.addBean(mbContainer);
   }
 
   private void configureRequestLogger() {

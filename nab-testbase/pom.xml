@@ -29,7 +29,7 @@
         <dependency>
             <groupId>com.opentable.components</groupId>
             <artifactId>otj-pg-embedded</artifactId>
-            <version>0.13.0</version>
+            <version>0.13.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.postgresql</groupId>

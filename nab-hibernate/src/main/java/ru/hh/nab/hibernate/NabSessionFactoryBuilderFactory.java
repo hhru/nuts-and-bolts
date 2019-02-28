@@ -39,13 +39,13 @@ public final class NabSessionFactoryBuilderFactory implements SessionFactoryBuil
   }
 
   public static class BuilderService implements Service {
-    SessionFactoryBuilder createSessionFactoryBuilder(MetadataImplementor metadata) {
+    protected SessionFactoryBuilder createSessionFactoryBuilder(MetadataImplementor metadata) {
       return new HhSessionFactoryBuilder(metadata);
     }
   }
 
-  static class HhSessionFactoryBuilder extends SessionFactoryBuilderImpl {
-    HhSessionFactoryBuilder(MetadataImplementor metadata) {
+  public static class HhSessionFactoryBuilder extends SessionFactoryBuilderImpl {
+    protected HhSessionFactoryBuilder(MetadataImplementor metadata) {
       super(metadata);
     }
 

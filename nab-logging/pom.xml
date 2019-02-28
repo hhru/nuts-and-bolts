@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <groupId>ru.hh.nab</groupId>
@@ -12,6 +13,14 @@
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts logging</name>
+
+    <repositories>
+        <repository>
+            <id>jetbrains</id>
+            <name>repository.jetbrains.com-releases</name>
+            <url>http://repository.jetbrains.com/utils</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -56,6 +65,12 @@
             <groupId>com.papertrailapp</groupId>
             <artifactId>logback-syslog4j</artifactId>
             <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.syslog4j</groupId>
+                    <artifactId>syslog4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback.contrib</groupId>
@@ -83,6 +98,10 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>syslog4j</artifactId>
         </dependency>
     </dependencies>
 </project>

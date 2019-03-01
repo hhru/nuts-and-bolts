@@ -1,4 +1,7 @@
-[![Build Status](https://travis-ci.org/hhru/nuts-and-bolts.svg?branch=master)](https://travis-ci.org/hhru/nuts-and-bolts) [![codecov](https://codecov.io/gh/hhru/nuts-and-bolts/branch/master/graph/badge.svg)](https://codecov.io/gh/hhru/nuts-and-bolts)
+[![Build Status](https://travis-ci.org/hhru/nuts-and-bolts.svg?branch=master)](https://travis-ci.org/hhru/nuts-and-bolts) 
+[![codecov](https://codecov.io/gh/hhru/nuts-and-bolts/branch/master/graph/badge.svg)](https://codecov.io/gh/hhru/nuts-and-bolts)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ru.hh.nab%3Anuts-and-bolts-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=ru.hh.nab%3Anuts-and-bolts-parent)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ru.hh.nab%3Anuts-and-bolts-parent&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=ru.hh.nab%3Anuts-and-bolts-parent)
 
 # Nuts-and-Bolts
 

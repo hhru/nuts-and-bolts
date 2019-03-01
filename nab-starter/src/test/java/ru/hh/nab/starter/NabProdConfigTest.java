@@ -16,8 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.jmx.export.MBeanExporter;
-import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
@@ -58,8 +56,6 @@ public class NabProdConfigTest {
     assertNotNull(context.getBean(StatsDClient.class));
     assertNotNull(context.getBean(StatsDSender.class));
     assertNotNull(context.getBean("cacheFilter", FilterHolder.class));
-    assertNotNull(context.getBean(MBeanServerFactoryBean.class));
-    assertNotNull(context.getBean(MBeanExporter.class));
     assertNotNull(context.getBean("jettyThreadPool", ThreadPool.class));
     assertNotNull(context.getBean(ScheduledExecutorService.class));
     assertNotNull(context.getBean(AppMetadata.class));

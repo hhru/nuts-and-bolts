@@ -6,16 +6,12 @@ import static java.util.Optional.ofNullable;
 
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
-import javax.management.MBeanServer;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.jmx.export.MBeanExporter;
-import org.springframework.jmx.support.MBeanServerFactoryBean;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
-import ru.hh.nab.starter.jmx.MBeanExporterFactory;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
@@ -46,17 +42,5 @@ public class NabProdConfig {
                            StatsDClient statsDClient,
                            ScheduledExecutorService scheduledExecutorService) {
     return createCacheFilterHolder(fileSettings, serviceName, statsDClient, scheduledExecutorService);
-  }
-
-  @Bean
-  MBeanServerFactoryBean mBeanServerFactoryBean() {
-    MBeanServerFactoryBean mBeanServerFactoryBean = new MBeanServerFactoryBean();
-    mBeanServerFactoryBean.setLocateExistingServerIfPossible(true);
-    return mBeanServerFactoryBean;
-  }
-
-  @Bean
-  MBeanExporter mBeanExporter(FileSettings settings, MBeanServer mbeanServer) {
-    return MBeanExporterFactory.create(settings, mbeanServer);
   }
 }

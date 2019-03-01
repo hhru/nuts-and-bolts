@@ -6,7 +6,6 @@ import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.timgroup.statsd.StatsDClient;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +13,8 @@ import org.springframework.core.io.ClassPathResource;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
+
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 
 @Configuration
@@ -27,8 +28,8 @@ public class NabCommonConfig {
   }
 
   @Bean
-  ThreadPool jettyThreadPool(FileSettings fileSettings) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings("jetty"));
+  MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) throws Exception {
+    return createJettyThreadPool(fileSettings.getSubSettings("jetty"), serviceName, statsDSender);
   }
 
   @Bean

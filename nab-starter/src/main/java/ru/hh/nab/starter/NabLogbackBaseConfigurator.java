@@ -8,7 +8,8 @@ import java.util.Properties;
 import org.slf4j.event.Level;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
-import ru.hh.nab.starter.server.logging.StructuredRequestJsonLayout;
+import ru.hh.nab.logging.layout.NabTSOnlyJsonEncoder;
+import ru.hh.nab.logging.layout.NabTSOnlyJsonLayout;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
@@ -44,7 +45,8 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
     HhMultiAppender requests = createAppender(context, "requests", () -> {
       var multiAppender = new HhMultiAppender(true);
-      multiAppender.setLayout(new StructuredRequestJsonLayout());
+      multiAppender.setLayoutSupplier(NabTSOnlyJsonLayout::new);
+      multiAppender.setEncoderSupplier(NabTSOnlyJsonEncoder::new);
       return multiAppender;
     });
 

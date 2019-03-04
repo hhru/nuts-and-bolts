@@ -1,21 +1,24 @@
 package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.Layout;
+import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.LifeCycle;
-import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.apache.commons.lang3.StringUtils;
-import ru.hh.nab.logging.layout.StructuredJsonLayout;
+import ru.hh.nab.logging.layout.NabJsonEncoder;
+import ru.hh.nab.logging.layout.NabJsonLayout;
 import static java.util.Optional.ofNullable;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class HhMultiAppender extends AppenderBase {
+public class HhMultiAppender extends AppenderBase<ILoggingEvent> {
 
   public HhMultiAppender() {
   }
@@ -27,8 +30,9 @@ public class HhMultiAppender extends AppenderBase {
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
-  protected Appender appender;
-  protected Layout<?> layout;
+  protected Appender<ILoggingEvent> appender;
+  protected Supplier<Layout<ILoggingEvent>> layoutSupplier;
+  protected Supplier<Encoder<ILoggingEvent>> encoderSupplier;
   protected String pattern;
   protected boolean json;
 
@@ -39,17 +43,21 @@ public class HhMultiAppender extends AppenderBase {
   }
 
   @Override
-  public void doAppend(Object eventObject) {
+  public void doAppend(ILoggingEvent eventObject) {
     appender.doAppend(eventObject);
   }
 
   @Override
-  protected void append(Object eventObject) {
+  protected void append(ILoggingEvent eventObject) {
     throw new UnsupportedOperationException("method should never be called");
   }
 
-  public void setLayout(Layout layout) {
-    this.layout = layout;
+  public void setLayoutSupplier(Supplier<Layout<ILoggingEvent>> layoutSupplier) {
+    this.layoutSupplier = layoutSupplier;
+  }
+
+  public void setEncoderSupplier(Supplier<Encoder<ILoggingEvent>> encoderSupplier) {
+    this.encoderSupplier = encoderSupplier;
   }
 
   public void setPattern(String pattern) {
@@ -60,16 +68,13 @@ public class HhMultiAppender extends AppenderBase {
     this.json = json;
   }
 
-  protected AppenderConfigurer createAppender() {
+  protected AppenderConfigurer<?> createAppender() {
     boolean logToConsole = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
     if (logToConsole) {
-      return new AppenderConfigurer<>(new ConsoleAppender<>(), this) {
+      return new AppenderConfigurer<>(new ConsoleAppender<ILoggingEvent>(), this) {
         @Override
-        protected void setLayout(ConsoleAppender<Object> appender, Layout<?> layout) {
-          var encoder = new LayoutWrappingEncoder();
-          encoder.setLayout(layout);
-          initIfNeeded(encoder, context);
-          appender.setEncoder(encoder);
+        protected void configure(ConsoleAppender<ILoggingEvent> appender) {
+          appender.setEncoder(buildEncoder());
         }
       };
     }
@@ -79,24 +84,21 @@ public class HhMultiAppender extends AppenderBase {
     if (StringUtils.isNotEmpty(host) && StringUtils.isNumeric(port)) {
       return new AppenderConfigurer<>(new HhSyslogAppender(), this) {
         @Override
-        protected void setLayout(HhSyslogAppender appender, Layout<?> layout) {
-          appender.setLayout(layout);
+        protected void configure(HhSyslogAppender appender) {
+          appender.setLayout(buildLayout());
         }
       };
     }
 
     return new AppenderConfigurer<>(new HhRollingAppender(), this) {
       @Override
-      protected void setLayout(HhRollingAppender appender, Layout<?> layout) {
-        var encoder = new LayoutWrappingEncoder();
-        encoder.setLayout(layout);
-        initIfNeeded(encoder, context);
-        appender.setEncoder(encoder);
+      protected void configure(HhRollingAppender appender) {
+        appender.setEncoder(buildEncoder());
       }
     };
   }
 
-  private abstract static class AppenderConfigurer<T extends Appender<?>> {
+  private abstract static class AppenderConfigurer<T extends Appender<ILoggingEvent>> {
     private final T appender;
     private final HhMultiAppender optionsHolder;
 
@@ -105,25 +107,40 @@ public class HhMultiAppender extends AppenderBase {
       this.optionsHolder = optionsHolder;
     }
 
-    public Appender configureAndGet() {
+    protected Appender<ILoggingEvent> configureAndGet() {
       appender.setName(optionsHolder.getName());
-      setLayout(appender, buildLayout(optionsHolder));
+      configure(appender);
       initIfNeeded(appender, optionsHolder.getContext());
       return appender;
     }
 
-    protected abstract void setLayout(T appender, Layout<?> layout);
+    protected abstract void configure(T appender);
 
-    private static Layout<?> buildLayout(HhMultiAppender optionsHolder) {
-      Layout<?> layout = Optional.<Layout<?>>ofNullable(optionsHolder.layout).orElseGet(() -> {
-        if (optionsHolder.json) {
-          return createJsonLayout();
-        } else {
-          return createPatternLayout(optionsHolder);
-        }
-      });
+    protected Layout<ILoggingEvent> buildLayout() {
+      Layout<ILoggingEvent> layout;
+      if (optionsHolder.layoutSupplier != null) {
+        layout = optionsHolder.layoutSupplier.get();
+      } else if (optionsHolder.json) {
+        layout = new NabJsonLayout();
+      } else {
+        layout = createPatternLayout(optionsHolder);
+      }
       initIfNeeded(layout, optionsHolder.getContext());
       return layout;
+    }
+
+    protected Encoder<ILoggingEvent> buildEncoder() {
+      Encoder<ILoggingEvent> encoder;
+      if (optionsHolder.encoderSupplier != null) {
+        encoder = optionsHolder.encoderSupplier.get();
+      } else if (optionsHolder.json) {
+        encoder = new NabJsonEncoder();
+      } else {
+        encoder = new LayoutWrappingEncoder<>();
+        ((LayoutWrappingEncoder<ILoggingEvent>) encoder).setLayout(buildLayout());
+      }
+      initIfNeeded(encoder, optionsHolder.getContext());
+      return encoder;
     }
 
     private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder) {
@@ -135,15 +152,9 @@ public class HhMultiAppender extends AppenderBase {
         //need to throw Error because logback logs and ignores any Exception type
         }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
-
-    private static StructuredJsonLayout createJsonLayout() {
-      var jsonLayout = new StructuredJsonLayout();
-      jsonLayout.setIncludeContextName(false);
-      return jsonLayout;
-    }
   }
 
-  private static <T extends LifeCycle&ContextAware> void initIfNeeded(T configItem, Context context) {
+  private static <T extends LifeCycle & ContextAware> void initIfNeeded(T configItem, Context context) {
     if (configItem.getContext() == null) {
       configItem.setContext(context);
     }

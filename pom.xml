@@ -23,6 +23,7 @@
         <module>nab-testbase</module>
         <module>nab-tests</module>
         <module>nab-logging</module>
+        <module>nab-jclient</module>
     </modules>
 
     <properties>
@@ -35,6 +36,7 @@
         <jackson.version>2.9.8</jackson.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
+        <jclient.version>1.0.0</jclient.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
     </properties>

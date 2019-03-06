@@ -14,8 +14,8 @@ import ch.qos.logback.core.spi.LifeCycle;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
-import ru.hh.nab.logging.layout.NabJsonEncoder;
-import ru.hh.nab.logging.layout.NabJsonLayout;
+import ru.hh.nab.logging.json.NabJsonEncoder;
+import ru.hh.nab.logging.json.NabJsonLayout;
 import static java.util.Optional.ofNullable;
 
 public class HhMultiAppender extends AppenderBase<ILoggingEvent> {

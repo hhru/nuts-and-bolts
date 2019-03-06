@@ -8,8 +8,8 @@ import java.util.Properties;
 import org.slf4j.event.Level;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
-import ru.hh.nab.logging.layout.NabTSOnlyJsonEncoder;
-import ru.hh.nab.logging.layout.NabTSOnlyJsonLayout;
+import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
+import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {

@@ -1,4 +1,4 @@
-package ru.hh.nab.logging.layout;
+package ru.hh.nab.logging.json;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.LoggingEvent;
@@ -17,10 +17,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static ru.hh.nab.logging.layout.LogstashFields.LEVEL;
-import static ru.hh.nab.logging.layout.LogstashFields.LOGGER;
-import static ru.hh.nab.logging.layout.LogstashFields.MDC;
-import static ru.hh.nab.logging.layout.LogstashFields.MESSAGE;
+import static ru.hh.nab.logging.json.JsonFieldNames.LEVEL;
+import static ru.hh.nab.logging.json.JsonFieldNames.LOGGER;
+import static ru.hh.nab.logging.json.JsonFieldNames.MDC;
+import static ru.hh.nab.logging.json.JsonFieldNames.MESSAGE;
 
 public class NabJsonLayoutTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();

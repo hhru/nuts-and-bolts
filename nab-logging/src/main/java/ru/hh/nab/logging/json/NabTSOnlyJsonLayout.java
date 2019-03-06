@@ -1,16 +1,15 @@
-package ru.hh.nab.logging.layout;
+package ru.hh.nab.logging.json;
 
 import net.logstash.logback.layout.LogstashLayout;
 
-import static ru.hh.nab.logging.layout.LogstashFields.DEFAULT_TIMESTAMP_FORMAT;
-import static ru.hh.nab.logging.layout.LogstashFields.FIELD_NAMES_TS_ONLY;
+import static ru.hh.nab.logging.json.JsonFieldNames.DEFAULT_TIMESTAMP_FORMAT;
 
 public class NabTSOnlyJsonLayout extends LogstashLayout {
 
   public NabTSOnlyJsonLayout() {
     super();
 
-    setFieldNames(FIELD_NAMES_TS_ONLY);
+    setFieldNames(LogstashFields.DEFAULT.getFieldNames());
     setIncludeMdc(false);
     setIncludeContext(false);
     setIncludeCallerData(false);

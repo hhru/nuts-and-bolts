@@ -8,7 +8,7 @@ import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.junit.Test;
-import ru.hh.nab.logging.layout.NabJsonLayout;
+import ru.hh.nab.logging.json.NabJsonLayout;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;

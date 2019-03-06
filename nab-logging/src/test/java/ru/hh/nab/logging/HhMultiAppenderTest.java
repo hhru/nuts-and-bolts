@@ -8,7 +8,7 @@ import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.junit.Test;
-import ru.hh.nab.logging.layout.StructuredJsonLayout;
+import ru.hh.nab.logging.json.NabJsonLayout;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -98,7 +98,7 @@ public class HhMultiAppenderTest {
   }
 
   @Test(expected = AssertionError.class)
-  public void testIfNoPatternAvailableExceptionIsThrown() throws Exception {
+  public void testIfNoPatternAvailableExceptionIsThrown() {
     LoggerContext context = new LoggerContext();
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.start();
@@ -116,7 +116,7 @@ public class HhMultiAppenderTest {
     multiAppender.start();
     checkIfAppenderProperlyConfigured(multiAppender.appender);
     ThrowableSupplier layoutSupplier = createLayoutSupplier(multiAppender.appender);
-    assertThat(layoutSupplier.get(), is(instanceOf(StructuredJsonLayout.class)));
+    assertThat(layoutSupplier.get(), is(instanceOf(NabJsonLayout.class)));
   }
 
   private static void checkIfAppenderProperlyConfigured(Appender<?> appender) {

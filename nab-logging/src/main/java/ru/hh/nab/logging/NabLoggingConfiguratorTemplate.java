@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import ch.qos.logback.core.status.OnConsoleStatusListener;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
@@ -33,9 +35,13 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   };
 
   @Override
-  public final void configure(LoggerContext lc) {
+  public final void configure(LoggerContext context) {
+    var statusListener = new OnConsoleStatusListener();
+    statusListener.start();
+    context.getStatusManager().add(statusListener);
+
     Properties properties = createLoggingProperties();
-    configure(new LoggingContextWrapper(lc, properties));
+    configure(new LoggingContextWrapper(context, properties));
     appenderNames = null;
   }
 

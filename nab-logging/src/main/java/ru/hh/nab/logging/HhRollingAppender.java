@@ -68,7 +68,6 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
   private Integer rollMinute;
 
   private Boolean compress;
-  private Boolean immediateFlush;
   private Boolean collectPackagingInfo;
 
   private String fileNamePattern = "%d{yyyy-MM-dd}";
@@ -124,15 +123,6 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
 
   public void setCompress(boolean compress) {
     this.compress = compress;
-  }
-
-  public Boolean getImmediateFlush() {
-    return immediateFlush;
-  }
-
-  @Override
-  public void setImmediateFlush(boolean immediateFlush) {
-    this.immediateFlush = immediateFlush;
   }
 
   public Boolean getCollectPackagingInfo() {
@@ -193,7 +183,9 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
     rollHour = calcParameter(rollHour, "log.roll.hour", DEFAULT_ROLL_HOUR);
     rollMinute = calcParameter(rollMinute, "log.roll.minute", DEFAULT_ROLL_MINUTE);
     compress = calcParameter(compress, "log.roll.compress", DEFAULT_COMPRESS);
-    immediateFlush = calcParameter(immediateFlush, "log.immediate.flush", DEFAULT_IMMEDIATE_FLUSH);
+
+    boolean immediateFlush = calcParameter(null, "log.immediate.flush", DEFAULT_IMMEDIATE_FLUSH);
+    setImmediateFlush(immediateFlush);
 
     final String propPattern = context.getProperty("log.pattern");
     final String propPackagingInfo = context.getProperty("log.collect.packaging.info");
@@ -293,10 +285,6 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
       encoder.setLayout(layout);
       setEncoder(encoder);
       encoder.start();
-    }
-
-    if (encoder instanceof LayoutWrappingEncoder) {
-      ((LayoutWrappingEncoder<?>)encoder).setImmediateFlush(immediateFlush);
     }
 
     if (collectPackagingInfo != null) {

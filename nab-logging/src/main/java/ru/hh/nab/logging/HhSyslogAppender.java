@@ -1,6 +1,7 @@
 package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Layout;
 import com.papertrailapp.logback.Syslog4jAppender;
 import java.util.Optional;
@@ -8,7 +9,7 @@ import org.productivity.java.syslog4j.SyslogConstants;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import static ru.hh.nab.logging.HhMultiAppender.LOG_PATTERN_PROPERTY_KEY;
 
-public class HhSyslogAppender extends Syslog4jAppender {
+public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
 
   private static final int DEFAULT_MSG_LENGTH = 60000;
   public static final String SYSLOG_PORT_PROPERTY_KEY = "log.syslogPort";
@@ -18,7 +19,7 @@ public class HhSyslogAppender extends Syslog4jAppender {
   @Override
   public void start() {
     if (getLayout() == null) {
-      Layout<?> defaultLayout = buildDefaultLayout();
+      Layout<ILoggingEvent> defaultLayout = buildDefaultLayout();
       setLayout(defaultLayout);
       getLayout().start();
     }
@@ -42,7 +43,7 @@ public class HhSyslogAppender extends Syslog4jAppender {
     super.start();
   }
 
-  protected Layout<?> buildDefaultLayout() {
+  protected Layout<ILoggingEvent> buildDefaultLayout() {
     PatternLayout patternLayout = new PatternLayout();
     patternLayout.setContext(context);
     patternLayout.setPattern(context.getProperty(LOG_PATTERN_PROPERTY_KEY));

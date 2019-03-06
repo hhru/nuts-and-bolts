@@ -138,7 +138,7 @@
             <properties>
                 <sonar.host.url>https://sonarcloud.io</sonar.host.url>
                 <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-                <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+                <sonar.projectKey>hhru:${project.artifactId}</sonar.projectKey>
                 <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
                 <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
                 <sonar.junit.reportPaths>${project.build.directory}/surefire-reports</sonar.junit.reportPaths>
@@ -199,6 +199,7 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
+        <url>https://github.com/hhru/nuts-and-bolts</url>
         <tag>HEAD</tag>
     </scm>
 </project>

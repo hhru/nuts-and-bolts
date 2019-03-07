@@ -14,7 +14,7 @@ Nuts-and-Bolts is a small Java application framework which is used at [hh.ru](ht
 * minor version part - changes require a few lines of additional code to make it work
 * micro version part - changes do not require additional code to make it work
 
-update 4.17.1 -> 4.17.3 - should not require any additional code
+update 4.17.1 -> 4.17.3 - should not require any additional code  
 update 4.17.10 -> 4.18.0 - should require some additional code
 > Absence of the code required for new mior version may not break an application compeletely. But it may cause partial degradation. Please, pay attention to check the app is working properly on such updates
 ## Main features

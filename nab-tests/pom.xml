@@ -44,6 +44,11 @@
             <artifactId>nab-testbase</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-jclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
@@ -54,6 +59,12 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-common-testbase</artifactId>
+            <version>${jclient.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -19,14 +19,14 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   }
 
   @Override
-  public Response toResponse(Exception exception) {
+  public Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
     Throwable cause = ExceptionUtils.getRootCause(exception);
 
     if (exception instanceof SQLTransientConnectionException || cause instanceof SQLTransientConnectionException) {
-      statusCode = SERVICE_UNAVAILABLE;
+      status = SERVICE_UNAVAILABLE;
       loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }
 
-    return super.toResponse(exception);
+    return super.toResponseInternal(status, loggingLevel, exception);
   }
 }

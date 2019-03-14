@@ -26,8 +26,8 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(NabExceptionMapper.class);
 
-  protected Response.StatusType statusCode;
-  protected LoggingLevel loggingLevel;
+  protected final Response.StatusType defaultStatus;
+  protected final LoggingLevel defaultLoggingLevel;
 
   @Context
   protected HttpServletRequest request;
@@ -44,15 +44,19 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
     INFO_WITHOUT_STACK_TRACE
   }
 
-  public NabExceptionMapper(Response.StatusType status, LoggingLevel loggingLevel) {
-    this.statusCode = status;
-    this.loggingLevel = loggingLevel;
+  public NabExceptionMapper(Response.StatusType defaultStatus, LoggingLevel defaultLoggingLevel) {
+    this.defaultStatus = defaultStatus;
+    this.defaultLoggingLevel = defaultLoggingLevel;
   }
 
   @Override
   public Response toResponse(T exception) {
+    return toResponseInternal(defaultStatus, defaultLoggingLevel, exception);
+  }
+
+  protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, T exception) {
     logException(exception, loggingLevel);
-    return serializeException(statusCode, exception);
+    return serializeException(status, exception);
   }
 
   void logException(T exception, LoggingLevel loggingLevel) {

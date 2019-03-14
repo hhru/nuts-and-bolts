@@ -58,6 +58,14 @@ public class NabExceptionMappersTest extends NabTestBase {
     assertEquals(UNAUTHORIZED.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
 
+    response = executeGet("/connectionTimeout");
+
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+
+    response = executeGet("/connectionTimeoutWrapped");
+
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+
     response = executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
@@ -68,14 +76,6 @@ public class NabExceptionMappersTest extends NabTestBase {
 
     assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
-
-    response = executeGet("/connectionTimeout");
-
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
-
-    response = executeGet("/connectionTimeoutWrapped");
-
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
 
   @Path("/")

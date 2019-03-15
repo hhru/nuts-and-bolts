@@ -170,7 +170,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       return Optional.ofNullable(context.getProperty(key)).orElse(defaultValue);
     }
 
-    public <T> T getValueFromProperty(String key, T defaultValue, Function<String, T> mapper) {
+    public <T> T getProperty(String key, T defaultValue, Function<String, T> mapper) {
       return Optional.ofNullable(context.getProperty(key)).map(mapper).orElse(defaultValue);
     }
 

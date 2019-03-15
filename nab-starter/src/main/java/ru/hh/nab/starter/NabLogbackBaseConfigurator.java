@@ -64,7 +64,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
 
     var rootLogger = getRootLogger(context);
-    rootLogger.setLevel(context.getValueFromProperty("log.root.level", Level.WARN, level -> Level.valueOf(level.toUpperCase())));
+    rootLogger.setLevel(context.getProperty("log.root.level", Level.WARN, level -> Level.valueOf(level.toUpperCase())));
     rootLogger.addAppenders(service, sentry);
     configure(context, service, libraries, sentry);
   }

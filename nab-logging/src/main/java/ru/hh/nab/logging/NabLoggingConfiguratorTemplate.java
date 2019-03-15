@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,9 +40,12 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     var statusListener = new OnConsoleStatusListener();
     statusListener.start();
     context.getStatusManager().add(statusListener);
-
-    Properties properties = createLoggingProperties();
-    configure(new LoggingContextWrapper(context, properties));
+    try {
+      Properties properties = createLoggingProperties();
+      configure(new LoggingContextWrapper(context, properties));
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    }
     appenderNames = null;
   }
 
@@ -164,6 +168,10 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
     public String getProperty(String key, String defaultValue) {
       return Optional.ofNullable(context.getProperty(key)).orElse(defaultValue);
+    }
+
+    public <T> T getValueFromProperty(String key, T defaultValue, Function<String, T> mapper) {
+      return Optional.ofNullable(context.getProperty(key)).map(mapper).orElse(defaultValue);
     }
 
     public void log(String msg) {

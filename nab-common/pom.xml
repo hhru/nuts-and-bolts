@@ -33,11 +33,15 @@
             <version>3.0.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-logging</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <!--Monitoring-->
@@ -49,6 +53,12 @@
         </dependency>
 
         <!--Testing-->
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-logging</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

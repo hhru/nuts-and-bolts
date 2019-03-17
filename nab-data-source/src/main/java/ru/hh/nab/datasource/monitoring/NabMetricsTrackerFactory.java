@@ -5,14 +5,14 @@ import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import com.zaxxer.hikari.metrics.PoolStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.metrics.Counters;
-import ru.hh.metrics.Histogram;
-import ru.hh.metrics.StatsDSender;
-import ru.hh.metrics.Tag;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
 import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
+import ru.hh.nab.metrics.Counters;
+import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;

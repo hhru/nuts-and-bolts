@@ -24,6 +24,7 @@
         <module>nab-tests</module>
         <module>nab-logging</module>
         <module>nab-jclient</module>
+        <module>nab-metrics</module>
     </modules>
 
     <properties>

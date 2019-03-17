@@ -10,9 +10,9 @@ import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;

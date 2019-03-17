@@ -7,8 +7,8 @@ import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 
 public final class JettyServerFactory {

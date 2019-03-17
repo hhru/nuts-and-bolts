@@ -1,8 +1,8 @@
 package ru.hh.nab.common.executor;
 
 import org.junit.Test;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
 
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;

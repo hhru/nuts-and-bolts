@@ -24,6 +24,11 @@
             <artifactId>nab-logging</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>javax.inject</groupId>
@@ -169,13 +174,6 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
             <version>2.3.2</version>
-        </dependency>
-
-        <!--Monitoring-->
-        <dependency>
-            <groupId>ru.hh.metrics</groupId>
-            <artifactId>hh-metrics</artifactId>
-            <version>${hhmetrics.version}</version>
         </dependency>
 
         <!--cache-->

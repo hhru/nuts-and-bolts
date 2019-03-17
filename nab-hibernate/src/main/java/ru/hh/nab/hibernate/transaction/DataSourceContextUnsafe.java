@@ -1,7 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
 import static java.util.Optional.ofNullable;
-import javax.annotation.Nonnull;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.common.mdc.MDC;
 
@@ -44,7 +43,6 @@ public final class DataSourceContextUnsafe {
     }
   }
 
-  @Nonnull
   public static String getDataSourceKey() {
     return ofNullable(currentDataSourceKey.get()).orElse(DataSourceType.MASTER);
   }

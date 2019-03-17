@@ -1,8 +1,8 @@
 package ru.hh.nab.datasource.monitoring;
 
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
+import ru.hh.nab.metrics.StatsDSender;
 
 public class MetricsTrackerFactoryProvider extends AbstractMetricsTrackerFactoryProvider<NabMetricsTrackerFactory> {
   private final String serviceName;

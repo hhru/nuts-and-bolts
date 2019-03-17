@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.server.jetty;
 
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import ru.hh.metrics.Max;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.nab.metrics.Max;
+import ru.hh.nab.metrics.StatsDSender;
 
 import java.util.concurrent.BlockingQueue;
 

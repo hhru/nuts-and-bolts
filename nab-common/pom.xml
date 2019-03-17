@@ -28,12 +28,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
@@ -46,9 +40,9 @@
 
         <!--Monitoring-->
         <dependency>
-            <groupId>ru.hh.metrics</groupId>
-            <artifactId>hh-metrics</artifactId>
-            <version>${hhmetrics.version}</version>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
+            <version>${project.version}</version>
             <optional>true</optional>
         </dependency>
 

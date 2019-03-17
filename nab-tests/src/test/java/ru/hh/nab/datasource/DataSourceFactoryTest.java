@@ -20,11 +20,11 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import ru.hh.metrics.Histogram;
-import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
+import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;

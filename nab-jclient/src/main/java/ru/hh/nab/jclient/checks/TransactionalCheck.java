@@ -24,7 +24,7 @@ public class TransactionalCheck implements HttpClientEventListener {
           throw new TransactionalCheckException();
         } catch (RuntimeException e) {
           if (action == Action.LOG) {
-            LOGGER.error("logging executeRequest in transaction", e);
+            LOGGER.warn("logging executeRequest in transaction", e);
           } else if (action == Action.RAISE) {
             throw e;
           }

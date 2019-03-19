@@ -110,7 +110,7 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
           "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
           poolName, longConnectionUsageMs, connectionUsageMs
         );
-        LOGGER.warn(message, new RuntimeException(poolName + " connection usage duration exceeded"));
+        LOGGER.error(message, new RuntimeException(poolName + " connection usage duration exceeded"));
       }
 
       Tag controllerTag = new Tag("controller", MDC.getController().orElse("unknown"));

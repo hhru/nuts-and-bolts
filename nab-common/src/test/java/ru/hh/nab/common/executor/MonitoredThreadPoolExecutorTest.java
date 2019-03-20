@@ -21,7 +21,7 @@ public class MonitoredThreadPoolExecutorTest {
     properties.setProperty("maxSize", "4");
     properties.setProperty("queueSize", "4");
 
-    var tpe = new MonitoredThreadPoolExecutor("test", "test", new FileSettings(properties), mock(StatsDSender.class));
+    var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
 
     tpe.execute(TASK);
     tpe.execute(TASK);

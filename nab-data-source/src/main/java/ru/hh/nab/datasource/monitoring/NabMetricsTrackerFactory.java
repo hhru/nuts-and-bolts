@@ -71,9 +71,9 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       usageCounters = new Counters(500);
       timeoutCounters = new Counters(500);
 
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, CREATION_MS), creationHistogram, 50, 99, 100);
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, ACQUISITION_MS), acquisitionHistogram, 50, 99, 100);
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, USAGE_MS), usageHistogram, 50, 99, 100);
+      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, CREATION_MS), creationHistogram, 95, 99, 100);
+      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, ACQUISITION_MS), acquisitionHistogram, 95, 99, 100);
+      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, USAGE_MS), usageHistogram, 95, 99, 100);
       statsDSender.sendCountersPeriodically(getMetricName(poolName, TOTAL_USAGE_MS), usageCounters);
       statsDSender.sendCountersPeriodically(getMetricName(poolName, CONNECTION_TIMEOUTS), timeoutCounters);
 

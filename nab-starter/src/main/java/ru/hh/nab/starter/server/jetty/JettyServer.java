@@ -76,8 +76,8 @@ public final class JettyServer {
   private void configureConnector() {
     ServerConnector serverConnector = new HHServerConnector(
       server,
-      ofNullable(jettySettings.getInteger("acceptors")).orElse(1),
-      ofNullable(jettySettings.getInteger("selectors")).orElse(1),
+      ofNullable(jettySettings.getInteger("acceptors")).orElse(-1),
+      ofNullable(jettySettings.getInteger("selectors")).orElse(-1),
       createHttpConnectionFactory());
 
     serverConnector.setHost(jettySettings.getString("host"));

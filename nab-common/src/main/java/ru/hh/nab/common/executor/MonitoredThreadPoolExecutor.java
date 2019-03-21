@@ -61,9 +61,9 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   }
 
   public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName) {
-    int coreThreads = ofNullable(threadPoolSettings.getInteger("minSize")).orElse(8);
+    int coreThreads = ofNullable(threadPoolSettings.getInteger("minSize")).orElse(4);
     int maxThreads = ofNullable(threadPoolSettings.getInteger("maxSize")).orElse(16);
-    int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(16);
+    int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(maxThreads);
     int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger("keepAliveTimeSec")).orElse(60);
     Integer longTaskDurationMs = ofNullable(threadPoolSettings.getInteger("longTaskDurationMs")).orElse(null);
 

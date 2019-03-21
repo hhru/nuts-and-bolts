@@ -19,7 +19,6 @@ public class MonitoredThreadPoolExecutorTest {
     var properties = new Properties();
     properties.setProperty("minSize", "4");
     properties.setProperty("maxSize", "4");
-    properties.setProperty("queueSize", "4");
 
     var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
 
@@ -38,14 +37,13 @@ public class MonitoredThreadPoolExecutorTest {
     }
 
     assertTrue(rejected);
-    latch.countDown();
+    LATCH.countDown();
   }
 
-  private static CountDownLatch latch = new CountDownLatch(1);
-
-  private static Runnable TASK = () -> {
+  private static final CountDownLatch LATCH = new CountDownLatch(1);
+  private static final Runnable TASK = () -> {
     try {
-      latch.await();
+      LATCH.await();
     } catch (InterruptedException e) {
       //
     }

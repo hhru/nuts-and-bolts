@@ -171,7 +171,13 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     }
 
     public <T> T getProperty(String key, T defaultValue, Function<String, T> mapper) {
-      return Optional.ofNullable(context.getProperty(key)).map(mapper).orElse(defaultValue);
+      return Optional.ofNullable(context.getProperty(key)).map(val -> {
+        try {
+          return mapper.apply(val);
+        } catch (Exception e) {
+          addWarn("Failed to map value: " + key + '=' + val, e);
+          return null;
+        }}).orElse(defaultValue);
     }
 
     public void log(String msg) {

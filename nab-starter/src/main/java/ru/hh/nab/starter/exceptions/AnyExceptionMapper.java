@@ -6,6 +6,7 @@ import javax.annotation.Priority;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 import java.sql.SQLTransientConnectionException;
+import java.util.concurrent.RejectedExecutionException;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
@@ -22,7 +23,8 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   public Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
     Throwable cause = ExceptionUtils.getRootCause(exception);
 
-    if (exception instanceof SQLTransientConnectionException || cause instanceof SQLTransientConnectionException) {
+    if (exception instanceof SQLTransientConnectionException || cause instanceof SQLTransientConnectionException ||
+        exception instanceof RejectedExecutionException || cause instanceof RejectedExecutionException) {
       status = SERVICE_UNAVAILABLE;
       loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
     }

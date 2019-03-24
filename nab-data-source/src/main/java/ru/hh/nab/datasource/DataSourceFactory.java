@@ -16,13 +16,13 @@ import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.POOL_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
-import ru.hh.nab.datasource.monitoring.AbstractMetricsTrackerFactoryProvider;
+import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 
 public class DataSourceFactory {
-  private final AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
+  private final MetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
 
-  public DataSourceFactory(AbstractMetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
+  public DataSourceFactory(MetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
     this.metricsTrackerFactoryProvider = metricsTrackerFactoryProvider;
   }
 

@@ -1,11 +1,11 @@
 package ru.hh.nab.starter.server.cache;
 
-import com.timgroup.statsd.StatsDClient;
 import org.caffinitas.ohc.OHCache;
 import org.caffinitas.ohc.OHCacheBuilder;
 import org.caffinitas.ohc.OHCacheStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.metrics.StatsDSender;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -18,8 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.CacheControl;
 import java.io.IOException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
@@ -31,19 +29,15 @@ import static ru.hh.nab.starter.server.logging.RequestInfo.MISS;
 public class CacheFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CacheFilter.class);
   private static final int NO_CACHE = -1;
-  private static final String METRIC = ".http.cache.";
   private static final int STATS_UPDATE_RATE = 15;
 
-  private final String metric;
   private final OHCache<byte[], byte[]> ohCache;
   private final AtomicInteger cachedHits = new AtomicInteger(0);
   private final AtomicInteger cachedMisses = new AtomicInteger(0);
   private final AtomicInteger cachedPlaceholder = new AtomicInteger(0);
   private final AtomicInteger cachedBypass = new AtomicInteger(0);
 
-  public CacheFilter(String serviceName, int size, StatsDClient statsDClient, ScheduledExecutorService scheduledExecutor) {
-    metric = serviceName + METRIC;
-
+  public CacheFilter(String serviceName, int size, StatsDSender statsDSender) {
     Serializer serializer = new Serializer();
     ohCache = OHCacheBuilder.<byte[], byte[]>newBuilder()
         .capacity(size * 1024L * 1024L)
@@ -52,28 +46,43 @@ public class CacheFilter implements Filter {
         .valueSerializer(serializer)
         .build();
 
-    scheduledExecutor.scheduleAtFixedRate(() -> {
+    String internalHitsMetricName = getFullMetricName(serviceName, "internal.hits");
+    String internalMissesMetricName = getFullMetricName(serviceName, "internal.misses");
+    String internalEvictionsMetricName = getFullMetricName(serviceName, "internal.evictions");
+    String putAddMetricName = getFullMetricName(serviceName, "put.add");
+    String putReplaceMetricName = getFullMetricName(serviceName, "put.replace");
+    String putFailMetricName = getFullMetricName(serviceName, "put.fail");
+    String capacityMetricName = getFullMetricName(serviceName, "capacity");
+    String freeMetricName = getFullMetricName(serviceName, "free");
+    String hitsMetricName = getFullMetricName(serviceName, "hits");
+    String missesMetricName = getFullMetricName(serviceName, "misses");
+    String placeholderMetricName = getFullMetricName(serviceName, "placeholder");
+    String bypassMetricName = getFullMetricName(serviceName, "bypass");
+
+    statsDSender.sendPeriodically(() -> {
       OHCacheStats stats = ohCache.stats();
       ohCache.resetStatistics();
 
-      statsDClient.count(metric + "internal.hits", stats.getHitCount());
-      statsDClient.count(metric + "internal.misses", stats.getMissCount());
-      statsDClient.count(metric + "internal.evictions", stats.getEvictionCount());
-      // TODO: Fix expires metric reset in ohc
-      //statsDClient.count(metric + "internal.expires", stats.getExpireCount());
+      statsDSender.sendCount(internalHitsMetricName, stats.getHitCount());
+      statsDSender.sendCount(internalMissesMetricName, stats.getMissCount());
+      statsDSender.sendCount(internalEvictionsMetricName, stats.getEvictionCount());
 
-      statsDClient.count(metric + "put.add", stats.getPutAddCount());
-      statsDClient.count(metric + "put.replace", stats.getPutReplaceCount());
-      statsDClient.count(metric + "put.fail", stats.getPutFailCount());
+      statsDSender.sendCount(putAddMetricName, stats.getPutAddCount());
+      statsDSender.sendCount(putReplaceMetricName, stats.getPutReplaceCount());
+      statsDSender.sendCount(putFailMetricName, stats.getPutFailCount());
 
-      statsDClient.gauge(metric + "capacity", stats.getCapacity());
-      statsDClient.gauge(metric + "free", stats.getFree());
+      statsDSender.sendGauge(capacityMetricName, stats.getCapacity());
+      statsDSender.sendGauge(freeMetricName, stats.getFree());
 
-      statsDClient.count(metric + "hits", cachedHits.getAndSet(0));
-      statsDClient.count(metric + "misses", cachedMisses.getAndSet(0));
-      statsDClient.count(metric + "placeholder", cachedPlaceholder.getAndSet(0));
-      statsDClient.count(metric + "bypass", cachedBypass.getAndSet(0));
-    }, STATS_UPDATE_RATE, STATS_UPDATE_RATE, TimeUnit.SECONDS);
+      statsDSender.sendCount(hitsMetricName, cachedHits.getAndSet(0));
+      statsDSender.sendCount(missesMetricName, cachedMisses.getAndSet(0));
+      statsDSender.sendCount(placeholderMetricName, cachedPlaceholder.getAndSet(0));
+      statsDSender.sendCount(bypassMetricName, cachedBypass.getAndSet(0));
+    }, STATS_UPDATE_RATE);
+  }
+
+  private static String getFullMetricName(String serviceName, String shortMetricName) {
+    return serviceName + ".http.cache." + shortMetricName;
   }
 
   private static byte[] getCacheKey(HttpServletRequest request) {

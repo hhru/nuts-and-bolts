@@ -32,6 +32,7 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.SAMPLED_USAG
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNECTIONS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
+import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabMetricsTrackerFactory.class);
@@ -71,37 +72,62 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       usageCounters = new Counters(500);
       timeoutCounters = new Counters(500);
 
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, CREATION_MS), creationHistogram, 95, 99, 100);
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, ACQUISITION_MS), acquisitionHistogram, 95, 99, 100);
-      statsDSender.sendPercentilesPeriodically(getMetricName(poolName, USAGE_MS), usageHistogram, 95, 99, 100);
-      statsDSender.sendCountersPeriodically(getMetricName(poolName, TOTAL_USAGE_MS), usageCounters);
-      statsDSender.sendCountersPeriodically(getMetricName(poolName, CONNECTION_TIMEOUTS), timeoutCounters);
-
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, ACTIVE_CONNECTIONS), () -> (long) poolStats.getActiveConnections());
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, TOTAL_CONNECTIONS), () -> (long) poolStats.getTotalConnections());
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, IDLE_CONNECTIONS), () -> (long) poolStats.getIdleConnections());
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, MAX_CONNECTIONS), () -> (long) poolStats.getMaxConnections());
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, MIN_CONNECTIONS), () -> (long) poolStats.getMinConnections());
-      statsDSender.sendMetricPeriodically(getMetricName(poolName, PENDING_THREADS), () -> (long) poolStats.getPendingThreads());
+      String creationMetricName = getFullMetricName(CREATION_MS);
+      String acquisitionMetricName = getFullMetricName(ACQUISITION_MS);
+      String usageMetricName = getFullMetricName(USAGE_MS);
+      String totalUsageMetricName = getFullMetricName(TOTAL_USAGE_MS);
+      String connectionTimeoutsMetricName = getFullMetricName(CONNECTION_TIMEOUTS);
+      String activeConnectionsMetricName = getFullMetricName(ACTIVE_CONNECTIONS);
+      String totalConnectionsMetricName = getFullMetricName(TOTAL_CONNECTIONS);
+      String idleConnectionsMetricName = getFullMetricName(IDLE_CONNECTIONS);
+      String maxConnectionsMetricName = getFullMetricName(MAX_CONNECTIONS);
+      String minConnectionsMetricName = getFullMetricName(MIN_CONNECTIONS);
+      String pendingThreadsMetricName = getFullMetricName(PENDING_THREADS);
+      String sampledUsageMetricName = getFullMetricName(SAMPLED_USAGE_MS);
 
       if (sendSampledStats) {
         compressedStackFactory = new CompressedStackFactory(compressedStackFactoryConfig);
         sampledUsageCounters = new Counters(2000);
-        statsDSender.sendCountersPeriodically(getMetricName(poolName, SAMPLED_USAGE_MS), sampledUsageCounters);
       } else {
         sampledUsageCounters = null;
         compressedStackFactory = null;
       }
+
+      statsDSender.sendPeriodically(() -> {
+        statsDSender.sendHistogram(creationMetricName, creationHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendHistogram(acquisitionMetricName, acquisitionHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendHistogram(usageMetricName, usageHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendCounters(totalUsageMetricName, usageCounters);
+        statsDSender.sendCounters(connectionTimeoutsMetricName, timeoutCounters);
+
+        statsDSender.sendGauge(activeConnectionsMetricName, poolStats.getActiveConnections());
+        statsDSender.sendGauge(totalConnectionsMetricName, poolStats.getTotalConnections());
+        statsDSender.sendGauge(idleConnectionsMetricName, poolStats.getIdleConnections());
+        statsDSender.sendGauge(maxConnectionsMetricName, poolStats.getMaxConnections());
+        statsDSender.sendGauge(minConnectionsMetricName, poolStats.getMinConnections());
+        statsDSender.sendGauge(pendingThreadsMetricName, poolStats.getPendingThreads());
+
+        if (sampledUsageCounters != null) {
+          statsDSender.sendCounters(sampledUsageMetricName, sampledUsageCounters);
+        }
+      });
     }
 
+    private String getFullMetricName(String shortMetricName) {
+      return serviceName + '.' + poolName + '.' + shortMetricName;
+    }
+
+    @Override
     public void recordConnectionCreatedMillis(long connectionCreatedMillis) {
       creationHistogram.save((int) connectionCreatedMillis);
     }
 
+    @Override
     public void recordConnectionAcquiredNanos(final long elapsedAcquiredNanos) {
       acquisitionHistogram.save((int) TimeUnit.NANOSECONDS.toMillis(elapsedAcquiredNanos));
     }
 
+    @Override
     public void recordConnectionUsageMillis(final long elapsedBorrowedMillis) {
       int connectionUsageMs = (int) elapsedBorrowedMillis;
 
@@ -122,12 +148,9 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       }
     }
 
+    @Override
     public void recordConnectionTimeout() {
       timeoutCounters.add(1);
     }
-  }
-
-  private String getMetricName(String dataSourceName, String metricName) {
-    return serviceName + '.' + dataSourceName + '.' + metricName;
   }
 }

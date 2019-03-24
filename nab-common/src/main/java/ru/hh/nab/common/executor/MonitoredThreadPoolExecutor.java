@@ -3,9 +3,9 @@ package ru.hh.nab.common.executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.metrics.Histogram;
-import ru.hh.metrics.Max;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.Max;
+import ru.hh.nab.metrics.StatsDSender;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.Executors.defaultThreadFactory;
+import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 
 public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitoredThreadPoolExecutor.class);
@@ -85,12 +86,17 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       threadPoolName, longTaskDurationMs
     );
 
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, threadPoolName, "size"), threadPoolExecutor.poolSizeMetric);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, threadPoolName, "activeCount"), threadPoolExecutor.activeCountMetric);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, threadPoolName, "queueSize"), threadPoolExecutor.queueSizeMetric);
-    statsDSender.sendPercentilesPeriodically(
-      getFullMetricName(serviceName, threadPoolName, "taskDuration"), threadPoolExecutor.taskDurationMetric, 95, 99, 100
-    );
+    String poolSizeMetricName = getFullMetricName(serviceName, threadPoolName, "size");
+    String activeCountMetricName = getFullMetricName(serviceName, threadPoolName, "activeCount");
+    String queueSizeMetricName = getFullMetricName(serviceName, threadPoolName, "queueSize");
+    String taskDurationMetricName = getFullMetricName(serviceName, threadPoolName, "taskDuration");
+
+    statsDSender.sendPeriodically(() -> {
+      statsDSender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
+      statsDSender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
+      statsDSender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);
+      statsDSender.sendHistogram(taskDurationMetricName, threadPoolExecutor.taskDurationMetric, DEFAULT_PERCENTILES);
+    });
 
     threadPoolExecutor.prestartAllCoreThreads();
     return threadPoolExecutor;

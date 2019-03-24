@@ -5,7 +5,6 @@ import com.timgroup.statsd.StatsDClient;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * A glue between aggregators ({@link Counters}, {@link Histogram}, etc.) and StatsDClient.<br/>
@@ -13,71 +12,56 @@ import java.util.function.Supplier;
  * This task sends snapshot of the aggregator to a monitoring system and resets the aggregator.
  */
 public class StatsDSender {
-  private static final int DEFAULT_PERIOD_OF_TRANSMISSION_STATS_SECONDS = 60;
+  private static final int DEFAULT_SEND_INTERVAL_SECONDS = 60;
+  public static final int[] DEFAULT_PERCENTILES = {95, 99, 100};
 
   private final StatsDClient statsDClient;
   private final ScheduledExecutorService scheduledExecutorService;
-  private final int periodOfTransmissionStatsSeconds;
 
   public StatsDSender(StatsDClient statsDClient, ScheduledExecutorService scheduledExecutorService) {
     this.statsDClient = statsDClient;
     this.scheduledExecutorService = scheduledExecutorService;
-    this.periodOfTransmissionStatsSeconds = DEFAULT_PERIOD_OF_TRANSMISSION_STATS_SECONDS;
   }
 
-  public StatsDSender(StatsDClient statsDClient, ScheduledExecutorService scheduledExecutorService,
-                      int periodOfTransmissionStatsSeconds) {
-    this.statsDClient = statsDClient;
-    this.scheduledExecutorService = scheduledExecutorService;
-    this.periodOfTransmissionStatsSeconds = periodOfTransmissionStatsSeconds;
-  }
-
-  public void sendPercentilesPeriodically(String metricName, Histogram histogram, int... percentiles) {
-    Percentiles percentilesCalculator = new Percentiles(percentiles);
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> {
-        Map<Integer, Integer> valueToCount = histogram.getValueToCountAndReset();
-        computeAndSendPercentiles(metricName, null, valueToCount, percentilesCalculator);
-      },
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
-  }
-
-  public void sendPercentilesPeriodically(String metricName, Histograms histograms, int... percentiles) {
-    Percentiles percentilesСalculator = new Percentiles(percentiles);
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> {
-        Map<Tags, Map<Integer, Integer>> tagsToHistogram = histograms.getTagsToHistogramAndReset();
-        for (Map.Entry<Tags, Map<Integer, Integer>> tagsAndHistogram : tagsToHistogram.entrySet()) {
-          computeAndSendPercentiles(
-            metricName,
-            tagsAndHistogram.getKey().getTags(),
-            tagsAndHistogram.getValue(),
-            percentilesСalculator
-          );
-        }
-      },
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
-  }
-
-  public void sendTiming(String metricName, long value, Tag... tags) {
+  public void sendTime(String metricName, long value, Tag... tags) {
     statsDClient.time(getFullMetricName(metricName, tags), value);
   }
 
-  public void sendCounter(String metricName, long delta, Tag... tags) {
+  public void sendCount(String metricName, long delta, Tag... tags) {
     statsDClient.count(getFullMetricName(metricName, tags), delta);
   }
 
-  private void computeAndSendPercentiles(String metricName,
-                                         Tag[] tags,
-                                         Map<Integer, Integer> valueToCount,
-                                         Percentiles percentiles) {
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+  public void sendCounters(String metricName, Counters counters) {
+    Map<Tags, Integer> counterAggregatorSnapshot = counters.getSnapshotAndReset();
+    counterAggregatorSnapshot.forEach((tags, count) -> statsDClient.count(getFullMetricName(metricName, tags.getTags()), count));
+  }
+
+  public void sendGauge(String metricName, long metric, Tag... tags) {
+    statsDClient.gauge(getFullMetricName(metricName, tags), metric);
+  }
+
+  public void sendMax(String metricName, Max max, Tag... tags) {
+    statsDClient.gauge(getFullMetricName(metricName, tags), max.getAndReset());
+  }
+
+  public void sendHistogram(String metricName, Histogram histogram, int... percentiles) {
+    computeAndSendPercentiles(metricName, null, histogram.getValueToCountAndReset(), percentiles);
+  }
+
+  public void sendHistograms(String metricName, Histograms histograms, int... percentiles) {
+    Map<Tags, Map<Integer, Integer>> tagsToHistogram = histograms.getTagsToHistogramAndReset();
+    for (Map.Entry<Tags, Map<Integer, Integer>> tagsAndHistogram : tagsToHistogram.entrySet()) {
+      computeAndSendPercentiles(
+        metricName,
+        tagsAndHistogram.getKey().getTags(),
+        tagsAndHistogram.getValue(),
+        percentiles
+      );
+    }
+  }
+
+  private void computeAndSendPercentiles(String metricName, Tag[] tags, Map<Integer, Integer> valueToCount, int... percentiles) {
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, percentiles);
     for (Map.Entry<Integer, Integer> percentileAndValue : percentileToValue.entrySet()) {
       statsDClient.gauge(
         getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
@@ -86,61 +70,12 @@ public class StatsDSender {
     }
   }
 
-  public void sendCountersPeriodically(String metricName, Counters counters) {
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> sendCountMetric(metricName, counters),
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
-  }
-
-  public void sendMetricPeriodically(String metricName, Supplier<Long> metric, Tag... tags) {
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> sendGaugeMetric(metricName, metric.get(), tags),
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
-  }
-
-  private void sendCountMetric(String metricName, Counters counters) {
-    Map<Tags, Integer> counterAggregatorSnapshot = counters.getSnapshotAndReset();
-    counterAggregatorSnapshot.forEach((tags, count) -> statsDClient.count(getFullMetricName(metricName, tags.getTags()), count));
-  }
-
-  private void sendGaugeMetric(String metricName, long metric, Tag... tags) {
-    statsDClient.gauge(getFullMetricName(metricName, tags), metric);
-  }
-
-  public void sendMaxPeriodically(String metricName, Max max, Tag... tags) {
-    String fullName = getFullMetricName(metricName, tags);
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> statsDClient.gauge(fullName, max.getAndReset()),
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
-  }
-
-  public void sendMomentsPeriodically(String metricName, Moments moments, Tag... tags) {
-    String minMetricName = getFullMetricName(metricName + ".min", tags);
-    String maxMetricName = getFullMetricName(metricName + ".max", tags);
-    String meanMetricName = getFullMetricName(metricName + ".mean", tags);
-    String varianceMetricName = getFullMetricName(metricName + ".variance", tags);
-
-    scheduledExecutorService.scheduleAtFixedRate(
-      () -> {
-        Moments.MomentsData data = moments.getAndReset();
-        setGaugeValue(minMetricName, data.getMin());
-        setGaugeValue(maxMetricName, data.getMax());
-        setGaugeValue(meanMetricName, data.getMean());
-        setGaugeValue(varianceMetricName, data.getVariance());
-      },
-      periodOfTransmissionStatsSeconds,
-      periodOfTransmissionStatsSeconds,
-      TimeUnit.SECONDS
-    );
+  public void sendMoments(String metricName, Moments moments, Tag... tags) {
+    Moments.MomentsData data = moments.getAndReset();
+    setGaugeValue(getFullMetricName(metricName + ".min", tags), data.getMin());
+    setGaugeValue(getFullMetricName(metricName + ".max", tags), data.getMax());
+    setGaugeValue(getFullMetricName(metricName + ".mean", tags), data.getMean());
+    setGaugeValue(getFullMetricName(metricName + ".variance", tags), data.getVariance());
   }
 
   private void setGaugeValue(String name, double value) {
@@ -148,6 +83,14 @@ public class StatsDSender {
       statsDClient.gauge(name, 0);
     }
     statsDClient.gauge(name, value);
+  }
+
+  public void sendPeriodically(Runnable command) {
+    scheduledExecutorService.scheduleAtFixedRate(command, DEFAULT_SEND_INTERVAL_SECONDS, DEFAULT_SEND_INTERVAL_SECONDS, TimeUnit.SECONDS);
+  }
+
+  public void sendPeriodically(Runnable command, int sendIntervalSeconds) {
+    scheduledExecutorService.scheduleAtFixedRate(command, sendIntervalSeconds, sendIntervalSeconds, TimeUnit.SECONDS);
   }
 
   static String getFullMetricName(String metricName, Tag[] tags) {

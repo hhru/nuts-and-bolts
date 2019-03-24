@@ -13,6 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.starter.metrics.JvmMetricsSender;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
@@ -43,8 +44,13 @@ public class NabCommonConfig {
   }
 
   @Bean
-  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient) {
-    return new StatsDSender(statsDClient, scheduledExecutorService);
+  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient, String serviceName,
+                            FileSettings fileSettings) {
+    StatsDSender statsDSender = new StatsDSender(statsDClient, scheduledExecutorService);
+    if (Boolean.TRUE.equals(fileSettings.getBoolean("metrics.jvm.enabled"))) {
+      JvmMetricsSender.create(statsDSender, serviceName);
+    }
+    return statsDSender;
   }
 
   @Bean

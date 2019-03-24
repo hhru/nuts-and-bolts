@@ -9,14 +9,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class PercentilesTest {
-
-  private static final Percentiles percentiles = new Percentiles(50, 99, 100);
+  private static final int[] PERCENTILES = {50, 99, 100};
 
   @Test
   public void zero() {
     Map<Integer, Integer> valueToCount = new HashMap<>();
 
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, PERCENTILES);
 
     assertTrue(percentileToValue.isEmpty());
   }
@@ -26,7 +25,7 @@ public class PercentilesTest {
     Map<Integer, Integer> valueToCount = new HashMap<>();
     valueToCount.put(1, 1);
 
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, PERCENTILES);
 
     assertEquals(3, percentileToValue.size());
     assertEquals(1, percentileToValue.get(50).intValue());
@@ -39,7 +38,7 @@ public class PercentilesTest {
     Map<Integer, Integer> valueToCount = new HashMap<>();
     valueToCount.put(1, 2);
 
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, PERCENTILES);
 
     assertEquals(3, percentileToValue.size());
     assertEquals(1, percentileToValue.get(50).intValue());
@@ -53,7 +52,7 @@ public class PercentilesTest {
     valueToCount.put(1, 2);
     valueToCount.put(2, 1);
 
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, PERCENTILES);
 
     assertEquals(3, percentileToValue.size());
     assertEquals(1, percentileToValue.get(50).intValue());
@@ -68,12 +67,11 @@ public class PercentilesTest {
     valueToCount.put(2, 1);
     valueToCount.put(3, 1);
 
-    Map<Integer, Integer> percentileToValue = percentiles.compute(valueToCount);
+    Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, PERCENTILES);
 
     assertEquals(3, percentileToValue.size());
     assertEquals(1, percentileToValue.get(50).intValue());
     assertEquals(2, percentileToValue.get(99).intValue());
     assertEquals(3, percentileToValue.get(100).intValue());
   }
-
 }

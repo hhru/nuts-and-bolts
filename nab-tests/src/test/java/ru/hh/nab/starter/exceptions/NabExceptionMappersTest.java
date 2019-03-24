@@ -3,7 +3,7 @@ package ru.hh.nab.starter.exceptions;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.NabApplication;

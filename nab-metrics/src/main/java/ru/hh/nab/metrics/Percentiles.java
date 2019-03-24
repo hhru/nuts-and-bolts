@@ -6,15 +6,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Percentiles {
+  private Percentiles() {}
 
-  private final int[] percentiles;
-
-  public Percentiles(int... percentiles) {
+  public static Map<Integer, Integer> computePercentiles(Map<Integer, Integer> valueToCount, int... percentiles) {
     Arrays.sort(percentiles);
-    this.percentiles = percentiles;
-  }
 
-  public Map<Integer, Integer> compute(Map<Integer, Integer> valueToCount) {
     int totalObservations = 0;
     for (int count : valueToCount.values()) {
       totalObservations += count;
@@ -41,5 +37,4 @@ public class Percentiles {
     }
     return percentileToValue;
   }
-
 }

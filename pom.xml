@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>1.36</version>
+        <version>1.38</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
@@ -24,6 +24,7 @@
         <module>nab-tests</module>
         <module>nab-logging</module>
         <module>nab-jclient</module>
+        <module>nab-metrics</module>
     </modules>
 
     <properties>

@@ -19,6 +19,11 @@
             <artifactId>nab-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>
@@ -46,13 +51,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
             <version>${spring.version}</version>
-        </dependency>
-
-        <!--Monitoring-->
-        <dependency>
-            <groupId>ru.hh.metrics</groupId>
-            <artifactId>hh-metrics</artifactId>
-            <version>${hhmetrics.version}</version>
         </dependency>
 
         <!-- db -->

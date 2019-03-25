@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.server.jetty;
 
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import ru.hh.metrics.Max;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.nab.metrics.Max;
+import ru.hh.nab.metrics.StatsDSender;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -16,10 +16,17 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
                                    String serviceName, StatsDSender statsDSender) {
     super(maxThreads, minThreads, idleTimeout, -1, queue, null);
 
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "queueSize"), queueSize);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "busyThreads"), busyThreads);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "idleThreads"), idleThreads);
-    statsDSender.sendMaxPeriodically(getFullMetricName(serviceName, "totalThreads"), totalThreads);
+    String queueSizeMetricName = getFullMetricName(serviceName, "queueSize");
+    String busyThreadsMetricName = getFullMetricName(serviceName, "busyThreads");
+    String idleThreadsMetricName = getFullMetricName(serviceName, "idleThreads");
+    String totalThreadsMetricName = getFullMetricName(serviceName, "totalThreads");
+
+    statsDSender.sendPeriodically(() -> {
+      statsDSender.sendMax(queueSizeMetricName, queueSize);
+      statsDSender.sendMax(busyThreadsMetricName, busyThreads);
+      statsDSender.sendMax(idleThreadsMetricName, idleThreads);
+      statsDSender.sendMax(totalThreadsMetricName, totalThreads);
+    });
   }
 
   @Override

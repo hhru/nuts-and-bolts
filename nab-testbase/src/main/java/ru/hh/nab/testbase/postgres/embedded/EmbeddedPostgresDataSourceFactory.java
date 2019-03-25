@@ -4,7 +4,7 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import ru.hh.nab.common.files.FileSystemUtils;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
-import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
+import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -34,8 +34,8 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     super(null);
   }
 
-  public EmbeddedPostgresDataSourceFactory(MetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
-    super(metricsTrackerFactoryProvider);
+  public EmbeddedPostgresDataSourceFactory(NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider) {
+    super(nabMetricsTrackerFactoryProvider);
   }
 
   @Override

@@ -4,13 +4,15 @@ import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import static java.util.Optional.ofNullable;
 
+import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.ScheduledExecutorService;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
+
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
@@ -21,7 +23,7 @@ public class NabProdConfig {
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
-  Properties serviceProperties() throws Exception {
+  Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 
@@ -37,10 +39,7 @@ public class NabProdConfig {
   }
 
   @Bean
-  FilterHolder cacheFilter(FileSettings fileSettings,
-                           String serviceName,
-                           StatsDClient statsDClient,
-                           ScheduledExecutorService scheduledExecutorService) {
-    return createCacheFilterHolder(fileSettings, serviceName, statsDClient, scheduledExecutorService);
+  FilterHolder cacheFilter(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
+    return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
   }
 }

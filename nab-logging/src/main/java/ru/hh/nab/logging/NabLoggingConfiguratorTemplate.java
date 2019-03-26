@@ -3,6 +3,7 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.BasicConfigurator;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.core.Appender;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +52,8 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   }
 
   protected abstract Properties createLoggingProperties();
+
+  protected abstract String getContextPropertyPrefix();
 
   public abstract void configure(LoggingContextWrapper context);
 
@@ -153,13 +157,15 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   public final class LoggingContextWrapper {
 
     private final LoggerContext context;
+    private final Properties properties;
 
     private LoggingContextWrapper(LoggerContext context, Properties properties) {
-      properties.stringPropertyNames().forEach(propertyKey -> {
+      properties.stringPropertyNames().stream().filter(name -> name.startsWith(getContextPropertyPrefix())).forEach(propertyKey -> {
         context.putProperty(propertyKey, properties.getProperty(propertyKey));
         addInfo("Put property " + String.join("=", propertyKey, properties.getProperty(propertyKey)));
       });
       this.context = context;
+      this.properties = properties;
     }
 
     private LoggerContext getContext() {
@@ -167,17 +173,21 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     }
 
     public String getProperty(String key, String defaultValue) {
-      return Optional.ofNullable(context.getProperty(key)).orElse(defaultValue);
+      return Optional.ofNullable(properties.getProperty(key)).orElse(defaultValue);
     }
 
     public <T> T getProperty(String key, T defaultValue, Function<String, T> mapper) {
-      return Optional.ofNullable(context.getProperty(key)).map(val -> {
+      return Optional.ofNullable(properties.getProperty(key)).map(val -> {
         try {
           return mapper.apply(val);
         } catch (Exception e) {
           addWarn("Failed to map value: " + key + '=' + val, e);
           return null;
         }}).orElse(defaultValue);
+    }
+
+    public void addListener(LoggerContextListener listener) {
+      context.addListener(listener);
     }
 
     public void log(String msg) {

@@ -31,6 +31,11 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
   }
 
   @Override
+  protected String getContextPropertyPrefix() {
+    return "log.";
+  }
+
+  @Override
   public final void configure(LoggingContextWrapper context) {
     SentryAppender sentry = createAppender(context, "sentry", () -> {
       var sentryAppender = new SentryAppender();

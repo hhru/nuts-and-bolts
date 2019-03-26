@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.metrics;
 
+import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
@@ -12,23 +13,27 @@ import ru.hh.nab.metrics.Tag;
 public class JvmMetricsSender {
   private final StatsDSender statsDSender;
   private final MemoryMXBean memoryMXBean;
-  private final String heapUsedMetric;
-  private final String heapMaxMetric;
-  private final String heapCommitedMetric;
-  private final String nonHeapUsedMetric;
-  private final String nonHeapMaxMetric;
-  private final String nonHeapCommitedMetric;
+  private final String heapUsedMetricName;
+  private final String heapMaxMetricName;
+  private final String heapCommitedMetricName;
+  private final String nonHeapUsedMetricName;
+  private final String nonHeapMaxMetricName;
+  private final String nonHeapCommitedMetricName;
+  private final String bufferPoolUsedMetricName;
+  private final String bufferPoolCapacityMetricName;
   private final Tag totalPoolTag;
 
   private JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
     this.statsDSender = statsDSender;
     this.memoryMXBean = ManagementFactory.getMemoryMXBean();
-    this.heapUsedMetric = getMetricName(serviceName, "heap.used");
-    this.heapMaxMetric = getMetricName(serviceName, "heap.max");
-    this.heapCommitedMetric = getMetricName(serviceName, "heap.commited");
-    this.nonHeapUsedMetric = getMetricName(serviceName, "nonHeap.used");
-    this.nonHeapMaxMetric = getMetricName(serviceName, "nonHeap.max");
-    this.nonHeapCommitedMetric = getMetricName(serviceName, "nonHeap.commited");
+    this.heapUsedMetricName = getFullMetricName(serviceName, "heap.used");
+    this.heapMaxMetricName = getFullMetricName(serviceName, "heap.max");
+    this.heapCommitedMetricName = getFullMetricName(serviceName, "heap.commited");
+    this.nonHeapUsedMetricName = getFullMetricName(serviceName, "nonHeap.used");
+    this.nonHeapMaxMetricName = getFullMetricName(serviceName, "nonHeap.max");
+    this.nonHeapCommitedMetricName = getFullMetricName(serviceName, "nonHeap.commited");
+    this.bufferPoolUsedMetricName = getFullMetricName(serviceName, "bufferPool.used");
+    this.bufferPoolCapacityMetricName = getFullMetricName(serviceName, "bufferPool.capacity");
     this.totalPoolTag = new Tag("pool", "total");
   }
 
@@ -50,21 +55,27 @@ public class JvmMetricsSender {
         sendNonHeapMemoryUsage(memoryPool.getUsage(), poolTag);
       }
     }
+
+    for (BufferPoolMXBean bufferPool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
+      Tag poolTag = new Tag("pool", bufferPool.getName());
+      statsDSender.sendGauge(bufferPoolUsedMetricName, bufferPool.getMemoryUsed(), poolTag);
+      statsDSender.sendGauge(bufferPoolCapacityMetricName, bufferPool.getTotalCapacity(), poolTag);
+    }
   }
 
   private void sendHeapMemoryUsage(MemoryUsage memoryUsage, Tag tag) {
-    statsDSender.sendGauge(heapUsedMetric, memoryUsage.getUsed(), tag);
-    statsDSender.sendGauge(heapMaxMetric, memoryUsage.getMax(), tag);
-    statsDSender.sendGauge(heapCommitedMetric, memoryUsage.getCommitted(), tag);
+    statsDSender.sendGauge(heapUsedMetricName, memoryUsage.getUsed(), tag);
+    statsDSender.sendGauge(heapMaxMetricName, memoryUsage.getMax(), tag);
+    statsDSender.sendGauge(heapCommitedMetricName, memoryUsage.getCommitted(), tag);
   }
 
   private void sendNonHeapMemoryUsage(MemoryUsage memoryUsage, Tag tag) {
-    statsDSender.sendGauge(nonHeapUsedMetric, memoryUsage.getUsed(), tag);
-    statsDSender.sendGauge(nonHeapMaxMetric, memoryUsage.getMax(), tag);
-    statsDSender.sendGauge(nonHeapCommitedMetric, memoryUsage.getCommitted(), tag);
+    statsDSender.sendGauge(nonHeapUsedMetricName, memoryUsage.getUsed(), tag);
+    statsDSender.sendGauge(nonHeapMaxMetricName, memoryUsage.getMax(), tag);
+    statsDSender.sendGauge(nonHeapCommitedMetricName, memoryUsage.getCommitted(), tag);
   }
 
-  private static String getMetricName(String serviceName, String metricName) {
+  private static String getFullMetricName(String serviceName, String metricName) {
     return serviceName + ".jvm." + metricName;
   }
 }

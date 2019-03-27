@@ -19,11 +19,6 @@ public class NabLoggingConfiguratorTemplateTest {
         HhMultiAppender requests = createAppender(context, "requests", () -> new HhMultiAppender(true));
         HhMultiAppender libraries = createAppender(context, "requests", () -> new HhMultiAppender(true));
       }
-
-      @Override
-      protected String getContextPropertyPrefix() {
-        return "";
-      }
     };
     LoggerContext lc = new LoggerContext();
     configurator.setContext(lc);

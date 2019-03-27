@@ -53,7 +53,9 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   protected abstract Properties createLoggingProperties();
 
-  protected abstract String getContextPropertyPrefix();
+  protected Predicate<String> getContextPropertyPredicate() {
+    return key -> key.startsWith("log.");
+  }
 
   public abstract void configure(LoggingContextWrapper context);
 
@@ -160,7 +162,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     private final Properties properties;
 
     private LoggingContextWrapper(LoggerContext context, Properties properties) {
-      properties.stringPropertyNames().stream().filter(name -> name.startsWith(getContextPropertyPrefix())).forEach(propertyKey -> {
+      properties.stringPropertyNames().stream().filter(getContextPropertyPredicate()).forEach(propertyKey -> {
         context.putProperty(propertyKey, properties.getProperty(propertyKey));
         addInfo("Put property " + String.join("=", propertyKey, properties.getProperty(propertyKey)));
       });

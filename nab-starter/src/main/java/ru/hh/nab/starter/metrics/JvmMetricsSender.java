@@ -3,11 +3,9 @@ package ru.hh.nab.starter.metrics;
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryManagerMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +15,6 @@ import ru.hh.nab.metrics.Tag;
 public class JvmMetricsSender {
   private static final String COMPRESSED_CLASS_SPACE_POOL = "Compressed Class Space";
   private static final String METASPACE_POOL = "Metaspace";
-
-  private static final Set<String> CODE_CACHE_POOLS = ManagementFactory.getMemoryManagerMXBeans().stream()
-    .filter(mm -> mm.getName().equals("CodeCacheManager"))
-    .findAny()
-    .map(MemoryManagerMXBean::getMemoryPoolNames)
-    .map(Set::of)
-    .orElseGet(Set::of);
 
   private static final Tag TOTAL_TAG = new Tag("pool", "total");
   private static final Logger LOGGER = LoggerFactory.getLogger(JvmMetricsSender.class);
@@ -41,7 +32,6 @@ public class JvmMetricsSender {
   private final String threadCountMetricName;
   private final String loadedClassesCountMetricName;
 
-  private boolean codeCacheSizeMismatchReported = false;
   private boolean metaspaceSizeMismatchReported = false;
 
   private JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
@@ -65,7 +55,7 @@ public class JvmMetricsSender {
   }
 
   private void sendJvmMetrics() {
-    long compressedClassSpaceMax = 0, metaspaceMax = 0, codeCacheMax = 0;
+    long compressedClassSpaceMax = 0, metaspaceMax = 0;
     for (MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
       String poolName = memoryPool.getName();
       MemoryUsage memoryUsage = memoryPool.getUsage();
@@ -79,8 +69,6 @@ public class JvmMetricsSender {
           compressedClassSpaceMax = memoryUsage.getMax();
         } else if (poolName.equals(METASPACE_POOL)) {
           metaspaceMax = memoryUsage.getMax();
-        } else if (CODE_CACHE_POOLS.contains(memoryPool.getName())) {
-          codeCacheMax += memoryUsage.getMax();
         }
       }
     }
@@ -93,11 +81,6 @@ public class JvmMetricsSender {
     long loadedClassesCount = ManagementFactory.getClassLoadingMXBean().getLoadedClassCount();
     statsDSender.sendGauge(loadedClassesCountMetricName, loadedClassesCount);
     statsDSender.sendGauge(threadCountMetricName, ManagementFactory.getThreadMXBean().getThreadCount());
-
-    if (!codeCacheSizeMismatchReported) {
-      logCodeCacheSizeMismatch(codeCacheMax, loadedClassesCount);
-      codeCacheSizeMismatchReported = true;
-    }
 
     if (!metaspaceSizeMismatchReported) {
       logMetaspaceSizeMismatch(metaspaceMax, loadedClassesCount);
@@ -138,21 +121,6 @@ public class JvmMetricsSender {
     }
   }
 
-  private static void logCodeCacheSizeMismatch(long codeCacheMax, long loadedClassesCount) {
-    long recommendedCodeCacheSize = getRecommendedCodeCacheSize(loadedClassesCount);
-    if (codeCacheMax < recommendedCodeCacheSize) {
-      LOGGER.error(
-        "CodeCache limit ({}) is less than recommended ({}), consider increasing -XX:ReservedCodeCacheSize",
-        codeCacheMax, recommendedCodeCacheSize
-      );
-    } else if (codeCacheMax > recommendedCodeCacheSize * 2) {
-      LOGGER.error(
-        "CodeCache limit ({}) is much more than recommended ({}), consider decreasing -XX:ReservedCodeCacheSize",
-        codeCacheMax, recommendedCodeCacheSize
-      );
-    }
-  }
-
   private static void logMetaspaceSizeMismatch(long metaspaceMax, long loadedClassesCount) {
     long recommendedMetaspaceSize = getRecommendedMetaspaceSize(loadedClassesCount);
     if (metaspaceMax < 0) {
@@ -176,10 +144,6 @@ public class JvmMetricsSender {
 
   private static long getRecommendedMetaspaceSize(long loadedClassesCount) {
     return (loadedClassesCount * 5800) + 14_000_000;
-  }
-
-  private static long getRecommendedCodeCacheSize(long loadedClassesCount) {
-    return (loadedClassesCount * 1500) + 5_000_000;
   }
 
   private static String getFullMetricName(String serviceName, String metricName) {

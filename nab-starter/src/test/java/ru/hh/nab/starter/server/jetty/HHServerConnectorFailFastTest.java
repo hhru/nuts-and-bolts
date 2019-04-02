@@ -7,7 +7,6 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.servlet.GenericServlet;
@@ -24,7 +23,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.createServer;
@@ -32,10 +33,11 @@ import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
 
 public class HHServerConnectorFailFastTest {
 
-  private static final int acceptors = 1;
-  private static final int selectors = 1;
-  private static final int workers = 10;
-  private static final int threads = acceptors + selectors + workers;
+  private static final int ACCEPTORS = 1;
+  private static final int SELECTORS = 1;
+  private static final int WORKERS = 10;
+  private static final int THREADS = ACCEPTORS + SELECTORS + WORKERS;
+  private static final int REQUESTS = THREADS * 3; // must be > than threads + queue size
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
   private static final SimpleAsyncHTTPClient httpClient = new SimpleAsyncHTTPClient(executorService);
@@ -46,7 +48,7 @@ public class HHServerConnectorFailFastTest {
 
   @Before
   public void beforeTest() {
-    threadPool = new QueuedThreadPool(threads, threads);
+    threadPool = new QueuedThreadPool(THREADS, THREADS);
     controlledServlet = new ControlledServlet(204);
     server = createServer(threadPool, controlledServlet);
   }
@@ -63,67 +65,53 @@ public class HHServerConnectorFailFastTest {
 
   @Test
   public void testOriginalServerConnectorAcceptsConnectionsEvenIfLowOnThreads() throws Exception {
-    server.addConnector(new ServerConnector(server, acceptors, selectors));
+    server.addConnector(new ServerConnector(server, ACCEPTORS, SELECTORS));
     server.start();
     int serverPort = getPort(server);
 
-    int requests = threads * 2;
-    List<Socket> sockets = new ArrayList<>(requests);
-    List<Future<Integer>> statusesFutures = new ArrayList<>(requests);
+    List<Socket> sockets = new ArrayList<>(REQUESTS);
+    List<Future<Integer>> statusesFutures = new ArrayList<>(REQUESTS);
 
-    for(int i=0; i<requests; i++) {
+    for (int i = 0; i < REQUESTS; i++) {
       Socket socket = new Socket("localhost", serverPort);
       sockets.add(socket);
       Future<Integer> statusFuture = httpClient.request(socket);
       statusesFutures.add(statusFuture);
     }
 
-    for(int i=0; i<100; i++) {
-      if (!threadPool.isLowOnThreads()) {
-        Thread.sleep(5);
-      }
-    }
-    Thread.sleep(5);
-    assertTrue(threadPool.isLowOnThreads());
+    await().atMost(500, TimeUnit.MILLISECONDS).until(threadPool::isLowOnThreads);
 
     controlledServlet.respond();
 
-    for (int i=0; i<statusesFutures.size(); i++) {
+    for (int i = 0; i < statusesFutures.size(); i++) {
       assertEquals(204, statusesFutures.get(i).get().intValue());
       sockets.get(i).close();
     }
   }
 
-  @Ignore("HH-88210")
   @Test
   public void testHHServerConnectorResetsNewIncomingConnectionIfLowOnThreads() throws Exception {
-    server.addConnector(new HHServerConnector(server, acceptors, selectors));
+    server.addConnector(new HHServerConnector(server, ACCEPTORS, SELECTORS));
     server.start();
     int serverPort = getPort(server);
 
-    int requests = threads * 2;
-    List<Socket> sockets = new ArrayList<>(requests);
-    List<Future<Integer>> statusesFutures = new ArrayList<>(requests);
+    List<Socket> sockets = new ArrayList<>(REQUESTS);
+    List<Future<Integer>> statusesFutures = new ArrayList<>(REQUESTS);
 
-    for(int i=0; i<requests; i++) {
+    for (int i=0; i < REQUESTS; i++) {
       Socket socket = new Socket("localhost", serverPort);
       sockets.add(socket);
       Future<Integer> statusFuture = httpClient.request(socket);
       statusesFutures.add(statusFuture);
     }
 
-    for(int i=0; i<100; i++) {
-      if (!threadPool.isLowOnThreads()) {
-        Thread.sleep(5);
-      }
-    }
-    Thread.sleep(5);
+    await().atMost(500, TimeUnit.MILLISECONDS).until(threadPool::isLowOnThreads);
 
     controlledServlet.respond();
 
     int successes = 0;
     int failures = 0;
-    for (int i=0; i<statusesFutures.size(); i++) {
+    for (int i = 0; i < statusesFutures.size(); i++) {
       Future<Integer> statusFuture = statusesFutures.get(i);
       int status;
       try {
@@ -138,6 +126,7 @@ public class HHServerConnectorFailFastTest {
       sockets.get(i).close();
       successes++;
     }
+
     assertTrue(successes > 0);
     assertTrue(failures > 0);
   }
@@ -163,7 +152,6 @@ public class HHServerConnectorFailFastTest {
 
       ((HttpServletResponse) res).setStatus(responseCode);
     }
-
 
     void respond() {
       proceedLatch.countDown();

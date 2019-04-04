@@ -28,8 +28,8 @@ public final class JettyServerFactory {
 
   public static MonitoredQueuedThreadPool createJettyThreadPool(FileSettings jettySettings,
                                                                 String serviceName, StatsDSender statsDSender) throws Exception {
-    int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(4);
     int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(12);
+    int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(maxThreads);
     int queueSize = ofNullable(jettySettings.getInteger("queueSize")).orElse(maxThreads);
     int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(DEFAULT_IDLE_TIMEOUT_MS);
 

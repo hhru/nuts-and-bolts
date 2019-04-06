@@ -12,12 +12,15 @@ import org.slf4j.LoggerFactory;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 
+import static java.util.Optional.ofNullable;
+
 public class JvmMetricsSender {
   private static final String COMPRESSED_CLASS_SPACE_POOL = "Compressed Class Space";
   private static final String METASPACE_POOL = "Metaspace";
 
   private static final Tag TOTAL_TAG = new Tag("pool", "total");
   private static final Logger LOGGER = LoggerFactory.getLogger(JvmMetricsSender.class);
+  private static final MemoryUsage ZERO_MEMORY_USAGE = new MemoryUsage(0, 0, 0, 0);
 
   private final StatsDSender statsDSender;
   private final MemoryMXBean memoryMXBean;
@@ -55,7 +58,8 @@ public class JvmMetricsSender {
   }
 
   private void sendJvmMetrics() {
-    long compressedClassSpaceMax = 0, metaspaceMax = 0;
+    MemoryUsage compressedClassSpaceUsage = ZERO_MEMORY_USAGE, metaspaceUsage = null;
+
     for (MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
       String poolName = memoryPool.getName();
       MemoryUsage memoryUsage = memoryPool.getUsage();
@@ -63,18 +67,24 @@ public class JvmMetricsSender {
       if (memoryPool.getType() == MemoryType.HEAP) {
         sendHeapMemoryPoolUsage(memoryUsage, new Tag("pool", poolName));
       } else {
-        sendNonHeapMemoryPoolUsage(memoryUsage, new Tag("pool", poolName));
-
         if (poolName.equals(COMPRESSED_CLASS_SPACE_POOL)) {
-          compressedClassSpaceMax = memoryUsage.getMax();
-        } else if (poolName.equals(METASPACE_POOL)) {
-          metaspaceMax = memoryUsage.getMax();
+          compressedClassSpaceUsage = memoryUsage;
+        }
+
+        if (poolName.equals(METASPACE_POOL)) {
+          metaspaceUsage = memoryUsage;
+        } else {
+          sendNonHeapMemoryPoolUsage(memoryUsage, new Tag("pool", poolName));
         }
       }
     }
 
-    sendHeapMemoryUsage();
-    sendNonHeapMemoryUsage(compressedClassSpaceMax);
+    sendHeapMemoryPoolUsage(memoryMXBean.getHeapMemoryUsage(), TOTAL_TAG);
+
+    sendNonHeapPoolMemoryUsageAdjusted(memoryMXBean.getNonHeapMemoryUsage(), compressedClassSpaceUsage, TOTAL_TAG);
+    if (metaspaceUsage != null) {
+      sendNonHeapPoolMemoryUsageAdjusted(metaspaceUsage, compressedClassSpaceUsage, new Tag("pool", METASPACE_POOL));
+    }
 
     sendBufferPoolsUsage();
 
@@ -83,34 +93,28 @@ public class JvmMetricsSender {
     statsDSender.sendGauge(threadCountMetricName, ManagementFactory.getThreadMXBean().getThreadCount());
 
     if (!metaspaceSizeMismatchReported) {
-      logMetaspaceSizeMismatch(metaspaceMax, loadedClassesCount);
+      logMetaspaceSizeMismatch(ofNullable(metaspaceUsage).map(MemoryUsage::getMax).orElse(-1L), loadedClassesCount);
       metaspaceSizeMismatchReported = true;
     }
   }
 
-  private void sendHeapMemoryUsage() {
-    sendHeapMemoryPoolUsage(memoryMXBean.getHeapMemoryUsage(), TOTAL_TAG);
+  private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
+    statsDSender.sendGauge(heapUsedMetricName, poolUsage.getUsed(), poolTag);
+    statsDSender.sendGauge(heapMaxMetricName, poolUsage.getMax(), poolTag);
+    statsDSender.sendGauge(heapCommitedMetricName, poolUsage.getCommitted(), poolTag);
   }
 
-  private void sendNonHeapMemoryUsage(long compressedClassSpaceMax) {
-    MemoryUsage nonHeapMemoryUsage = memoryMXBean.getNonHeapMemoryUsage();
-    statsDSender.sendGauge(nonHeapUsedMetricName, nonHeapMemoryUsage.getUsed(), TOTAL_TAG);
-    statsDSender.sendGauge(nonHeapCommitedMetricName, nonHeapMemoryUsage.getCommitted(), TOTAL_TAG);
-
-    // Max non-heap usage sums up maximums for Metaspace and Compressed Class Space, but in fact CCS is included in Metaspace
-    statsDSender.sendGauge(nonHeapMaxMetricName, Math.max(-1, nonHeapMemoryUsage.getMax() - compressedClassSpaceMax), TOTAL_TAG);
+  private void sendNonHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
+    statsDSender.sendGauge(nonHeapUsedMetricName, poolUsage.getUsed(), poolTag);
+    statsDSender.sendGauge(nonHeapMaxMetricName, poolUsage.getMax(), poolTag);
+    statsDSender.sendGauge(nonHeapCommitedMetricName, poolUsage.getCommitted(), poolTag);
   }
 
-  private void sendHeapMemoryPoolUsage(MemoryUsage memoryUsage, Tag poolTag) {
-    statsDSender.sendGauge(heapUsedMetricName, memoryUsage.getUsed(), poolTag);
-    statsDSender.sendGauge(heapMaxMetricName, memoryUsage.getMax(), poolTag);
-    statsDSender.sendGauge(heapCommitedMetricName, memoryUsage.getCommitted(), poolTag);
-  }
-
-  private void sendNonHeapMemoryPoolUsage(MemoryUsage memoryUsage, Tag poolTag) {
-    statsDSender.sendGauge(nonHeapUsedMetricName, memoryUsage.getUsed(), poolTag);
-    statsDSender.sendGauge(nonHeapMaxMetricName, memoryUsage.getMax(), poolTag);
-    statsDSender.sendGauge(nonHeapCommitedMetricName, memoryUsage.getCommitted(), poolTag);
+  // Non-heap usage JMX metric sums up Metaspace and Compressed Class Space, but in fact CCS is included in Metaspace
+  private void sendNonHeapPoolMemoryUsageAdjusted(MemoryUsage poolUsage, MemoryUsage ccsUsage, Tag tag) {
+    statsDSender.sendGauge(nonHeapUsedMetricName, poolUsage.getUsed() - ccsUsage.getUsed(), tag);
+    statsDSender.sendGauge(nonHeapCommitedMetricName, poolUsage.getCommitted() - ccsUsage.getCommitted(), tag);
+    statsDSender.sendGauge(nonHeapMaxMetricName, Math.max(-1, poolUsage.getMax() - ccsUsage.getMax()), tag);
   }
 
   private void sendBufferPoolsUsage() {
@@ -125,7 +129,7 @@ public class JvmMetricsSender {
     long recommendedMetaspaceSize = getRecommendedMetaspaceSize(loadedClassesCount);
     if (metaspaceMax < 0) {
       LOGGER.error(
-        "Metaspace is unlimited (recommended: {}), consider setting -XX:MaxMetaspaceSize", recommendedMetaspaceSize
+        "Metaspace is unlimited or undefined (recommended: {}), consider setting -XX:MaxMetaspaceSize", recommendedMetaspaceSize
       );
     } else if (metaspaceMax < recommendedMetaspaceSize) {
       LOGGER.error(

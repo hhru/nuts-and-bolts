@@ -1,6 +1,5 @@
 package ru.hh.nab.testbase;
 
-import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -29,10 +28,6 @@ public class NabRunner extends SpringJUnit4ClassRunner {
   public NabRunner(Class<?> clazz) throws InitializationError {
     super(clazz);
     CURRENT_INSTANCE.set(this);
-  }
-
-  private static TestContextManager getManager() {
-    return CURRENT_INSTANCE.get().getTestContextManager();
   }
 
   /**
@@ -109,7 +104,6 @@ public class NabRunner extends SpringJUnit4ClassRunner {
    * TODO looks like custom spring scope
    */
   public static class JettyTestConfig {
-
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     NabTestContext testContext() {
@@ -118,7 +112,7 @@ public class NabRunner extends SpringJUnit4ClassRunner {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    String jettyBaseUrl(NabTestContext testContext) throws UnknownHostException {
+    String jettyBaseUrl(NabTestContext testContext) {
       return JettyTestContainer.getServerAddress(testContext.getPortHolder().getPort()).toString();
     }
 
@@ -126,6 +120,10 @@ public class NabRunner extends SpringJUnit4ClassRunner {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     JettyTestContainer jettyTestContainer(WebApplicationContext applicationContext, NabTestContext testContext) {
       return testContext.getJetty(applicationContext);
+    }
+
+    private static TestContextManager getManager() {
+      return CURRENT_INSTANCE.get().getTestContextManager();
     }
   }
 }

@@ -10,6 +10,8 @@ public class FileSystemUtils {
   private static final String LINUX_TMPFS_PATH = "/dev/shm";
   private static final String MAC_OS_TMPFS_PATH = "/private/tmpfs/";
 
+  private FileSystemUtils() {}
+
   public static Path getTmpfsPath() {
     if (SystemUtils.IS_OS_LINUX) {
       return getPathIfExists(LINUX_TMPFS_PATH);

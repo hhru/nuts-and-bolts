@@ -26,10 +26,6 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${user}";
   public static final String DEFAULT_USER = "postgres";
 
-  private static final String PG_DIR = "embedded-pg";
-  private static final String PG_DIR_PROPERTY = "ot.epg.working-dir";
-  private static final UUID INSTANCE_ID = UUID.randomUUID();
-
   public EmbeddedPostgresDataSourceFactory() {
     super(null);
   }
@@ -55,39 +51,43 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
   }
 
-  private static EmbeddedPostgres createEmbeddedPostgres() {
-    try {
-      File dataDirectory = null;
-      String embeddedPgDir = getEmbeddedPgDir();
-      if (embeddedPgDir != null) {
-        System.setProperty(PG_DIR_PROPERTY, embeddedPgDir);
-        dataDirectory = new File(embeddedPgDir, INSTANCE_ID.toString());
-      }
-      return EmbeddedPostgres.builder()
+  private static class EmbeddedPostgresSingleton {
+    private static final UUID INSTANCE_ID = UUID.randomUUID();
+    private static final EmbeddedPostgres INSTANCE = createEmbeddedPostgres();
+
+    private static final String PG_DIR = "embedded-pg";
+    private static final String PG_DIR_PROPERTY = "ot.epg.working-dir";
+
+    private static EmbeddedPostgres createEmbeddedPostgres() {
+      try {
+        File dataDirectory = null;
+        String embeddedPgDir = getEmbeddedPgDir();
+        if (embeddedPgDir != null) {
+          System.setProperty(PG_DIR_PROPERTY, embeddedPgDir);
+          dataDirectory = new File(embeddedPgDir, INSTANCE_ID.toString());
+        }
+        return EmbeddedPostgres.builder()
           .setServerConfig("autovacuum", "off")
           .setLocaleConfig("lc-collate", "C")
           .setDataDirectory(dataDirectory)
           .start();
-    } catch (IOException e) {
-      throw new IllegalStateException("Can't start embedded Postgres", e);
-    }
-  }
-
-  private static String getEmbeddedPgDir() throws IOException {
-    Path tmpfsPath = FileSystemUtils.getTmpfsPath();
-    if (tmpfsPath == null) {
-      return null;
+      } catch (IOException e) {
+        throw new IllegalStateException("Can't start embedded Postgres", e);
+      }
     }
 
-    Path pgPath = Paths.get(tmpfsPath.toString(), PG_DIR);
-    if (Files.notExists(pgPath)) {
-      Files.createDirectory(pgPath);
-    }
-    return pgPath.toString();
-  }
+    private static String getEmbeddedPgDir() throws IOException {
+      Path tmpfsPath = FileSystemUtils.getTmpfsPath();
+      if (tmpfsPath == null) {
+        return null;
+      }
 
-  private static class EmbeddedPostgresSingleton {
-    private static final EmbeddedPostgres INSTANCE = createEmbeddedPostgres();
+      Path pgPath = Paths.get(tmpfsPath.toString(), PG_DIR);
+      if (Files.notExists(pgPath)) {
+        Files.createDirectory(pgPath);
+      }
+      return pgPath.toString();
+    }
   }
 
   public static EmbeddedPostgres getEmbeddedPostgres() {

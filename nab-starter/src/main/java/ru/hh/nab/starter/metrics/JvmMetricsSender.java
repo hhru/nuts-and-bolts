@@ -17,6 +17,7 @@ import static java.util.Optional.ofNullable;
 public class JvmMetricsSender {
   private static final String COMPRESSED_CLASS_SPACE_POOL = "Compressed Class Space";
   private static final String METASPACE_POOL = "Metaspace";
+  private static final String METADATA_POOL = "Metadata";  // Metaspace = Metadata + Compressed Class Space
 
   private static final Tag TOTAL_TAG = new Tag("pool", "total");
   private static final Logger LOGGER = LoggerFactory.getLogger(JvmMetricsSender.class);
@@ -83,7 +84,7 @@ public class JvmMetricsSender {
 
     sendNonHeapPoolMemoryUsageAdjusted(memoryMXBean.getNonHeapMemoryUsage(), compressedClassSpaceUsage, TOTAL_TAG);
     if (metaspaceUsage != null) {
-      sendNonHeapPoolMemoryUsageAdjusted(metaspaceUsage, compressedClassSpaceUsage, new Tag("pool", METASPACE_POOL));
+      sendNonHeapPoolMemoryUsageAdjusted(metaspaceUsage, compressedClassSpaceUsage, new Tag("pool", METADATA_POOL));
     }
 
     sendBufferPoolsUsage();

@@ -7,12 +7,8 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
-
-import static java.util.Optional.ofNullable;
 
 public class JvmMetricsSender {
   private static final String COMPRESSED_CLASS_SPACE_POOL = "Compressed Class Space";
@@ -20,7 +16,6 @@ public class JvmMetricsSender {
   private static final String METADATA_POOL = "Metadata";  // Metaspace = Metadata + Compressed Class Space
 
   private static final Tag TOTAL_TAG = new Tag("pool", "total");
-  private static final Logger LOGGER = LoggerFactory.getLogger(JvmMetricsSender.class);
   private static final MemoryUsage ZERO_MEMORY_USAGE = new MemoryUsage(0, 0, 0, 0);
 
   private final StatsDSender statsDSender;
@@ -35,8 +30,6 @@ public class JvmMetricsSender {
   private final String bufferPoolCapacityMetricName;
   private final String threadCountMetricName;
   private final String loadedClassesCountMetricName;
-
-  private boolean metaspaceSizeMismatchReported = false;
 
   private JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
     this.statsDSender = statsDSender;
@@ -89,14 +82,8 @@ public class JvmMetricsSender {
 
     sendBufferPoolsUsage();
 
-    long loadedClassesCount = ManagementFactory.getClassLoadingMXBean().getLoadedClassCount();
-    statsDSender.sendGauge(loadedClassesCountMetricName, loadedClassesCount);
+    statsDSender.sendGauge(loadedClassesCountMetricName, ManagementFactory.getClassLoadingMXBean().getLoadedClassCount());
     statsDSender.sendGauge(threadCountMetricName, ManagementFactory.getThreadMXBean().getThreadCount());
-
-    if (!metaspaceSizeMismatchReported) {
-      logMetaspaceSizeMismatch(ofNullable(metaspaceUsage).map(MemoryUsage::getMax).orElse(-1L), loadedClassesCount);
-      metaspaceSizeMismatchReported = true;
-    }
   }
 
   private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
@@ -124,31 +111,6 @@ public class JvmMetricsSender {
       statsDSender.sendGauge(bufferPoolUsedMetricName, bufferPool.getMemoryUsed(), poolTag);
       statsDSender.sendGauge(bufferPoolCapacityMetricName, bufferPool.getTotalCapacity(), poolTag);
     }
-  }
-
-  private static void logMetaspaceSizeMismatch(long metaspaceMax, long loadedClassesCount) {
-    long recommendedMetaspaceSize = getRecommendedMetaspaceSize(loadedClassesCount);
-    if (metaspaceMax < 0) {
-      LOGGER.error(
-        "Metaspace is unlimited or undefined (recommended: {}), consider setting -XX:MaxMetaspaceSize", recommendedMetaspaceSize
-      );
-    } else if (metaspaceMax < recommendedMetaspaceSize) {
-      LOGGER.error(
-        "Metaspace limit ({}) is less than recommended ({}), consider increasing -XX:MaxMetaspaceSize",
-        metaspaceMax, recommendedMetaspaceSize
-      );
-    } else if (metaspaceMax > recommendedMetaspaceSize * 2) {
-      LOGGER.error(
-        "Metaspace limit ({}) is much more than recommended ({}), consider increasing -XX:MaxMetaspaceSize",
-        metaspaceMax, recommendedMetaspaceSize
-      );
-    }
-  }
-
-  // Inspired by https://github.com/cloudfoundry/java-buildpack-memory-calculator
-
-  private static long getRecommendedMetaspaceSize(long loadedClassesCount) {
-    return (loadedClassesCount * 5800) + 14_000_000;
   }
 
   private static String getFullMetricName(String serviceName, String metricName) {

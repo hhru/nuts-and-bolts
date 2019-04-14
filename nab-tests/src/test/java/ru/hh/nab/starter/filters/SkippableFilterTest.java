@@ -45,6 +45,6 @@ public class SkippableFilterTest extends NabTestBase {
   public void testSkippableFilterNoExclusions() {
     Response response = executeGet("/status-not");
 
-    assertEquals(response.getHeaderString("x-passed-filter"), "true");
+    assertEquals("true", response.getHeaderString("x-passed-filter"));
   }
 }

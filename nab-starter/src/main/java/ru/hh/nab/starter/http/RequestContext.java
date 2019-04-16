@@ -1,6 +1,8 @@
 package ru.hh.nab.starter.http;
 
 public class RequestContext {
+  private RequestContext() {}
+
   private static final ThreadLocal<String> REQUEST_SOURCE = new ThreadLocal<>();
   private static final ThreadLocal<Boolean> LOAD_TESTING = new ThreadLocal<>();
 

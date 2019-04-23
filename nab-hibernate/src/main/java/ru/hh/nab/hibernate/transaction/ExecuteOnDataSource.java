@@ -10,7 +10,7 @@ import ru.hh.nab.datasource.DataSourceType;
 @Target(ElementType.METHOD)
 public @interface ExecuteOnDataSource {
 
-  boolean readOnly() default true;
+  boolean writableTx() default false;
 
   String dataSourceType() default DataSourceType.READONLY;
 

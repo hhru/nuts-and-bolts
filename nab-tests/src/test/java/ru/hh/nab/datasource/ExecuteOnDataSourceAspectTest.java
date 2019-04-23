@@ -1,7 +1,10 @@
 package ru.hh.nab.datasource;
 
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +15,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
@@ -26,11 +31,16 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSou
 
 import java.lang.annotation.Annotation;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class})
+@ContextConfiguration(classes = {HibernateTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
 public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
+
+  private static final String WRITABLE_DATASOURCE = "writable";
+
   private ExecuteOnDataSourceAspect executeOnDataSourceAspect;
   private Session masterSession;
   private Session outerReadonlySession;
+  @Inject
+  private TestService testService;
 
   @Before
   public void setUp() {
@@ -51,7 +61,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, true));
+    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
     assertEquals(MASTER, getDataSourceKey());
     assertEquals(masterSession, getCurrentSession());
@@ -61,19 +71,8 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @Test
   public void testWrite() throws Throwable {
     assertHibernateIsNotInitialized();
-    ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
-    when(pjpMock.proceed()).then(invocation -> writeAssertion("writable"));
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock("writable", false));
-
+    testService.customWrite();
     assertHibernateIsNotInitialized();
-  }
-
-  private Object writeAssertion(String name) {
-    assertEquals(name, getDataSourceKey());
-    assertNotNull(getCurrentSession());
-    assertTrue(isSynchronizationActive());
-    assertTrue(isActualTransactionActive());
-    return null;
   }
 
   private static void assertHibernateIsNotInitialized() {
@@ -88,7 +87,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, true));
+    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
     assertEquals(DataSourceType.READONLY, getDataSourceKey());
     assertEquals(outerReadonlySession, getCurrentSession());
@@ -102,7 +101,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     return null;
   }
 
-  private static ExecuteOnDataSource createExecuteOnReadonlyMock(String name, boolean readOnly) {
+  private static ExecuteOnDataSource createExecuteOnReadonlyMock(String name, boolean writableTx) {
     return new ExecuteOnDataSource() {
 
       @Override
@@ -111,8 +110,8 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       }
 
       @Override
-      public boolean readOnly() {
-        return readOnly;
+      public boolean writableTx() {
+        return writableTx;
       }
 
       @Override
@@ -130,5 +129,33 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
         return DataSourceCacheMode.NORMAL;
       }
     };
+  }
+
+  static class TestService {
+
+    private final SessionFactory sessionFactory;
+
+    TestService(SessionFactory sessionFactory) {
+      this.sessionFactory = sessionFactory;
+    }
+
+    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
+    public void customReadOnly() {
+
+    }
+
+    @Transactional
+    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE, writableTx = true)
+    public void customWrite() {
+      assertEquals(WRITABLE_DATASOURCE, getDataSourceKey());
+      assertNotNull(sessionFactory.getCurrentSession());
+      assertTrue(isSynchronizationActive());
+      assertTrue(isActualTransactionActive());
+    }
+  }
+
+  @Configuration
+  @Import(TestService.class)
+  static class AspectConfig {
   }
 }

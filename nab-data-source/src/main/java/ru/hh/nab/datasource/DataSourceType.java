@@ -14,7 +14,7 @@ public final class DataSourceType {
   private DataSourceType() {
   }
 
-  public static void registerPropertiesFor(String dataSourceName, DataSourceProperties dataSource) {
+  static void registerPropertiesFor(String dataSourceName, DataSourceProperties dataSource) {
     PROPERTIES_STORAGE.putIfAbsent(dataSourceName, dataSource);
   }
 
@@ -22,13 +22,13 @@ public final class DataSourceType {
     PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(hikariConfig.isReadOnly()));
   }
 
+  static void clear() {
+    PROPERTIES_STORAGE.clear();
+  }
+
   public static DataSourceProperties getPropertiesFor(String dataSourceName) {
     //MASTER=default -> properties must be null-safe
     return PROPERTIES_STORAGE.getOrDefault(dataSourceName, DataSourceProperties.DEFAULT_PROPERTIES);
-  }
-
-  public static void clear() {
-    PROPERTIES_STORAGE.clear();
   }
 
   public static final class DataSourceProperties {

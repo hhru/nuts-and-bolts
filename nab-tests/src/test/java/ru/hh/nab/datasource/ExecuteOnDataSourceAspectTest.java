@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.Session;
@@ -11,8 +11,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
-import ru.hh.nab.datasource.DataSourceType;
 
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;

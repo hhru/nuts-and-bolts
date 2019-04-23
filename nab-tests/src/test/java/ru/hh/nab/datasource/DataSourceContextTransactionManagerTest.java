@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -18,9 +18,9 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 
 import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.datasource.DataSourceType;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {

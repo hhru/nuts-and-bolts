@@ -47,7 +47,7 @@ public class DataSourceFactory {
     }
 
     checkDataSource(hikariDataSource, hikariConfig.getPoolName());
-
+    DataSourceType.registerPropertiesFor(hikariConfig);
     return hikariDataSource;
   }
 

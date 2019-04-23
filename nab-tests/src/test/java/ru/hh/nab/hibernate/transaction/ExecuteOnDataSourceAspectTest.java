@@ -28,12 +28,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @Before
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
+    DataSourceType.registerPropertiesFor(DataSourceType.READONLY, new DataSourceType.DataSourceProperties(true));
     startTransaction();
   }
 
   @After
   public void tearDown() {
     rollBackTransaction();
+    DataSourceType.clear();
   }
 
   @Test

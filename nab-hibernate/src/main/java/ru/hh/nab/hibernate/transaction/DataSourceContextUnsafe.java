@@ -47,6 +47,14 @@ public final class DataSourceContextUnsafe {
     return ofNullable(currentDataSourceKey.get()).orElse(DataSourceType.MASTER);
   }
 
+  public static boolean isReadOnlyDataSource(String dataSourceName) {
+    return DataSourceType.getPropertiesFor(dataSourceName).isReadOnly();
+  }
+
+  public static boolean isCurrentDataSouceReadOnly() {
+    return isReadOnlyDataSource(getDataSourceKey());
+  }
+
   public static void setDefaultMDC() {
     updateMDC(DataSourceType.MASTER);
   }

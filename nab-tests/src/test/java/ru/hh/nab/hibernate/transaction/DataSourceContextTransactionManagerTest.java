@@ -28,6 +28,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   @Before
   public void setUpTestBaseClass() {
+    DataSourceType.clear();
     try (Session session = sessionFactory.openSession()) {
       session.getTransaction().begin();
       TestEntity testEntity = createTestEntity(session);
@@ -122,17 +123,17 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   @Test
   public void testDataSource() {
-    testDataSource(DataSourceType.READONLY);
+    testDataSource(DataSourceType.READONLY, true);
   }
 
   @Test
   public void testSlowReplica() {
-    testDataSource(DataSourceType.SLOW);
+    testDataSource(DataSourceType.SLOW, true);
   }
 
-  private void testDataSource(String dataSourceName) {
+  private void testDataSource(String dataSourceName, boolean readOnly) {
     assertHibernateIsNotInitialized();
-
+    DataSourceType.registerPropertiesFor(dataSourceName, new DataSourceType.DataSourceProperties(readOnly));
     DataSourceContextUnsafe.executeOn(dataSourceName, false, () -> {
       TransactionStatus transactionStatus = createTransaction(false);
 

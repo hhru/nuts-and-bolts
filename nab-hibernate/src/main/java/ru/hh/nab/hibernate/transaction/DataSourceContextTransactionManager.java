@@ -10,7 +10,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import static ru.hh.nab.datasource.DataSourceType.MASTER;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
@@ -27,7 +26,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
   }
 
   private static TransactionDefinition fixTransactionDefinition(TransactionDefinition definition) {
-    if (isMasterDataSource()) {
+    if (!DataSourceContextUnsafe.isCurrentDataSouceReadOnly()) {
       if (definition.isReadOnly()) {
         return getReadOnlyTransactionDefinition(definition, PROPAGATION_SUPPORTS);
       }
@@ -61,10 +60,5 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
     definition.setPropagationBehavior(propagationBehavior);
     definition.setReadOnly(true);
     return definition;
-  }
-
-  private static boolean isMasterDataSource() {
-    String dataSourceName = DataSourceContextUnsafe.getDataSourceKey();
-    return MASTER.equals(dataSourceName);
   }
 }

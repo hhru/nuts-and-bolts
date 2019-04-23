@@ -18,7 +18,7 @@ import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 
 @Configuration
-@EnableTransactionManagement
+@EnableTransactionManagement(order = 0)
 @EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {
 

@@ -26,7 +26,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
   }
 
   private static TransactionDefinition fixTransactionDefinition(TransactionDefinition definition) {
-    if (!DataSourceContextUnsafe.isCurrentDataSouceReadOnly()) {
+    if (DataSourceContextUnsafe.isCurrentDataSourceWritable()) {
       if (definition.isReadOnly()) {
         return getReadOnlyTransactionDefinition(definition, PROPAGATION_SUPPORTS);
       }

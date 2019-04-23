@@ -19,7 +19,7 @@ public final class DataSourceType {
   }
 
   static void registerPropertiesFor(HikariConfig hikariConfig) {
-    PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(hikariConfig.isReadOnly()));
+    PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(!hikariConfig.isReadOnly()));
   }
 
   static void clear() {
@@ -33,16 +33,16 @@ public final class DataSourceType {
 
   public static final class DataSourceProperties {
 
-    private static final DataSourceProperties DEFAULT_PROPERTIES = new DataSourceProperties(false);
+    private static final DataSourceProperties DEFAULT_PROPERTIES = new DataSourceProperties(true);
 
-    private final boolean readOnly;
+    private final boolean writable;
 
-    public DataSourceProperties(boolean readOnly) {
-      this.readOnly = readOnly;
+    public DataSourceProperties(boolean writable) {
+      this.writable = writable;
     }
 
-    public boolean isReadOnly() {
-      return readOnly;
+    public boolean isWritable() {
+      return writable;
     }
   }
 }

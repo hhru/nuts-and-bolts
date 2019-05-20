@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.19.9-SNAPSHOT</version>
+        <version>4.19.9</version>
         <relativePath>..</relativePath>
     </parent>
 

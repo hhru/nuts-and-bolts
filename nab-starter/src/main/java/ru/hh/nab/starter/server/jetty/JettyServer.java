@@ -78,7 +78,7 @@ public final class JettyServer {
       server,
       ofNullable(jettySettings.getInteger("acceptors")).orElse(-1),
       ofNullable(jettySettings.getInteger("selectors")).orElse(-1),
-      createHttpConnectionFactory());
+      createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString("host"));
     serverConnector.setPort(jettySettings.getInteger(PORT));
@@ -96,12 +96,12 @@ public final class JettyServer {
     server.setStopTimeout(ofNullable(jettySettings.getInteger("stopTimeoutMs")).orElse(5_000));
   }
 
-  private static HttpConnectionFactory createHttpConnectionFactory() {
+  private static HttpConnectionFactory createHttpConnectionFactory(FileSettings jettySettings) {
     final HttpConfiguration httpConfiguration = new HttpConfiguration();
-    httpConfiguration.setSecurePort(8443);
-    httpConfiguration.setOutputBufferSize(65536);
-    httpConfiguration.setRequestHeaderSize(16384);
-    httpConfiguration.setResponseHeaderSize(65536);
+    httpConfiguration.setSecurePort(Optional.ofNullable(jettySettings.getInteger("securePort")).orElse(8443));
+    httpConfiguration.setOutputBufferSize(Optional.ofNullable(jettySettings.getInteger("outputBufferSize")).orElse(65536));
+    httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger("requestHeaderSize")).orElse(16384));
+    httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger("responseHeaderSize")).orElse(65536));
     httpConfiguration.setSendServerVersion(false);
     httpConfiguration.setBlockingTimeout(5000);
     return new HttpConnectionFactory(httpConfiguration);

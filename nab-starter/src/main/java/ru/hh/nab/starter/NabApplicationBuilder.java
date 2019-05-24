@@ -356,7 +356,7 @@ public final class NabApplicationBuilder {
     private String[] mappings;
     private final Set<String> allowedPackages;
     private String servletName;
-    private final List<Consumer<ResourceConfig>> configurationActions;
+    private final List<BiConsumer<WebApplicationContext, ResourceConfig>> configurationActions;
 
     public JerseyBuilder(NabApplicationBuilder nabApplicationBuilder, Class<?>... childConfigs) {
       this.nabApplicationBuilder = nabApplicationBuilder;
@@ -366,22 +366,27 @@ public final class NabApplicationBuilder {
     }
 
     public JerseyBuilder registerResources(Class<?>... resources) {
-      configurationActions.add(resourceConfig -> Arrays.stream(resources).forEach(resourceConfig::register));
+      configurationActions.add((ctx, resourceConfig) -> Arrays.stream(resources).forEach(resourceConfig::register));
+      return this;
+    }
+
+    public JerseyBuilder registerResourceBean(Function<WebApplicationContext, ?> resourceProvider) {
+      configurationActions.add((ctx, resourceConfig) -> resourceConfig.register(resourceProvider.apply(ctx)));
       return this;
     }
 
     public JerseyBuilder registerResourceWithContracts(Class<?> resource, Class<?>... contracts) {
-      configurationActions.add(resourceConfig -> resourceConfig.register(resource, contracts));
+      configurationActions.add((ctx, resourceConfig) -> resourceConfig.register(resource, contracts));
       return this;
     }
 
     public JerseyBuilder registerProperty(String key, Object value) {
-      configurationActions.add(resourceConfig -> resourceConfig.property(key, value));
+      configurationActions.add((ctx, resourceConfig) -> resourceConfig.property(key, value));
       return this;
     }
 
     public JerseyBuilder executeOnConfig(Consumer<ResourceConfig> configurationAction) {
-      configurationActions.add(configurationAction);
+      configurationActions.add((ctx, resourceConfig) -> configurationAction.accept(resourceConfig));
       return this;
     }
 
@@ -432,8 +437,8 @@ public final class NabApplicationBuilder {
         }
 
         @Override
-        public void configure(ResourceConfig resourceConfig) {
-          jerseyBuilder.configurationActions.forEach(action -> action.accept(resourceConfig));
+        public void configure(WebApplicationContext ctx, ResourceConfig resourceConfig) {
+          jerseyBuilder.configurationActions.forEach(action -> action.accept(ctx, resourceConfig));
         }
       };
     }

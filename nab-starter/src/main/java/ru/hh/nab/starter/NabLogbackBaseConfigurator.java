@@ -62,6 +62,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
+    createLogger(context, NabApplication.class, Level.INFO, false, service);
 
     var rootLogger = getRootLogger(context);
     rootLogger.setLevel(context.getProperty("log.root.level", Level.WARN, level -> Level.valueOf(level.toUpperCase())));

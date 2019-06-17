@@ -5,7 +5,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.hibernate.SessionFactory;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
-import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
+import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -28,7 +28,7 @@ public class ExecuteOnDataSourceAspect {
       return pjp.proceed();
     }
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-    transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_SUPPORTS : PROPAGATION_NOT_SUPPORTED);
+    transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
     return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScope(),
         () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(pjp, sessionFactory, executeOnDataSource)));

@@ -62,7 +62,7 @@ public class Counters {
     }
 
     tagsToCounter.remove(tagsToRemove);
-    logger.error("Max num ({}) of counters reached, removed counter {}", maxNumOfCounters, tagsToRemove);
+    logger.warn("Max num ({}) of counters reached, removed counter {}", maxNumOfCounters, tagsToRemove);
   }
 
   Map<Tags, Integer> getSnapshotAndReset() {

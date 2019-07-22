@@ -7,6 +7,7 @@ import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.WebApplicationContext;
+import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -57,6 +58,11 @@ public class NabApplicationTest {
   public void runShouldFailOnContextRefreshFail() {
     exit.expectSystemExitWithStatus(1);
     NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class, BrokenCtx.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void runShouldFailOnWrongJerseyCfg() {
+    NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build().run();
   }
 
   @XmlRootElement

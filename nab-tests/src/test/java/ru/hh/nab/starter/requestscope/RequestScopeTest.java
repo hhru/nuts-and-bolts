@@ -1,6 +1,8 @@
 package ru.hh.nab.starter.requestscope;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestBase;
@@ -34,9 +36,13 @@ public class RequestScopeTest extends NabTestBase {
   protected NabApplication getApplication() {
     return NabApplication
         .builder()
-        .configureJersey()
-        .registerResources(TestResource.class)
+        .configureJersey(SpringCtxForJersey.class)
         .bindToRoot()
         .build();
+  }
+
+  @Configuration
+  @Import(TestResource.class)
+  static class SpringCtxForJersey {
   }
 }

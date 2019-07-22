@@ -13,11 +13,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
+import javax.ws.rs.Path;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -366,6 +368,10 @@ public final class NabApplicationBuilder {
     }
 
     public JerseyBuilder registerResources(Class<?>... resources) {
+      if (Stream.of(resources).anyMatch(cls -> cls.isAnnotationPresent(Path.class))) {
+        throw new IllegalArgumentException("Endpoints must be registered with Spring context. " +
+          "The method should be used to register pure jersey components with minimal dependencies");
+      }
       configurationActions.add((ctx, resourceConfig) -> Arrays.stream(resources).forEach(resourceConfig::register));
       return this;
     }

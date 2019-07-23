@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.starter.NabApplication;
@@ -20,7 +22,7 @@ public class ResourceNameLoggingFilterTest extends NabTestBase {
 
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindTo("/test/*").build();
+    return NabApplication.builder().configureJersey(SpringCtxForJersey.class).bindTo("/test/*").build();
   }
 
   @Test
@@ -42,5 +44,10 @@ public class ResourceNameLoggingFilterTest extends NabTestBase {
       assertTrue(MDC.getController().isPresent());
       return MDC.getController().get();
     }
+  }
+
+  @Configuration
+  @Import(TestResource.class)
+  static class SpringCtxForJersey {
   }
 }

@@ -24,7 +24,7 @@ public class CustomExceptionMappersTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
     return NabApplication.builder()
-      .configureJersey().registerResources(TestResource.class, CustomExceptionMapper.class).bindToRoot()
+      .configureJersey(SpringCtxForJersey.class).registerResources(CustomExceptionMapper.class).bindToRoot()
       .build();
   }
 
@@ -95,5 +95,10 @@ public class CustomExceptionMappersTest extends NabTestBase {
     public Response any() {
       throw new RuntimeException("Any exception");
     }
+  }
+
+  @Configuration
+  @Import(TestResource.class)
+  static class SpringCtxForJersey {
   }
 }

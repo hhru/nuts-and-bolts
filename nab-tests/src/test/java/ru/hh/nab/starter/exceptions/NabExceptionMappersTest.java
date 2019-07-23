@@ -2,6 +2,8 @@ package ru.hh.nab.starter.exceptions;
 
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Test;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
@@ -37,7 +39,7 @@ import static org.mockito.Mockito.mock;
 public class NabExceptionMappersTest extends NabTestBase {
   @Override
   protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build();
+    return NabApplication.builder().configureJersey(SpringCtxForJersey.class).bindToRoot().build();
   }
 
   @Test
@@ -156,5 +158,10 @@ public class NabExceptionMappersTest extends NabTestBase {
         //
       }
     };
+  }
+
+  @Configuration
+  @Import(TestResource.class)
+  static class SpringCtxForJersey {
   }
 }

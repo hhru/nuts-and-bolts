@@ -16,6 +16,13 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
   public static final String SYSLOG_HOST_PROPERTY_KEY = "log.syslogHost";
   public static final String SYSLOG_MAX_MSG_LENGTH_PROPERTY_KEY = "log.syslogMaxMessageLength";
 
+  private final boolean json;
+
+  public HhSyslogAppender(boolean json) {
+    super();
+    this.json = json;
+  }
+
   @Override
   public void start() {
     if (getLayout() == null) {
@@ -26,7 +33,7 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
     var host = context.getProperty(SYSLOG_HOST_PROPERTY_KEY);
     var port = context.getProperty(SYSLOG_PORT_PROPERTY_KEY);
     var udpNetSyslogConfig = new UDPNetSyslogConfig(SyslogConstants.FACILITY_USER, host, Integer.valueOf(port));
-    udpNetSyslogConfig.setIdent(getName());
+    udpNetSyslogConfig.setIdent(getName() + (json ? ".slog" : ".log"));
     //better truncate than garbage file
     udpNetSyslogConfig.setTruncateMessage(true);
     udpNetSyslogConfig.setSendLocalName(false);

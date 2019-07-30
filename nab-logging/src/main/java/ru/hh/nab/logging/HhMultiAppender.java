@@ -82,7 +82,7 @@ public class HhMultiAppender extends AppenderBase<ILoggingEvent> {
     String host = getContext().getProperty(HhSyslogAppender.SYSLOG_HOST_PROPERTY_KEY);
     String port = getContext().getProperty(HhSyslogAppender.SYSLOG_PORT_PROPERTY_KEY);
     if (StringUtils.isNotEmpty(host) && StringUtils.isNumeric(port)) {
-      return new AppenderConfigurer<>(new HhSyslogAppender(), this) {
+      return new AppenderConfigurer<>(new HhSyslogAppender(this.json), this) {
         @Override
         protected void configure(HhSyslogAppender appender) {
           appender.setLayout(buildLayout());

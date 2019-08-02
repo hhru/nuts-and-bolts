@@ -27,12 +27,26 @@ public class HhSyslogAppenderTest {
   @Test
   public void testLoadPattern() throws Exception {
     Function<Context, HhSyslogAppender> hhSyslogAppenderFunction = context -> {
-      HhSyslogAppender appender = new HhSyslogAppender();
+      HhSyslogAppender appender = new HhSyslogAppender(false);
       appender.setContext(context);
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test: ["
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: ["
+        + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+        + "] ERROR logger:1 mdc={} - message",
+      "message");
+  }
+
+  @Test
+  public void testSlogFormat() throws Exception {
+    Function<Context, HhSyslogAppender> hhSyslogAppenderFunction = context -> {
+      HhSyslogAppender appender = new HhSyslogAppender(true);
+      appender.setContext(context);
+      return appender;
+    };
+    LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test.slog: ["
         + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
         + "] ERROR logger:1 mdc={} - message",
       "message");
@@ -41,12 +55,12 @@ public class HhSyslogAppenderTest {
   @Test
   public void testLoadPatternWithCyrillicSymbols() throws Exception {
     Function<Context, HhSyslogAppender> hhSyslogAppenderFunction = context -> {
-      HhSyslogAppender appender = new HhSyslogAppender();
+      HhSyslogAppender appender = new HhSyslogAppender(false);
       appender.setContext(context);
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test: ["
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: ["
       + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
       + "] ERROR logger:1 mdc={} - сообщение", "сообщение");
   }
@@ -54,7 +68,7 @@ public class HhSyslogAppenderTest {
   @Test
   public void testLayout() throws Exception {
     Function<Context, HhSyslogAppender> hhSyslogAppenderFunction = context -> {
-      HhSyslogAppender appender = new HhSyslogAppender();
+      HhSyslogAppender appender = new HhSyslogAppender(false);
       appender.setContext(context);
       PatternLayout patternLayout = new PatternLayout();
       patternLayout.setContext(context);
@@ -63,7 +77,7 @@ public class HhSyslogAppenderTest {
       patternLayout.start();
       return appender;
     };
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test: message", "message");
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: message", "message");
   }
 
   protected void testLogging(Function<Context, ? extends AppenderBase> appenderCreateFunction, String pid, String expected,

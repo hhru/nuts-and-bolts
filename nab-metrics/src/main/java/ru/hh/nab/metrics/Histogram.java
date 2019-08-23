@@ -45,7 +45,7 @@ public class Histogram {
     counter.incrementAndGet();
   }
 
-  Map<Integer, Integer> getValueToCountAndReset() {
+  public Map<Integer, Integer> getValueToCountAndReset() {
     Map<Integer, Integer> valueToCount = new HashMap<>(valueToCounter.size());
     for (Integer value : valueToCounter.keySet()) {
       AtomicInteger counter = valueToCounter.get(value);

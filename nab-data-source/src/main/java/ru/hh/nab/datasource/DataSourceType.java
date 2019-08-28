@@ -18,8 +18,8 @@ public final class DataSourceType {
     PROPERTIES_STORAGE.putIfAbsent(dataSourceName, dataSource);
   }
 
-  static void registerPropertiesFor(HikariConfig hikariConfig) {
-    PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(!hikariConfig.isReadOnly()));
+  static void registerPropertiesFor(HikariConfig hikariConfig, boolean isReadonly) {
+    PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(!isReadonly));
   }
 
   static void clear() {

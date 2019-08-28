@@ -30,7 +30,7 @@ public class DataSourceFactory {
     return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
   }
 
-  public DataSource create(HikariConfig hikariConfig, FileSettings dataSourceSettings) {
+  public DataSource create(HikariConfig hikariConfig, FileSettings dataSourceSettings, boolean isReadonly) {
     boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
     if (sendStats && metricsTrackerFactoryProvider != null) {
       hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
@@ -47,16 +47,16 @@ public class DataSourceFactory {
     }
 
     checkDataSource(hikariDataSource, hikariConfig.getPoolName());
-    DataSourceType.registerPropertiesFor(hikariConfig);
+    DataSourceType.registerPropertiesFor(hikariConfig, isReadonly);
     return hikariDataSource;
   }
 
   protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, isReadonly, dataSourceSettings);
-    return create(hikariConfig, dataSourceSettings);
+    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, dataSourceSettings);
+    return create(hikariConfig, dataSourceSettings, isReadonly);
   }
 
-  private static HikariConfig createBaseHikariConfig(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
+  private static HikariConfig createBaseHikariConfig(String dataSourceName, FileSettings dataSourceSettings) {
     Properties poolProperties = dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX);
     if (poolProperties.isEmpty()) {
       throw new RuntimeException(String.format(
@@ -71,7 +71,7 @@ public class DataSourceFactory {
     config.setUsername(dataSourceSettings.getString(USER));
     config.setPassword(dataSourceSettings.getString(PASSWORD));
     config.setPoolName(dataSourceName);
-    config.setReadOnly(isReadonly);
+    config.setReadOnly(false);
     config.setValidationTimeout(config.getConnectionTimeout() + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS);
     return config;
   }

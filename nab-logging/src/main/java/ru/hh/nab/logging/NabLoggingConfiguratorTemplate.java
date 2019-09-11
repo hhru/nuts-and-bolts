@@ -170,7 +170,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       this.properties = properties;
     }
 
-    private LoggerContext getContext() {
+    LoggerContext getContext() {
       return context;
     }
 

@@ -55,8 +55,6 @@ public final class NabApplication {
     return run(baseContext, false, serverCreateFunction -> serverCreateFunction.apply(null));
   }
 
-
-
   /**
    *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener

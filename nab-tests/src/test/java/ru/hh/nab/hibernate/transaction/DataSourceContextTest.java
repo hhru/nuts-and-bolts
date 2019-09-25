@@ -2,16 +2,13 @@ package ru.hh.nab.hibernate.transaction;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.function.Supplier;
 import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
@@ -22,8 +19,11 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSou
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class, DataSourceContextTest.DataSourceContextTestConfig.class})
+@ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTest extends HibernateTestBase {
+
+  @Inject
+  private TransactionalScope transactionalScope;
 
   @Before
   public void setUp() {
@@ -73,56 +73,16 @@ public class DataSourceContextTest extends HibernateTestBase {
     transactionTemplate.execute(transactionStatus -> onSlowReplica(() -> null));
   }
 
-  @Inject
-  private TransactionalScope transactionalScope;
-
   @Test
   public void testDsManageInsideTxScope() {
-    Supplier<Void> supplier = () -> {
-      assertEquals(SLOW, getDataSourceKey());
-      return null;
-    };
-    TargetMethod<Void> method = () -> onSlowReplica(supplier);
-    transactionalScope.read(method);
+    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceKey());
+    transactionalScope.read(() -> DataSourceContext.onDataSource(DataSourceType.SLOW, dataSourceCheck));
   }
 
   @Test
   public void testTxScopeDoesntChangeDs() {
-    TargetMethod<Void> method = () -> {
-      assertEquals(SLOW, getDataSourceKey());
-      return null;
-    };
-    Supplier<Void> supplier = () -> {
-      transactionalScope.read(method);
-      return null;
-    };
-    onSlowReplica(supplier);
+    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceKey());
+    DataSourceContext.onDataSource(DataSourceType.SLOW, () -> transactionalScope.read(dataSourceCheck));
   }
 
-
-  @FunctionalInterface
-  interface TargetMethod<T> {
-    T invoke();
-  }
-
-  static class TransactionalScope {
-
-    @Transactional(readOnly = true)
-    public <T> T read(TargetMethod<T> method) {
-      return method.invoke();
-    }
-
-    @Transactional
-    public <T> T write(TargetMethod<T> method) {
-      return method.invoke();
-    }
-  }
-
-  @Configuration
-  static class DataSourceContextTestConfig {
-    @Bean
-    TransactionalScope transactionalScope() {
-      return new TransactionalScope();
-    }
-  }
 }

@@ -3,15 +3,16 @@ package ru.hh.jclient.common;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import org.springframework.transaction.annotation.Transactional;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jclient.NabJClientConfig;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
@@ -61,16 +62,25 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
 
   @Test
   public void testJClientRequestInReadScope() throws Exception {
+    transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
     transactionalScope.read(() -> {
-      httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
-      return null;
+      try {
+        return httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     });
   }
 
   @Test
-  public void testJClientRequestInWriteScope() throws Exception {
+  public void testJClientRequestDoNotRaiseExceptionInWriteScope() throws Exception {
+    transactionalCheck.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
-      httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+      try {
+        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
       return null;
     });
   }
@@ -78,45 +88,21 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   @Test
   public void testJClientRequestRaiseActionInWriteScope() throws Exception {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
-
-    transactionalScope.write(() -> {
-      boolean exceptionRaised = false;
-
+    Exception raisedException = transactionalScope.write(() -> {
       try {
         httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
       } catch (Exception e) {
-        exceptionRaised = true;
-        assertEquals("transaction is active during executeRequest", e.getMessage());
+        return e;
       }
-
-      assertTrue(exceptionRaised);
       return null;
     });
-  }
-
-  @FunctionalInterface
-  interface TargetMethod<T> {
-    T invoke() throws Exception;
-  }
-
-  static class TransactionalScope {
-    @Transactional(readOnly = true)
-    public <T> T read(TargetMethod<T> method) throws Exception {
-      return method.invoke();
-    }
-
-    @Transactional
-    public <T> T write(TargetMethod<T> method) throws Exception {
-      return method.invoke();
-    }
+    assertNotNull(raisedException);
+    assertTrue(raisedException instanceof TransactionalCheck.TransactionalCheckException);
+    assertEquals("transaction is active during executeRequest", raisedException.getMessage());
   }
 
   @Configuration
   static class DataSourceContextTestConfig {
-    @Bean
-    TransactionalScope transactionalScope() {
-      return new TransactionalScope();
-    }
 
     @Bean
     String serviceName() {

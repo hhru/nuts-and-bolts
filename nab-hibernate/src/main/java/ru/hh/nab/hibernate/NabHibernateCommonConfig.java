@@ -16,6 +16,7 @@ import java.util.Properties;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import ru.hh.nab.hibernate.transaction.TransactionalScope;
 
 @Configuration
 @EnableTransactionManagement(order = 0)
@@ -68,5 +69,10 @@ public class NabHibernateCommonConfig {
         return new NabSessionFactoryBuilderFactory.BuilderService();
       }
     };
+  }
+
+  @Bean
+  TransactionalScope transactionalScope() {
+    return new TransactionalScope();
   }
 }

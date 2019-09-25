@@ -22,6 +22,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;
 import ru.hh.nab.hibernate.model.TestEntity;
+import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
@@ -30,7 +31,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static ru.hh.nab.hibernate.transaction.DataSourceContext.executeOn;
 
 @ContextConfiguration(classes = {NabHibernateTestBaseConfig.class, NabHibernateCommonConfig.class,
   DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class})
@@ -58,7 +58,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
           Session currentSession = sessionFactory.getCurrentSession();
           return currentSession.find(TestEntity.class, 1);
         };
-        TargetMethod<TestEntity> method = () -> executeOn("second", supplier);
+        TargetMethod<TestEntity> method = () -> onDataSource("second", supplier);
         return transactionalScope.read(method);
     }, executor).get();
     verify(firstDataSourceSpy, never()).getConnection();
@@ -76,7 +76,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         Supplier<TestEntity> supplier = () -> {
           return transactionalScope.read(method);
         };
-        return executeOn("second", supplier);
+        return onDataSource("second", supplier);
       }, executor).get();
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();

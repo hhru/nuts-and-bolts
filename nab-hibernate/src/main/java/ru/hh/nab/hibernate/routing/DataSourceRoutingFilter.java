@@ -42,7 +42,7 @@ public class DataSourceRoutingFilter implements Filter {
   }
 
   protected void wrapInDataSource(ServletRequest request, ServletResponse response, FilterChain chain, String targetDataSource) {
-    DataSourceContextUnsafe.executeInScope(targetDataSource, () -> DataSourceContext.executeOn(targetDataSource, () -> {
+    DataSourceContextUnsafe.executeInScope(targetDataSource, () -> DataSourceContext.onDataSource(targetDataSource, () -> {
       try {
         chain.doFilter(request, response);
       } catch (IOException | ServletException e) {

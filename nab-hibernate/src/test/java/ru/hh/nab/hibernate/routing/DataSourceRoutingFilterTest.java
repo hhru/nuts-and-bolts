@@ -36,7 +36,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class);
-    DataSourceContext.executeOn(eq("test"), any(Supplier.class));
+    DataSourceContext.onDataSource(eq("test"), any(Supplier.class));
   }
 
   @Test
@@ -50,7 +50,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class, never());
-    DataSourceContext.executeOn(eq("test"), any(Supplier.class));
+    DataSourceContext.onDataSource(eq("test"), any(Supplier.class));
   }
 
   @Test
@@ -64,7 +64,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class);
-    DataSourceContext.executeOn(eq(DataSourceType.READONLY), any(Supplier.class));
+    DataSourceContext.onDataSource(eq(DataSourceType.READONLY), any(Supplier.class));
   }
 
   @Test
@@ -79,7 +79,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class);
-    DataSourceContext.executeOn(eq("test"), any(Supplier.class));
+    DataSourceContext.onDataSource(eq("test"), any(Supplier.class));
   }
 
   @Test
@@ -92,7 +92,7 @@ public class DataSourceRoutingFilterTest {
     filter.doFilter(request, response, chain);
 
     verifyStatic(DataSourceContext.class, never());
-    DataSourceContext.executeOn(anyString(), any(Supplier.class));
+    DataSourceContext.onDataSource(anyString(), any(Supplier.class));
   }
 
 }

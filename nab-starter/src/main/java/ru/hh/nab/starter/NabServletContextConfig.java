@@ -17,6 +17,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
+import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 
@@ -63,6 +64,10 @@ public class NabServletContextConfig {
           EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
       }
     }
+    rootCtx.getBeansOfType(NabServletFilter.class).entrySet().stream()
+      .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
+      .forEach(entry -> registerFilter(webAppContext.getServletContext(), entry.getKey(), entry.getValue(),
+        EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING));
     configureWebapp(webAppContext, rootCtx);
   }
 

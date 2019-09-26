@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.jclient.common.HttpClient;
 import ru.hh.jclient.common.HttpClientEventListener;
+import ru.hh.jclient.common.Request;
 
 public class TransactionalCheck implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransactionalCheck.class);
@@ -16,7 +17,7 @@ public class TransactionalCheck implements HttpClientEventListener {
   private Action action = Action.LOG;
 
   @Override
-  public void beforeExecute(HttpClient httpClient) {
+  public void beforeExecute(HttpClient httpClient, Request request) {
     if (action == Action.DO_NOTHING || !TransactionSynchronizationManager.isActualTransactionActive()) {
       return;
     }

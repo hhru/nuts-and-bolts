@@ -1,12 +1,10 @@
 package ru.hh.nab.jclient;
 
-import java.util.function.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.HttpClientFactoryBuilder;
-import ru.hh.jclient.common.RequestDebug;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
@@ -29,8 +27,8 @@ public class NabJClientConfig {
   }
 
   @Bean
-  HttpClientContextThreadLocalSupplier httpClientContextStorage(Supplier<RequestDebug> requestDebugSupplier) {
-    return new HttpClientContextThreadLocalSupplier(requestDebugSupplier)
+  HttpClientContextThreadLocalSupplier httpClientContextStorage() {
+    return new HttpClientContextThreadLocalSupplier()
       .register(new MDCStorage());
   }
 

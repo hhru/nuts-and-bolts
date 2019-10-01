@@ -17,12 +17,12 @@ public final class RequestIdLoggingFilter extends OncePerRequestFilter {
                                   HttpServletResponse response,
                                   FilterChain filterChain) throws ServletException, IOException {
 
-    String requestId = request.getHeader(RequestHeaders.REQUEST_ID_HEADER);
+    String requestId = request.getHeader(RequestHeaders.REQUEST_ID);
     try {
       if (requestId == null) {
         requestId = RequestHeaders.EMPTY_REQUEST_ID;
       } else {
-        response.addHeader(RequestHeaders.REQUEST_ID_HEADER, requestId);
+        response.addHeader(RequestHeaders.REQUEST_ID, requestId);
       }
       MDC.setRequestId(requestId);
 

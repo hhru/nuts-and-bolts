@@ -15,7 +15,7 @@ import static java.util.Optional.ofNullable;
 import static net.logstash.logback.marker.Markers.appendEntries;
 import static ru.hh.nab.starter.server.RequestHeaders.EMPTY_REQUEST_ID;
 import static ru.hh.nab.starter.server.RequestHeaders.OUTER_TIMEOUT_MS;
-import static ru.hh.nab.starter.server.RequestHeaders.REQUEST_ID_HEADER;
+import static ru.hh.nab.starter.server.RequestHeaders.REQUEST_ID;
 import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.starter.server.logging.RequestInfo.NO_CACHE;
 
@@ -26,7 +26,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   @Override
   public void log(Request request, Response response) {
     final String outerTimoutMs = request.getHeader(OUTER_TIMEOUT_MS);
-    final String requestId = request.getHeader(REQUEST_ID_HEADER);
+    final String requestId = request.getHeader(REQUEST_ID);
     final String cache = (String) request.getAttribute(CACHE_ATTRIBUTE);
 
     Map<String, Object> context = new HashMap<>();

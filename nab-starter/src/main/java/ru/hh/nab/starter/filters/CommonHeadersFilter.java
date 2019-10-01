@@ -8,6 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import ru.hh.nab.starter.server.RequestHeaders;
+import static java.util.Optional.ofNullable;
 
 public final class CommonHeadersFilter extends OncePerRequestFilter {
 
@@ -16,18 +18,21 @@ public final class CommonHeadersFilter extends OncePerRequestFilter {
                                   HttpServletResponse response,
                                   FilterChain filterChain) throws ServletException, IOException {
 
-    String source = request.getHeader(RequestHeaders.REQUEST_SOURCE);
-    boolean isLoadTesting = request.getHeader(RequestHeaders.LOAD_TESTING) != null;
+    var source = request.getHeader(RequestHeaders.REQUEST_SOURCE);
+    var isLoadTesting = request.getHeader(RequestHeaders.LOAD_TESTING) != null;
+    var outerTimeoutMs = request.getHeader(RequestHeaders.OUTER_TIMEOUT_MS);
 
     try {
       RequestContext.setRequestSource(source);
       RequestContext.setLoadTesting(isLoadTesting);
+      RequestContext.setOuterTimeoutMs(ofNullable(outerTimeoutMs).map(Long::valueOf).orElse(null));
 
       filterChain.doFilter(request, response);
 
     } finally {
-      RequestContext.clearRequestSource();
       RequestContext.clearLoadTesting();
+      RequestContext.clearRequestSource();
+      RequestContext.clearOuterTimeout();
     }
   }
 }

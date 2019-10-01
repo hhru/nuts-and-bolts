@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.starter.server.RequestHeaders;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -18,11 +19,11 @@ public class RequestIdLoggingFilterTest extends NabTestBase {
     final String testRequestId = "123";
 
     Response response = createRequest("/status")
-        .header(RequestHeaders.REQUEST_ID, testRequestId)
+        .header(RequestHeaders.REQUEST_ID_HEADER, testRequestId)
         .get();
 
     assertEquals(OK.getStatusCode(), response.getStatus());
-    assertEquals(testRequestId, response.getHeaderString(RequestHeaders.REQUEST_ID));
+    assertEquals(testRequestId, response.getHeaderString(RequestHeaders.REQUEST_ID_HEADER));
   }
 
   @Test
@@ -30,6 +31,6 @@ public class RequestIdLoggingFilterTest extends NabTestBase {
     Response response = executeGet("/status");
 
     assertEquals(OK.getStatusCode(), response.getStatus());
-    assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID));
+    assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID_HEADER));
   }
 }

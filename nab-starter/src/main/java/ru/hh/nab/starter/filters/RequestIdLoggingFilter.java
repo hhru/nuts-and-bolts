@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import ru.hh.nab.starter.server.RequestHeaders;
 
 public final class RequestIdLoggingFilter extends OncePerRequestFilter {
 
@@ -16,12 +17,12 @@ public final class RequestIdLoggingFilter extends OncePerRequestFilter {
                                   HttpServletResponse response,
                                   FilterChain filterChain) throws ServletException, IOException {
 
-    String requestId = request.getHeader(RequestHeaders.REQUEST_ID);
+    String requestId = request.getHeader(RequestHeaders.REQUEST_ID_HEADER);
     try {
       if (requestId == null) {
-        requestId = RequestHeaders.REQUEST_ID_DEFAULT;
+        requestId = RequestHeaders.EMPTY_REQUEST_ID;
       } else {
-        response.addHeader(RequestHeaders.REQUEST_ID, requestId);
+        response.addHeader(RequestHeaders.REQUEST_ID_HEADER, requestId);
       }
       MDC.setRequestId(requestId);
 

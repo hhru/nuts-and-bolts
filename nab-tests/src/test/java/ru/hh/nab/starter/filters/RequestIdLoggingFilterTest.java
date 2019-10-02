@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
+import ru.hh.nab.starter.server.RequestHeaders;
 import ru.hh.nab.testbase.NabTestBase;
 import ru.hh.nab.testbase.NabTestConfig;
 

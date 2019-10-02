@@ -11,18 +11,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.Optional.ofNullable;
 import static net.logstash.logback.marker.Markers.appendEntries;
+import static ru.hh.nab.starter.server.RequestHeaders.EMPTY_REQUEST_ID;
+import static ru.hh.nab.starter.server.RequestHeaders.OUTER_TIMEOUT_MS;
+import static ru.hh.nab.starter.server.RequestHeaders.REQUEST_ID;
 import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
-import static ru.hh.nab.starter.server.logging.RequestInfo.EMPTY_REQUEST_ID;
 import static ru.hh.nab.starter.server.logging.RequestInfo.NO_CACHE;
-import static ru.hh.nab.starter.server.logging.RequestInfo.REQUEST_ID_HEADER;
 
 public class StructuredRequestLogger extends AbstractLifeCycle implements RequestLog {
   private static final Logger LOGGER = LoggerFactory.getLogger(StructuredRequestLogger.class);
+  private static final Logger SLOW_REQUESTS = LoggerFactory.getLogger("slowRequests");
 
   @Override
   public void log(Request request, Response response) {
-    final String requestId = request.getHeader(REQUEST_ID_HEADER);
+    final String outerTimoutMs = request.getHeader(OUTER_TIMEOUT_MS);
+    final String requestId = request.getHeader(REQUEST_ID);
     final String cache = (String) request.getAttribute(CACHE_ATTRIBUTE);
 
     Map<String, Object> context = new HashMap<>();
@@ -30,10 +34,16 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
     context.put("rid", requestId == null ? EMPTY_REQUEST_ID : requestId);
     context.put("status", response.getCommittedMetaData().getStatus());
     context.put("cache", cache == null ? NO_CACHE : cache);
-    context.put("time", currentTimeMillis() - request.getTimeStamp());
+    long executionTime = currentTimeMillis() - request.getTimeStamp();
+    context.put("time", executionTime);
     context.put("method", request.getMethod());
     context.put("uri", request.getHttpURI().getPathQuery());
 
     LOGGER.info(appendEntries(context), null);
+    ofNullable(outerTimoutMs).map(Long::valueOf).ifPresent(timeoutMs -> {
+      if (executionTime > timeoutMs) {
+        SLOW_REQUESTS.warn(appendEntries(context), null);
+      }
+    });
   }
 }

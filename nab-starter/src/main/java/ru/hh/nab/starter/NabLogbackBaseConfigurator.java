@@ -64,6 +64,17 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
     createLogger(context, NabApplication.class, Level.INFO, false, service);
 
+    var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));
+    createLogger(context, "ru.hh.nab.jclient.checks.TransactionalCheck", Level.WARN, false, List.of(jClientTransactionalCheck));
+
+    HhMultiAppender slowRequests = createAppender(context, "slowRequests", () -> {
+      var multiAppender = new HhMultiAppender(true);
+      multiAppender.setLayoutSupplier(NabTSOnlyJsonLayout::new);
+      multiAppender.setEncoderSupplier(NabTSOnlyJsonEncoder::new);
+      return multiAppender;
+    });
+    createLogger(context, "slowRequests", Level.WARN, false, List.of(slowRequests));
+
     var rootLogger = getRootLogger(context);
     rootLogger.setLevel(context.getProperty("log.root.level", Level.WARN, level -> Level.valueOf(level.toUpperCase())));
     rootLogger.addAppenders(service, sentry);

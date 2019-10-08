@@ -1,7 +1,9 @@
 package ru.hh.nab.jclient;
 
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.HttpClientFactoryBuilder;
@@ -27,8 +29,9 @@ public class NabJClientConfig {
   }
 
   @Bean
-  HttpClientContextThreadLocalSupplier httpClientContextStorage() {
-    return new HttpClientContextThreadLocalSupplier()
+  HttpClientContextThreadLocalSupplier httpClientContextStorage(Optional<HttpClientContext> defaultContext) {
+    return defaultContext.map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
+      .orElseGet(HttpClientContextThreadLocalSupplier::new)
       .register(new MDCStorage());
   }
 

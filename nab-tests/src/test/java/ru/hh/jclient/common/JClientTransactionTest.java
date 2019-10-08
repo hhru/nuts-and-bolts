@@ -32,7 +32,8 @@ import static org.mockito.Mockito.when;
 )
 public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
-  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(), () -> DEBUG);
+  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(),
+    List.of(() -> DEBUG));
 
   @Inject
   private TransactionalScope transactionalScope;

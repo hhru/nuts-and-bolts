@@ -114,6 +114,12 @@
                 <artifactId>syslog4j</artifactId>
                 <version>0.9.46</version>
             </dependency>
+            <dependency>
+                <groupId>com.ecwid.consul</groupId>
+                <artifactId>consul-api</artifactId>
+                <version>1.4.2</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

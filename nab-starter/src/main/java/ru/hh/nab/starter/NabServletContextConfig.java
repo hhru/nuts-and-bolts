@@ -144,8 +144,14 @@ public class NabServletContextConfig {
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
     EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+    registerFilter(servletContext, filterName, filter, dispatcherTypes, true, mappings);
+  }
+
+  public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
+    EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
     validateMappings(mappings);
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
+    dynamic.setAsyncSupported(async);
     dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
   }
 

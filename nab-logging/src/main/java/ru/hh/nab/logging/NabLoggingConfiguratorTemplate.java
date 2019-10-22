@@ -64,6 +64,9 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   private void configureOverride(LoggingContextWrapper context, String loggerName, String config) {
     String[] configItems = config.split(";");
+    if (configItems.length != 2) {
+      throw new AssertionError("Logger override " + loggerName + " format is incorrect, should be <name>;<LEVEL>");
+    }
     String appenderName = configItems[0];
     String level = configItems[1];
 

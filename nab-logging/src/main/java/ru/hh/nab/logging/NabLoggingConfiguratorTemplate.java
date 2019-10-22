@@ -71,7 +71,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     createLogger(context, loggerName, Level.valueOf(level.toUpperCase()), false, List.of(appender));
   }
 
-  protected <A extends Appender> A createAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
+  public <A extends Appender> A createAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
     if (appenders.containsKey(name)) {
       throw new AssertionError("Appender with name " + name + " already configured");
     }
@@ -91,39 +91,39 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     });
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender) {
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender) {
     return createLogger(context, cls, level, false, Set.of(appender));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender) {
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender) {
     return createLogger(context, cls, level, additivity, Set.of(appender));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, Appender appender2) {
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, Appender appender2) {
     return createLogger(context, cls, level, false, Set.of(appender, appender2));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender,
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender,
       Appender appender2) {
     return createLogger(context, cls, level, additivity, Set.of(appender, appender2));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, Appender appender2,
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, Appender appender2,
       Appender appender3) {
     return createLogger(context, cls, level, false, Set.of(appender, appender2, appender3));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, boolean additivity,
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, boolean additivity,
       Appender appender2, Appender appender3) {
     return createLogger(context, cls, level, additivity, Set.of(appender, appender2, appender3));
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> aClass, Level level, boolean additivity,
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> aClass, Level level, boolean additivity,
       Collection<Appender> appenders) {
     return createLogger(context, aClass.getName(), level, additivity, appenders);
   }
 
-  protected LoggerWrapper createLogger(LoggingContextWrapper context, String name, Level level, boolean additivity,
+  public LoggerWrapper createLogger(LoggingContextWrapper context, String name, Level level, boolean additivity,
       Collection<Appender> appenders) {
     var logger = context.getContext().getLogger(name);
     logger.setLevel(ch.qos.logback.classic.Level.toLevel(level.toString()));

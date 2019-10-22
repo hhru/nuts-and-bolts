@@ -8,9 +8,10 @@ import ch.qos.logback.core.Appender;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -27,15 +28,7 @@ import org.slf4j.event.Level;
 @SuppressWarnings("rawtypes")
 public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
-  private List<String> appenderNames = new ArrayList<>() {
-    @Override
-    public boolean add(String name) {
-      if (contains(name)) {
-        throw new AssertionError("Appender with name " + name + " already configured");
-      }
-      return super.add(name);
-    }
-  };
+  private Map<String, Appender> appenders = new HashMap<>();
 
   @Override
   public final void configure(LoggerContext context) {
@@ -44,11 +37,13 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     context.getStatusManager().add(statusListener);
     try {
       Properties properties = createLoggingProperties();
-      configure(new LoggingContextWrapper(context, properties));
+      LoggingContextWrapper contextWrapper = new LoggingContextWrapper(context, properties);
+      configure(contextWrapper);
+      configureOverrides(contextWrapper);
     } catch (Exception e) {
       throw new AssertionError(e);
     }
-    appenderNames = null;
+    appenders = null;
   }
 
   protected abstract Properties createLoggingProperties();
@@ -59,16 +54,41 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   public abstract void configure(LoggingContextWrapper context);
 
+  private void configureOverrides(LoggingContextWrapper context) {
+    String prefix = "log.override";
+    context.properties.stringPropertyNames().stream().filter(key -> key.startsWith(prefix + ".")).forEach(key -> {
+      String newKey = key.substring(prefix.length() + 1);
+      configureOverride(context, newKey, context.properties.getProperty(key));
+    });
+  }
+
+  private void configureOverride(LoggingContextWrapper context, String loggerName, String config) {
+    String[] configItems = config.split(";");
+    String appenderName = configItems[0];
+    String level = configItems[1];
+
+    Appender appender = createOrReuseAppender(context, appenderName, HhMultiAppender::new);
+    createLogger(context, loggerName, Level.valueOf(level.toUpperCase()), false, List.of(appender));
+  }
+
   protected <A extends Appender> A createAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
-    appenderNames.add(name);
-    A appender = instanceCreator.get();
-    appender.setName(name);
-    appender.setContext(context.getContext());
-    context.getContext().register(appender);
-    addInfo("Created appender with name " + name + " of type " + appender.getClass());
-    appender.start();
-    addInfo("Appender with name " + name + " started");
-    return appender;
+    if (appenders.containsKey(name)) {
+      throw new AssertionError("Appender with name " + name + " already configured");
+    }
+    return createOrReuseAppender(context, name, instanceCreator);
+  }
+
+  private <A extends Appender> A createOrReuseAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
+    return (A) appenders.computeIfAbsent(name, someName -> {
+      A appender = instanceCreator.get();
+      appender.setName(name);
+      appender.setContext(context.getContext());
+      context.getContext().register(appender);
+      addInfo("Created appender with name " + name + " of type " + appender.getClass());
+      appender.start();
+      addInfo("Appender with name " + name + " started");
+      return appender;
+    });
   }
 
   protected LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender) {

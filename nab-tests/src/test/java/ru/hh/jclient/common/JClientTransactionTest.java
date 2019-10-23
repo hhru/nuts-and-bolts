@@ -1,5 +1,7 @@
 package ru.hh.jclient.common;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
@@ -28,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ContextConfiguration(
-  classes = {HibernateTestConfig.class, NabJClientConfig.class, JClientTransactionTest.DataSourceContextTestConfig.class}
+  classes = {HibernateTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
 )
 public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
@@ -103,7 +105,12 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Configuration
-  static class DataSourceContextTestConfig {
+  static class TestConfig {
+
+    @Bean
+    ScheduledExecutorService scheduledExecutorService() {
+      return Executors.newScheduledThreadPool(1);
+    }
 
     @Bean
     String serviceName() {

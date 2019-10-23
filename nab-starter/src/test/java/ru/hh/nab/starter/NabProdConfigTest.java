@@ -35,7 +35,7 @@ import static ru.hh.nab.starter.NabProdConfig.DATACENTER_NAME_PROPERTY;
 public class NabProdConfigTest {
   private static final String TEST_SERVICE_NAME = "test-service";
   private static final String TEST_DATACENTER_NAME = "test-dc";
-  private static final int TEST_CONSUL_PORT = 13100;
+  private static final int TEST_CONSUL_PORT = 13199;
 
   private Path propertiesFile;
   private Server consulMockServer;

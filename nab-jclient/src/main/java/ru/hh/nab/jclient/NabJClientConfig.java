@@ -1,6 +1,9 @@
 package ru.hh.nab.jclient;
 
+import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -17,9 +20,10 @@ import java.util.List;
 public class NabJClientConfig {
   @Bean
   HttpClientFactoryBuilder httpClientFactoryBuilder(String serviceName, HttpClientContextThreadLocalSupplier contextSupplier,
+                                                    ScheduledExecutorService scheduledExecutorService,
                                                     List<HttpClientEventListener> eventListeners) {
     return new HttpClientFactoryBuilder(contextSupplier, eventListeners)
-      .addEventListener(new GlobalTimeoutCheck())
+      .addEventListener(new GlobalTimeoutCheck(Duration.ofMillis(100), scheduledExecutorService, TimeUnit.MINUTES.toMillis(1)))
       .withUserAgent(serviceName);
   }
 

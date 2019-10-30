@@ -11,21 +11,32 @@ import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.HttpClientFactoryBuilder;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 import java.util.List;
+import static java.util.Optional.ofNullable;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static ru.hh.nab.jclient.UriCompactionUtil.compactUrl;
+import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 
 @Configuration
 public class NabJClientConfig {
   @Bean
   HttpClientFactoryBuilder httpClientFactoryBuilder(String serviceName, HttpClientContextThreadLocalSupplier contextSupplier,
                                                     ScheduledExecutorService scheduledExecutorService,
-                                                    List<HttpClientEventListener> eventListeners) {
+                                                    List<HttpClientEventListener> eventListeners,
+                                                    FileSettings fileSettings
+    ) {
+    var subSettings = fileSettings.getSubSettings("jclient.listener.timeout-check");
+
+    long thresholdMs = ofNullable(subSettings.getLong("threshold.ms")).orElse(100L);
+    int minCompactionLength = ofNullable(subSettings.getInteger("min.compaction.length")).orElse(4);
+    int minHashLength = ofNullable(subSettings.getInteger("min.hash.length")).orElse(16);
+    long sendIntervalMinutes = ofNullable(subSettings.getInteger("send.interval.minutes")).orElse(1);
     return new HttpClientFactoryBuilder(contextSupplier, eventListeners)
       .addEventListener(
-        new GlobalTimeoutCheck(Duration.ofMillis(100), scheduledExecutorService, uri -> compactUrl(uri, 4, 16), MINUTES.toMillis(1))
+        new GlobalTimeoutCheck(Duration.ofMillis(thresholdMs), scheduledExecutorService,
+          uri -> compactUri(uri, minCompactionLength, minHashLength), MINUTES.toMillis(sendIntervalMinutes))
       ).withUserAgent(serviceName);
   }
 

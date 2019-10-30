@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -15,6 +13,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.component.NabServletFilter;
+import ru.hh.nab.common.servlet.UriComponent;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterator.DISTINCT;
 import static java.util.Spliterator.NONNULL;
@@ -47,7 +46,6 @@ public class JClientContextProviderFilter implements Filter, NabServletFilter {
 
   private static Map<String, List<String>> getQueryParamsMap(ServletRequest req) {
     HttpServletRequest request = (HttpServletRequest) req;
-    return request.getParameterMap().entrySet().stream()
-      .collect(toMap(Map.Entry::getKey, entry -> Stream.of(entry.getValue()).collect(Collectors.toUnmodifiableList())));
+    return UriComponent.decodeQuery(request.getQueryString(), true, true);
   }
 }

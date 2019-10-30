@@ -3,7 +3,6 @@ package ru.hh.nab.jclient;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -15,6 +14,8 @@ import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 import java.util.List;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static ru.hh.nab.jclient.UriCompactionUtil.compactUrl;
 
 @Configuration
 public class NabJClientConfig {
@@ -23,8 +24,9 @@ public class NabJClientConfig {
                                                     ScheduledExecutorService scheduledExecutorService,
                                                     List<HttpClientEventListener> eventListeners) {
     return new HttpClientFactoryBuilder(contextSupplier, eventListeners)
-      .addEventListener(new GlobalTimeoutCheck(Duration.ofMillis(100), scheduledExecutorService, TimeUnit.MINUTES.toMillis(1)))
-      .withUserAgent(serviceName);
+      .addEventListener(
+        new GlobalTimeoutCheck(Duration.ofMillis(100), scheduledExecutorService, uri -> compactUrl(uri, 4, 16), MINUTES.toMillis(1))
+      ).withUserAgent(serviceName);
   }
 
   @Bean

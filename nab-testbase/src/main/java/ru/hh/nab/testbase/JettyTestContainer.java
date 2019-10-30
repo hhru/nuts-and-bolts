@@ -14,7 +14,7 @@ public class JettyTestContainer {
   private final URI baseUri;
 
   JettyTestContainer(NabApplication application, WebApplicationContext applicationContext, NabTestContext.PortHolder portHolder) {
-    jettyServer = application.run(applicationContext, false, portHolder::releaseAndApply);
+    jettyServer = application.run(applicationContext, false, portHolder::releaseAndApply, false);
     baseUri = getServerAddress(jettyServer.getPort());
   }
 

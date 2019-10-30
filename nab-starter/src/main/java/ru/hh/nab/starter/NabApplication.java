@@ -47,12 +47,12 @@ public final class NabApplication {
       aggregateCtx.refresh();
       return run(aggregateCtx);
     } catch (Exception e) {
-      return logErrorAndExit(e);
+      return logErrorAndExit(e, true);
     }
   }
 
   public JettyServer run(WebApplicationContext baseContext) {
-    return run(baseContext, false, serverCreateFunction -> serverCreateFunction.apply(null));
+    return run(baseContext, false, serverCreateFunction -> serverCreateFunction.apply(null), true);
   }
 
   /**
@@ -61,8 +61,10 @@ public final class NabApplication {
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
    * @param serverStarter function which allows to synchronize server start with external action
    */
-  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot,
-    Function<Function<Integer, JettyServer>, JettyServer> serverStarter) {
+  public JettyServer run(WebApplicationContext baseContext,
+      boolean directlyUseAsWebAppRoot,
+      Function<Function<Integer, JettyServer>, JettyServer> serverStarter,
+      boolean exitOnError) {
     try {
       configureLogger();
       configureSentry(baseContext);
@@ -83,7 +85,7 @@ public final class NabApplication {
       logStartupInfo(baseContext);
       return jettyServer;
     } catch (Exception e) {
-      return logErrorAndExit(e);
+      return logErrorAndExit(e, exitOnError);
     }
   }
 
@@ -110,13 +112,15 @@ public final class NabApplication {
     return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 
-  private static <T> T logErrorAndExit(Exception e) {
+  private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {
     try {
       LOGGER.error("Failed to start, shutting down", e);
       System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
       return null;
     } finally {
-      System.exit(1);
+      if (exitOnError) {
+        System.exit(1);
+      }
     }
   }
 

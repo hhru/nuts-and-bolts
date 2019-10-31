@@ -56,7 +56,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
     taskDurationMetric.save(taskDuration);
 
-    if (longTaskDurationMs != null && longTaskDurationMs >= taskDuration) {
+    if (longTaskDurationMs != null && taskDuration >= longTaskDurationMs) {
       LOGGER.warn("{} thread pool task execution took too long: {} >= {} ms", threadPoolName, taskDuration, longTaskDurationMs);
     }
   }

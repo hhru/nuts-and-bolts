@@ -22,12 +22,14 @@ public class ConsulService {
   private final boolean enabled;
 
   public ConsulService(FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata) {
-    var port = fileSettings.getInteger("jetty.port");
-    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + address;
+    var applicationPort = fileSettings.getInteger("jetty.port");
+    var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
+      .orElse("127.0.0.1`");
+    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + address + "-" + applicationPort;
     var tags = fileSettings.getStringList("consul.tags");
 
     NewService.Check check = new NewService.Check();
-    check.setHttp("http://localhost:" + port + "/status");
+    check.setHttp(applicationHost + ":" + applicationPort + "/status");
     check.setTimeout(fileSettings.getString("consul.check.timeout"));
     check.setInterval(fileSettings.getString("consul.check.interval"));
     check.setMethod("GET");
@@ -35,13 +37,16 @@ public class ConsulService {
     NewService service = new NewService();
     service.setId(id);
     service.setName(fileSettings.getString("serviceName"));
-    service.setPort(port);
+    service.setPort(applicationPort);
     service.setAddress(address);
     service.setCheck(check);
     service.setTags(tags);
     service.setMeta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()));
 
-    this.client = new ConsulClient("localhost", fileSettings.getInteger("consul.http.port"));
+    this.client = new ConsulClient(
+      Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
+      fileSettings.getInteger("consul.http.port")
+    );
     this.service = service;
     this.id = id;
     this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);

@@ -83,8 +83,11 @@ public class NabProdConfigTest {
     lines.add(String.format("%s=%s", DATACENTER_NAME_PROPERTY, TEST_DATACENTER_NAME));
     lines.add(String.format("%s=%s", "jetty.port", "9999"));
     lines.add(String.format("%s=%s", "consul.http.port", TEST_CONSUL_PORT));
+    lines.add(String.format("%s=%s", "consul.check.host", "127.0.0.1"));
     lines.add(String.format("%s=%s", "consul.check.timeout", "5s"));
-    lines.add(String.format("%s=%s", "consul.check.interval", "10s"));
+    lines.add(String.format("%s=%s", "consul.check.interval", "5s"));
+    lines.add(String.format("%s=%s", "consul.tags", ""));
+    lines.add(String.format("%s=%s", "consul.enabled", "false"));
     Files.write(propertiesFile, lines, APPEND);
     return propertiesFile;
   }

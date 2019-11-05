@@ -82,6 +82,7 @@ public class NabProdConfigTest {
     lines.add(String.format("%s=%s", SERVICE_NAME_PROPERTY, TEST_SERVICE_NAME));
     lines.add(String.format("%s=%s", DATACENTER_NAME_PROPERTY, TEST_DATACENTER_NAME));
     lines.add(String.format("%s=%s", "jetty.port", "9999"));
+    lines.add(String.format("%s=%s", "consul.http.host", "127.0.0.1"));
     lines.add(String.format("%s=%s", "consul.http.port", TEST_CONSUL_PORT));
     lines.add(String.format("%s=%s", "consul.check.host", "127.0.0.1"));
     lines.add(String.format("%s=%s", "consul.check.timeout", "5s"));

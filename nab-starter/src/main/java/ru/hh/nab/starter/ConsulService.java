@@ -24,12 +24,12 @@ public class ConsulService {
   public ConsulService(FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata) {
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
-      .orElse("127.0.0.1`");
+      .orElse("127.0.0.1");
     var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + address + "-" + applicationPort;
     var tags = fileSettings.getStringList("consul.tags");
 
     NewService.Check check = new NewService.Check();
-    check.setHttp(applicationHost + ":" + applicationPort + "/status");
+    check.setHttp("http://" + applicationHost + ":" + applicationPort + "/status");
     check.setTimeout(fileSettings.getString("consul.check.timeout"));
     check.setInterval(fileSettings.getString("consul.check.interval"));
     check.setMethod("GET");

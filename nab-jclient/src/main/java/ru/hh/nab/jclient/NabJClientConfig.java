@@ -41,8 +41,16 @@ public class NabJClientConfig {
   }
 
   @Bean
-  TransactionalCheck transactionalCheck() {
-    return new TransactionalCheck();
+  TransactionalCheck transactionalCheck(ScheduledExecutorService executorService, FileSettings fileSettings) {
+    var subSettings = fileSettings.getSubSettings("jclient.listener.transactional-check");
+    long sendIntervalMinutes = ofNullable(subSettings.getInteger("send.interval.minutes")).orElse(1);
+    boolean failOnCheck = ofNullable(subSettings.getBoolean("fail.on.check")).orElse(Boolean.FALSE);
+    int stacktraceDepthLimit = ofNullable(subSettings.getInteger("stacktrace.depth.limit")).orElse(10);
+    return new TransactionalCheck(
+      failOnCheck ? TransactionalCheck.Action.RAISE : TransactionalCheck.Action.LOG,
+      stacktraceDepthLimit,
+      executorService, MINUTES.toMillis(sendIntervalMinutes)
+    );
   }
 
   @Bean

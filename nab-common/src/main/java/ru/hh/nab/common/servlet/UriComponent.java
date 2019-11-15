@@ -46,7 +46,7 @@ public final class UriComponent {
       var value = (decodeValues) ? URLDecoder.decode(param.substring(equalsIndex + 1), StandardCharsets.UTF_8) : param.substring(equalsIndex + 1);
       params.computeIfAbsent(key, ignored -> new ArrayList<>()).add(value);
     } else if (param.length() > 0) {
-      var key = (decodeNames) ? URLDecoder.decode(param.substring(0, equalsIndex), StandardCharsets.UTF_8) : param.substring(0, equalsIndex);
+      var key = (decodeNames) ? URLDecoder.decode(param, StandardCharsets.UTF_8) : param;
       params.computeIfAbsent(key, ignored -> new ArrayList<>()).add("");
     }
   }

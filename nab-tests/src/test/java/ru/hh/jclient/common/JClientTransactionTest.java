@@ -1,10 +1,13 @@
 package ru.hh.jclient.common;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.LongAdder;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,6 +105,23 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
     assertNotNull(raisedException);
     assertTrue(raisedException instanceof TransactionalCheck.TransactionalCheckException);
     assertEquals("transaction is active during executeRequest", raisedException.getMessage());
+  }
+
+  @Test
+  public void testLogSkipsDefaultPackages() throws Exception {
+    transactionalCheck.setAction(TransactionalCheck.Action.LOG);
+    transactionalScope.write(() -> {
+      try {
+        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return null;
+    });
+    Map<String, LongAdder> callInTxStatistics = transactionalCheck.getCallInTxStatistics();
+    callInTxStatistics.forEach((stack, counter) -> assertFalse(
+      stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
+    ));
   }
 
   @Configuration

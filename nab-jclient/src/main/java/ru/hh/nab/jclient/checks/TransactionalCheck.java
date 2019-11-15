@@ -45,12 +45,12 @@ public class TransactionalCheck implements HttpClientEventListener {
   }
 
   public TransactionalCheck(Action action, int filteredTraceStackDepthLimit, ScheduledExecutorService executorService, long intervalMs,
-                            String... packagesToSkip) {
+                            Set<String> packagesToSkip) {
     this.action = action;
     this.stackTraceDepthLimit = filteredTraceStackDepthLimit;
     callInTxStatistics = new ConcurrentHashMap<>();
     this.packagesToSkip = new HashSet<>(DEFAULT_PACKAGES_TO_SKIP);
-    this.packagesToSkip.addAll(Set.of(packagesToSkip));
+    this.packagesToSkip.addAll(packagesToSkip);
     publisher = executorService.scheduleAtFixedRate(() -> logCallsFromTx(intervalMs), 0, intervalMs, TimeUnit.MILLISECONDS);
   }
 
@@ -59,7 +59,7 @@ public class TransactionalCheck implements HttpClientEventListener {
     callInTxStatistics.clear();
     copy.forEach((data, counter) -> {
       long currentRequestCount = counter.sum();
-      LOGGER.error("For last {} ms, got {} calls from tx in:{}{}",
+      LOGGER.error("For last {} ms, got {} jclient calls inside tx:{}{}",
         intervalMs,
         currentRequestCount,
         System.lineSeparator(),

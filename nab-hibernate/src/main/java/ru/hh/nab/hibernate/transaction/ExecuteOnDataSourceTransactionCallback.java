@@ -33,7 +33,7 @@ public class ExecuteOnDataSourceTransactionCallback implements TransactionCallba
     } catch (RuntimeException | Error e) {
       throw e;
     } catch (Throwable e) {
-      throw new RuntimeException(e);
+      throw new ExecuteOnDataSourceWrappedException(e);
     } finally {
       if (session != null && initialCacheMode != null) {
         session.setCacheMode(initialCacheMode);

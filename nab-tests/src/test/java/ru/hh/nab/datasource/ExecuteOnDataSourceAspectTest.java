@@ -1,5 +1,6 @@
 package ru.hh.nab.datasource;
 
+import java.io.IOException;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,6 +10,7 @@ import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
@@ -73,6 +75,34 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     assertHibernateIsNotInitialized();
     testService.customWrite();
     assertHibernateIsNotInitialized();
+  }
+
+  @Test
+  public void testThrowCheckedException() {
+    String message = "test for @ExecuteOnDataSource";
+
+    assertHibernateIsNotInitialized();
+    try {
+      testService.throwCheckedException(message);
+      fail("Expected exception was not thrown");
+    } catch (IOException e) {
+      assertEquals(IOException.class, e.getClass());
+      assertEquals(message, e.getMessage());
+    }
+  }
+
+  @Test
+  public void testThrowUncheckedException() {
+    String message = "test for @ExecuteOnDataSource";
+
+    assertHibernateIsNotInitialized();
+    try {
+      testService.throwUncheckedException(message);
+      fail("Expected exception was not thrown");
+    } catch (IllegalArgumentException e) {
+      assertEquals(IllegalArgumentException.class, e.getClass());
+      assertEquals(message, e.getMessage());
+    }
   }
 
   private static void assertHibernateIsNotInitialized() {
@@ -151,6 +181,16 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       assertNotNull(sessionFactory.getCurrentSession());
       assertTrue(isSynchronizationActive());
       assertTrue(isActualTransactionActive());
+    }
+
+    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
+    public void throwCheckedException(String message) throws IOException {
+      throw new IOException(message);
+    }
+
+    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
+    public void throwUncheckedException(String message) {
+      throw new IllegalArgumentException(message);
     }
   }
 

@@ -33,7 +33,7 @@
         <hibernate.version>5.2.10.Final</hibernate.version>
         <postgres.jdbc.version>42.2.5</postgres.jdbc.version>
         <hhmetrics.version>0.19</hhmetrics.version>
-        <jetty.version>9.4.15.v20190215</jetty.version>
+        <jetty.version>9.4.24.v20191120</jetty.version>
         <jackson.version>2.10.0</jackson.version>
         <slf4j.version>1.7.28</slf4j.version>
         <logback.version>1.2.3</logback.version>

@@ -53,7 +53,9 @@ class ChannelsReadyChecker implements Runnable {
         return true;
       }
       HttpConnection httpConnection = (HttpConnection) connection;
-      HttpChannelState.State state = httpConnection.getHttpChannel().getState().getState();
-      return state == HttpChannelState.State.COMPLETED || state == HttpChannelState.State.IDLE;
+      HttpChannelState channelState = httpConnection.getHttpChannel().getState();
+      HttpChannelState.State state = channelState.getState();
+
+      return channelState.isResponseCompleted() || state == HttpChannelState.State.IDLE;
     }
   }

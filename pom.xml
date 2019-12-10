@@ -25,6 +25,7 @@
         <module>nab-logging</module>
         <module>nab-jclient</module>
         <module>nab-metrics</module>
+        <module>nab-kafka</module>
     </modules>
 
     <properties>

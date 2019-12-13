@@ -24,6 +24,10 @@ public class ConfigProvider {
     this.fileSettings = fileSettings;
   }
 
+  public String getServiceName() {
+    return serviceName;
+  }
+
   public Map<String, Object> getConsumerConfig(String topicName) {
     Map<String, Object> consumeConfig = new HashMap<>();
     consumeConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);

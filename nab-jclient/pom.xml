@@ -15,7 +15,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>${groupId}</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>nab-common</artifactId>
             <version>${project.version}</version>
         </dependency>

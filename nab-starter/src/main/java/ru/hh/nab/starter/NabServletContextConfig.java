@@ -12,8 +12,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRegistration;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
-import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -62,7 +60,8 @@ public class NabServletContextConfig {
     if (rootCtx.containsBean("cacheFilter")) {
       FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
       if (cacheFilter.isInstance()) {
-        registerFilter(webAppContext.getServletHandler(), cacheFilter, EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
+        registerFilter(webAppContext.getServletContext(), cacheFilter.getName(), cacheFilter,
+          EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
       }
     }
     rootCtx.getBeansOfType(NabServletFilter.class).entrySet().stream()
@@ -154,16 +153,6 @@ public class NabServletContextConfig {
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
     dynamic.setAsyncSupported(async);
     dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
-  }
-
-  public static void registerFilter(ServletHandler servletContextHandler, FilterHolder filterHolder,
-                                    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
-    validateMappings(mappings);
-    FilterMapping mapping = new FilterMapping();
-    mapping.setFilterName(filterHolder.getName());
-    mapping.setPathSpecs(mappings);
-    mapping.setDispatcherTypes(dispatcherTypes);
-    servletContextHandler.addFilter(filterHolder, mapping);
   }
 
   public static void registerFilter(ServletContext servletContext, String filterName, FilterHolder filterHolder,

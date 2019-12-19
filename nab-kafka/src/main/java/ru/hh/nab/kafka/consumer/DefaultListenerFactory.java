@@ -14,7 +14,6 @@ import ru.hh.nab.kafka.monitoring.MonitoringListenStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
 import java.util.Map;
-import java.util.StringJoiner;
 
 public class DefaultListenerFactory implements ListenerFactory {
 
@@ -37,10 +36,10 @@ public class DefaultListenerFactory implements ListenerFactory {
 
     ConsumerFactory<String, T> consumerFactory = getConsumerFactory(topicName, messageClass);
 
+    ListenerGroupId listenerGroupId = new ListenerGroupId(configProvider.getServiceName(), topicName, operationName);
     ContainerProperties containerProperties = getListenerContainerProperties(
-        topicName,
-        operationName,
-        adaptToSpring(monitor(listenStrategy))
+        listenerGroupId,
+        adaptToSpring(monitor(listenerGroupId, listenStrategy))
     );
 
     var container = getMessageListenerContainer(consumerFactory, containerProperties);
@@ -49,8 +48,8 @@ public class DefaultListenerFactory implements ListenerFactory {
     return container::stop;
   }
 
-  private <T> ListenStrategy<T> monitor(ListenStrategy<T> listenStrategy) {
-    return new MonitoringListenStrategy<>(statsDSender, listenStrategy);
+  private <T> ListenStrategy<T> monitor(ListenerGroupId listenerGroupId, ListenStrategy<T> listenStrategy) {
+    return new MonitoringListenStrategy<>(statsDSender, listenerGroupId, listenStrategy);
   }
 
   private <T> BatchAcknowledgingMessageListener<String, T> adaptToSpring(ListenStrategy<T> listenStrategy) {
@@ -77,21 +76,15 @@ public class DefaultListenerFactory implements ListenerFactory {
     );
   }
 
-  private ContainerProperties getListenerContainerProperties(String topic, String operationName, GenericMessageListener<?> messageListener) {
-    var containerProperties = new ContainerProperties(topic);
-    containerProperties.setGroupId(getGroupId(topic, operationName));
+  private ContainerProperties getListenerContainerProperties(ListenerGroupId listenerGroupId,
+                                                             GenericMessageListener<?> messageListener) {
+    var containerProperties = new ContainerProperties(listenerGroupId.getTopic());
+    containerProperties.setGroupId(listenerGroupId.toString());
     containerProperties.setAckOnError(false);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     return containerProperties;
   }
 
-  private String getGroupId(String topic, String operationName) {
-    return new StringJoiner("__")
-        .add(configProvider.getServiceName())
-        .add(topic)
-        .add(operationName)
-        .toString();
-  }
 
 }

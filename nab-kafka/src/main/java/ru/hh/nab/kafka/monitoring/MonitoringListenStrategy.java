@@ -22,7 +22,7 @@ public class MonitoringListenStrategy<T> implements ListenStrategy<T> {
 
   @Override
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack ack) {
-    timings.start();
+    timings.resetTime();
     listenStrategy.onMessagesBatch(messages, ack);
     timings.time();
   }
@@ -32,6 +32,6 @@ public class MonitoringListenStrategy<T> implements ListenStrategy<T> {
         .withMetric("batchProcessingTimeMs")
         .withStatsDSender(statsDSender);
     identifier.toMetricTags().forEach(builder::withTag);
-    return builder.build();
+    return builder.start();
   }
 }

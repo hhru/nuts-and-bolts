@@ -33,6 +33,7 @@ public class ConsulService {
     check.setTimeout(fileSettings.getString("consul.check.timeout"));
     check.setInterval(fileSettings.getString("consul.check.interval"));
     check.setMethod("GET");
+    check.setStatus("passing");
 
     NewService service = new NewService();
     service.setId(id);

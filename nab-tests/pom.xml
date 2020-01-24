@@ -49,6 +49,11 @@
             <artifactId>nab-jclient</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>nab-kafka</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
@@ -65,6 +70,12 @@
             <groupId>ru.hh.jclient-common</groupId>
             <artifactId>jclient-common-testbase</artifactId>
             <version>${jclient.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>3.1.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

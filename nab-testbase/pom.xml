@@ -39,6 +39,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.hh.kafka.test</groupId>
+            <artifactId>hh-kafka-test-utils</artifactId>
+            <version>0.0.5</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>compile</scope>

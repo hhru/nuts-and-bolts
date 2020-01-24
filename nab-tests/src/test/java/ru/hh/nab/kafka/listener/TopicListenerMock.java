@@ -2,8 +2,6 @@ package ru.hh.nab.kafka.listener;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import static org.junit.Assert.assertEquals;
-import ru.hh.nab.kafka.consumer.Ack;
-import ru.hh.nab.kafka.consumer.ListenStrategy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.consumer;
+package ru.hh.nab.kafka.listener;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.TopicPartition;

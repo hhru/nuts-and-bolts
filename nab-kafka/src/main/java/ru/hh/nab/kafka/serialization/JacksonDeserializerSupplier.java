@@ -3,7 +3,7 @@ package ru.hh.nab.kafka.serialization;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import ru.hh.nab.kafka.consumer.DeserializerSupplier;
+import ru.hh.nab.kafka.listener.DeserializerSupplier;
 
 public class JacksonDeserializerSupplier implements DeserializerSupplier {
 

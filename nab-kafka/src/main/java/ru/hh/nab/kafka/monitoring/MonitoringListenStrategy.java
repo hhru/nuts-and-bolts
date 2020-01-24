@@ -2,9 +2,9 @@ package ru.hh.nab.kafka.monitoring;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.metrics.timinglogger.Timings;
-import ru.hh.nab.kafka.consumer.Ack;
-import ru.hh.nab.kafka.consumer.ListenStrategy;
-import ru.hh.nab.kafka.consumer.ListenerGroupId;
+import ru.hh.nab.kafka.listener.Ack;
+import ru.hh.nab.kafka.listener.ListenStrategy;
+import ru.hh.nab.kafka.listener.ListenerGroupId;
 import ru.hh.nab.metrics.StatsDSender;
 import java.util.List;
 

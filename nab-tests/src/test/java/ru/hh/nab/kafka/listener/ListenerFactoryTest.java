@@ -8,8 +8,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.kafka.KafkaTestConfig;
-import ru.hh.nab.kafka.consumer.Listener;
-import ru.hh.nab.kafka.consumer.ListenerFactory;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.UUID;

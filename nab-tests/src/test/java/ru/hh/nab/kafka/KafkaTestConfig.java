@@ -14,6 +14,7 @@ import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.testbase.kafka.NabKafkaJsonTestConfig;
+import ru.hh.nab.testbase.kafka.TestObjectMapperSupplier;
 import java.util.Properties;
 
 @Configuration
@@ -21,28 +22,38 @@ import java.util.Properties;
 public class KafkaTestConfig {
 
   @Bean
-  ObjectMapper objectMapper(){
-    return new ObjectMapper();
+  String serviceName() {
+    return "service";
   }
 
   @Bean
-  DeserializerSupplier deserializerSupplier() {
-    return new JacksonDeserializerSupplier(objectMapper());
+  String kafkaClusterName() {
+    return "kafka";
   }
 
   @Bean
-  ConfigProvider configProvider(Properties serviceProperties) {
-    return new ConfigProvider("service", "kafka", new FileSettings(serviceProperties));
+  TestObjectMapperSupplier objectMapperSupplier() {
+    return ObjectMapper::new;
   }
 
   @Bean
-  ListenerFactory listenerFactory(ConfigProvider configProvider) {
-    return new DefaultListenerFactory(configProvider, deserializerSupplier(), null);
+  DeserializerSupplier deserializerSupplier(TestObjectMapperSupplier objectMapperSupplier) {
+    return new JacksonDeserializerSupplier(objectMapperSupplier.get());
   }
 
   @Bean
-  SerializerSupplier serializerSupplier() {
-    return new JacksonSerializerSupplier(objectMapper());
+  ConfigProvider configProvider(String serviceName, String kafkaClusterName, Properties serviceProperties) {
+    return new ConfigProvider(serviceName, kafkaClusterName, new FileSettings(serviceProperties));
+  }
+
+  @Bean
+  ListenerFactory listenerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier) {
+    return new DefaultListenerFactory(configProvider, deserializerSupplier, null);
+  }
+
+  @Bean
+  SerializerSupplier serializerSupplier(TestObjectMapperSupplier objectMapperSupplier) {
+    return new JacksonSerializerSupplier(objectMapperSupplier.get());
   }
 
   @Bean

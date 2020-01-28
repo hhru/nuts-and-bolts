@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.consumer;
+package ru.hh.nab.kafka.listener;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import java.util.List;

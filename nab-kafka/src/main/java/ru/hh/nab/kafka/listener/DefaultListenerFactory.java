@@ -1,6 +1,7 @@
-package ru.hh.nab.kafka.consumer;
+package ru.hh.nab.kafka.listener;
 
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -13,6 +14,7 @@ import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.monitoring.MonitoringListenStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
+import java.util.Collection;
 import java.util.Map;
 
 public class DefaultListenerFactory implements ListenerFactory {
@@ -45,7 +47,17 @@ public class DefaultListenerFactory implements ListenerFactory {
     var container = getMessageListenerContainer(consumerFactory, containerProperties);
     container.start();
 
-    return container::stop;
+    return new Listener() {
+      @Override
+      public void stopListen() {
+        container.stop();
+      }
+
+      @Override
+      public Collection<TopicPartition> getAssignedPartitions() {
+        return container.getAssignedPartitions();
+      }
+    };
   }
 
   private <T> ListenStrategy<T> monitor(ListenerGroupId listenerGroupId, ListenStrategy<T> listenStrategy) {

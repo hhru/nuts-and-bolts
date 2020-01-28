@@ -1,9 +1,13 @@
 package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
+import ru.hh.kafka.test.KafkaTestUtils;
+import ru.hh.kafka.test.TestKafka;
+import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.kafka.listener.DefaultListenerFactory;
 import ru.hh.nab.kafka.listener.DeserializerSupplier;
@@ -13,37 +17,35 @@ import ru.hh.nab.kafka.publisher.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import ru.hh.nab.testbase.kafka.NabKafkaJsonTestConfig;
-import ru.hh.nab.testbase.kafka.TestObjectMapperSupplier;
+import java.io.IOException;
 import java.util.Properties;
 
 @Configuration
-@Import({NabKafkaJsonTestConfig.class})
 public class KafkaTestConfig {
 
   @Bean
-  String serviceName() {
-    return "service";
+  public TestKafkaWithJsonMessages testKafka() {
+    return KafkaTestUtils.startKafkaWithJsonMessages(new ObjectMapper());
   }
 
   @Bean
-  String kafkaClusterName() {
-    return "kafka";
+  Properties serviceProperties(TestKafka testKafka) throws IOException {
+    PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+    propertiesFactoryBean.setLocation(new ClassPathResource("service-test.properties"));
+    propertiesFactoryBean.afterPropertiesSet();
+    Properties properties = propertiesFactoryBean.getObject();
+    properties.setProperty("kafka.common.bootstrap.servers", testKafka.getBootstrapServers());
+    return properties;
   }
 
   @Bean
-  TestObjectMapperSupplier objectMapperSupplier() {
-    return ObjectMapper::new;
+  DeserializerSupplier deserializerSupplier() {
+    return new JacksonDeserializerSupplier(new ObjectMapper());
   }
 
   @Bean
-  DeserializerSupplier deserializerSupplier(TestObjectMapperSupplier objectMapperSupplier) {
-    return new JacksonDeserializerSupplier(objectMapperSupplier.get());
-  }
-
-  @Bean
-  ConfigProvider configProvider(String serviceName, String kafkaClusterName, Properties serviceProperties) {
-    return new ConfigProvider(serviceName, kafkaClusterName, new FileSettings(serviceProperties));
+  ConfigProvider configProvider(Properties serviceProperties) {
+    return new ConfigProvider("service", "kafka", new FileSettings(serviceProperties));
   }
 
   @Bean
@@ -52,8 +54,8 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  SerializerSupplier serializerSupplier(TestObjectMapperSupplier objectMapperSupplier) {
-    return new JacksonSerializerSupplier(objectMapperSupplier.get());
+  SerializerSupplier serializerSupplier() {
+    return new JacksonSerializerSupplier(new ObjectMapper());
   }
 
   @Bean

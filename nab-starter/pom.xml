@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.22.22</version>
+        <version>4.22.23-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 

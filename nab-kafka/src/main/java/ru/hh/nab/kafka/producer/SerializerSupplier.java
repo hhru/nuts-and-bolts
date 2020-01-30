@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.publisher;
+package ru.hh.nab.kafka.producer;
 
 import org.apache.kafka.common.serialization.Serializer;
 

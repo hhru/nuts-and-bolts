@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.listener;
+package ru.hh.nab.kafka.consumer;
 
 public interface Ack {
 

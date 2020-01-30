@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.publisher;
+package ru.hh.nab.kafka.producer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -14,10 +14,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ContextConfiguration(classes = {KafkaTestConfig.class})
-public class PublisherFactoryTest extends AbstractJUnit4SpringContextTests {
+public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
 
   @Inject
-  private PublisherFactory publisherFactory;
+  private KafkaProducerFactory producerFactory;
   @Inject
   protected TestKafkaWithJsonMessages kafkaTestUtils;
 
@@ -32,9 +32,9 @@ public class PublisherFactoryTest extends AbstractJUnit4SpringContextTests {
   public void shouldPublishMessageToTopic() {
     var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
 
-    Publisher<String> publisher = publisherFactory.createForTopic(topicName);
+    KafkaProducer<String> producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    publisher.sendMessage(testMessage);
+    producer.sendMessage(topicName, testMessage);
 
     Optional<String> result = watcher.poolNextMessage();
     assertTrue(result.isPresent());
@@ -45,11 +45,11 @@ public class PublisherFactoryTest extends AbstractJUnit4SpringContextTests {
   public void shouldPublishSeveralMessagesToTopic() {
     var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
 
-    Publisher<String> publisher = publisherFactory.createForTopic(topicName);
+    KafkaProducer<String> producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    publisher.sendMessage(testMessage);
+    producer.sendMessage(topicName, testMessage);
     String testMessage2 = "payload2";
-    publisher.sendMessage(testMessage2);
+    producer.sendMessage(topicName, testMessage2);
 
     List<String> result = watcher.poolNextMessages();
     assertEquals(List.of(testMessage, testMessage2), result);

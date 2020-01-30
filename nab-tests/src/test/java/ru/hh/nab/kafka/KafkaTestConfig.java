@@ -9,11 +9,11 @@ import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.kafka.listener.DefaultListenerFactory;
-import ru.hh.nab.kafka.listener.DeserializerSupplier;
-import ru.hh.nab.kafka.listener.ListenerFactory;
-import ru.hh.nab.kafka.publisher.PublisherFactory;
-import ru.hh.nab.kafka.publisher.SerializerSupplier;
+import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
+import ru.hh.nab.kafka.consumer.DeserializerSupplier;
+import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;
+import ru.hh.nab.kafka.producer.KafkaProducerFactory;
+import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
@@ -49,8 +49,8 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  ListenerFactory listenerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier) {
-    return new DefaultListenerFactory(configProvider, deserializerSupplier, null);
+  KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier) {
+    return new DefaultConsumerFactory(configProvider, deserializerSupplier, null);
   }
 
   @Bean
@@ -59,7 +59,7 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  PublisherFactory kafkaPublisher(ConfigProvider configProvider, SerializerSupplier serializerSupplier) {
-    return new PublisherFactory(configProvider, serializerSupplier);
+  KafkaProducerFactory kafkaProducer(ConfigProvider configProvider, SerializerSupplier serializerSupplier) {
+    return new KafkaProducerFactory(configProvider, serializerSupplier);
   }
 }

@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.listener;
+package ru.hh.nab.kafka.consumer;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.TopicPartition;
@@ -11,19 +11,19 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.listener.SeekToCurrentBatchErrorHandler;
 import ru.hh.kafka.monitoring.KafkaStatsDReporter;
-import ru.hh.nab.kafka.monitoring.MonitoringListenStrategy;
+import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
 import java.util.Collection;
 import java.util.Map;
 
-public class DefaultListenerFactory implements ListenerFactory {
+public class DefaultConsumerFactory implements KafkaConsumerFactory {
 
   private final ConfigProvider configProvider;
   private final DeserializerSupplier deserializerSupplier;
   private final StatsDSender statsDSender;
 
-  public DefaultListenerFactory(ConfigProvider configProvider,
+  public DefaultConsumerFactory(ConfigProvider configProvider,
                                 DeserializerSupplier deserializerSupplier,
                                 StatsDSender statsDSender) {
     this.configProvider = configProvider;
@@ -31,25 +31,25 @@ public class DefaultListenerFactory implements ListenerFactory {
     this.statsDSender = statsDSender;
   }
 
-  public <T> Listener listenTopic(String topicName,
-                                  String operationName,
-                                  Class<T> messageClass,
-                                  ListenStrategy<T> listenStrategy) {
+  public <T> KafkaConsumer subscribe(String topicName,
+                                     String operationName,
+                                     Class<T> messageClass,
+                                     ConsumeStrategy<T> messageConsumer) {
 
-    ConsumerFactory<String, T> consumerFactory = getConsumerFactory(topicName, messageClass);
+    ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, messageClass);
 
-    ListenerGroupId listenerGroupId = new ListenerGroupId(configProvider.getServiceName(), topicName, operationName);
-    ContainerProperties containerProperties = getListenerContainerProperties(
-        listenerGroupId,
-        adaptToSpring(monitor(listenerGroupId, listenStrategy))
+    ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
+    ContainerProperties containerProperties = getSpringConsumerContainerProperties(
+        consumerGroupId,
+        adaptToSpring(monitor(consumerGroupId, messageConsumer))
     );
 
-    var container = getMessageListenerContainer(consumerFactory, containerProperties);
+    var container = getSpringMessageListenerContainer(consumerFactory, containerProperties);
     container.start();
 
-    return new Listener() {
+    return new KafkaConsumer() {
       @Override
-      public void stopListen() {
+      public void stopConsumer() {
         container.stop();
       }
 
@@ -60,16 +60,16 @@ public class DefaultListenerFactory implements ListenerFactory {
     };
   }
 
-  private <T> ListenStrategy<T> monitor(ListenerGroupId listenerGroupId, ListenStrategy<T> listenStrategy) {
-    return new MonitoringListenStrategy<>(statsDSender, listenerGroupId, listenStrategy);
+  private <T> ConsumeStrategy<T> monitor(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+    return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
   }
 
-  private <T> BatchAcknowledgingMessageListener<String, T> adaptToSpring(ListenStrategy<T> listenStrategy) {
-    return (data, acknowledgment) -> listenStrategy.onMessagesBatch(data, acknowledgment::acknowledge);
+  private <T> BatchAcknowledgingMessageListener<String, T> adaptToSpring(ConsumeStrategy<T> consumeStrategy) {
+    return (data, acknowledgment) -> consumeStrategy.onMessagesBatch(data, acknowledgment::acknowledge);
   }
 
-  private <T> ConcurrentMessageListenerContainer<String, T> getMessageListenerContainer(ConsumerFactory<String, T> consumerFactory,
-                                                                                        ContainerProperties containerProperties) {
+  private <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(ConsumerFactory<String, T> consumerFactory,
+                                                                                              ContainerProperties containerProperties) {
 
     var container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setBatchErrorHandler(new SeekToCurrentBatchErrorHandler());
@@ -77,7 +77,7 @@ public class DefaultListenerFactory implements ListenerFactory {
     return container;
   }
 
-  private <T> ConsumerFactory<String, T> getConsumerFactory(String topicName, Class<T> messageClass) {
+  private <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {
     Map<String, Object> consumerConfig = configProvider.getConsumerConfig(topicName);
     consumerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
@@ -88,10 +88,10 @@ public class DefaultListenerFactory implements ListenerFactory {
     );
   }
 
-  private ContainerProperties getListenerContainerProperties(ListenerGroupId listenerGroupId,
-                                                             GenericMessageListener<?> messageListener) {
-    var containerProperties = new ContainerProperties(listenerGroupId.getTopic());
-    containerProperties.setGroupId(listenerGroupId.toString());
+  private ContainerProperties getSpringConsumerContainerProperties(ConsumerGroupId consumerGroupId,
+                                                                   GenericMessageListener<?> messageListener) {
+    var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
+    containerProperties.setGroupId(consumerGroupId.toString());
     containerProperties.setAckOnError(false);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);

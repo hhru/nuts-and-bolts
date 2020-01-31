@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.publisher;
+package ru.hh.nab.kafka.producer;
 
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -7,20 +7,25 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 
-public class PublisherFactory {
+public class KafkaProducerFactory {
 
   private final ConfigProvider configProvider;
   private final SerializerSupplier serializerSupplier;
 
-  public PublisherFactory(ConfigProvider configProvider,
-                          SerializerSupplier serializerSupplier) {
+  public KafkaProducerFactory(ConfigProvider configProvider,
+                              SerializerSupplier serializerSupplier) {
     this.configProvider = configProvider;
     this.serializerSupplier = serializerSupplier;
   }
 
-  public <T> Publisher<T> createForTopic(String topicName) {
-    var producerConfig = configProvider.getProducerConfig(topicName);
+  public <T> KafkaProducer<T> createDefaultProducer() {
+    return createProducer(DEFAULT_PRODUCER_NAME);
+  }
+
+  public <T> KafkaProducer<T> createProducer(String producerSettingsName) {
+    var producerConfig = configProvider.getProducerConfig(producerSettingsName);
     producerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
     ProducerFactory<String, T> producerFactory = new DefaultKafkaProducerFactory<>(
@@ -29,6 +34,6 @@ public class PublisherFactory {
         serializerSupplier.supply()
     );
 
-    return new Publisher<>(topicName, new KafkaTemplate<>(producerFactory));
+    return new DefaultKafkaProducer<>(new KafkaTemplate<>(producerFactory));
   }
 }

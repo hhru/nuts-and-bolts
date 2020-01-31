@@ -1,10 +1,10 @@
-package ru.hh.nab.kafka.listener;
+package ru.hh.nab.kafka.consumer;
 
 import ru.hh.nab.metrics.Tag;
 import java.util.List;
 import java.util.StringJoiner;
 
-public class ListenerGroupId {
+public class ConsumerGroupId {
 
   private final String serviceName;
   private final String topic;
@@ -12,7 +12,7 @@ public class ListenerGroupId {
 
   private final List<Tag> tags;
 
-  public ListenerGroupId(String serviceName, String topic, String operation) {
+  public ConsumerGroupId(String serviceName, String topic, String operation) {
     this.serviceName = serviceName;
     this.topic = topic;
     this.operation = operation;

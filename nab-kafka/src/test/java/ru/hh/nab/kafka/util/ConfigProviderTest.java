@@ -6,9 +6,9 @@ import org.junit.Test;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_CONFIG_TEMPLATE;
-import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_CONFIG_TEMPLATE;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
+import static ru.hh.nab.kafka.util.ConfigProvider.PRODUCER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_CONSUMER_CONFIG_TEMPLATE;
-import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_PRODUCER_CONFIG_TEMPLATE;
 import java.util.Map;
 import java.util.Properties;
 
@@ -75,32 +75,30 @@ public class ConfigProviderTest {
     String testKey = "key";
     String testValue = "value";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateSettingKey(DEFAULT_PRODUCER_CONFIG_TEMPLATE, testKey), testValue
+        generateProducerSettingKey(testKey), testValue
     ));
 
-    var result = createConfigProvider(fileSettings).getProducerConfig("ignored");
+    var result = createConfigProvider(fileSettings).getDefaultProducerConfig();
 
     assertEquals(testValue, result.get(testKey));
   }
 
   @Test
-  public void shouldReturnOverriddenProducerSettingForSpecificTopic() {
-    String testKey = "key";
-    String defaultValue = "value";
-    String overriddenValue = "newValue";
-    String topicName = "topic";
+  public void shouldReturnDifferentProducerSettings() {
+    String testKey1 = "key1";
+    String testValue1 = "value1";
+    String testKey2 = "key2";
+    String testValue2 = "value2";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateSettingKey(DEFAULT_PRODUCER_CONFIG_TEMPLATE, testKey), defaultValue,
-        generateSettingKey(TOPIC_PRODUCER_CONFIG_TEMPLATE, topicName, testKey), overriddenValue
+        generateProducerSettingKey("1", testKey1), testValue1,
+        generateProducerSettingKey("2", testKey2), testValue2
     ));
 
-    ConfigProvider configProvider = createConfigProvider(fileSettings);
+    var result = createConfigProvider(fileSettings).getProducerConfig("1");
+    assertEquals(testValue1, result.get(testKey1));
 
-    var result = configProvider.getProducerConfig(topicName);
-    assertEquals(overriddenValue, result.get(testKey));
-
-    result = configProvider.getProducerConfig("ignored");
-    assertEquals(defaultValue, result.get(testKey));
+    result = createConfigProvider(fileSettings).getProducerConfig("2");
+    assertEquals(testValue2, result.get(testKey2));
   }
 
   private static String generateSettingKey(String template, String testKey) {
@@ -109,6 +107,14 @@ public class ConfigProviderTest {
 
   private static String generateSettingKey(String template, String topicName, String testKey) {
     return String.format(template, KAFKA_CLUSTER_NAME, topicName) + "." + testKey;
+  }
+
+  private static String generateProducerSettingKey(String testKey) {
+    return generateProducerSettingKey(DEFAULT_PRODUCER_NAME, testKey);
+  }
+
+  private static String generateProducerSettingKey(String producerName, String testKey) {
+    return String.format(PRODUCER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, producerName) + "." + testKey;
   }
 
   private static ConfigProvider createConfigProvider(FileSettings fileSettings) {

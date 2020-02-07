@@ -3,10 +3,10 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.Layout;
+import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.ContextAware;
@@ -18,7 +18,7 @@ import ru.hh.nab.logging.json.NabJsonEncoder;
 import ru.hh.nab.logging.json.NabJsonLayout;
 import static java.util.Optional.ofNullable;
 
-public class HhMultiAppender extends AppenderBase<ILoggingEvent> {
+public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
   public HhMultiAppender() {
   }
@@ -40,6 +40,12 @@ public class HhMultiAppender extends AppenderBase<ILoggingEvent> {
   public void start() {
     appender = createAppender().configureAndGet();
     super.start();
+  }
+
+  @Override
+  public void stop() {
+    appender.stop();
+    super.stop();
   }
 
   @Override

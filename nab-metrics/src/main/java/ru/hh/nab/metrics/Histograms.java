@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Maintains a separate {@link Histogram} for each combination of tags.<br/>
  */
 public class Histograms {
-  private static final Logger logger = LoggerFactory.getLogger(Histograms.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Histograms.class);
 
   private final int maxHistogramSize;
   private final Map<Tags, Histogram> tagsToHistogram = new ConcurrentHashMap<>();
@@ -40,8 +40,8 @@ public class Histograms {
   private void saveInner(int value, Tags tags) {
     Histogram histogram = tagsToHistogram.get(tags);
     if (histogram == null) {
-      if (tagsToHistogram.size() >= maxNumOfHistograms) {
-        logger.error("Max number of histograms, dropping observation");
+      if (tagsToHistogram.size() >= getMaxNumOfHistograms()) {
+        LOGGER.error("Max number of histograms, dropping observation");
         return;
       }
       histogram = new Histogram(maxHistogramSize);
@@ -55,8 +55,9 @@ public class Histograms {
 
   Map<Tags, Map<Integer, Integer>> getTagsToHistogramAndReset() {
     Map<Tags, Map<Integer, Integer>> tagsToHistogramSnapshot = new HashMap<>(tagsToHistogram.size());
-    for (Tags tags : tagsToHistogram.keySet()) {
-      Histogram histogram = tagsToHistogram.get(tags);
+    for (Map.Entry<Tags, Histogram> entry : tagsToHistogram.entrySet()) {
+      Tags tags = entry.getKey();
+      Histogram histogram = entry.getValue();
       Map<Integer, Integer> histSnapshot = histogram.getValueToCountAndReset();
       if (!histSnapshot.isEmpty()) {
         tagsToHistogramSnapshot.put(tags, histSnapshot);
@@ -65,5 +66,9 @@ public class Histograms {
       }
     }
     return tagsToHistogramSnapshot;
+  }
+
+  protected int getMaxNumOfHistograms() {
+    return maxNumOfHistograms;
   }
 }

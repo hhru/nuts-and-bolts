@@ -32,7 +32,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final String threadPoolName;
   private final Integer longTaskDurationMs;
 
-  private MonitoredThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue,
+  protected MonitoredThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue,
                                       ThreadFactory threadFactory, RejectedExecutionHandler handler,
                                       String threadPoolName, Integer longTaskDurationMs) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
@@ -56,8 +56,8 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
     taskDurationMetric.save(taskDuration);
 
-    if (longTaskDurationMs != null && longTaskDurationMs >= taskDuration) {
-      LOGGER.warn("{} thread pool task execution took too long: {} >= {} ms", threadPoolName, taskDuration, longTaskDurationMs);
+    if (longTaskDurationMs != null && taskDuration >= longTaskDurationMs) {
+      logger().warn("{} thread pool task execution took too long: {} >= {} ms", threadPoolName, taskDuration, longTaskDurationMs);
     }
   }
 
@@ -104,5 +104,9 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
   private static String getFullMetricName(String serviceName, String threadPoolName, String shortMetricName) {
     return serviceName + '.' + threadPoolName + ".threadPool." + shortMetricName;
+  }
+
+  protected Logger logger() {
+    return LOGGER;
   }
 }

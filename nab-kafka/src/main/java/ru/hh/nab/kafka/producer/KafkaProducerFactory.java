@@ -20,20 +20,20 @@ public class KafkaProducerFactory {
     this.serializerSupplier = serializerSupplier;
   }
 
-  public <T> KafkaProducer<T> createDefaultProducer() {
+  public KafkaProducer createDefaultProducer() {
     return createProducer(DEFAULT_PRODUCER_NAME);
   }
 
-  public <T> KafkaProducer<T> createProducer(String producerSettingsName) {
+  public KafkaProducer createProducer(String producerSettingsName) {
     var producerConfig = configProvider.getProducerConfig(producerSettingsName);
     producerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
-    ProducerFactory<String, T> producerFactory = new DefaultKafkaProducerFactory<>(
+    ProducerFactory<String, Object> producerFactory = new DefaultKafkaProducerFactory<>(
         producerConfig,
         new StringSerializer(),
         serializerSupplier.supply()
     );
 
-    return new DefaultKafkaProducer<>(new KafkaTemplate<>(producerFactory));
+    return new DefaultKafkaProducer(new KafkaTemplate<>(producerFactory));
   }
 }

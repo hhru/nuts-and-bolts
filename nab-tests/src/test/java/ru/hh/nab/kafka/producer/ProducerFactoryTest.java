@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @ContextConfiguration(classes = {KafkaTestConfig.class})
 public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
@@ -29,12 +30,13 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void shouldPublishMessageToTopic() {
+  public void shouldPublishMessageToTopic() throws ExecutionException, InterruptedException {
     var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
 
-    KafkaProducer<String> producer = producerFactory.createDefaultProducer();
+    KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    producer.sendMessage(topicName, testMessage);
+    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, String.class, testMessage).get();
+    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
 
     Optional<String> result = watcher.poolNextMessage();
     assertTrue(result.isPresent());
@@ -42,14 +44,16 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void shouldPublishSeveralMessagesToTopic() {
+  public void shouldPublishSeveralMessagesToTopic() throws ExecutionException, InterruptedException {
     var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
 
-    KafkaProducer<String> producer = producerFactory.createDefaultProducer();
+    KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    producer.sendMessage(topicName, testMessage);
+    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, String.class, testMessage).get();
+    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
     String testMessage2 = "payload2";
-    producer.sendMessage(topicName, testMessage2);
+    KafkaSendResult<String> sendResult2 = producer.sendMessage(topicName, String.class, testMessage2).get();
+    assertEquals("Sent message differs from initial message", testMessage2, sendResult2.getProducerRecord().value());
 
     List<String> result = watcher.poolNextMessages();
     assertEquals(List.of(testMessage, testMessage2), result);

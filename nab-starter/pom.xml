@@ -210,6 +210,11 @@
             <version>3.1.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-common-api</artifactId>
+            <version>${jclient.version}</version>
+        </dependency>
 
     </dependencies>
 

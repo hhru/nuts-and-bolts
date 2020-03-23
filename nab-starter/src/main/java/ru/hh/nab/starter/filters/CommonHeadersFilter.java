@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import ru.hh.nab.starter.server.RequestHeaders;
 import static java.util.Optional.ofNullable;
+import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
 
 public final class CommonHeadersFilter extends OncePerRequestFilter {
 
@@ -20,7 +21,7 @@ public final class CommonHeadersFilter extends OncePerRequestFilter {
 
     var source = request.getHeader(RequestHeaders.REQUEST_SOURCE);
     var isLoadTesting = request.getHeader(RequestHeaders.LOAD_TESTING) != null;
-    var outerTimeoutMs = request.getHeader(RequestHeaders.OUTER_TIMEOUT_MS);
+    var outerTimeoutMs = request.getHeader(X_OUTER_TIMEOUT_MS);
 
     try {
       RequestContext.setRequestSource(source);

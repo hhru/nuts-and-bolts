@@ -8,6 +8,7 @@ import ru.hh.nab.starter.exceptions.IllegalStateExceptionMapper;
 import ru.hh.nab.starter.exceptions.NotFoundExceptionMapper;
 import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
+import ru.hh.nab.starter.filters.ErrorAcceptFilter;
 import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
 
 import java.util.Collections;
@@ -25,6 +26,8 @@ public final class DefaultResourceConfig extends ResourceConfig {
     register(NotFoundExceptionMapper.class);
     register(SecurityExceptionMapper.class);
     register(WebApplicationExceptionMapper.class);
+
+    register(ErrorAcceptFilter.class);
 
     register(ResourceNameLoggingFilter.class);
   }

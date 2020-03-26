@@ -13,9 +13,12 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.util.Optional;
+
+import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public final class JettyServer {
@@ -28,7 +31,8 @@ public final class JettyServer {
   private final Server server;
   private final ServletContextHandler servletContextHandler;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler,
+              ApplicationEventPublisher eventPublisher) {
     this.jettySettings = jettySettings;
 
     server = new Server(threadPool);
@@ -37,6 +41,7 @@ public final class JettyServer {
     configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
     server.setHandler(servletContextHandler);
+    server.addLifeCycleListener(new JettyLifeCycleListener(eventPublisher));
   }
 
   public void start() throws JettyServerException {
@@ -45,6 +50,9 @@ public final class JettyServer {
       server.setStopAtShutdown(true);
 
       LOGGER.info("Jetty started on port {}", getPort());
+    } catch (ConsulServiceException e) {
+      stopSilently();
+      throw e;
     } catch (Exception e) {
       stopSilently();
       String msg = ofNullable(jettySettings.getInteger("port")).filter(port -> port != 0).map(port -> ", port=" + port).orElse("");

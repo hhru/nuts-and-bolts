@@ -60,4 +60,9 @@ public class NabProdConfig {
     var address = InetAddress.getLocalHost().getHostAddress();
     return new ConsulService(fileSettings, datacenter, address, appMetadata);
   }
+
+  @Bean
+  JettyEventListener customSpringEventListener(ConsulService consulService){
+    return new JettyEventListener(consulService);
+  }
 }

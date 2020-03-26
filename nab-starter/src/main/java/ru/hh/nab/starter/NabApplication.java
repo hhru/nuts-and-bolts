@@ -78,7 +78,7 @@ public final class NabApplication {
           properties.setProperty(JETTY_PORT, String.valueOf(port));
           effectiveSettings = new FileSettings(properties);
         }
-        JettyServer server = JettyServerFactory.create(effectiveSettings, threadPool, webAppInitializer);
+        JettyServer server = JettyServerFactory.create(effectiveSettings, threadPool, webAppInitializer, baseContext);
         server.start();
         return server;
       });

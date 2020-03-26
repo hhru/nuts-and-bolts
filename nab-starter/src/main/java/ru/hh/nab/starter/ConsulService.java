@@ -5,8 +5,8 @@ import com.ecwid.consul.v1.agent.model.NewService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.exceptions.ConsulServiceException;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.Objects;
@@ -57,11 +57,14 @@ public class ConsulService {
     return client;
   }
 
-  @PostConstruct
   void register() {
     if (enabled) {
-      client.agentServiceRegister(service);
-      logger.info("Registered service: {} to consul", service);
+      try {
+        client.agentServiceRegister(service);
+        logger.info("Registered service: {} to consul", service);
+      } catch (RuntimeException ex) {
+        throw new ConsulServiceException("Can't register service in consul", ex);
+      }
     }
   }
 

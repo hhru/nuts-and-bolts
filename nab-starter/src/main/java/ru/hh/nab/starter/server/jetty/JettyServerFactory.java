@@ -2,6 +2,7 @@ package ru.hh.nab.starter.server.jetty;
 
 import java.time.Duration;
 import static java.util.Optional.ofNullable;
+import org.springframework.context.ApplicationEventPublisher;
 import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -15,10 +16,11 @@ public final class JettyServerFactory {
 
   private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
-  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, WebAppInitializer webAppInitializer) {
+  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, WebAppInitializer webAppInitializer,
+                                   ApplicationEventPublisher eventPublisher) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
     ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
-    return new JettyServer(threadPool, jettySettings, contextHandler);
+    return new JettyServer(threadPool, jettySettings, contextHandler, eventPublisher);
   }
 
   private static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, WebAppInitializer webAppInitializer) {

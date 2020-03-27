@@ -10,9 +10,12 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
@@ -29,6 +32,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
+
+import java.util.Properties;
 
 public class NabApplicationTest {
 
@@ -77,23 +82,19 @@ public class NabApplicationTest {
     inOrder.verify(consulService).register();
   }
 
-  @Test
+  @Test(expected = ConsulServiceException.class)
   public void testFailWithoutConsul() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
-    aggregateCtx.register(NabAppTestConfig.class);
+    aggregateCtx.register(BrokenConsul.class);
     aggregateCtx.refresh();
 
     JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
             false,
-            mock -> mock.apply(null),
+            mock -> mock.apply(0),
             v -> v.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
             );
 
-    FileSettings fileSettings = aggregateCtx.getBean(FileSettings.class); //todo
-    fileSettings.getProperties().put("consul.enabled", true);
-
     jettyServer.start();
-    exit.expectSystemExitWithStatus(1);
   }
 
   @Test
@@ -130,6 +131,20 @@ public class NabApplicationTest {
     @Bean
     String failedBean() {
       throw new RuntimeException("failed to load bean");
+    }
+  }
+
+  @Configuration
+  @Import(NabAppTestConfig.class)
+  public static class BrokenConsul {
+
+    @Bean
+    @Primary
+    FileSettings fileSettings() {
+      Properties properties = new Properties();
+      properties.put("consul.enabled", true);
+      properties.put("serviceName", "testService");
+      return new FileSettings(properties);
     }
   }
 }

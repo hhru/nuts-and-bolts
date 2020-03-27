@@ -45,8 +45,8 @@ public class ConsulService {
     service.setMeta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()));
 
     this.client = new ConsulClient(
-      Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
-      fileSettings.getInteger("consul.http.port")
+            Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
+            Optional.ofNullable(fileSettings.getInteger("consul.http.port")).orElse(8300)
     );
     this.service = service;
     this.id = id;
@@ -57,11 +57,11 @@ public class ConsulService {
     return client;
   }
 
-  void register() {
+  public void register() {
     if (enabled) {
       try {
         client.agentServiceRegister(service);
-        logger.info("Registered service: {} to consul", service);
+        logger.info("Registered consul service: {}", service);
       } catch (RuntimeException ex) {
         throw new ConsulServiceException("Can't register service in consul", ex);
       }

@@ -13,7 +13,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.util.Optional;
@@ -31,17 +30,14 @@ public final class JettyServer {
   private final Server server;
   private final ServletContextHandler servletContextHandler;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler,
-              ApplicationEventPublisher eventPublisher) {
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
-
     server = new Server(threadPool);
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
     server.setHandler(servletContextHandler);
-    server.addLifeCycleListener(new JettyLifeCycleListener(eventPublisher));
   }
 
   public void start() throws JettyServerException {

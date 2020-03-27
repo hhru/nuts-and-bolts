@@ -4,10 +4,17 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InOrder;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;
+import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -44,6 +51,49 @@ public class NabApplicationTest {
       assertEquals(appMetadata.getVersion(), project.version);
       assertTrue(project.uptime >= upTimeSeconds);
     }
+  }
+
+  @Test
+  public void testRightStartupOrderForConsul() {
+    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    aggregateCtx.register(NabAppTestConfig.class);
+    aggregateCtx.refresh();
+
+    JettyLifeCycleListener lifeCycleListener = spy(new JettyLifeCycleListener(aggregateCtx));
+
+    NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
+    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx,
+            false,
+            mock -> mock.apply(null),
+            v -> v.addLifeCycleListener(lifeCycleListener)
+            );
+
+    ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
+
+    jettyServer.start();
+
+    InOrder inOrder = inOrder(lifeCycleListener, consulService);
+    inOrder.verify(lifeCycleListener).lifeCycleStarted(any());
+    inOrder.verify(consulService).register();
+  }
+
+  @Test
+  public void testFailWithoutConsul() {
+    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    aggregateCtx.register(NabAppTestConfig.class);
+    aggregateCtx.refresh();
+
+    JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
+            false,
+            mock -> mock.apply(null),
+            v -> v.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
+            );
+
+    FileSettings fileSettings = aggregateCtx.getBean(FileSettings.class); //todo
+    fileSettings.getProperties().put("consul.enabled", true);
+
+    jettyServer.start();
+    exit.expectSystemExitWithStatus(1);
   }
 
   @Test

@@ -1,4 +1,4 @@
-package ru.hh.nab.starter;
+package ru.hh.nab.starter.events;
 
 public class JettyStartedEvent {
 }

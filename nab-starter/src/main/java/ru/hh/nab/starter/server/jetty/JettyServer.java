@@ -32,6 +32,7 @@ public final class JettyServer {
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
+
     server = new Server(threadPool);
     configureConnector();
     configureRequestLogger();

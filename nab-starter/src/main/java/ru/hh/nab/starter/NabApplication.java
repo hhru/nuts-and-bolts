@@ -88,7 +88,7 @@ public final class NabApplication {
             webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(baseContext)));
   }
 
-  public JettyServer createJettyServer(WebApplicationContext baseContext,
+  JettyServer createJettyServer(WebApplicationContext baseContext,
                                        boolean directlyUseAsWebAppRoot,
                                        Function<Function<Integer, JettyServer>, JettyServer> serverStarter,
                                        WebAppInitializer extwebAppInitializer

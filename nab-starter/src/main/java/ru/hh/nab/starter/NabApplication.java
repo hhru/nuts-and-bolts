@@ -150,7 +150,6 @@ public final class NabApplication {
     WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
     return webApp -> {
       servletContextConfig.preConfigureWebApp(webApp, baseCtx);
-
       webApp.addEventListener(new ContextLoaderListener(targetCtx) {
         @Override
         public void contextInitialized(ServletContextEvent event) {

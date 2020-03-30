@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 
 import java.util.Optional;
+
+import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public final class JettyServer {
@@ -45,6 +47,9 @@ public final class JettyServer {
       server.setStopAtShutdown(true);
 
       LOGGER.info("Jetty started on port {}", getPort());
+    } catch (ConsulServiceException e) {
+      stopSilently();
+      throw e;
     } catch (Exception e) {
       stopSilently();
       String msg = ofNullable(jettySettings.getInteger("port")).filter(port -> port != 0).map(port -> ", port=" + port).orElse("");

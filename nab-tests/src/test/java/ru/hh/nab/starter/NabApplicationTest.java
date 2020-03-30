@@ -4,10 +4,18 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InOrder;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.jersey.TestResource;
+import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -22,6 +30,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
+
+import java.util.Properties;
 
 public class NabApplicationTest {
 
@@ -44,6 +54,44 @@ public class NabApplicationTest {
       assertEquals(appMetadata.getVersion(), project.version);
       assertTrue(project.uptime >= upTimeSeconds);
     }
+  }
+
+  @Test
+  public void testRightStartupOrderForConsul() {
+    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    aggregateCtx.register(NabAppTestConfig.class);
+    aggregateCtx.refresh();
+
+    JettyLifeCycleListener lifeCycleListener = spy(new JettyLifeCycleListener(aggregateCtx));
+
+    NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
+    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx,
+            false,
+            portSupplier -> portSupplier.apply(null),
+            webAppContext -> webAppContext.addLifeCycleListener(lifeCycleListener)
+            );
+
+    ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
+
+    jettyServer.start();
+
+    InOrder inOrder = inOrder(lifeCycleListener, consulService);
+    inOrder.verify(lifeCycleListener).lifeCycleStarted(any());
+    inOrder.verify(consulService).register();
+  }
+
+  @Test(expected = ConsulServiceException.class)
+  public void testFailWithoutConsul() {
+    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    aggregateCtx.register(BrokenConsulConfig.class);
+    aggregateCtx.refresh();
+
+    JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
+            false,
+            portSupplier -> portSupplier.apply(0),
+            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx)));
+
+    jettyServer.start();
   }
 
   @Test
@@ -80,6 +128,19 @@ public class NabApplicationTest {
     @Bean
     String failedBean() {
       throw new RuntimeException("failed to load bean");
+    }
+  }
+
+  @Configuration
+  @Import(NabAppTestConfig.class)
+  public static class BrokenConsulConfig {
+    @Bean
+    Properties serviceProperties() {
+      Properties properties = new Properties();
+      properties.setProperty("consul.enabled", "true");
+      properties.setProperty("serviceName", "testService");
+      properties.setProperty("consul.http.port", "123");
+      return properties;
     }
   }
 }

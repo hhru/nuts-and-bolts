@@ -1,9 +1,12 @@
 package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
+import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY_PORT;
 
 import io.sentry.Sentry;
+
+import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import javax.servlet.ServletContextEvent;
@@ -68,25 +71,43 @@ public final class NabApplication {
     try {
       configureLogger();
       configureSentry(baseContext);
-      FileSettings fileSettings = baseContext.getBean(FileSettings.class);
-      ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
-      WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
-      JettyServer jettyServer = serverStarter.apply(port -> {
-        FileSettings effectiveSettings = fileSettings;
-        if (port != null) {
-          Properties properties = fileSettings.getProperties();
-          properties.setProperty(JETTY_PORT, String.valueOf(port));
-          effectiveSettings = new FileSettings(properties);
-        }
-        JettyServer server = JettyServerFactory.create(effectiveSettings, threadPool, webAppInitializer);
-        server.start();
-        return server;
-      });
+      JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot, serverStarter);
+      jettyServer.start();
       logStartupInfo(baseContext);
       return jettyServer;
     } catch (Exception e) {
       return logErrorAndExit(e, exitOnError);
     }
+  }
+
+  private JettyServer createJettyServer(WebApplicationContext baseContext,
+                                       boolean directlyUseAsWebAppRoot,
+                                       Function<Function<Integer, JettyServer>, JettyServer> serverStarter
+  ) {
+    return createJettyServer(baseContext, directlyUseAsWebAppRoot, serverStarter,
+            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(baseContext)));
+  }
+
+  JettyServer createJettyServer(WebApplicationContext baseContext,
+                                       boolean directlyUseAsWebAppRoot,
+                                       Function<Function<Integer, JettyServer>, JettyServer> serverStarter,
+                                       WebAppInitializer extwebAppInitializer
+                                       ){
+    FileSettings fileSettings = baseContext.getBean(FileSettings.class);
+    ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
+
+    WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig,
+            baseContext,
+            directlyUseAsWebAppRoot);
+    return serverStarter.apply(port -> {
+      FileSettings effectiveSettings = fileSettings;
+      if (port != null) {
+        Properties properties = fileSettings.getProperties();
+        properties.setProperty(JETTY_PORT, String.valueOf(port));
+        effectiveSettings = new FileSettings(properties);
+      }
+      return JettyServerFactory.create(effectiveSettings, threadPool, List.of(webAppInitializer, extwebAppInitializer));
+    });
   }
 
   public static NabApplicationBuilder builder() {

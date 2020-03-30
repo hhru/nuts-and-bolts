@@ -20,6 +20,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import ru.hh.nab.starter.events.JettyEventListener;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
@@ -59,5 +60,10 @@ public class NabProdConfig {
   ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata) throws UnknownHostException {
     var address = InetAddress.getLocalHost().getHostAddress();
     return new ConsulService(fileSettings, datacenter, address, appMetadata);
+  }
+
+  @Bean
+  JettyEventListener jettyEventListener(ConsulService consulService){
+    return new JettyEventListener(consulService);
   }
 }

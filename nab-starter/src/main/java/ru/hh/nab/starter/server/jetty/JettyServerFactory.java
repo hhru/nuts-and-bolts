@@ -1,6 +1,8 @@
 package ru.hh.nab.starter.server.jetty;
 
 import java.time.Duration;
+import java.util.List;
+
 import static java.util.Optional.ofNullable;
 import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
 
@@ -15,13 +17,13 @@ public final class JettyServerFactory {
 
   private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
-  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, WebAppInitializer webAppInitializer) {
+  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, List<WebAppInitializer> webAppInitializer) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
     ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
     return new JettyServer(threadPool, jettySettings, contextHandler);
   }
 
-  private static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, WebAppInitializer webAppInitializer) {
+  private static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, List<WebAppInitializer> webAppInitializer) {
     boolean sessionEnabled = ofNullable(jettySettings.getBoolean("session-manager.enabled")).orElse(Boolean.FALSE);
     return new JettyWebAppContext(webAppInitializer, sessionEnabled);
   }

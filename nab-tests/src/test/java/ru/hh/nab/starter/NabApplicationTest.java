@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
@@ -69,8 +68,8 @@ public class NabApplicationTest {
     NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
     JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx,
             false,
-            mock -> mock.apply(null),
-            v -> v.addLifeCycleListener(lifeCycleListener)
+            portSupplier -> portSupplier.apply(null),
+            webAppContext -> webAppContext.addLifeCycleListener(lifeCycleListener)
             );
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
@@ -90,8 +89,8 @@ public class NabApplicationTest {
 
     JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
             false,
-            mock -> mock.apply(0),
-            v -> v.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
+            portSupplier -> portSupplier.apply(0),
+            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
             );
 
     jettyServer.start();
@@ -137,14 +136,13 @@ public class NabApplicationTest {
   @Configuration
   @Import(NabAppTestConfig.class)
   public static class BrokenConsul {
-
     @Bean
     @Primary
-    FileSettings fileSettings() {
+    Properties properties() {
       Properties properties = new Properties();
       properties.put("consul.enabled", true);
       properties.put("serviceName", "testService");
-      return new FileSettings(properties);
+      return properties;
     }
   }
 }

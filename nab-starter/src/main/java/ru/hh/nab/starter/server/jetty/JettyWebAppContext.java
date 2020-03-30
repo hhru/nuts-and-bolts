@@ -5,12 +5,14 @@ import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 
+import java.util.List;
+
 final class JettyWebAppContext extends WebAppContext {
 
-  JettyWebAppContext(WebAppInitializer webAppInitializer, boolean sessionEnabled) {
+  JettyWebAppContext(List<WebAppInitializer> webAppInitializer, boolean sessionEnabled) {
     super(null, null, null, null, null, null,
         sessionEnabled ? SESSIONS: 0);
-    webAppInitializer.configureWebApp(this);
+    webAppInitializer.forEach(initializer->initializer.configureWebApp(this));
     setThrowUnavailableOnStartupException(true);
   }
 

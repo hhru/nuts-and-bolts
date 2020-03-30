@@ -45,8 +45,8 @@ public class ConsulService {
     service.setMeta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()));
 
     this.client = new ConsulClient(
-            Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
-            Optional.ofNullable(fileSettings.getInteger("consul.http.port")).orElse(8300)
+      Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
+      fileSettings.getInteger("consul.http.port")
     );
     this.service = service;
     this.id = id;

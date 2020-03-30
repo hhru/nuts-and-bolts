@@ -17,7 +17,7 @@ public class NabAppTestConfig {
   }
 
   @Bean
-  JettyEventListener jettyEventListener(ConsulService consulService) {
+  JettyEventListener jettyEventConsulListener(ConsulService consulService) {
     return new JettyEventListener(consulService);
   }
 

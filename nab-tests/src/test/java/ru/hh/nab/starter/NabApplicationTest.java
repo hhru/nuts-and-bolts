@@ -11,7 +11,6 @@ import static org.mockito.Mockito.spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
@@ -84,14 +83,13 @@ public class NabApplicationTest {
   @Test(expected = ConsulServiceException.class)
   public void testFailWithoutConsul() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
-    aggregateCtx.register(BrokenConsul.class);
+    aggregateCtx.register(BrokenConsulConfig.class);
     aggregateCtx.refresh();
 
     JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
             false,
             portSupplier -> portSupplier.apply(0),
-            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
-            );
+            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx)));
 
     jettyServer.start();
   }
@@ -135,13 +133,13 @@ public class NabApplicationTest {
 
   @Configuration
   @Import(NabAppTestConfig.class)
-  public static class BrokenConsul {
+  public static class BrokenConsulConfig {
     @Bean
-    @Primary
-    Properties properties() {
+    Properties serviceProperties() {
       Properties properties = new Properties();
-      properties.put("consul.enabled", true);
-      properties.put("serviceName", "testService");
+      properties.setProperty("consul.enabled", "true");
+      properties.setProperty("serviceName", "testService");
+      properties.setProperty("consul.http.port", "123");
       return properties;
     }
   }

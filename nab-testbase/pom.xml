@@ -41,7 +41,7 @@
         <dependency>
             <groupId>ru.hh.kafka.test</groupId>
             <artifactId>hh-kafka-test-utils</artifactId>
-            <version>0.0.5</version>
+            <version>0.0.7</version>
         </dependency>
 
         <dependency>

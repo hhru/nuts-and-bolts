@@ -141,6 +141,8 @@ public final class NabApplication {
     } finally {
       if (exitOnError) {
         System.exit(1);
+      } else {
+        throw new RuntimeException(e);
       }
     }
   }

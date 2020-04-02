@@ -13,14 +13,15 @@ public class DefaultKafkaProducer implements KafkaProducer {
     this.kafkaTemplate = kafkaTemplate;
   }
 
-  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, Class<T> messageType, T kafkaMessage) {
-    return sendMessage(topicName, null, messageType, kafkaMessage);
+  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, T kafkaMessage) {
+    return sendMessage(topicName, null, kafkaMessage);
   }
 
-  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, Class<T> messageType, T kafkaMessage) {
+  @SuppressWarnings("unchecked")
+  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, T kafkaMessage) {
     return kafkaTemplate.send(topicName, key, kafkaMessage)
         .completable()
-        .thenApply(springResult -> convertSpringSendResult(springResult, messageType));
+        .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) kafkaMessage.getClass()));
   }
 
   private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult, Class<T> messageType) {

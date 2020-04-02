@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.producer;
 
+import java.util.Objects;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -20,7 +21,7 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
   @Inject
   private KafkaProducerFactory producerFactory;
   @Inject
-  protected TestKafkaWithJsonMessages kafkaTestUtils;
+  protected TestKafkaWithJsonMessages testKafka;
 
   private String topicName;
 
@@ -31,11 +32,11 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
 
   @Test
   public void shouldPublishMessageToTopic() throws ExecutionException, InterruptedException {
-    var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
+    var watcher = testKafka.startJsonTopicWatching(topicName, String.class);
 
     KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, String.class, testMessage).get();
+    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, testMessage).get();
     assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
 
     Optional<String> result = watcher.poolNextMessage();
@@ -45,18 +46,56 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
 
   @Test
   public void shouldPublishSeveralMessagesToTopic() throws ExecutionException, InterruptedException {
-    var watcher = kafkaTestUtils.startJsonTopicWatching(topicName, String.class);
+    var watcher = testKafka.startJsonTopicWatching(topicName, String.class);
 
     KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
-    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, String.class, testMessage).get();
+    KafkaSendResult<String> sendResult = producer.sendMessage(topicName, testMessage).get();
     assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
     String testMessage2 = "payload2";
-    KafkaSendResult<String> sendResult2 = producer.sendMessage(topicName, String.class, testMessage2).get();
+    KafkaSendResult<String> sendResult2 = producer.sendMessage(topicName, testMessage2).get();
     assertEquals("Sent message differs from initial message", testMessage2, sendResult2.getProducerRecord().value());
 
     List<String> result = watcher.poolNextMessages();
     assertEquals(List.of(testMessage, testMessage2), result);
   }
 
+  @Test
+  public void testJacksonDtoPublish() throws ExecutionException, InterruptedException {
+    var watcher = testKafka.startJsonTopicWatching(topicName, TestDto.class);
+
+    KafkaProducer producer = producerFactory.createDefaultProducer();
+    TestDto testMessage = new TestDto("228", "test");
+    KafkaSendResult<TestDto> sendResult = producer.sendMessage(topicName, testMessage).get();
+    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
+
+    List<TestDto> result = watcher.poolNextMessages();
+    assertEquals(List.of(testMessage), result);
+  }
+
+  private static class TestDto {
+
+    public String key;
+    public String value;
+
+    public TestDto() {
+    }
+
+    public TestDto(String key, String value) {
+      this.key = key;
+      this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      TestDto testDto = (TestDto) o;
+      return key.equals(testDto.key) &&
+          value.equals(testDto.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(key, value);
+    }
+  }
 }

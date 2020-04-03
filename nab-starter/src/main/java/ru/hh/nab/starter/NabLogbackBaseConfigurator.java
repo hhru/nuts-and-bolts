@@ -10,6 +10,7 @@ import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
+import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
@@ -63,6 +64,8 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
     createLogger(context, NabApplication.class, Level.INFO, false, service);
+    createLogger(context, ConsulService.class, Level.INFO, false, service);
+    createLogger(context, JettyServer.class, Level.INFO, false, service);
 
     var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));
     createLogger(context, "ru.hh.nab.jclient.checks.TransactionalCheck", Level.WARN, false, List.of(jClientTransactionalCheck));

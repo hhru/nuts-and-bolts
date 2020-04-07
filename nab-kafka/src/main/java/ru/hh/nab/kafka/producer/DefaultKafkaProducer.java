@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.util.concurrent.ListenableFuture;
 
 public class DefaultKafkaProducer implements KafkaProducer {
 
@@ -19,8 +20,8 @@ public class DefaultKafkaProducer implements KafkaProducer {
 
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, T kafkaMessage) {
-    return kafkaTemplate.send(topicName, key, kafkaMessage)
-        .completable()
+    return CompletableFuture.supplyAsync(() -> kafkaTemplate.send(topicName, key, kafkaMessage))
+        .thenCompose(ListenableFuture::completable)
         .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) kafkaMessage.getClass()));
   }
 

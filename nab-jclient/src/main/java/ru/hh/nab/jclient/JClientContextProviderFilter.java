@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.common.servlet.UriComponent;
@@ -31,7 +32,12 @@ public class JClientContextProviderFilter implements Filter, NabServletFilter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     requireNonNull(contextThreadLocalSupplier, "httpClientContextSupplier should not be null");
     try {
-      contextThreadLocalSupplier.addContext(getRequestHeadersMap(request), getQueryParamsMap(request));
+      try {
+        contextThreadLocalSupplier.addContext(getRequestHeadersMap(request), getQueryParamsMap(request));
+      } catch (IllegalArgumentException e) {
+        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
       chain.doFilter(request, response);
     } finally {
       contextThreadLocalSupplier.clear();

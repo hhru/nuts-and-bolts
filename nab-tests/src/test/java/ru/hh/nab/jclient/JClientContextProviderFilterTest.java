@@ -10,7 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,5 +30,6 @@ public class JClientContextProviderFilterTest {
 
     filter.doFilter(request, response, chain);
     verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST);
+    verify(chain, never()).doFilter(any(), any());
   }
 }

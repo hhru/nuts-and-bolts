@@ -32,10 +32,13 @@ public class JClientContextProviderFilter implements Filter, NabServletFilter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     requireNonNull(contextThreadLocalSupplier, "httpClientContextSupplier should not be null");
     try {
-      contextThreadLocalSupplier.addContext(getRequestHeadersMap(request), getQueryParamsMap(request));
+      try {
+        contextThreadLocalSupplier.addContext(getRequestHeadersMap(request), getQueryParamsMap(request));
+      } catch (IllegalArgumentException e) {
+        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
       chain.doFilter(request, response);
-    } catch (IllegalArgumentException e) {
-      ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST);
     } finally {
       contextThreadLocalSupplier.clear();
     }

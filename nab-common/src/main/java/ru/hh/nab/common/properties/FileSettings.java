@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
 import static org.springframework.util.Assert.hasLength;
 
 public class FileSettings {
@@ -17,19 +18,36 @@ public class FileSettings {
     return properties.getProperty(key);
   }
 
+  public int getInteger(String key, int defaultValue) {
+    return parseValueOrDefault(key, Integer::parseInt, defaultValue);
+  }
+
   public Integer getInteger(String key) {
-    String value = getString(key);
-    return value != null ? Integer.parseInt(value): null;
+    return parseValueOrDefault(key, Integer::parseInt, null);
+  }
+
+  public long getLong(final String key, long defaultValue) {
+    return parseValueOrDefault(key, Long::parseLong, defaultValue);
   }
 
   public Long getLong(final String key) {
-    String value = getString(key);
-    return value != null ? Long.parseLong(value): null;
+    return parseValueOrDefault(key, Long::parseLong, null);
+  }
+
+  public double getDouble(final String key, double defaultValue) {
+    return parseValueOrDefault(key, Double::parseDouble, defaultValue);
+  }
+
+  public Double getDouble(final String key) {
+    return parseValueOrDefault(key, Double::parseDouble, null);
+  }
+
+  public boolean getBoolean(String key, boolean defaultValue) {
+    return parseValueOrDefault(key, Boolean::parseBoolean, defaultValue);
   }
 
   public Boolean getBoolean(String key) {
-    String value = getString(key);
-    return value != null ? Boolean.parseBoolean(value): null;
+    return parseValueOrDefault(key, Boolean::parseBoolean, null);
   }
 
   public Properties getSubProperties(String prefix) {
@@ -57,5 +75,10 @@ public class FileSettings {
     Properties propertiesCopy = new Properties();
     propertiesCopy.putAll(this.properties);
     return propertiesCopy;
+  }
+
+  private <R> R parseValueOrDefault(String key, Function<String, R> function, R defaultValue) {
+    String value = getString(key);
+    return value == null ? defaultValue : function.apply(value);
   }
 }

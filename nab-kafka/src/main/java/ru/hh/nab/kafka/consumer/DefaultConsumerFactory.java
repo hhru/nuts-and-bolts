@@ -1,5 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.util.Collection;
+import java.util.Map;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -14,8 +16,6 @@ import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
-import java.util.Collection;
-import java.util.Map;
 
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
 
@@ -65,7 +65,17 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   private <T> BatchAcknowledgingMessageListener<String, T> adaptToSpring(ConsumeStrategy<T> consumeStrategy) {
-    return (data, acknowledgment) -> consumeStrategy.onMessagesBatch(data, acknowledgment::acknowledge);
+    return (data, acknowledgment) -> consumeStrategy.onMessagesBatch(data, new Ack() {
+      @Override
+      public void acknowledge() {
+        acknowledgment.acknowledge();
+      }
+
+      @Override
+      public void nack(int index, long sleep) {
+        acknowledgment.nack(index, sleep);
+      }
+    });
   }
 
   private <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(ConsumerFactory<String, T> consumerFactory,

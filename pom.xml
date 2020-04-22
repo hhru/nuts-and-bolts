@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.23.3-SNAPSHOT</version>
+    <version>4.23.4-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -30,7 +30,7 @@
 
     <properties>
         <spring.version>5.2.2.RELEASE</spring.version>
-        <spring.kafka.version>2.3.4.RELEASE</spring.kafka.version>
+        <spring.kafka.version>2.3.7.RELEASE</spring.kafka.version>
         <jersey.version>2.29.1</jersey.version>
         <hibernate.version>5.2.10.Final</hibernate.version>
         <postgres.jdbc.version>42.2.5</postgres.jdbc.version>

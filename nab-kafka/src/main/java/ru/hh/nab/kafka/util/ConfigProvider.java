@@ -23,6 +23,9 @@ public class ConfigProvider {
   public static final String BACKOFF_MULTIPLIER_NAME = "backoff.multiplier";
   public static final double DEFAULT_BACKOFF_MULTIPLIER = 1.5;
 
+  public static final String POOL_TIMEOUT = "pool.timeout.ms";
+  public static final long DEFAULT_POOL_TIMEOUT = 5000L;
+
   private final String serviceName;
   private final String kafkaClusterName;
   private final FileSettings fileSettings;
@@ -40,27 +43,38 @@ public class ConfigProvider {
   public Map<String, Object> getConsumerConfig(String topicName) {
     Map<String, Object> consumeConfig = new HashMap<>();
     consumeConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);
-    consumeConfig.putAll(getCommonProperties());
-    consumeConfig.putAll(getDefaultConsumerProperties());
-    consumeConfig.putAll(getTopicOverriddenConsumerProperties(topicName));
+    consumeConfig.putAll(getAllConsumerConfigs(topicName));
     removeNabProperties(consumeConfig);
     return consumeConfig;
   }
 
   public FileSettings getNabConsumerSettings(String topicName) {
+    Map<String, Object> allConsumerConfigs = getAllConsumerConfigs(topicName);
+
+    Properties nabProperties = new Properties();
+    nabProperties.putAll(allConsumerConfigs);
+    removeNonNabProperties(nabProperties);
+    FileSettings nabConsumerSettings = new FileSettings(nabProperties).getSubSettings(NAB_SETTING);
+
     Properties allProperties = new Properties();
-    allProperties.putAll(getCommonProperties());
-    allProperties.putAll(getDefaultConsumerProperties());
-    allProperties.putAll(getTopicOverriddenConsumerProperties(topicName));
-    removeNonNabProperties(allProperties);
-    FileSettings fileSettings = new FileSettings(allProperties);
-    checkConfig(fileSettings);
-    return fileSettings;
+    nabProperties.putAll(allConsumerConfigs);
+    FileSettings allConsumerSettings = new FileSettings(allProperties);
+
+    checkConfig(nabConsumerSettings, allConsumerSettings);
+    return nabConsumerSettings;
   }
 
-  private void checkConfig(FileSettings settings) {
-    long maxPollMs = settings.getLong(MAX_POLL_INTERVAL_MS_CONFIG, 300000L);
-    long backoffMaxInterval = settings.getLong(BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL);
+  private Map<String, Object> getAllConsumerConfigs(String topicName) {
+    Map<String, Object> consumerConfig = new HashMap<>();
+    consumerConfig.putAll(getCommonProperties());
+    consumerConfig.putAll(getDefaultConsumerProperties());
+    consumerConfig.putAll(getTopicOverriddenConsumerProperties(topicName));
+    return consumerConfig;
+  }
+
+  private void checkConfig(FileSettings nabConsumerSettings, FileSettings allConsumerSettings) {
+    long maxPollMs = allConsumerSettings.getLong(MAX_POLL_INTERVAL_MS_CONFIG, 300000L);
+    long backoffMaxInterval = nabConsumerSettings.getLong(BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL);
     if (backoffMaxInterval > maxPollMs) {
       throw new IllegalArgumentException(
           String.format("'%s' should not be larger then '%s'", BACKOFF_MAX_INTERVAL_NAME, MAX_POLL_INTERVAL_MS_CONFIG)
@@ -102,18 +116,10 @@ public class ConfigProvider {
   }
 
   private void removeNabProperties(Map<String, Object> config) {
-    for (String key : config.keySet()) {
-      if (key.contains(NAB_SETTING)) {
-        config.remove(key);
-      }
-    }
+    config.keySet().removeIf(key -> key.contains(NAB_SETTING));
   }
 
   private void removeNonNabProperties(Properties allProperties) {
-    for (Object key : allProperties.keySet()) {
-      if (!((String)key).contains(NAB_SETTING)) {
-        allProperties.remove(key);
-      }
-    }
+    allProperties.keySet().removeIf(key -> !((String) key).contains(NAB_SETTING));
   }
 }

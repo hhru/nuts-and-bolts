@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,7 @@ public class KafkaTestConfig {
 
   @Bean
   public TestKafkaWithJsonMessages testKafka() {
-    return KafkaTestUtils.startKafkaWithJsonMessages(new ObjectMapper());
+    return KafkaTestUtils.startKafkaWithJsonMessages(new ObjectMapper(), Map.of("num.partitions", "5"));
   }
 
   @Bean

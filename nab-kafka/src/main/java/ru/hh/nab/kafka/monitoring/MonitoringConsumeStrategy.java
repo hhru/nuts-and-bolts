@@ -1,12 +1,12 @@
 package ru.hh.nab.kafka.monitoring;
 
+import java.util.List;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.metrics.timinglogger.Timings;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerGroupId;
 import ru.hh.nab.metrics.StatsDSender;
-import java.util.List;
 
 public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
 
@@ -21,7 +21,7 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   }
 
   @Override
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack ack) {
+  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) {
     timings.resetTime();
     consumeStrategy.onMessagesBatch(messages, ack);
     timings.time();

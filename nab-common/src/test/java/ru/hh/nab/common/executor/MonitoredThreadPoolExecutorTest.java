@@ -1,17 +1,15 @@
 package ru.hh.nab.common.executor;
 
-import org.junit.Test;
-import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.metrics.StatsDSender;
-
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
 
 public class MonitoredThreadPoolExecutorTest {
   @Test

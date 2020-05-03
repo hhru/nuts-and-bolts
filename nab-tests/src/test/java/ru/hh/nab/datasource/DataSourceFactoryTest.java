@@ -1,32 +1,28 @@
 package ru.hh.nab.datasource;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-import java.util.Properties;
-import javax.sql.DataSource;
-
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Map;
+import java.util.Properties;
+import javax.sql.DataSource;
 import org.apache.commons.text.StringSubstitutor;
-import org.junit.BeforeClass;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-
-import org.junit.Test;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
-import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
-
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
+import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
+import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
+import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
+import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 public class DataSourceFactoryTest {
   private static final String TEST_DATA_SOURCE_TYPE = DataSourceType.MASTER;
@@ -34,7 +30,7 @@ public class DataSourceFactoryTest {
   private static EmbeddedPostgres testDb;
   private static DataSourceFactory dataSourceFactory;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     testDb = EmbeddedPostgresDataSourceFactory.getEmbeddedPostgres();
     dataSourceFactory = new DataSourceFactory(new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, mock(StatsDSender.class)));

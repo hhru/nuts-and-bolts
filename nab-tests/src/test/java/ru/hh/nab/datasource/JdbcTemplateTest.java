@@ -1,26 +1,27 @@
 package ru.hh.nab.datasource;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-
-import javax.inject.Inject;
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.inject.Inject;
+import javax.sql.DataSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {DataSourceTestConfig.class})
-public class JdbcTemplateTest extends AbstractJUnit4SpringContextTests {
+public class JdbcTemplateTest {
   @Inject
   private DataSource dataSource;
   @Inject
   private JdbcTemplate jdbcTemplate;
 
-  @Before
+  @BeforeEach
   public void initDatasource() throws SQLException {
     Connection connection = dataSource.getConnection();
     connection.setAutoCommit(false);

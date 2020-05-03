@@ -1,16 +1,17 @@
 package ru.hh.nab.testbase.hibernate;
 
+import javax.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-
-import javax.inject.Inject;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 
-public abstract class HibernateTestBase extends AbstractJUnit4SpringContextTests {
+@ExtendWith(SpringExtension.class)
+public abstract class HibernateTestBase {
   @Inject
   protected SessionFactory sessionFactory;
   @Inject

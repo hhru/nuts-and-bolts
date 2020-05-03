@@ -3,24 +3,27 @@ package ru.hh.nab.kafka.consumer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {KafkaTestConfig.class})
 public class KafkaConsumerFactoryTest extends KafkaConsumerTestbase {
 
   protected TopicConsumerMock<String> consumerMock;
   protected KafkaConsumer<String> consumer;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     consumerMock = new TopicConsumerMock<>();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     consumer.stop();
   }
@@ -53,5 +56,4 @@ public class KafkaConsumerFactoryTest extends KafkaConsumerTestbase {
         .atMost(5, TimeUnit.SECONDS)
         .untilAsserted(() -> consumerMock.assertMessagesEquals(List.of(secondMessage)));
   }
-
 }

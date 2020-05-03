@@ -1,18 +1,5 @@
 package ru.hh.nab.starter.server.jetty;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.ThreadPool;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import java.io.EOFException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -24,15 +11,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
+import javax.servlet.GenericServlet;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.createServer;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
 
 public class HHServerConnectorFailFastTest {
-
   private static final int ACCEPTORS = 1;
   private static final int SELECTORS = 1;
   private static final int WORKERS = 10;
@@ -46,19 +43,19 @@ public class HHServerConnectorFailFastTest {
   private ControlledServlet controlledServlet;
   private Server server;
 
-  @Before
+  @BeforeEach
   public void beforeTest() {
     threadPool = new QueuedThreadPool(THREADS, THREADS);
     controlledServlet = new ControlledServlet(204);
     server = createServer(threadPool, controlledServlet);
   }
 
-  @After
+  @AfterEach
   public void afterTest() throws Exception {
     server.stop();
   }
 
-  @AfterClass
+  @AfterAll
   public static void afterClass() {
     executorService.shutdown();
   }
@@ -118,7 +115,7 @@ public class HHServerConnectorFailFastTest {
         status = statusFuture.get();
       } catch (ExecutionException e) {
         Throwable cause = e.getCause();
-        assertTrue("Unexpected exception " + cause, cause instanceof SocketException || cause instanceof EOFException);
+        assertTrue(cause instanceof SocketException || cause instanceof EOFException, "Unexpected exception " + cause);
         failures++;
         continue;
       }

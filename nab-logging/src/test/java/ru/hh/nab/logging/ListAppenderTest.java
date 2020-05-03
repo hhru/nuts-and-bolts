@@ -2,19 +2,18 @@ package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
-
-import static org.junit.Assert.assertEquals;
 
 public class ListAppenderTest {
   private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ListAppenderTest.class);
 
   private ListAppender listAppender;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     listAppender = new ListAppender();
     listAppender.start();
@@ -24,7 +23,7 @@ public class ListAppenderTest {
     rootLogger.addAppender(listAppender);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
     Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);

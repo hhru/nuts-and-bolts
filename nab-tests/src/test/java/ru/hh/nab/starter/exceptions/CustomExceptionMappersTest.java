@@ -1,48 +1,53 @@
 package ru.hh.nab.starter.exceptions;
 
-import org.junit.Test;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.testbase.NabTestBase;
-import ru.hh.nab.testbase.NabTestConfig;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import ru.hh.nab.starter.NabApplication;
+import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.extensions.HHJetty;
+import ru.hh.nab.testbase.extensions.HHJettyExtension;
+import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@ContextConfiguration(classes = {NabTestConfig.class, CustomExceptionMappersTest.CustomExceptionMapperConfig.class})
-public class CustomExceptionMappersTest extends NabTestBase {
-  @Override
-  protected NabApplication getApplication() {
-    return NabApplication.builder()
-      .configureJersey(SpringCtxForJersey.class).registerResources(CustomExceptionMapper.class).bindToRoot()
-      .build();
-  }
+@ExtendWith({
+    HHJettyExtension.class,
+})
+@SpringJUnitWebConfig({
+    NabTestConfig.class,
+    CustomExceptionMappersTest.CustomExceptionMapperConfig.class
+})
+public class CustomExceptionMappersTest {
+
+  @HHJetty(port = 9006, overrideApplication = CustomExceptionMapperConfig.class)
+  ResourceHelper resourceHelper;
 
   @Test
   public void testCustomExceptionMappers() {
-    Response response = executeGet("/iae");
+    Response response = resourceHelper.executeGet("/iae");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
     assertEquals("Failed: IAE", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/any");
+    response = resourceHelper.executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("Any exception", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/any?customSerializer=true");
+    response = resourceHelper.executeGet("/any?customSerializer=true");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("{\"reason\":\"Any exception\"}", response.readEntity(String.class));
@@ -51,7 +56,14 @@ public class CustomExceptionMappersTest extends NabTestBase {
 
   @Configuration
   @Import(CustomExceptionSerializer.class)
-  public static class CustomExceptionMapperConfig { }
+  public static class CustomExceptionMapperConfig implements OverrideNabApplication {
+    @Override
+    public NabApplication getNabApplication() {
+      return NabApplication.builder()
+          .configureJersey(SpringCtxForJersey.class).registerResources(CustomExceptionMapper.class).bindToRoot()
+          .build();
+    }
+  }
 
   public static class CustomExceptionSerializer implements ExceptionSerializer {
     @Override

@@ -16,33 +16,33 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
+import ru.hh.nab.hibernate.transaction.TransactionalScope;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class)
 public class NabSessionFactoryBuilderFactoryTest {
 
   private static Connection connection;
 
-  @Before
+  @BeforeEach
   public void setUp() throws SQLException {
     ResultSetMetaData metaData = mock(ResultSetMetaData.class);
     ResultSet rs = mock(ResultSet.class);

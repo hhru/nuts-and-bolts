@@ -2,11 +2,12 @@ package ru.hh.nab.logging;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.Properties;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
 
 public class NabLoggingConfiguratorTemplateTest {
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void testConfigure() {
     NabLoggingConfiguratorTemplate configurator = new NabLoggingConfiguratorTemplate() {
       @Override
@@ -22,6 +23,6 @@ public class NabLoggingConfiguratorTemplateTest {
     };
     LoggerContext lc = new LoggerContext();
     configurator.setContext(lc);
-    configurator.configure(lc);
+    assertThrows(AssertionError.class, () -> configurator.configure(lc));
   }
 }

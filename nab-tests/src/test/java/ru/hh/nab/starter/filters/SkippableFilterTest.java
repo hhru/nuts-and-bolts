@@ -1,22 +1,33 @@
 package ru.hh.nab.starter.filters;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.testbase.NabTestBase;
-import ru.hh.nab.testbase.NabTestConfig;
-
+import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import ru.hh.nab.starter.NabApplication;
+import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.extensions.HHJetty;
+import ru.hh.nab.testbase.extensions.HHJettyExtension;
+import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class SkippableFilterTest extends NabTestBase {
+@ExtendWith({
+    HHJettyExtension.class,
+})
+@SpringJUnitWebConfig({
+    NabTestConfig.class
+})
+public class SkippableFilterTest {
+
+  @HHJetty(port = 9002, overrideApplication = FilterApplicationOverride.class)
+  ResourceHelper resourceHelper;
 
   public static class AddHeaderSkippableFilter extends SkippableFilter {
     public AddHeaderSkippableFilter() {}
@@ -29,21 +40,23 @@ public class SkippableFilterTest extends NabTestBase {
     }
   }
 
-  @Override
-  protected NabApplication getApplication() {
-    return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").bindToRoot().build();
+  public static class FilterApplicationOverride implements OverrideNabApplication {
+    @Override
+    public NabApplication getNabApplication() {
+      return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").bindToRoot().build();
+    }
   }
 
   @Test
   public void testSkippableFilterExclusions() {
-    Response response = executeGet("/status");
+    Response response = resourceHelper.executeGet("/status");
 
     assertNull(response.getHeaderString("x-passed-filter"));
   }
 
   @Test
   public void testSkippableFilterNoExclusions() {
-    Response response = executeGet("/status-not");
+    Response response = resourceHelper.executeGet("/status-not");
 
     assertEquals("true", response.getHeaderString("x-passed-filter"));
   }

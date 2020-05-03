@@ -1,20 +1,20 @@
 package ru.hh.nab.common.properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import java.util.List;
 import java.util.Properties;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class FileSettingsTest {
   private static FileSettings fileSettings;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Properties properties = new Properties();
     properties.put("strProperty", "value");
@@ -60,14 +60,14 @@ public class FileSettingsTest {
     assertTrue(subProperties.containsKey("boolProperty2"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testGetSubPropertiesThrowsExceptionIfPrefixIsEmpty() {
-    fileSettings.getSubProperties("");
+    assertThrows(IllegalArgumentException.class, () -> fileSettings.getSubProperties(""));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testGetSubPropertiesThrowsExceptionIfPrefixIsNull() {
-    fileSettings.getSubProperties(null);
+    assertThrows(IllegalArgumentException.class, () -> fileSettings.getSubProperties(null));
   }
 
   @Test
@@ -78,14 +78,14 @@ public class FileSettingsTest {
     assertNotNull(subSettings.getString("boolProperty2"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testGetSubSettingsThrowsExceptionIfPrefixIsEmpty() {
-    fileSettings.getSubSettings("");
+    assertThrows(IllegalArgumentException.class, () -> fileSettings.getSubSettings(""));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testGetSubSettingsThrowsExceptionIfPrefixIsNull() {
-    fileSettings.getSubSettings(null);
+    assertThrows(IllegalArgumentException.class, () -> fileSettings.getSubSettings(null));
   }
 
   @Test

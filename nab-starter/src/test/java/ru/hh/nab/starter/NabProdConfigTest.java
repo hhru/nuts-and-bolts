@@ -10,25 +10,22 @@ import static java.nio.file.StandardOpenOption.APPEND;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.metrics.StatsDSender;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
+import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
 import static ru.hh.nab.starter.NabProdConfig.DATACENTER_NAME_PROPERTY;
 
@@ -40,7 +37,7 @@ public class NabProdConfigTest {
   private Path propertiesFile;
   private Server consulMockServer;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     consulMockServer = createConsulMockServer();
     Path tempDir = Files.createTempDirectory("");
@@ -48,7 +45,7 @@ public class NabProdConfigTest {
     propertiesFile = createTestPropertiesFile(tempDir);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     consulMockServer.stop();
     consulMockServer.destroy();

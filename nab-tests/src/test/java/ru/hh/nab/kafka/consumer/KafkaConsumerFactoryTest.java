@@ -6,17 +6,10 @@ import static org.awaitility.Awaitility.await;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.hh.nab.kafka.KafkaTestConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {KafkaTestConfig.class})
 public class KafkaConsumerFactoryTest extends KafkaConsumerTestbase {
-
-  protected TopicConsumerMock<String> consumerMock;
-  protected KafkaConsumer<String> consumer;
+  private TopicConsumerMock<String> consumerMock;
+  private KafkaConsumer<String> consumer;
 
   @BeforeEach
   public void setUp() {

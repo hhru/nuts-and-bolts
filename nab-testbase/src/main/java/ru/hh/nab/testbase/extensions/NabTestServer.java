@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface HHJetty {
-  int port() default 9000;
+public @interface NabTestServer {
   Class<? extends OverrideNabApplication> overrideApplication() default OverrideNabApplication.class;
 }

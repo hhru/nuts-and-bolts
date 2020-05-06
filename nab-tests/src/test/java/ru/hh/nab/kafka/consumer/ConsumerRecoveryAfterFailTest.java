@@ -20,23 +20,19 @@ import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.kafka.KafkaTestConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@ContextConfiguration(classes = {KafkaTestConfig.class})
 public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
-
   private static AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
   private List<String> processedMessages;
   private KafkaConsumer<String> consumer;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processedMessages = synchronizedList(new ArrayList<>());
   }
@@ -228,5 +224,4 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   private Map<String, Long> getProcessedMessagesCount() {
     return processedMessages.stream().collect(groupingBy(Function.identity(), Collectors.counting()));
   }
-
 }

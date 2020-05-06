@@ -5,11 +5,9 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
@@ -25,11 +23,10 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.ResourceHelper;
 
-public class HHJettyExtension implements BeforeEachCallback, ParameterResolver {
-  private static final Namespace NAMESPACE = Namespace.create(HHJettyExtension.class);
-  private static final Logger LOGGER = LoggerFactory.getLogger(HHJettyExtension.class);
+public class NabTestServerExtension implements BeforeEachCallback, ParameterResolver {
+  private static final Logger LOGGER = LoggerFactory.getLogger(NabTestServerExtension.class);
 
-  private static final ConcurrentMap<Integer, JettyServer> SERVERS = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<String, JettyServer> SERVERS = new ConcurrentHashMap<>();
 
   @Override
   public void beforeEach(ExtensionContext context) {
@@ -39,10 +36,10 @@ public class HHJettyExtension implements BeforeEachCallback, ParameterResolver {
 
   @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-    boolean annotated = parameterContext.isAnnotated(HHJetty.class);
+    boolean annotated = parameterContext.isAnnotated(NabTestServer.class);
     if (annotated && parameterContext.getDeclaringExecutable() instanceof Constructor) {
       throw new ParameterResolutionException(
-          "@HHJetty is not supported on constructor parameters. Please use field injection instead.");
+          "@NabTestServer is not supported on constructor parameters. Please use field injection instead.");
     }
     return annotated;
   }
@@ -52,8 +49,8 @@ public class HHJettyExtension implements BeforeEachCallback, ParameterResolver {
     Class<?> parameterType = parameterContext.getParameter().getType();
     extensionContext.getRequiredTestClass();
     assertSupportedType("parameter", parameterType);
-    HHJetty annotation = parameterContext.getParameter().getAnnotation(HHJetty.class);
-    JettyServer jettyServer = getJettyInstanceForPort(extensionContext, getOverrideNabApplication(annotation), annotation.port());
+    NabTestServer annotation = parameterContext.getParameter().getAnnotation(NabTestServer.class);
+    JettyServer jettyServer = getJettyInstanceForPort(extensionContext, annotation);
     if (parameterType == JettyServer.class) {
       return jettyServer;
     } else if (parameterType == ResourceHelper.class) {
@@ -62,31 +59,17 @@ public class HHJettyExtension implements BeforeEachCallback, ParameterResolver {
     throw new IllegalArgumentException();
   }
 
-  @NotNull
-  private OverrideNabApplication getOverrideNabApplication(HHJetty annotation) {
-    Class<? extends OverrideNabApplication> aClass = annotation.overrideApplication();
-    if (aClass.isInterface()) {
-      return new OverrideNabApplication() {
-      };
-    }
-    try {
-      return aClass.getDeclaredConstructor().newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to initiate OverrideNabApplication instance!");
-    }
-  }
-
   private void injectInstanceFields(ExtensionContext context, Object instance) {
     injectFields(context, instance, instance.getClass(), ReflectionUtils::isNotStatic);
   }
 
   private void injectFields(ExtensionContext context, Object testInstance,
                             Class<?> testClass, Predicate<Field> predicate) {
-    findAnnotatedFields(testClass, HHJetty.class, predicate).forEach(field -> {
+    findAnnotatedFields(testClass, NabTestServer.class, predicate).forEach(field -> {
       assertValidFieldCandidate(field);
       try {
-        HHJetty annotation = field.getAnnotation(HHJetty.class);
-        JettyServer jettyServer = getJettyInstanceForPort(context, getOverrideNabApplication(annotation), annotation.port());
+        NabTestServer annotation = field.getAnnotation(NabTestServer.class);
+        JettyServer jettyServer = getJettyInstanceForPort(context, annotation);
         if (field.getType() == JettyServer.class) {
           makeAccessible(field).set(testInstance, jettyServer);
         } else if (field.getType() == ResourceHelper.class) {
@@ -100,29 +83,41 @@ public class HHJettyExtension implements BeforeEachCallback, ParameterResolver {
     });
   }
 
-  private JettyServer getJettyInstanceForPort(ExtensionContext context, OverrideNabApplication application, int port) {
+  private JettyServer getJettyInstanceForPort(ExtensionContext context, NabTestServer annotation) {
     WebApplicationContext webApplicationContext = (WebApplicationContext) SpringExtension.getApplicationContext(context);
-    return SERVERS.compute(port, (key, value) -> {
+    Class<? extends OverrideNabApplication> aClass = annotation.overrideApplication();
+    return SERVERS.compute(aClass.getName(), (key, value) -> {
       if (value != null) {
         LOGGER.debug("Reusing JettyTestContainer: {}", value);
         return value;
       }
       LOGGER.info("Creating new JettyTestContainer...");
-      return application.getNabApplication()
-          .run(webApplicationContext, false, serverCreateFunction -> serverCreateFunction.apply(port), false);
+      if (aClass.isInterface()) {
+        return createNewServer(new OverrideNabApplication() {}, webApplicationContext);
+      }
+      try {
+        return createNewServer(aClass.getDeclaredConstructor().newInstance(), webApplicationContext);
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to initiate OverrideNabApplication instance!");
+      }
     });
+  }
+
+  private JettyServer createNewServer(OverrideNabApplication overrideNabApplication, WebApplicationContext webApplicationContext) {
+    return overrideNabApplication.getNabApplication()
+        .run(webApplicationContext, false, serverCreateFunction -> serverCreateFunction.apply(0), false);
   }
 
   private void assertValidFieldCandidate(Field field) {
     assertSupportedType("field", field.getType());
     if (isPrivate(field)) {
-      throw new ExtensionConfigurationException("@HHJetty field [" + field + "] must not be private.");
+      throw new ExtensionConfigurationException("@NabTestServer field [" + field + "] must not be private.");
     }
   }
 
   private void assertSupportedType(String target, Class<?> type) {
     if (type != JettyServer.class && type != ResourceHelper.class) {
-      throw new ExtensionConfigurationException("Can only resolve @HHJetty " + target + " of type "
+      throw new ExtensionConfigurationException("Can only resolve @NabTestServer " + target + " of type "
           + JettyServer.class.getName() + " or " + ResourceHelper.class.getName() + " but was: " + type.getName());
     }
   }

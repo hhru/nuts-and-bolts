@@ -69,7 +69,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   }
 
   @Test
-  public void testWrite() throws Throwable {
+  public void testWrite() {
     assertHibernateIsNotInitialized();
     testService.customWrite();
     assertHibernateIsNotInitialized();

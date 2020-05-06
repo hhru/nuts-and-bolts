@@ -22,13 +22,10 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
   private final ThreadLocal<Long> lastInterval = new ThreadLocal<>();
 
   private final BackOff backOff;
-  private volatile KafkaConsumer<T> kafkaConsumer;
+  private final KafkaConsumer<T> kafkaConsumer;
 
-  public SeekToFirstNotAckedMessageErrorHandler(BackOff backOff) {
+  public SeekToFirstNotAckedMessageErrorHandler(BackOff backOff, KafkaConsumer<T> kafkaConsumer) {
     this.backOff = backOff;
-  }
-
-  public void setKafkaConsumer(KafkaConsumer<T> kafkaConsumer) {
     this.kafkaConsumer = kafkaConsumer;
   }
 

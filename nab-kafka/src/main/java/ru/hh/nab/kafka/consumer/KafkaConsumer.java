@@ -18,9 +18,10 @@ public class KafkaConsumer<T> {
   private final ThreadLocal<ConsumerRecord<String, T>> lastAckedBatchRecord = new InheritableThreadLocal<>();
   private final ConsumeStrategy<T> consumeStrategy;
 
-  public KafkaConsumer(AbstractMessageListenerContainer<String, T> springKafkaContainer, ConsumeStrategy<T> consumeStrategy) {
-    this.springKafkaContainer = springKafkaContainer;
+  public KafkaConsumer(ConsumeStrategy<T> consumeStrategy,
+                       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider) {
     this.consumeStrategy = consumeStrategy;
+    this.springKafkaContainer = springContainerProvider.apply(this);
   }
 
   void start() {

@@ -57,7 +57,9 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
     assertEquals("Sent message differs from initial message", testMessage2, sendResult2.getProducerRecord().value());
 
     List<String> result = watcher.poolNextMessages();
-    assertEquals(List.of(testMessage, testMessage2), result);
+    assertEquals(2, result.size());
+    assertTrue(result.contains(testMessage));
+    assertTrue(result.contains(testMessage2));
   }
 
   @Test
@@ -70,7 +72,8 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
     assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
 
     List<TestDto> result = watcher.poolNextMessages();
-    assertEquals(List.of(testMessage), result);
+    assertEquals(1, result.size());
+    assertTrue(result.contains(testMessage));
   }
 
   private static class TestDto {

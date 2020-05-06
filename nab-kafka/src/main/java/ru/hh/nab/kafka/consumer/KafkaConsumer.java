@@ -24,15 +24,15 @@ public class KafkaConsumer<T> {
     this.springKafkaContainer = springContainerProvider.apply(this);
   }
 
-  void start() {
+  public void start() {
     springKafkaContainer.start();
   }
 
-  void stop(Runnable callback) {
+  public void stop(Runnable callback) {
     springKafkaContainer.stop(callback);
   }
 
-  void stop() {
+  public void stop() {
     springKafkaContainer.stop();
   }
 

@@ -9,13 +9,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {KafkaTestConfig.class})
-public abstract class KafkaConsumerTestbase extends AbstractJUnit4SpringContextTests {
+public abstract class KafkaConsumerTestbase {
 
   @Inject
   protected TestKafkaWithJsonMessages kafkaTestUtils;

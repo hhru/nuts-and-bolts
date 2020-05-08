@@ -26,7 +26,7 @@ import ru.hh.nab.testbase.ResourceHelper;
 public class NabTestServerExtension implements BeforeEachCallback, ParameterResolver {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabTestServerExtension.class);
 
-  private static final ConcurrentMap<String, JettyServer> SERVERS = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<Class<? extends OverrideNabApplication>, JettyServer> SERVERS = new ConcurrentHashMap<>();
 
   @Override
   public void beforeEach(ExtensionContext context) {
@@ -50,7 +50,7 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
     extensionContext.getRequiredTestClass();
     assertSupportedType("parameter", parameterType);
     NabTestServer annotation = parameterContext.getParameter().getAnnotation(NabTestServer.class);
-    JettyServer jettyServer = getJettyInstanceForPort(extensionContext, annotation);
+    JettyServer jettyServer = getJettyInstanceForApplication(extensionContext, annotation);
     if (parameterType == JettyServer.class) {
       return jettyServer;
     } else if (parameterType == ResourceHelper.class) {
@@ -69,7 +69,7 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
       assertValidFieldCandidate(field);
       try {
         NabTestServer annotation = field.getAnnotation(NabTestServer.class);
-        JettyServer jettyServer = getJettyInstanceForPort(context, annotation);
+        JettyServer jettyServer = getJettyInstanceForApplication(context, annotation);
         if (field.getType() == JettyServer.class) {
           makeAccessible(field).set(testInstance, jettyServer);
         } else if (field.getType() == ResourceHelper.class) {
@@ -83,10 +83,10 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
     });
   }
 
-  private JettyServer getJettyInstanceForPort(ExtensionContext context, NabTestServer annotation) {
+  private JettyServer getJettyInstanceForApplication(ExtensionContext context, NabTestServer annotation) {
     WebApplicationContext webApplicationContext = (WebApplicationContext) SpringExtension.getApplicationContext(context);
     Class<? extends OverrideNabApplication> aClass = annotation.overrideApplication();
-    return SERVERS.compute(aClass.getName(), (key, value) -> {
+    return SERVERS.compute(aClass, (key, value) -> {
       if (value != null) {
         LOGGER.debug("Reusing JettyTestContainer: {}", value);
         return value;

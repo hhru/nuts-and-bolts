@@ -7,14 +7,15 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 import ru.hh.nab.logging.json.NabJsonLayout;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class HhMultiAppenderTest {
 
@@ -97,11 +98,11 @@ public class HhMultiAppenderTest {
     assertEquals(pattern, layout.getPattern());
   }
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void testIfNoPatternAvailableExceptionIsThrown() {
     LoggerContext context = new LoggerContext();
     HhMultiAppender multiAppender = createHhMultiAppender(context);
-    multiAppender.start();
+    assertThrows(AssertionError.class, multiAppender::start);
   }
 
   @Test
@@ -120,12 +121,12 @@ public class HhMultiAppenderTest {
   }
 
   private static void checkIfAppenderProperlyConfigured(Appender<?> appender) {
-    assertNotNull("context is not set", appender.getContext());
-    assertTrue("appender is not started", appender.isStarted());
+    assertNotNull(appender.getContext(), "context is not set");
+    assertTrue(appender.isStarted(), "appender is not started");
     ThrowableSupplier layoutSupplier = createLayoutSupplier(appender);
     if (layoutSupplier != null) {
       try {
-        assertNotNull("layout is not set", layoutSupplier.get());
+        assertNotNull(layoutSupplier.get(), "layout is not set");
       } catch (Exception ignored) {
       }
     }

@@ -1,30 +1,16 @@
 package ru.hh.nab.starter.exceptions;
 
-import org.hibernate.exception.JDBCConnectionException;
-import org.junit.Test;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
-import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.testbase.NabTestBase;
-import ru.hh.nab.testbase.NabTestConfig;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.IntStream;
-
+import javax.ws.rs.Path;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import static javax.ws.rs.core.MediaType.TEXT_HTML_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -32,61 +18,73 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.junit.Assert.assertEquals;
+import org.hibernate.exception.JDBCConnectionException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.starter.NabApplication;
+import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
+import ru.hh.nab.testbase.extensions.NabTestServer;
+import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class NabExceptionMappersTest extends NabTestBase {
-  @Override
-  protected NabApplication getApplication() {
-    return NabApplication.builder().configureJersey(SpringCtxForJersey.class).bindToRoot().build();
-  }
+@NabJunitWebConfig(NabTestConfig.class)
+public class NabExceptionMappersTest {
+
+  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
+  ResourceHelper resourceHelper;
 
   @Test
   public void testNabExceptionMappers() {
-    Response response = executeGet("/iae");
+    Response response = resourceHelper.executeGet("/iae");
 
     assertEquals(BAD_REQUEST.getStatusCode(), response.getStatus());
     assertEquals("IAE", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/ise");
+    response = resourceHelper.executeGet("/ise");
 
     assertEquals(CONFLICT.getStatusCode(), response.getStatus());
     assertEquals("ISE", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/se");
+    response = resourceHelper.executeGet("/se");
 
     assertEquals(FORBIDDEN.getStatusCode(), response.getStatus());
     assertEquals("SE", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/wae");
+    response = resourceHelper.executeGet("/wae");
 
     assertEquals(UNAUTHORIZED.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
 
-    response = executeGet("/connectionTimeout");
+    response = resourceHelper.executeGet("/connectionTimeout");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 
-    response = executeGet("/connectionTimeoutWrapped");
+    response = resourceHelper.executeGet("/connectionTimeoutWrapped");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 
-    response = executeGet("/any");
+    response = resourceHelper.executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("Any exception", response.readEntity(String.class));
     assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
 
-    response = executeGet("/notFound");
+    response = resourceHelper.executeGet("/notFound");
 
     assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
     assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
 
-    response = executeGet("/rejectedExecution");
+    response = resourceHelper.executeGet("/rejectedExecution");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
@@ -162,6 +160,10 @@ public class NabExceptionMappersTest extends NabTestBase {
 
   @Configuration
   @Import(TestResource.class)
-  static class SpringCtxForJersey {
+  public static class SpringCtxForJersey implements OverrideNabApplication {
+    @Override
+    public NabApplication getNabApplication() {
+      return NabApplication.builder().configureJersey(SpringCtxForJersey.class).bindToRoot().build();
+    }
   }
 }

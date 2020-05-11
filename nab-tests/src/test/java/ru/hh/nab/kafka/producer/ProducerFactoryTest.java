@@ -1,22 +1,24 @@
 package ru.hh.nab.kafka.producer;
 
-import java.util.Objects;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import ru.hh.kafka.test.TestKafkaWithJsonMessages;
-import ru.hh.nab.kafka.KafkaTestConfig;
-import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import javax.inject.Inject;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.hh.kafka.test.TestKafkaWithJsonMessages;
+import ru.hh.nab.kafka.KafkaTestConfig;
 
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {KafkaTestConfig.class})
-public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
+public class ProducerFactoryTest {
 
   @Inject
   private KafkaProducerFactory producerFactory;
@@ -25,7 +27,7 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
 
   private String topicName;
 
-  @Before
+  @BeforeEach
   public void createTempTopic() {
     topicName = UUID.randomUUID().toString();
   }
@@ -37,7 +39,7 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
     KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
     KafkaSendResult<String> sendResult = producer.sendMessage(topicName, testMessage).get();
-    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
+    assertEquals(testMessage, sendResult.getProducerRecord().value(), "Sent message differs from initial message");
 
     Optional<String> result = watcher.poolNextMessage();
     assertTrue(result.isPresent());
@@ -51,10 +53,10 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
     KafkaProducer producer = producerFactory.createDefaultProducer();
     String testMessage = "payload";
     KafkaSendResult<String> sendResult = producer.sendMessage(topicName, testMessage).get();
-    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
+    assertEquals(testMessage, sendResult.getProducerRecord().value(), "Sent message differs from initial message");
     String testMessage2 = "payload2";
     KafkaSendResult<String> sendResult2 = producer.sendMessage(topicName, testMessage2).get();
-    assertEquals("Sent message differs from initial message", testMessage2, sendResult2.getProducerRecord().value());
+    assertEquals(testMessage2, sendResult2.getProducerRecord().value(), "Sent message differs from initial message");
 
     List<String> result = watcher.poolNextMessages();
     assertEquals(2, result.size());
@@ -69,7 +71,7 @@ public class ProducerFactoryTest extends AbstractJUnit4SpringContextTests {
     KafkaProducer producer = producerFactory.createDefaultProducer();
     TestDto testMessage = new TestDto("228", "test");
     KafkaSendResult<TestDto> sendResult = producer.sendMessage(topicName, testMessage).get();
-    assertEquals("Sent message differs from initial message", testMessage, sendResult.getProducerRecord().value());
+    assertEquals(testMessage, sendResult.getProducerRecord().value(), "Sent message differs from initial message");
 
     List<TestDto> result = watcher.poolNextMessages();
     assertEquals(1, result.size());

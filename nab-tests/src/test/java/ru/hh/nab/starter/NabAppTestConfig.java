@@ -20,5 +20,4 @@ public class NabAppTestConfig {
   JettyEventListener jettyEventConsulListener(ConsulService consulService) {
     return new JettyEventListener(consulService);
   }
-
 }

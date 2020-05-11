@@ -1,14 +1,15 @@
 package ru.hh.nab.hibernate.interceptor;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.mdc.MDC;
 
 public class ControllerPassingInterceptorTest {
   private static final ControllerPassingInterceptor controllerPassingInterceptor = new ControllerPassingInterceptor();
 
-  @After
+  @AfterEach
   public void tearDown() {
     MDC.clearController();
   }
@@ -21,7 +22,7 @@ public class ControllerPassingInterceptorTest {
 
     String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
 
-    Assert.assertEquals("/* resume */" + originalSql, sqlAfterPrepareStatement);
+    assertEquals("/* resume */" + originalSql, sqlAfterPrepareStatement);
   }
 
   @Test
@@ -32,17 +33,17 @@ public class ControllerPassingInterceptorTest {
 
     String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
 
-    Assert.assertEquals("/* resume_ */" + originalSql, sqlAfterPrepareStatement);
+    assertEquals("/* resume_ */" + originalSql, sqlAfterPrepareStatement);
   }
 
   @Test
   public void controllerDoesNotExistShouldReturnWithoutComment() {
-    Assert.assertFalse(MDC.getController().isPresent());
+    assertFalse(MDC.getController().isPresent());
 
     String originalSql = "select * from resume;";
 
     String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
 
-    Assert.assertEquals(originalSql, sqlAfterPrepareStatement);
+    assertEquals(originalSql, sqlAfterPrepareStatement);
   }
 }

@@ -1,30 +1,29 @@
-package ru.hh.nab.testbase;
+package ru.hh.nab.testbase.old;
 
 import javax.inject.Inject;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.web.WebAppConfiguration;
 import ru.hh.nab.starter.NabApplication;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.junit.Assert.assertEquals;
-import static ru.hh.nab.starter.NabApplication.configureLogger;
-
 /**
  * Launches Jetty instance with application context provided by {@link AbstractJUnit4SpringContextTests}
  * and servlet config provided by {@link #getApplication()} on a random port before test methods start to execute.
  * For some examples see nab-tests module.
+ * @deprecated use junit 5 with NabTestServerExtension
  */
 @WebAppConfiguration
 @RunWith(NabRunner.class)
+@Deprecated
 public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   @Inject
   private JettyTestContainer testContainer;
@@ -32,7 +31,7 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
 
   @Before
   public void setUpNabTestBase() {
-    configureLogger();
+    NabApplication.configureLogger();
     client = getClientBuilder().build();
   }
 
@@ -58,15 +57,15 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
   protected void assertGet(String url, String expectedResponse) {
     Response response = createRequest(url).get();
 
-    assertEquals(OK.getStatusCode(), response.getStatus());
-    assertEquals(expectedResponse, response.readEntity(String.class));
+    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assert.assertEquals(expectedResponse, response.readEntity(String.class));
   }
 
   protected void assertGet(Invocation.Builder request, String expectedResponse) {
     Response response = request.get();
 
-    assertEquals(OK.getStatusCode(), response.getStatus());
-    assertEquals(expectedResponse, response.readEntity(String.class));
+    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assert.assertEquals(expectedResponse, response.readEntity(String.class));
   }
 
   protected Response executeGet(String path) {

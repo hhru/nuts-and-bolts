@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase.spring;
+package ru.hh.nab.testbase.old.spring;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -6,9 +6,9 @@ import java.util.function.Function;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.DefaultTestContext;
 import org.springframework.web.context.WebApplicationContext;
-import ru.hh.nab.testbase.JettyTestContainer;
-import ru.hh.nab.testbase.NabRunner;
-import ru.hh.nab.testbase.NabTestBase;
+import ru.hh.nab.testbase.old.JettyTestContainer;
+import ru.hh.nab.testbase.old.NabRunner;
+import ru.hh.nab.testbase.old.NabTestBase;
 
 public class NabTestContext extends DefaultTestContext {
 

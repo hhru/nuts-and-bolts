@@ -1,14 +1,11 @@
 package ru.hh.nab.metrics;
 
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class MomentsTest {
-
   private static final int THREAD_COUNT = 1000;
   private static final float DELTA = 0.00001f;
   private static final float[] SAMPLE = new float[] {10.0454f, 20.5545f, 30.4444f, 40.6656f, 15.435354f, 11.456233f, 25.56565f};

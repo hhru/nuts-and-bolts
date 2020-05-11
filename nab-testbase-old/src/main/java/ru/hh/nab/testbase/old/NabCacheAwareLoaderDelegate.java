@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase;
+package ru.hh.nab.testbase.old;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

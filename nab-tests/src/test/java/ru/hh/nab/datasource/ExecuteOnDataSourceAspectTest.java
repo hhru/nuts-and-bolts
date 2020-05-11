@@ -1,37 +1,35 @@
 package ru.hh.nab.datasource;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.hibernate.HibernateTestConfig;
-import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
-
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
+import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
-
-import java.lang.annotation.Annotation;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
 public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
@@ -44,12 +42,12 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @Inject
   private TestService testService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     DataSourceType.clear();
   }
@@ -71,7 +69,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   }
 
   @Test
-  public void testWrite() throws Throwable {
+  public void testWrite() {
     assertHibernateIsNotInitialized();
     testService.customWrite();
     assertHibernateIsNotInitialized();

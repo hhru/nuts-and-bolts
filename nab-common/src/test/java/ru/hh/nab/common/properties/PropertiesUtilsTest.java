@@ -4,10 +4,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static ru.hh.nab.common.properties.PropertiesUtils.DEFAULT_DEV_FILE_EXT;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
@@ -18,14 +18,14 @@ public class PropertiesUtilsTest {
   private Path propertiesFile;
   private Path devPropertiesFile;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     System.setProperty(SETINGS_DIR_PROPERTY, TMP_DIR);
     propertiesFile = Files.createTempFile(TEST_FILE_PREFIX, "");
     devPropertiesFile = Files.createFile(Paths.get(propertiesFile.toString() + DEFAULT_DEV_FILE_EXT));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     System.clearProperty(SETINGS_DIR_PROPERTY);
     Files.deleteIfExists(propertiesFile);

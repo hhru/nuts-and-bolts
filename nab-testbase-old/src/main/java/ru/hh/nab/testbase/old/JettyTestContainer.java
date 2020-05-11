@@ -1,13 +1,13 @@
-package ru.hh.nab.testbase;
+package ru.hh.nab.testbase.old;
 
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.eclipse.jetty.util.URIUtil;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.server.jetty.JettyServer;
-import ru.hh.nab.testbase.spring.NabTestContext;
-import static org.eclipse.jetty.util.URIUtil.HTTP;
+import ru.hh.nab.testbase.old.spring.NabTestContext;
 
 public class JettyTestContainer {
   private final JettyServer jettyServer;
@@ -20,7 +20,7 @@ public class JettyTestContainer {
 
   public static URI getServerAddress(int port) {
     try {
-      return new URI(HTTP, null, InetAddress.getLoopbackAddress().getHostAddress(), port, null, null, null);
+      return new URI(URIUtil.HTTP, null, InetAddress.getLoopbackAddress().getHostAddress(), port, null, null, null);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

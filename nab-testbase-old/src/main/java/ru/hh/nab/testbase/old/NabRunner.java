@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase;
+package ru.hh.nab.testbase.old;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -19,7 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DefaultBootstrapContext;
 import org.springframework.test.context.web.WebTestContextBootstrapper;
 import org.springframework.web.context.WebApplicationContext;
-import ru.hh.nab.testbase.spring.NabTestContext;
+import ru.hh.nab.testbase.old.spring.NabTestContext;
 
 public class NabRunner extends SpringJUnit4ClassRunner {
 

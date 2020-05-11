@@ -1,20 +1,18 @@
 package ru.hh.nab.jclient;
 
-import org.junit.Test;
-import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
-
+import java.io.IOException;
+import java.util.Collections;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 
 public class JClientContextProviderFilterTest {
 

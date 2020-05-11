@@ -1,14 +1,12 @@
 package ru.hh.nab.starter.server.cache;
 
-import org.junit.Test;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 public class CacheFilterTest {
   private static final Serializer SERIALIZER = new Serializer();

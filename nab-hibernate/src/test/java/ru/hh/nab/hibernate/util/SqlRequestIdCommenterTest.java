@@ -1,10 +1,9 @@
 package ru.hh.nab.hibernate.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.mdc.MDC;
-
-import static org.junit.Assert.assertEquals;
 
 public class SqlRequestIdCommenterTest {
   @Test

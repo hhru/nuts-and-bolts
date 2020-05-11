@@ -11,8 +11,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 import org.hibernate.Session;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,11 +31,6 @@ import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ContextConfiguration(classes = {NabHibernateTestBaseConfig.class, NabHibernateCommonConfig.class,
   DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class})
@@ -44,7 +44,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   @Named("secondDataSourceSpy")
   private DataSource secondDataSourceSpy;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     reset(firstDataSourceSpy);
     reset(secondDataSourceSpy);

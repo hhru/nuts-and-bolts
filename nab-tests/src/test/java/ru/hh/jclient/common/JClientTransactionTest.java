@@ -1,41 +1,41 @@
 package ru.hh.jclient.common;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.LongAdder;
+import javax.inject.Inject;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jclient.NabJClientConfig;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(
   classes = {HibernateTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
 )
-public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
+public class JClientTransactionTest {
   private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
   private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(),
     List.of(() -> DEBUG));
@@ -50,7 +50,7 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   private AsyncHttpClient httpClient;
   private HttpClientFactory httpClientFactory;
 
-  @Before
+  @BeforeEach
   public void beforeTest() {
     httpClient = mock(AsyncHttpClient.class);
 
@@ -67,7 +67,7 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void testJClientRequestInReadScope() throws Exception {
+  public void testJClientRequestInReadScope() {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
     transactionalScope.read(() -> {
       try {
@@ -79,7 +79,7 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void testJClientRequestDoNotRaiseExceptionInWriteScope() throws Exception {
+  public void testJClientRequestDoNotRaiseExceptionInWriteScope() {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
@@ -92,7 +92,7 @@ public class JClientTransactionTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void testJClientRequestRaiseActionInWriteScope() throws Exception {
+  public void testJClientRequestRaiseActionInWriteScope() {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
     Exception raisedException = transactionalScope.write(() -> {
       try {

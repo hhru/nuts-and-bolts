@@ -2,31 +2,30 @@ package ru.hh.nab.datasource;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-
 import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
-import ru.hh.nab.hibernate.model.TestEntity;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
   private int existingTestEntityId;
 
-  @Before
+  @BeforeEach
   public void setUpTestBaseClass() {
     DataSourceType.clear();
     try (Session session = sessionFactory.openSession()) {
@@ -37,9 +36,9 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     }
   }
 
-  @Test(expected = HibernateException.class)
+  @Test
   public void noDefaultSynchronizationInTests() {
-    getCurrentSession();
+    assertThrows(HibernateException.class, this::getCurrentSession);
   }
 
   @Test

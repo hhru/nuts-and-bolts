@@ -1,24 +1,26 @@
 package ru.hh.nab.starter.filters;
 
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.starter.server.RequestHeaders;
-import ru.hh.nab.testbase.NabTestBase;
-import ru.hh.nab.testbase.NabTestConfig;
-
 import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
+import ru.hh.nab.starter.server.RequestHeaders;
+import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
+import ru.hh.nab.testbase.extensions.NabTestServer;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class RequestIdLoggingFilterTest extends NabTestBase {
+@NabJunitWebConfig(NabTestConfig.class)
+public class RequestIdLoggingFilterTest {
+  @NabTestServer
+  ResourceHelper resourceHelper;
 
   @Test
   public void testRequestId() {
     final String testRequestId = "123";
 
-    Response response = createRequest("/status")
+    Response response = resourceHelper.createRequest("/status")
         .header(RequestHeaders.REQUEST_ID, testRequestId)
         .get();
 
@@ -28,7 +30,7 @@ public class RequestIdLoggingFilterTest extends NabTestBase {
 
   @Test
   public void testNoRequestId() {
-    Response response = executeGet("/status");
+    Response response = resourceHelper.executeGet("/status");
 
     assertEquals(OK.getStatusCode(), response.getStatus());
     assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID));

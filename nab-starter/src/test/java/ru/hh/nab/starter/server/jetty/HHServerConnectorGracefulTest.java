@@ -1,15 +1,5 @@
 package ru.hh.nab.starter.server.jetty;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.junit.AfterClass;
-import org.junit.Test;
-
-import javax.servlet.GenericServlet;
-import javax.servlet.Servlet;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import java.io.EOFException;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -23,10 +13,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import javax.servlet.GenericServlet;
+import javax.servlet.Servlet;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.repeat;
 
@@ -37,7 +35,7 @@ public class HHServerConnectorGracefulTest {
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
   private static final SimpleAsyncHTTPClient httpClient = new SimpleAsyncHTTPClient(executorService);
 
-  @AfterClass
+  @AfterAll
   public static void afterGracefulServletContextHandlerTestClass() {
     executorService.shutdown();
   }

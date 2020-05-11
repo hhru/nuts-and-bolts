@@ -1,9 +1,19 @@
 package ru.hh.nab.starter;
 
+import com.ginsberg.junit.exit.ExpectSystemExitWithStatus;
+import java.util.Properties;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.jetty.servlet.DefaultServlet;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InOrder;
 import static org.mockito.Mockito.inOrder;
@@ -13,30 +23,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
-
-import java.util.Properties;
-
 public class NabApplicationTest {
-
-  @Rule
-  public final ExpectedSystemExit exit = ExpectedSystemExit.none();
 
   @Test
   public void runShouldStartJetty() {
@@ -80,7 +74,7 @@ public class NabApplicationTest {
     inOrder.verify(consulService).register();
   }
 
-  @Test(expected = ConsulServiceException.class)
+  @Test
   public void testFailWithoutConsul() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(BrokenConsulConfig.class);
@@ -91,26 +85,28 @@ public class NabApplicationTest {
             portSupplier -> portSupplier.apply(0),
             webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx)));
 
-    jettyServer.start();
+    assertThrows(ConsulServiceException.class, jettyServer::start);
   }
 
   @Test
+  @ExpectSystemExitWithStatus(1)
   public void runShouldFailOnServletMappingConflict() {
-    exit.expectSystemExitWithStatus(1);
     NabApplication.builder()
       .addServlet(ctx -> new DefaultServlet()).setServletName("conflictingServlet").bindTo("/status")
       .build().run(NabTestConfig.class);
   }
 
   @Test
+  @ExpectSystemExitWithStatus(1)
   public void runShouldFailOnContextRefreshFail() {
-    exit.expectSystemExitWithStatus(1);
     NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class, BrokenCtx.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void runShouldFailOnWrongJerseyCfg() {
-    NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build().run();
+    assertThrows(IllegalArgumentException.class, () ->
+        NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build().run()
+    );
   }
 
   @XmlRootElement

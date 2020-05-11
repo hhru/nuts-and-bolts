@@ -1,13 +1,11 @@
 package ru.hh.nab.starter.http;
 
-import org.eclipse.jetty.http.DateGenerator;
-import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
-
 import javax.servlet.http.HttpServletResponse;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.eclipse.jetty.http.DateGenerator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 public class CacheUtilsTest {
   @Test

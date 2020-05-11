@@ -1,33 +1,28 @@
 package ru.hh.nab.starter;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.test.context.ContextConfiguration;
-import ru.hh.nab.testbase.NabTestBase;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
+import ru.hh.nab.testbase.extensions.NabTestServer;
+import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@ContextConfiguration(classes = {NabTestConfig.class})
-public class ServletContextHandlerTest extends NabTestBase {
+@NabJunitWebConfig(NabTestConfig.class)
+public class ServletContextHandlerTest {
+  private static final ServletContextListener listener = mock(ServletContextListener.class);
+  private static ClassLoader cl = new ClassLoader(ServletContextHandlerTest.class.getClassLoader()) {
+  };
 
-  private ServletContextListener listener;
-  private ClassLoader cl = new ClassLoader(getClass().getClassLoader()) {};
-
-  @Override
-  protected NabApplication getApplication() {
-    listener = mock(ServletContextListener.class);
-    return NabApplication.builder()
-      .addListenerBean(ctx -> listener)
-      .setContextPath("test")
-      .setClassLoader(cl)
-      .build();
-  }
+  @NabTestServer(overrideApplication = ServletContextApplication.class)
+  ResourceHelper resourceHelper;
 
   @Test
   public void testServletContextInitialization() {
@@ -36,5 +31,16 @@ public class ServletContextHandlerTest extends NabTestBase {
     ServletContext servletContext = eventCaptor.getValue().getServletContext();
     assertEquals("test", servletContext.getContextPath());
     assertEquals(cl, servletContext.getClassLoader());
+  }
+
+  public static class ServletContextApplication implements OverrideNabApplication {
+    @Override
+    public NabApplication getNabApplication() {
+      return NabApplication.builder()
+          .addListenerBean(ctx -> listener)
+          .setContextPath("test")
+          .setClassLoader(cl)
+          .build();
+    }
   }
 }

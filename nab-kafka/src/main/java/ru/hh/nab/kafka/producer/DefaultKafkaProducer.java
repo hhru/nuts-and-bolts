@@ -2,7 +2,6 @@ package ru.hh.nab.kafka.producer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,19 +11,26 @@ import org.springframework.util.concurrent.ListenableFuture;
 public class DefaultKafkaProducer implements KafkaProducer {
 
   private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final Executor executor;
 
   public DefaultKafkaProducer(KafkaTemplate<String, Object> kafkaTemplate) {
     this.kafkaTemplate = kafkaTemplate;
-    this.executor = Executors.newSingleThreadExecutor();
   }
 
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, T kafkaMessage) {
     return sendMessage(topicName, null, kafkaMessage);
   }
 
+  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, T kafkaMessage, Executor executor) {
+    return sendMessage(topicName, null, kafkaMessage, executor);
+  }
+
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, T kafkaMessage) {
+    return sendMessage(topicName, key, kafkaMessage, Runnable::run);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, T kafkaMessage, Executor executor) {
     return CompletableFuture.supplyAsync(() -> kafkaTemplate.send(topicName, key, kafkaMessage), executor)
         .thenCompose(ListenableFuture::completable)
         .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) kafkaMessage.getClass()));

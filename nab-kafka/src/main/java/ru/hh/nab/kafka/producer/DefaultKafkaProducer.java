@@ -24,7 +24,6 @@ public class DefaultKafkaProducer implements KafkaProducer {
     return sendMessage(topicName, null, kafkaMessage, executor);
   }
 
-  @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topicName, String key, T kafkaMessage) {
     return sendMessage(topicName, key, kafkaMessage, Runnable::run);
   }

@@ -24,7 +24,10 @@ public class ConfigProvider {
   public static final double DEFAULT_BACKOFF_MULTIPLIER = 1.5;
 
   public static final String POOL_TIMEOUT = "pool.timeout.ms";
-  public static final long DEFAULT_POOL_TIMEOUT = 5000L;
+  public static final long DEFAULT_POOL_TIMEOUT_MS = 5000L;
+
+  public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
+  public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
 
   private final String serviceName;
   private final String kafkaClusterName;

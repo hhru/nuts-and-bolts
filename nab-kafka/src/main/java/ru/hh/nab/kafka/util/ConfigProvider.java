@@ -60,7 +60,7 @@ public class ConfigProvider {
     FileSettings nabConsumerSettings = new FileSettings(nabProperties).getSubSettings(NAB_SETTING);
 
     Properties allProperties = new Properties();
-    nabProperties.putAll(allConsumerConfigs);
+    allProperties.putAll(allConsumerConfigs);
     FileSettings allConsumerSettings = new FileSettings(allProperties);
 
     checkConfig(nabConsumerSettings, allConsumerSettings);

@@ -1,11 +1,11 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchConsumerAwareMessageListener;
 import org.springframework.kafka.listener.BatchErrorHandler;
@@ -17,13 +17,15 @@ import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MAX_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MULTIPLIER_NAME;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MULTIPLIER;
-import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POOL_TIMEOUT;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POOL_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POOL_TIMEOUT;
 import ru.hh.nab.metrics.StatsDSender;
 
@@ -89,7 +91,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     Map<String, Object> consumerConfig = configProvider.getConsumerConfig(topicName);
     consumerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
-    return new DefaultKafkaConsumerFactory<>(
+    return new FailFastDefaultKafkaConsumerFactory<>(
+        topicName,
         consumerConfig,
         new StringDeserializer(),
         deserializerSupplier.supplyFor(messageClass)
@@ -99,12 +102,15 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private ContainerProperties getSpringConsumerContainerProperties(ConsumerGroupId consumerGroupId,
                                                                    GenericMessageListener<?> messageListener,
                                                                    String topicName) {
+    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
     containerProperties.setGroupId(consumerGroupId.toString());
     containerProperties.setAckOnError(false);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
-    containerProperties.setPollTimeout(configProvider.getNabConsumerSettings(topicName).getLong(POOL_TIMEOUT, DEFAULT_POOL_TIMEOUT));
+    containerProperties.setPollTimeout(nabConsumerSettings.getLong(POOL_TIMEOUT, DEFAULT_POOL_TIMEOUT_MS));
+    containerProperties.setAuthorizationExceptionRetryInterval(
+        Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS)));
     return containerProperties;
   }
 }

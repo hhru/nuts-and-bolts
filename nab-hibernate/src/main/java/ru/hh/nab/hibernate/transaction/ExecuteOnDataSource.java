@@ -17,7 +17,10 @@ public @interface ExecuteOnDataSource {
 
   boolean writableTx() default false;
 
-  String dataSourceType() default DataSourceType.READONLY;
+  /**
+   * see {@link DataSourceType} for common datasource types
+   */
+  String dataSourceType();
 
   boolean overrideByRequestScope() default false;
 

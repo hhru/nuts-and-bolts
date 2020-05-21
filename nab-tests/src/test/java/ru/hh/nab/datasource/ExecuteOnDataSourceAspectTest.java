@@ -167,11 +167,6 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       this.sessionFactory = sessionFactory;
     }
 
-    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
-    public void customReadOnly() {
-
-    }
-
     @Transactional
     @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE, writableTx = true)
     public void customWrite() {

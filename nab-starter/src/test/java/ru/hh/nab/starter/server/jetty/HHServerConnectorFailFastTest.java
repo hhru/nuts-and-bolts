@@ -96,13 +96,16 @@ public class HHServerConnectorFailFastTest {
     List<Future<Integer>> statusesFutures = new ArrayList<>(REQUESTS);
 
     for (int i=0; i < REQUESTS; i++) {
+      if (i == REQUESTS - 1) {
+        // make sure at least one request is made AFTER low on threads
+        await().atMost(500, TimeUnit.MILLISECONDS).until(threadPool::isLowOnThreads);
+      }
+
       Socket socket = new Socket("localhost", serverPort);
       sockets.add(socket);
       Future<Integer> statusFuture = httpClient.request(socket);
       statusesFutures.add(statusFuture);
     }
-
-    await().atMost(500, TimeUnit.MILLISECONDS).until(threadPool::isLowOnThreads);
 
     controlledServlet.respond();
 

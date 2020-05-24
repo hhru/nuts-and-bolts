@@ -141,7 +141,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
       });
       ack.acknowledge();
     });
-    fails.await(3, TimeUnit.SECONDS);
+    assertTrue(fails.await(15, TimeUnit.SECONDS));
     stopConsumer();
 
     putMessagesIntoKafka(17);
@@ -171,7 +171,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
         ack.acknowledge(m);
       });
     });
-    fails.await(3, TimeUnit.SECONDS);
+    assertTrue(fails.await(15, TimeUnit.SECONDS));
     stopConsumer();
 
     putMessagesIntoKafka(17);
@@ -203,7 +203,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   }
 
   private void waitUntil(Runnable assertion) throws InterruptedException {
-    await().atMost(3, TimeUnit.SECONDS).untilAsserted(assertion::run);
+    await().atMost(15, TimeUnit.SECONDS).untilAsserted(assertion::run);
     stopConsumer();
   }
 
@@ -218,7 +218,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   private void stopConsumer() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     consumer.stop(latch::countDown);
-    latch.await(2, TimeUnit.SECONDS);
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
   }
 
   private Map<String, Long> getProcessedMessagesCount() {

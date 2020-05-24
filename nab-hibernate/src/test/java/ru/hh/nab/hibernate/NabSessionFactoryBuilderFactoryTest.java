@@ -32,6 +32,7 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
@@ -72,7 +73,7 @@ public class NabSessionFactoryBuilderFactoryTest {
       this.transactionalScope = transactionalScope;
     }
 
-    @ExecuteOnDataSource
+    @ExecuteOnDataSource(dataSourceType = DataSourceType.READONLY)
     public void method() throws SQLException {
       AtomicReference<Connection> ref = new AtomicReference<>();
       transactionalScope.read(() -> {
@@ -127,7 +128,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     }
 
     @Bean
-    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, NabSessionFactoryBean.ServiceSupplier supplier) throws IOException {
+    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, NabSessionFactoryBean.ServiceSupplier<?> supplier) throws IOException {
       var props = new Properties();
       props.load(TestContext.class.getResourceAsStream("/hibernate-test.properties"));
       return new NabSessionFactoryBean(dataSource, props,

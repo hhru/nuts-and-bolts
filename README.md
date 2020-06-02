@@ -41,4 +41,3 @@ update 4.17.10 -> 4.18.0 - should require some additional code
 
 [How to release a new version](https://github.com/hhru/nuts-and-bolts/wiki/How-to-release-a-new-version)
 
-Test NаB change 

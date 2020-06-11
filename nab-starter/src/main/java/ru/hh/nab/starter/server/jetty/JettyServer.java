@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
@@ -24,21 +25,24 @@ public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
   public static final String JETTY = "jetty";
   public static final String PORT = "port";
-  public static final String JETTY_PORT = String.join(".", JETTY, PORT);
 
   private final FileSettings jettySettings;
   private final Server server;
-  private final ServletContextHandler servletContextHandler;
+  public final ContextHandlerCollection handlerCollection;
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
+    this(threadPool, jettySettings, new ContextHandlerCollection(servletContextHandler));
+  }
+
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollection) {
     this.jettySettings = jettySettings;
 
     server = new Server(threadPool);
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
-    this.servletContextHandler = servletContextHandler;
-    server.setHandler(servletContextHandler);
+    handlerCollection = mutableHandlerCollection;
+    server.setHandler(mutableHandlerCollection);
   }
 
   public void start() throws JettyServerException {
@@ -67,7 +71,7 @@ public final class JettyServer {
 
   public int getPort() {
     Optional<ServerConnector> serverConnector = getServerConnector();
-    if (!serverConnector.isPresent()) {
+    if (serverConnector.isEmpty()) {
       LOGGER.warn("Unable to obtain port number - server connector is not present");
       return 0;
     }
@@ -86,7 +90,7 @@ public final class JettyServer {
       createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString("host"));
-    serverConnector.setPort(jettySettings.getInteger(PORT));
+    serverConnector.setPort(Optional.ofNullable(jettySettings.getInteger(PORT)).orElse(0));
     serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
     serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 
@@ -135,6 +139,6 @@ public final class JettyServer {
   }
 
   public ServletContext getServletContext() {
-    return servletContextHandler.getServletContext();
+    return handlerCollection.getChildHandlerByClass(ServletContextHandler.class).getServletContext();
   }
 }

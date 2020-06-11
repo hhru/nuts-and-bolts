@@ -2,16 +2,24 @@ package ru.hh.nab.starter.server.jetty;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import static java.util.Optional.ofNullable;
 import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
+import static ru.hh.nab.starter.server.jetty.JettyServer.PORT;
 
+import com.timgroup.statsd.NoOpStatsDClient;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
+
+import javax.annotation.Nullable;
 
 public final class JettyServerFactory {
 
@@ -23,7 +31,22 @@ public final class JettyServerFactory {
     return new JettyServer(threadPool, jettySettings, contextHandler);
   }
 
-  private static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, List<WebAppInitializer> webAppInitializer) {
+  public static JettyTestServer createTestServer(@Nullable Integer port) {
+    try {
+      Properties properties = new Properties();
+      Optional.ofNullable(port).ifPresent(p -> properties.setProperty(PORT, String.valueOf(p)));
+      FileSettings fileSettings = new FileSettings(properties);
+      StatsDSender sender = new StatsDSender(new NoOpStatsDClient(), Executors.newScheduledThreadPool(1));
+      ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
+      JettyServer server = new JettyServer(createJettyThreadPool(fileSettings, "test", sender), fileSettings, handlerCollection);
+      server.start();
+      return new JettyTestServer(server, handlerCollection);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, List<WebAppInitializer> webAppInitializer) {
     boolean sessionEnabled = ofNullable(jettySettings.getBoolean("session-manager.enabled")).orElse(Boolean.FALSE);
     return new JettyWebAppContext(webAppInitializer, sessionEnabled);
   }
@@ -43,5 +66,29 @@ public final class JettyServerFactory {
   }
 
   private JettyServerFactory() {
+  }
+
+  public static final class JettyTestServer {
+    private final JettyServer jettyServer;
+    private final ContextHandlerCollection contextHandlerCollection;
+
+    JettyTestServer(JettyServer jettyServer, ContextHandlerCollection contextHandlerCollection) {
+      this.jettyServer = jettyServer;
+      this.contextHandlerCollection = contextHandlerCollection;
+    }
+
+    public void addHandler(ServletContextHandler handler) {
+      contextHandlerCollection.addHandler(handler);
+      try {
+        handler.start();
+        contextHandlerCollection.start();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    public JettyServer getJettyServer() {
+      return jettyServer;
+    }
   }
 }

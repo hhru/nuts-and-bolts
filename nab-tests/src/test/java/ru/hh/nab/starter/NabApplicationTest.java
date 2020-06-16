@@ -137,6 +137,7 @@ public class NabApplicationTest {
       properties.setProperty("consul.enabled", "true");
       properties.setProperty("serviceName", "testService");
       properties.setProperty("consul.http.port", "123");
+      properties.setProperty("jetty.port", "0");
       return properties;
     }
   }

@@ -34,7 +34,10 @@ public final class JettyServerFactory {
   public static JettyTestServer createTestServer(@Nullable Integer port) {
     try {
       Properties properties = new Properties();
-      Optional.ofNullable(port).ifPresent(p -> properties.setProperty(PORT, String.valueOf(p)));
+      Optional.ofNullable(port).ifPresentOrElse(
+          p -> properties.setProperty(PORT, String.valueOf(p)),
+          () -> properties.setProperty(PORT, String.valueOf(0))
+      );
       FileSettings fileSettings = new FileSettings(properties);
       StatsDSender sender = new StatsDSender(new NoOpStatsDClient(), Executors.newScheduledThreadPool(1));
       ContextHandlerCollection handlerCollection = new ContextHandlerCollection();

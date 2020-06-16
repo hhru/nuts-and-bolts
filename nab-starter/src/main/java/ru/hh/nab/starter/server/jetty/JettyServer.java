@@ -99,7 +99,7 @@ public final class JettyServer {
       createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString("host"));
-    serverConnector.setPort(Optional.ofNullable(jettySettings.getInteger(PORT)).orElse(0));
+    serverConnector.setPort(jettySettings.getInteger(PORT));
     serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
     serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
 

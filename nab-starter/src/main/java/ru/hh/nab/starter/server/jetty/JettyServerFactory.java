@@ -77,11 +77,18 @@ public final class JettyServerFactory {
       this.contextHandlerCollection = contextHandlerCollection;
     }
 
-    public void addHandler(ServletContextHandler handler) {
+    public void setHandler(ServletContextHandler handler) {
+      if (contextHandlerCollection.getHandlers() != null && contextHandlerCollection.getHandlers().length > 0) {
+        throw new IllegalStateException("Already inited server");
+      }
       contextHandlerCollection.addHandler(handler);
       try {
-        handler.start();
-        contextHandlerCollection.start();
+        if (!handler.isStarted()) {
+          handler.start();
+        }
+        if (!contextHandlerCollection.isStarted()) {
+          contextHandlerCollection.start();
+        }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

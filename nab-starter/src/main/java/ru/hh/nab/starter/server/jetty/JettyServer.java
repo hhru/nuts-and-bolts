@@ -28,21 +28,30 @@ public final class JettyServer {
 
   private final FileSettings jettySettings;
   private final Server server;
-  public final ContextHandlerCollection handlerCollection;
+  private final ServletContextHandler servletContextHandler;
+  private final ContextHandlerCollection handlerCollection;
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
-    this(threadPool, jettySettings, new ContextHandlerCollection(servletContextHandler));
-  }
-
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollection) {
     this.jettySettings = jettySettings;
-
     server = new Server(threadPool);
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
-    handlerCollection = mutableHandlerCollection;
-    server.setHandler(mutableHandlerCollection);
+    this.servletContextHandler = servletContextHandler;
+    handlerCollection = null;
+    server.setHandler(servletContextHandler);
+  }
+
+  //ContextHandlerCollection несет доп. логику по маршрутизации внутри коллекции. Поэтому не заменяем ServletContextHandler на него
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollectionForTestRun) {
+    this.jettySettings = jettySettings;
+    server = new Server(threadPool);
+    configureConnector();
+    configureRequestLogger();
+    configureStopTimeout();
+    this.servletContextHandler = null;
+    handlerCollection = mutableHandlerCollectionForTestRun;
+    server.setHandler(mutableHandlerCollectionForTestRun);
   }
 
   public void start() throws JettyServerException {
@@ -112,6 +121,9 @@ public final class JettyServer {
     httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger("requestHeaderSize")).orElse(16384));
     httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger("responseHeaderSize")).orElse(65536));
     httpConfiguration.setSendServerVersion(false);
+    // я не понимаю как таймаут можно заменить на темп.
+    // org.eclipse.jetty.server.HttpConfiguration.setMinResponseDataRate будет отрывать соединение не через 5 секунд, а уже после первой передачи,
+    // если темп в пересчете на секунду окажется меньше, чем указано. какое-то говно
     httpConfiguration.setBlockingTimeout(5000);
     return new HttpConnectionFactory(httpConfiguration);
   }
@@ -129,8 +141,7 @@ public final class JettyServer {
   private void stopSilently() {
     try {
       server.stop();
-    } catch (Exception e) {
-      // ignore
+    } catch (Exception ignored) {
     }
   }
 
@@ -139,6 +150,7 @@ public final class JettyServer {
   }
 
   public ServletContext getServletContext() {
-    return handlerCollection.getChildHandlerByClass(ServletContextHandler.class).getServletContext();
+    return servletContextHandler != null ? servletContextHandler.getServletContext()
+      : handlerCollection.getBean(ServletContextHandler.class).getServletContext();
   }
 }

@@ -84,8 +84,7 @@ public final class NabApplication {
       logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
-      testServer.setHandler(jettyWebAppContext);
-      return testServer.getJettyServer();
+      return testServer.loadServer(jettyWebAppContext);
     } catch (Exception e) {
       return logErrorAndExit(e, false);
     }

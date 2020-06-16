@@ -1,5 +1,8 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +17,7 @@ import com.timgroup.statsd.NoOpStatsDClient;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
+import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
@@ -74,13 +78,15 @@ public final class JettyServerFactory {
   public static final class JettyTestServer {
     private final JettyServer jettyServer;
     private final ContextHandlerCollection contextHandlerCollection;
+    private final URI baseUri;
 
     JettyTestServer(JettyServer jettyServer, ContextHandlerCollection contextHandlerCollection) {
       this.jettyServer = jettyServer;
       this.contextHandlerCollection = contextHandlerCollection;
+      this.baseUri = getServerAddress(jettyServer.getPort());
     }
 
-    public void setHandler(ServletContextHandler handler) {
+    public JettyServer loadServer(ServletContextHandler handler) {
       if (contextHandlerCollection.getHandlers() != null && contextHandlerCollection.getHandlers().length > 0) {
         throw new IllegalStateException("Already inited server");
       }
@@ -92,13 +98,26 @@ public final class JettyServerFactory {
         if (!contextHandlerCollection.isStarted()) {
           contextHandlerCollection.start();
         }
+        return jettyServer;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
 
-    public JettyServer getJettyServer() {
-      return jettyServer;
+    public static URI getServerAddress(int port) {
+      try {
+        return new URI(URIUtil.HTTP, null, InetAddress.getLoopbackAddress().getHostAddress(), port, null, null, null);
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    public String getBaseUrl() {
+      return baseUri.toString();
+    }
+
+    public int getPort() {
+      return jettyServer.getPort();
     }
   }
 }

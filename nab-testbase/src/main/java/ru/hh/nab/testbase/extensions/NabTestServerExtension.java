@@ -107,7 +107,7 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
 
   private JettyServer createNewServer(OverrideNabApplication overrideNabApplication, WebApplicationContext webApplicationContext) {
     JettyServerFactory.JettyTestServer testServer = JettyServerFactory.createTestServer(null);
-    return overrideNabApplication.getNabApplication().runOnTestServer(testServer, webApplicationContext);
+    return overrideNabApplication.getNabApplication().runOnTestServer(testServer, webApplicationContext, true);
   }
 
   private void assertValidFieldCandidate(Field field) {

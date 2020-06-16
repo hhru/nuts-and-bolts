@@ -86,9 +86,12 @@ public final class JettyServerFactory {
       this.baseUri = getServerAddress(jettyServer.getPort());
     }
 
-    public JettyServer loadServer(ServletContextHandler handler) {
+    public JettyServer loadServerIfNeeded(ServletContextHandler handler, boolean raiseIfInited) {
       if (contextHandlerCollection.getHandlers() != null && contextHandlerCollection.getHandlers().length > 0) {
-        throw new IllegalStateException("Already inited server");
+        if (raiseIfInited) {
+          throw new IllegalStateException("Server already initialized");
+        }
+        return jettyServer;
       }
       contextHandlerCollection.addHandler(handler);
       try {

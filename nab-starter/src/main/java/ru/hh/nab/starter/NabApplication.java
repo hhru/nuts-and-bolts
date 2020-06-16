@@ -78,13 +78,13 @@ public final class NabApplication {
     }
   }
 
-  public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext) {
+  public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
       configureLogger();
       logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
-      return testServer.loadServer(jettyWebAppContext);
+      return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
     } catch (Exception e) {
       return logErrorAndExit(e, false);
     }

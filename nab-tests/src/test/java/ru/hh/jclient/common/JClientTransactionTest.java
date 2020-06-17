@@ -71,7 +71,7 @@ public class JClientTransactionTest {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
     transactionalScope.read(() -> {
       try {
-        return httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+        return httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -83,7 +83,7 @@ public class JClientTransactionTest {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -96,7 +96,7 @@ public class JClientTransactionTest {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
     Exception raisedException = transactionalScope.write(() -> {
       try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
       } catch (Exception e) {
         return e;
       }
@@ -112,7 +112,7 @@ public class JClientTransactionTest {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectEmpty().result().get();
+        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

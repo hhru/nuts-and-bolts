@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
@@ -24,21 +25,33 @@ public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
   public static final String JETTY = "jetty";
   public static final String PORT = "port";
-  public static final String JETTY_PORT = String.join(".", JETTY, PORT);
 
   private final FileSettings jettySettings;
   private final Server server;
   private final ServletContextHandler servletContextHandler;
+  private final ContextHandlerCollection handlerCollection;
 
   JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
-
     server = new Server(threadPool);
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
+    handlerCollection = null;
     server.setHandler(servletContextHandler);
+  }
+
+  //ContextHandlerCollection несет доп. логику по маршрутизации внутри коллекции. Поэтому не заменяем ServletContextHandler на него
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollectionForTestRun) {
+    this.jettySettings = jettySettings;
+    server = new Server(threadPool);
+    configureConnector();
+    configureRequestLogger();
+    configureStopTimeout();
+    this.servletContextHandler = null;
+    handlerCollection = mutableHandlerCollectionForTestRun;
+    server.setHandler(mutableHandlerCollectionForTestRun);
   }
 
   public void start() throws JettyServerException {
@@ -67,7 +80,7 @@ public final class JettyServer {
 
   public int getPort() {
     Optional<ServerConnector> serverConnector = getServerConnector();
-    if (!serverConnector.isPresent()) {
+    if (serverConnector.isEmpty()) {
       LOGGER.warn("Unable to obtain port number - server connector is not present");
       return 0;
     }
@@ -108,6 +121,9 @@ public final class JettyServer {
     httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger("requestHeaderSize")).orElse(16384));
     httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger("responseHeaderSize")).orElse(65536));
     httpConfiguration.setSendServerVersion(false);
+    // я не понимаю как таймаут можно заменить на темп.
+    // org.eclipse.jetty.server.HttpConfiguration.setMinResponseDataRate будет отрывать соединение не через 5 секунд, а уже после первой передачи,
+    // если темп в пересчете на секунду окажется меньше, чем указано. какое-то говно
     httpConfiguration.setBlockingTimeout(5000);
     return new HttpConnectionFactory(httpConfiguration);
   }
@@ -125,8 +141,7 @@ public final class JettyServer {
   private void stopSilently() {
     try {
       server.stop();
-    } catch (Exception e) {
-      // ignore
+    } catch (Exception ignored) {
     }
   }
 
@@ -135,6 +150,7 @@ public final class JettyServer {
   }
 
   public ServletContext getServletContext() {
-    return servletContextHandler.getServletContext();
+    return servletContextHandler != null ? servletContextHandler.getServletContext()
+      : handlerCollection.getBean(ServletContextHandler.class).getServletContext();
   }
 }

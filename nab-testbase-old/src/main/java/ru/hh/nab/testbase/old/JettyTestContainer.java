@@ -3,10 +3,12 @@ package ru.hh.nab.testbase.old;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import org.eclipse.jetty.util.URIUtil;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.testbase.old.spring.NabTestContext;
 
 public class JettyTestContainer {
@@ -14,7 +16,8 @@ public class JettyTestContainer {
   private final URI baseUri;
 
   JettyTestContainer(NabApplication application, WebApplicationContext applicationContext, NabTestContext.PortHolder portHolder) {
-    jettyServer = application.run(applicationContext, false, portHolder::releaseAndApply, false);
+    JettyServerFactory.JettyTestServer testServer = JettyServerFactory.createTestServer(portHolder.getPort());
+    jettyServer = application.runOnTestServer(testServer, applicationContext, false);
     baseUri = getServerAddress(jettyServer.getPort());
   }
 

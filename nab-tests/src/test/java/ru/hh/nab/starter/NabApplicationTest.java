@@ -59,11 +59,11 @@ public class NabApplicationTest {
     JettyLifeCycleListener lifeCycleListener = spy(new JettyLifeCycleListener(aggregateCtx));
 
     NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
-    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx,
-            false,
-            portSupplier -> portSupplier.apply(null),
-            webAppContext -> webAppContext.addLifeCycleListener(lifeCycleListener)
-            );
+    JettyServer jettyServer = nabApplication.createJettyServer(
+      aggregateCtx,
+      false,
+      webAppContext -> webAppContext.addLifeCycleListener(lifeCycleListener)
+    );
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
 
@@ -80,10 +80,11 @@ public class NabApplicationTest {
     aggregateCtx.register(BrokenConsulConfig.class);
     aggregateCtx.refresh();
 
-    JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(aggregateCtx,
-            false,
-            portSupplier -> portSupplier.apply(0),
-            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx)));
+    JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(
+      aggregateCtx,
+      false,
+      webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
+    );
 
     assertThrows(ConsulServiceException.class, jettyServer::start);
   }
@@ -136,6 +137,7 @@ public class NabApplicationTest {
       properties.setProperty("consul.enabled", "true");
       properties.setProperty("serviceName", "testService");
       properties.setProperty("consul.http.port", "123");
+      properties.setProperty("jetty.port", "0");
       return properties;
     }
   }

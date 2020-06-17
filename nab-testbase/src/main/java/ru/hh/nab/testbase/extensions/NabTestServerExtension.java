@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
+
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.testbase.ResourceHelper;
 
 public class NabTestServerExtension implements BeforeEachCallback, ParameterResolver {
@@ -104,8 +106,8 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
   }
 
   private JettyServer createNewServer(OverrideNabApplication overrideNabApplication, WebApplicationContext webApplicationContext) {
-    return overrideNabApplication.getNabApplication()
-        .run(webApplicationContext, false, serverCreateFunction -> serverCreateFunction.apply(0), false);
+    JettyServerFactory.JettyTestServer testServer = JettyServerFactory.createTestServer(null);
+    return overrideNabApplication.getNabApplication().runOnTestServer(testServer, webApplicationContext, true);
   }
 
   private void assertValidFieldCandidate(Field field) {

@@ -1,14 +1,16 @@
 package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
+
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
-import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY_PORT;
+
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
 
 import io.sentry.Sentry;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Function;
 import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
@@ -55,23 +57,19 @@ public final class NabApplication {
   }
 
   public JettyServer run(WebApplicationContext baseContext) {
-    return run(baseContext, false, serverCreateFunction -> serverCreateFunction.apply(null), true);
+    return run(baseContext, false, true);
   }
 
   /**
    *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
-   * @param serverStarter function which allows to synchronize server start with external action
    */
-  public JettyServer run(WebApplicationContext baseContext,
-      boolean directlyUseAsWebAppRoot,
-      Function<Function<Integer, JettyServer>, JettyServer> serverStarter,
-      boolean exitOnError) {
+  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
     try {
       configureLogger();
       configureSentry(baseContext);
-      JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot, serverStarter);
+      JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
       logStartupInfo(baseContext);
       return jettyServer;
@@ -80,34 +78,34 @@ public final class NabApplication {
     }
   }
 
-  private JettyServer createJettyServer(WebApplicationContext baseContext,
-                                       boolean directlyUseAsWebAppRoot,
-                                       Function<Function<Integer, JettyServer>, JettyServer> serverStarter
-  ) {
-    return createJettyServer(baseContext, directlyUseAsWebAppRoot, serverStarter,
-            webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(baseContext)));
+  public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
+    try {
+      configureLogger();
+      logStartupInfo(baseContext);
+      WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
+      ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
+      return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
+    } catch (Exception e) {
+      return logErrorAndExit(e, false);
+    }
+  }
+
+  private JettyServer createJettyServer(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
+    return createJettyServer(baseContext, directlyUseAsWebAppRoot,
+        webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(baseContext))
+    );
   }
 
   JettyServer createJettyServer(WebApplicationContext baseContext,
                                        boolean directlyUseAsWebAppRoot,
-                                       Function<Function<Integer, JettyServer>, JettyServer> serverStarter,
-                                       WebAppInitializer extwebAppInitializer
-                                       ){
+                                       WebAppInitializer extwebAppInitializer){
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
     ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
 
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig,
             baseContext,
             directlyUseAsWebAppRoot);
-    return serverStarter.apply(port -> {
-      FileSettings effectiveSettings = fileSettings;
-      if (port != null) {
-        Properties properties = fileSettings.getProperties();
-        properties.setProperty(JETTY_PORT, String.valueOf(port));
-        effectiveSettings = new FileSettings(properties);
-      }
-      return JettyServerFactory.create(effectiveSettings, threadPool, List.of(webAppInitializer, extwebAppInitializer));
-    });
+    return JettyServerFactory.create(fileSettings, threadPool, List.of(webAppInitializer, extwebAppInitializer));
   }
 
   public static NabApplicationBuilder builder() {

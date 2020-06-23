@@ -41,6 +41,10 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     this.threadPoolName = threadPoolName;
   }
 
+  public String getThreadPoolName() {
+    return threadPoolName;
+  }
+
   @Override
   protected void beforeExecute(Thread t, Runnable r) {
     poolSizeMetric.save(getPoolSize());
@@ -62,6 +66,15 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   }
 
   public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName) {
+    return create(threadPoolSettings, threadPoolName, statsDSender, serviceName, (r, executor) -> {
+      LOGGER.warn("{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
+          threadPoolName, executor.getPoolSize(), executor.getActiveCount(), executor.getQueue().size());
+      throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
+    });
+  }
+
+  public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName,
+                                          RejectedExecutionHandler rejectedExecutionHandler) {
     int coreThreads = ofNullable(threadPoolSettings.getInteger("minSize")).orElse(4);
     int maxThreads = ofNullable(threadPoolSettings.getInteger("maxSize")).orElse(16);
     int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(maxThreads);
@@ -76,14 +89,8 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       return thread;
     };
 
-    var threadPoolExecutor = new MonitoredThreadPoolExecutor(
-      coreThreads, maxThreads, keepAliveTimeSec, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize), threadFactory,
-      (r, executor) -> {
-        LOGGER.warn("{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
-          threadPoolName, executor.getPoolSize(), executor.getActiveCount(), executor.getQueue().size());
-        throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
-      },
-      threadPoolName, longTaskDurationMs
+    var threadPoolExecutor = new MonitoredThreadPoolExecutor(coreThreads, maxThreads, keepAliveTimeSec, TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(queueSize), threadFactory, rejectedExecutionHandler, threadPoolName, longTaskDurationMs
     );
 
     String poolSizeMetricName = getFullMetricName(serviceName, threadPoolName, "size");

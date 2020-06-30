@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
@@ -68,6 +69,25 @@ public class ConfigProviderTest {
 
     result = configProvider.getConsumerConfig("ignored");
     assertEquals(defaultValue, result.get(testKey));
+  }
+
+  @Test
+  public void shouldFailOnUnusedOverriddenConsumerSettingForSpecificTopic() {
+    String testKey = "key";
+    String defaultValue = "value";
+    String overriddenValue = "newValue";
+    String invalidOverriddenValue = "invalidValue";
+    String topicName = "topic";
+    FileSettings fileSettings = createFileSettings(Map.of(
+        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, testKey), defaultValue,
+        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, topicName, testKey), overriddenValue,
+        generateSettingKey("%s.consumer.topic.%s", topicName, testKey), invalidOverriddenValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(fileSettings);
+
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig(topicName));
+    assertEquals("Unused property found: 'kafka.consumer.topic.topic.key'", exception.getMessage());
   }
 
   @Test

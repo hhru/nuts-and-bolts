@@ -2,7 +2,9 @@ package ru.hh.nab.kafka.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -12,6 +14,8 @@ public class ConfigProvider {
   static final String COMMON_CONFIG_TEMPLATE = "%s.common";
   static final String DEFAULT_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.default";
   static final String TOPIC_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.topic.%s.default";
+  static final String TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE =
+      "%s\\.consumer\\.topic\\.%s\\.(?!\\w*(?:default)).*";
   static final String PRODUCER_CONFIG_TEMPLATE = "%s.producer.%s";
   static final String NAB_SETTING = "nab_setting";
   public static final String DEFAULT_PRODUCER_NAME = "default";
@@ -90,7 +94,24 @@ public class ConfigProvider {
   }
 
   private Map<String, Object> getTopicOverriddenConsumerProperties(String topicName) {
+    findAnyMatchedKey(String.format(
+        TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE, kafkaClusterName, topicName))
+        .ifPresent(key -> {
+          throw new IllegalArgumentException(
+              String.format("Unused property found: '%s'", key)
+          );
+        });
     return getConfigAsMap(String.format(TOPIC_CONSUMER_CONFIG_TEMPLATE, kafkaClusterName, topicName));
+  }
+
+  private Optional<String> findAnyMatchedKey(String pattern) {
+    Pattern compiledPattern = Pattern.compile(pattern);
+    return fileSettings.getProperties().keySet()
+        .stream()
+        .filter(String.class::isInstance)
+        .map(key -> (String) key)
+        .filter(key -> compiledPattern.matcher(key).matches())
+        .findAny();
   }
 
   public Map<String, Object> getDefaultProducerConfig() {

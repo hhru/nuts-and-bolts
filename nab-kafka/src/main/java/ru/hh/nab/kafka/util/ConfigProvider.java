@@ -1,8 +1,14 @@
 package ru.hh.nab.kafka.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -12,8 +18,11 @@ public class ConfigProvider {
   static final String COMMON_CONFIG_TEMPLATE = "%s.common";
   static final String DEFAULT_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.default";
   static final String TOPIC_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.topic.%s.default";
+  static final String TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE =
+      "%s\\.consumer\\.topic\\.%s\\.(?!\\w*(?:default)).*";
   static final String PRODUCER_CONFIG_TEMPLATE = "%s.producer.%s";
   static final String NAB_SETTING = "nab_setting";
+  static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).contains(NAB_SETTING);
   public static final String DEFAULT_PRODUCER_NAME = "default";
 
   public static final String BACKOFF_INITIAL_INTERVAL_NAME = "backoff.initial.interval";
@@ -83,6 +92,23 @@ public class ConfigProvider {
           String.format("'%s' should not be larger then '%s'", BACKOFF_MAX_INTERVAL_NAME, MAX_POLL_INTERVAL_MS_CONFIG)
       );
     }
+    checkNames(allConsumerSettings);
+  }
+
+  private static void checkNames(FileSettings allConsumerSettings) {
+    Set<String> supportedNames = ConsumerConfig.configNames();
+    List<String> invalidNames = allConsumerSettings.getProperties().keySet()
+        .stream()
+        .filter(NAB_SETTING_PREDICATE.negate())
+        .filter(key -> !supportedNames.contains(key))
+        .map(String::valueOf)
+        .collect(Collectors.toList());
+
+    if (!invalidNames.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("Unsupported kafka consumer properties found: '%s'", String.join(", ", invalidNames))
+      );
+    }
   }
 
   private Map<String, Object> getDefaultConsumerProperties() {
@@ -90,7 +116,24 @@ public class ConfigProvider {
   }
 
   private Map<String, Object> getTopicOverriddenConsumerProperties(String topicName) {
+    findAnyMatchedKey(String.format(
+        TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE, kafkaClusterName, topicName))
+        .ifPresent(key -> {
+          throw new IllegalArgumentException(
+              String.format("Unused property found: '%s'", key)
+          );
+        });
     return getConfigAsMap(String.format(TOPIC_CONSUMER_CONFIG_TEMPLATE, kafkaClusterName, topicName));
+  }
+
+  private Optional<String> findAnyMatchedKey(String pattern) {
+    Pattern compiledPattern = Pattern.compile(pattern);
+    return fileSettings.getProperties().keySet()
+        .stream()
+        .filter(String.class::isInstance)
+        .map(key -> (String) key)
+        .filter(key -> compiledPattern.matcher(key).matches())
+        .findAny();
   }
 
   public Map<String, Object> getDefaultProducerConfig() {
@@ -119,10 +162,10 @@ public class ConfigProvider {
   }
 
   private void removeNabProperties(Map<String, Object> config) {
-    config.keySet().removeIf(key -> key.contains(NAB_SETTING));
+    config.keySet().removeIf(NAB_SETTING_PREDICATE);
   }
 
   private void removeNonNabProperties(Properties allProperties) {
-    allProperties.keySet().removeIf(key -> !((String) key).contains(NAB_SETTING));
+    allProperties.keySet().removeIf(NAB_SETTING_PREDICATE.negate());
   }
 }

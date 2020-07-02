@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
@@ -87,6 +88,18 @@ public class ConfigProvider {
           String.format("'%s' should not be larger then '%s'", BACKOFF_MAX_INTERVAL_NAME, MAX_POLL_INTERVAL_MS_CONFIG)
       );
     }
+    checkNames(allConsumerSettings);
+  }
+
+  void checkNames(FileSettings allConsumerSettings) {
+    Set<String> supportedNames = ConsumerConfig.configNames();
+    allConsumerSettings.getProperties().keySet().forEach(key -> {
+      if (!supportedNames.contains(key)) {
+        throw new IllegalArgumentException(
+            String.format("Unsupported kafka consumer property found: '%s'", key)
+        );
+      }
+    });
   }
 
   private Map<String, Object> getDefaultConsumerProperties() {

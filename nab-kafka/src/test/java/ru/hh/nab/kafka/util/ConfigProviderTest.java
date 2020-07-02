@@ -91,6 +91,21 @@ public class ConfigProviderTest {
   }
 
   @Test
+  public void shouldFailOnUnsupportedConsumerSetting() {
+    String testKey = "invalidKey";
+    String defaultValue = "value";
+    String topicName = "topic";
+    FileSettings fileSettings = createFileSettings(Map.of(
+        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, testKey), defaultValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(fileSettings);
+
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getNabConsumerSettings(topicName));
+    assertEquals("Unsupported kafka consumer property found: 'invalidKey'", exception.getMessage());
+  }
+
+  @Test
   public void shouldReturnDefaultProducerSetting() {
     String testKey = "key";
     String testValue = "value";

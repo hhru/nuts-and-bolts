@@ -1,11 +1,14 @@
 package ru.hh.nab.kafka.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -19,6 +22,7 @@ public class ConfigProvider {
       "%s\\.consumer\\.topic\\.%s\\.(?!\\w*(?:default)).*";
   static final String PRODUCER_CONFIG_TEMPLATE = "%s.producer.%s";
   static final String NAB_SETTING = "nab_setting";
+  static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).contains(NAB_SETTING);
   public static final String DEFAULT_PRODUCER_NAME = "default";
 
   public static final String BACKOFF_INITIAL_INTERVAL_NAME = "backoff.initial.interval";
@@ -91,15 +95,20 @@ public class ConfigProvider {
     checkNames(allConsumerSettings);
   }
 
-  void checkNames(FileSettings allConsumerSettings) {
+  private static void checkNames(FileSettings allConsumerSettings) {
     Set<String> supportedNames = ConsumerConfig.configNames();
-    allConsumerSettings.getProperties().keySet().forEach(key -> {
-      if (!supportedNames.contains(key)) {
-        throw new IllegalArgumentException(
-            String.format("Unsupported kafka consumer property found: '%s'", key)
-        );
-      }
-    });
+    List<String> invalidNames = allConsumerSettings.getProperties().keySet()
+        .stream()
+        .filter(NAB_SETTING_PREDICATE.negate())
+        .filter(key -> !supportedNames.contains(key))
+        .map(String::valueOf)
+        .collect(Collectors.toList());
+
+    if (!invalidNames.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("Unsupported kafka consumer properties found: '%s'", String.join(", ", invalidNames))
+      );
+    }
   }
 
   private Map<String, Object> getDefaultConsumerProperties() {
@@ -153,10 +162,10 @@ public class ConfigProvider {
   }
 
   private void removeNabProperties(Map<String, Object> config) {
-    config.keySet().removeIf(key -> key.contains(NAB_SETTING));
+    config.keySet().removeIf(NAB_SETTING_PREDICATE);
   }
 
   private void removeNonNabProperties(Properties allProperties) {
-    allProperties.keySet().removeIf(key -> !((String) key).contains(NAB_SETTING));
+    allProperties.keySet().removeIf(NAB_SETTING_PREDICATE.negate());
   }
 }

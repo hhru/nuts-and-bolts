@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -52,20 +51,19 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   @Test
   public void testSeek() throws InterruptedException {
     putMessagesIntoKafka(117);
-    AtomicBoolean failed = new AtomicBoolean(false);
     startConsumer((messages, ack) -> messages.forEach(m -> {
       processedMessages.add(m.value());
       if (processedMessages.size() == 40) {
         ack.seek(m);
       }
-      if (!failed.get() && processedMessages.size() == 45) {
+      if (processedMessages.size() == 45) {
         throw new IllegalStateException("Processing failed");
       }
     }));
-    assertProcessedMessagesCount(117 + 5);
+    assertProcessedMessagesCount(117 + (45 - 40));
 
     consumeAllRemainingMessages();
-    assertProcessedMessagesCount(117 * 2 + 5);
+    assertProcessedMessagesCount(117 * 2 + (45 - 40));
     assertUniqueProcessedMessagesCount(117);
   }
 

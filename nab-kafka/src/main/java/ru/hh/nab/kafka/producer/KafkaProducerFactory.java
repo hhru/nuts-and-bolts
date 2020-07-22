@@ -1,6 +1,8 @@
 package ru.hh.nab.kafka.producer;
 
+import java.util.Map;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -29,10 +31,15 @@ public class KafkaProducerFactory {
     producerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
     ProducerFactory<String, Object> producerFactory = new DefaultKafkaProducerFactory<>(
-        producerConfig,
-        new StringSerializer(),
-        serializerSupplier.supply()
-    );
+        producerConfig, new StringSerializer(), serializerSupplier.supply()
+    ) {
+      @Override
+      protected Producer<String, Object> createRawProducer(Map<String, Object> configs) {
+        Producer<String, Object> rawProducer = super.createRawProducer(configs);
+        rawProducer.partitionsFor("request_partitions_for_topic_to_force_metadata_request");
+        return rawProducer;
+      }
+    };
 
     return new DefaultKafkaProducer(new KafkaTemplate<>(producerFactory));
   }

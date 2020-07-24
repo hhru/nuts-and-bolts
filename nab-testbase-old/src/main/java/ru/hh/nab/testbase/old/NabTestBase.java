@@ -11,6 +11,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.web.WebAppConfiguration;
 import ru.hh.nab.starter.NabApplication;
@@ -31,7 +32,9 @@ public abstract class NabTestBase extends AbstractJUnit4SpringContextTests {
 
   @Before
   public void setUpNabTestBase() {
-    NabApplication.configureLogger();
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
     client = getClientBuilder().build();
   }
 

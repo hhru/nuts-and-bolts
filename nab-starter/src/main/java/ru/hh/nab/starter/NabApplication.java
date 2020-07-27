@@ -2,7 +2,11 @@ package ru.hh.nab.starter;
 
 import static java.text.MessageFormat.format;
 
+import java.util.Optional;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
+import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
@@ -67,7 +71,7 @@ public final class NabApplication {
    */
   public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
     try {
-      configureLogger();
+      configureLogger(baseContext);
       configureSentry(baseContext);
       JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
@@ -80,7 +84,7 @@ public final class NabApplication {
 
   public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
-      configureLogger();
+      configureLogger(baseContext);
       logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
@@ -112,14 +116,16 @@ public final class NabApplication {
     return new NabApplicationBuilder();
   }
 
-  public static void configureLogger() {
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
-    SLF4JBridgeHandler.install();
-  }
-
   public static void configureSentry(ApplicationContext context) {
     FileSettings settings = context.getBean(FileSettings.class);
     Sentry.init(settings.getString("sentry.dsn"));
+  }
+
+  private static void configureLogger(ApplicationContext context) {
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
+    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension));
   }
 
   private static void logStartupInfo(ApplicationContext context) {
@@ -129,6 +135,17 @@ public final class NabApplication {
 
   private static String getCurrentPid() {
     return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+  }
+
+  private static Optional<LogLevelOverrideExtension> getLogLevelOverrideExtension(ApplicationContext context) {
+    try {
+      var extension = context.getBean(LogLevelOverrideExtension.class);
+      LOGGER.info("{} activated", LogLevelOverrideExtension.class.getSimpleName());
+      return Optional.of(extension);
+    } catch (NoSuchBeanDefinitionException e) {
+      // Extension not activated, normal behaviour
+      return Optional.empty();
+    }
   }
 
   private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {

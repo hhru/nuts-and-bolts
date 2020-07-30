@@ -11,6 +11,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {
@@ -28,7 +30,13 @@ public class ExecuteOnDataSourceAspect {
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
-    DataSourceContextTransactionManager transactionManager = txManagers.get(executeOnDataSource.txManager());
+    DataSourceContextTransactionManager transactionManager = Optional.of(executeOnDataSource.txManager())
+        .filter(Predicate.not(String::isEmpty))
+        .map(txManagers::get)
+        .or(() -> Optional.of(txManagers).filter(map -> map.size() == 1).map(map -> map.values().iterator().next()))
+        .orElseThrow(() -> new IllegalStateException("TransactionManagers present: " + txManagers.keySet()
+            + ". Specify txManager in " + ExecuteOnDataSource.class)
+        );
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());

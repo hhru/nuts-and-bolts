@@ -25,4 +25,7 @@ public @interface ExecuteOnDataSource {
   boolean overrideByRequestScope() default false;
 
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
+
+  String txManager() default "transactionManager";
+  String sessionFactory() default "sessionFactory";
 }

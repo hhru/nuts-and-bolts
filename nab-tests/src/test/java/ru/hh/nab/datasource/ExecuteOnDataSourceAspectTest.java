@@ -2,6 +2,7 @@ package ru.hh.nab.datasource;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -44,7 +45,10 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
   @BeforeEach
   public void setUp() {
-    executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
+    executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
+        Map.of("transactionManager", transactionManager),
+        Map.of("sessionFactory", sessionFactory)
+    );
   }
 
   @AfterEach
@@ -150,6 +154,16 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       @Override
       public boolean overrideByRequestScope() {
         return false;
+      }
+
+      @Override
+      public String txManager() {
+        return "transactionManager";
+      }
+
+      @Override
+      public String sessionFactory() {
+        return "sessionFactory";
       }
 
       @Override

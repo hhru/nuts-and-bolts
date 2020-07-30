@@ -9,15 +9,17 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Map;
+
 @Aspect
 public class ExecuteOnDataSourceAspect {
 
-  private final DataSourceContextTransactionManager transactionManager;
-  private final SessionFactory sessionFactory;
+  private final Map<String, DataSourceContextTransactionManager> txManagers;
+  private final Map<String, SessionFactory> sessionFactories;
 
-  public ExecuteOnDataSourceAspect(DataSourceContextTransactionManager transactionManager, SessionFactory sessionFactory) {
-    this.transactionManager = transactionManager;
-    this.sessionFactory = sessionFactory;
+  public ExecuteOnDataSourceAspect(Map<String, DataSourceContextTransactionManager> txManagers, Map<String, SessionFactory> sessionFactories) {
+    this.txManagers = txManagers;
+    this.sessionFactories = sessionFactories;
   }
 
   @Around(value = "@annotation(executeOnDataSource)", argNames = "pjp,executeOnDataSource")
@@ -27,13 +29,15 @@ public class ExecuteOnDataSourceAspect {
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
-    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+    TransactionTemplate transactionTemplate = new TransactionTemplate(txManagers.get(executeOnDataSource.txManager()));
     transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
 
     try {
       return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScope(),
-          () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(pjp, sessionFactory, executeOnDataSource)));
+          () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(
+              pjp, sessionFactories.get(executeOnDataSource.sessionFactory()), executeOnDataSource
+          )));
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();
     }

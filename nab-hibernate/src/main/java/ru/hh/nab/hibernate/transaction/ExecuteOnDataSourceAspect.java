@@ -12,14 +12,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {
 
+  private final DataSourceContextTransactionManager defaultTxManager;
   private final Map<String, DataSourceContextTransactionManager> txManagers;
 
-  public ExecuteOnDataSourceAspect(Map<String, DataSourceContextTransactionManager> txManagers) {
+  public ExecuteOnDataSourceAspect(DataSourceContextTransactionManager defaultTxManager,
+                                   Map<String, DataSourceContextTransactionManager> txManagers) {
+    this.defaultTxManager = defaultTxManager;
     this.txManagers = txManagers;
   }
 
@@ -30,12 +32,12 @@ public class ExecuteOnDataSourceAspect {
         && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
-    DataSourceContextTransactionManager transactionManager = Optional.of(executeOnDataSource.txManager())
-        .filter(Predicate.not(String::isEmpty))
-        .map(txManagers::get)
-        .or(() -> Optional.of(txManagers).filter(map -> map.size() == 1).map(map -> map.values().iterator().next()))
-        .orElseThrow(() -> new IllegalStateException("TransactionManagers present: " + txManagers.keySet()
-            + ". Specify txManager in " + ExecuteOnDataSource.class)
+    String txManagerQualifier = executeOnDataSource.txManager();
+    DataSourceContextTransactionManager transactionManager = Optional.of(txManagerQualifier)
+        .filter(String::isEmpty)
+        .map(ignored -> defaultTxManager)
+        .orElseGet(() -> Optional.ofNullable(txManagers.get(txManagerQualifier))
+            .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"))
         );
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);

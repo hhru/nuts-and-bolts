@@ -46,7 +46,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @BeforeEach
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
-        Map.of("transactionManager", transactionManager)
+        transactionManager, Map.of("transactionManager", transactionManager)
     );
   }
 

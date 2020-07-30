@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 
 import javax.sql.DataSource;
@@ -29,6 +30,7 @@ import static java.util.stream.Collectors.toMap;
 @EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {
 
+  @Primary
   @Bean
   DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory) {
     HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
@@ -41,7 +43,7 @@ public class NabHibernateCommonConfig {
     var txManagers
       = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
         .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, DataSourceContextTransactionManager.class)));
-    return new ExecuteOnDataSourceAspect(txManagers);
+      return new ExecuteOnDataSourceAspect(applicationContext.getBean(DataSourceContextTransactionManager.class), txManagers);
   }
 
   @Bean

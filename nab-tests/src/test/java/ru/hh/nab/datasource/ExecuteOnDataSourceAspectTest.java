@@ -46,8 +46,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @BeforeEach
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
-        Map.of("transactionManager", transactionManager),
-        Map.of("sessionFactory", sessionFactory)
+        Map.of("transactionManager", transactionManager)
     );
   }
 
@@ -159,11 +158,6 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
       @Override
       public String txManager() {
         return "transactionManager";
-      }
-
-      @Override
-      public String sessionFactory() {
-        return "sessionFactory";
       }
 
       @Override

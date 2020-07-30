@@ -1,5 +1,7 @@
 package ru.hh.nab.hibernate.transaction;
 
+import org.hibernate.SessionFactory;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
@@ -17,6 +19,11 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
 
   public DataSourceContextTransactionManager(PlatformTransactionManager delegate) {
     this.delegate = delegate;
+  }
+
+  //fuuuuuuck
+  SessionFactory getSessionFactory() {
+    return ((HibernateTransactionManager) delegate).getSessionFactory();
   }
 
   @Override

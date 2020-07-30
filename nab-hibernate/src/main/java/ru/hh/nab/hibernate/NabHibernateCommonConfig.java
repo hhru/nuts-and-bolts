@@ -30,9 +30,9 @@ import static java.util.stream.Collectors.toMap;
 public class NabHibernateCommonConfig {
 
   @Bean
-  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory, DataSource dataSource) {
+  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory) {
     HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
-    simpleTransactionManager.setDataSource(dataSource);
+    simpleTransactionManager.setAutodetectDataSource(true);
     return new DataSourceContextTransactionManager(simpleTransactionManager);
   }
 
@@ -41,10 +41,7 @@ public class NabHibernateCommonConfig {
     var txManagers
       = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
         .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, DataSourceContextTransactionManager.class)));
-    var sessionFactories
-        = Stream.of(applicationContext.getBeanNamesForType(SessionFactory.class))
-        .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, SessionFactory.class)));
-    return new ExecuteOnDataSourceAspect(txManagers, sessionFactories);
+    return new ExecuteOnDataSourceAspect(txManagers);
   }
 
   @Bean

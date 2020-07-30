@@ -27,5 +27,4 @@ public @interface ExecuteOnDataSource {
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 
   String txManager() default "transactionManager";
-  String sessionFactory() default "sessionFactory";
 }

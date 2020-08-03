@@ -1,6 +1,8 @@
 package ru.hh.nab.kafka.producer;
 
+import java.util.Map;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,7 +34,21 @@ public class KafkaProducerFactory {
         producerConfig,
         new StringSerializer(),
         serializerSupplier.supply()
-    );
+    ) {
+      @Override
+      protected Producer<String, Object> createRawProducer(Map<String, Object> configs) {
+        Producer<String, Object> producer = super.createRawProducer(configs);
+        initMetadata(producer);
+        return producer;
+      }
+
+      private void initMetadata(Producer<String, Object> producer) {
+        try {
+          producer.partitionsFor("non_existing_topic_name_for_metadata_initialization");
+        } catch (RuntimeException ignored) {
+        }
+      }
+    };
 
     return new DefaultKafkaProducer(new KafkaTemplate<>(producerFactory));
   }

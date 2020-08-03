@@ -187,7 +187,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     private LoggingContextWrapper(LoggerContext context, Properties properties) {
       properties.stringPropertyNames().stream().filter(getContextPropertyPredicate()).forEach(propertyKey -> {
         context.putProperty(propertyKey, properties.getProperty(propertyKey));
-        addInfo("Put property " + String.join("=", propertyKey, properties.getProperty(propertyKey)));
+        addInfo("Put property in logging context key=" + propertyKey);
       });
       this.context = context;
       this.properties = properties;

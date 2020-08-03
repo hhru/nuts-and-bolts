@@ -1,5 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
@@ -13,10 +14,14 @@ import static org.springframework.transaction.support.TransactionSynchronization
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
-  private final PlatformTransactionManager delegate;
+  private final HibernateTransactionManager delegate;
 
-  public DataSourceContextTransactionManager(PlatformTransactionManager delegate) {
+  public DataSourceContextTransactionManager(HibernateTransactionManager delegate) {
     this.delegate = delegate;
+  }
+
+  HibernateTransactionManager getDelegate() {
+    return delegate;
   }
 
   @Override

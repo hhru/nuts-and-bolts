@@ -6,43 +6,54 @@ import java.util.Optional;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.integrator.spi.Integrator;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
+
+import static java.util.stream.Collectors.toMap;
 
 @Configuration
 @EnableTransactionManagement(order = 0)
 @EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {
 
+  @Primary
   @Bean
-  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory, DataSource routingDataSource) {
+  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory) {
     HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
-    simpleTransactionManager.setDataSource(routingDataSource);
+    simpleTransactionManager.setAutodetectDataSource(true);
     return new DataSourceContextTransactionManager(simpleTransactionManager);
   }
 
   @Bean
-  ExecuteOnDataSourceAspect executeOnDataSourceAspect(DataSourceContextTransactionManager transactionManager, SessionFactory sessionFactory) {
-    return new ExecuteOnDataSourceAspect(transactionManager, sessionFactory);
+  ExecuteOnDataSourceAspect executeOnDataSourceAspect(ApplicationContext applicationContext) {
+    var txManagers
+      = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
+        .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, DataSourceContextTransactionManager.class)));
+      return new ExecuteOnDataSourceAspect(applicationContext.getBean(DataSourceContextTransactionManager.class), txManagers);
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactoryBean(DataSource routingDataSource, Properties hibernateProperties,
+  NabSessionFactoryBean sessionFactory(DataSource dataSource, Properties hibernateProperties,
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
     Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
     Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(routingDataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
+    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
       serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
-    sessionFactoryBean.setDataSource(routingDataSource);
+    sessionFactoryBean.setDataSource(dataSource);
     sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
     sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
     sessionFactoryBean.setHibernateProperties(hibernateProperties);

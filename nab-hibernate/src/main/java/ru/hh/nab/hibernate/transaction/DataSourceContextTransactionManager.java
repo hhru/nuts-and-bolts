@@ -20,7 +20,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
     this.delegate = delegate;
   }
 
-  HibernateTransactionManager getDelegate() {
+  protected HibernateTransactionManager getDelegate() {
     return delegate;
   }
 

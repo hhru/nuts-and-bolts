@@ -125,7 +125,7 @@ public final class NabApplication {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
 
-    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension));
+    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension, context.getBean(FileSettings.class)));
   }
 
   private static void logStartupInfo(ApplicationContext context) {

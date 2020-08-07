@@ -1,5 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
+import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -14,14 +15,20 @@ import static org.springframework.transaction.support.TransactionSynchronization
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
-  private final HibernateTransactionManager delegate;
+  private final PlatformTransactionManager delegate;
+  private final SessionFactory sessionFactory;
 
   public DataSourceContextTransactionManager(HibernateTransactionManager delegate) {
-    this.delegate = delegate;
+    this(delegate, delegate.getSessionFactory());
   }
 
-  HibernateTransactionManager getDelegate() {
-    return delegate;
+  public DataSourceContextTransactionManager(PlatformTransactionManager delegate, SessionFactory sessionFactory) {
+    this.delegate = delegate;
+    this.sessionFactory = sessionFactory;
+  }
+
+  public SessionFactory getSessionFactory() {
+    return sessionFactory;
   }
 
   @Override

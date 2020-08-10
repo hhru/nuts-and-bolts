@@ -4,6 +4,7 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import ru.hh.nab.metrics.StatsDSender;
 
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.starter.events.JettyEventListener;
+import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
@@ -57,9 +59,10 @@ public class NabProdConfig {
 
   @Bean
   @Lazy(value = false)
-  ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata) throws UnknownHostException {
+  ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata,
+                              Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
     var address = InetAddress.getLocalHost().getHostAddress();
-    return new ConsulService(fileSettings, datacenter, address, appMetadata);
+    return new ConsulService(fileSettings, datacenter, address, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
   }
 
   @Bean

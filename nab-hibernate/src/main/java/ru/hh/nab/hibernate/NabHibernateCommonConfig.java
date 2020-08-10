@@ -47,7 +47,7 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactory(DataSource dataSource, Properties hibernateProperties,
+  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, Properties hibernateProperties,
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
     Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
     Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {

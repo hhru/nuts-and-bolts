@@ -45,7 +45,7 @@ public class ExecuteOnDataSourceAspect {
     try {
       return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScope(),
           () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(
-              pjp, transactionManager.getDelegate().getSessionFactory(), executeOnDataSource
+              pjp, transactionManager.getSessionFactory(), executeOnDataSource
           )));
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();

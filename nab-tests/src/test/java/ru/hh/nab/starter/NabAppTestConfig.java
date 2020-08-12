@@ -13,7 +13,7 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class NabAppTestConfig {
   @Bean
   ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata) {
-    return spy(new ConsulService(fileSettings, null, null, appMetadata));
+    return spy(new ConsulService(fileSettings, null, null, appMetadata, null));
   }
 
   @Bean

@@ -2,6 +2,8 @@ package ru.hh.nab.starter;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;
+import java.util.ArrayList;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
@@ -11,22 +13,29 @@ import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 public class ConsulService {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConsulService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsulService.class);
+
+  private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
 
   private final ConsulClient client;
   private final NewService service;
   private final String id;
   private final boolean enabled;
 
-  public ConsulService(FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata) {
+  public ConsulService(FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata,
+                       @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
       .orElse("127.0.0.1");
     var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + address + "-" + applicationPort;
-    var tags = fileSettings.getStringList("consul.tags");
+    var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
+    if (logLevelOverrideExtension != null) {
+      tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
+    }
 
     NewService.Check check = new NewService.Check();
     check.setHttp("http://" + applicationHost + ":" + applicationPort + "/status");
@@ -61,7 +70,7 @@ public class ConsulService {
     if (enabled) {
       try {
         client.agentServiceRegister(service);
-        logger.info("Registered consul service: {}", service);
+        LOGGER.info("Registered consul service: {}", service);
       } catch (RuntimeException ex) {
         throw new ConsulServiceException("Can't register service in consul", ex);
       }
@@ -72,7 +81,7 @@ public class ConsulService {
   void deregister() {
     if (enabled) {
       client.agentServiceDeregister(id);
-      logger.info("De-registered id: {} from consul", id);
+      LOGGER.info("De-registered id: {} from consul", id);
     }
   }
 

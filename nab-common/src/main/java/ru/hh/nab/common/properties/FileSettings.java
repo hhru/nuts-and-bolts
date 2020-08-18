@@ -68,7 +68,10 @@ public class FileSettings {
 
   public List<String> getStringList(String key) {
     String value = getString(key);
-    return value != null ? asList(value.split("[,\\s]+")) : new ArrayList<>();
+    if (value == null || value.isBlank()) {
+      return new ArrayList<>();
+    }
+    return asList(value.split("[,\\s]+"));
   }
 
   public Properties getProperties() {

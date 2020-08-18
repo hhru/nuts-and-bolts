@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -39,7 +38,6 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       Properties properties = createLoggingProperties();
       LoggingContextWrapper contextWrapper = new LoggingContextWrapper(context, properties);
       configure(contextWrapper);
-      configureOverrides(contextWrapper);
     } catch (Exception e) {
       throw new AssertionError(e);
     }
@@ -53,26 +51,6 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   }
 
   public abstract void configure(LoggingContextWrapper context);
-
-  private void configureOverrides(LoggingContextWrapper context) {
-    String prefix = "log.override";
-    context.properties.stringPropertyNames().stream().filter(key -> key.startsWith(prefix + ".")).forEach(key -> {
-      String newKey = key.substring(prefix.length() + 1);
-      configureOverride(context, newKey, context.properties.getProperty(key));
-    });
-  }
-
-  private void configureOverride(LoggingContextWrapper context, String loggerName, String config) {
-    String[] configItems = config.split(";");
-    if (configItems.length != 2) {
-      throw new AssertionError("Logger override " + loggerName + " format is incorrect, should be <name>;<LEVEL>");
-    }
-    String appenderName = configItems[0];
-    String level = configItems[1];
-
-    Appender appender = createOrReuseAppender(context, appenderName, HhMultiAppender::new);
-    createLogger(context, loggerName, Level.valueOf(level.toUpperCase()), false, List.of(appender));
-  }
 
   public <A extends Appender> A createAppender(LoggingContextWrapper context, String name, Supplier<A> instanceCreator) {
     if (appenders.containsKey(name)) {

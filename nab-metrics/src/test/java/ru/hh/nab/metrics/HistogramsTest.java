@@ -56,7 +56,7 @@ public class HistogramsTest {
   @Test
   public void twoThreads() throws InterruptedException {
 
-    int increases = 1_000_000;
+    int increases = 100_000;
     Tag tag1 = new Tag("label", "first");
     Tag tag2 = new Tag("label", "second");
     Runnable task = () -> {

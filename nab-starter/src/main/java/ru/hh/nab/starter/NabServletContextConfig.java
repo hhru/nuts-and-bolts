@@ -42,6 +42,10 @@ public class NabServletContextConfig {
     return Collections.emptyList();
   }
 
+  protected List<Class<?>> getWebsocketEndpoints() {
+    return List.of();
+  }
+
   protected NabJerseyConfig getJerseyConfig() {
     return NabJerseyConfig.DISABLED;
   }
@@ -87,7 +91,7 @@ public class NabServletContextConfig {
    * all static init() methods already called here. So for class-based FilterHolder
    * org.eclipse.jetty.servlet.FilterHolder#initialize() won't be called anymore
    */
-  void onWebAppStarted(ServletContext servletContext, WebApplicationContext rootCtx) {
+  void onWebAppStarted(WebAppContext webAppContext, ServletContext servletContext, WebApplicationContext rootCtx) {
     configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
     registerServlets(servletConfigs, servletContext, rootCtx);

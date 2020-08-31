@@ -36,6 +36,7 @@ public final class NabApplicationBuilder {
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
   private BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer;
   private JerseyBuilder jerseyBuilder;
+  private List<Class<?>> websocketEndpoints = new ArrayList<>();
   private String contextPath;
   private ClassLoader classLoader;
 
@@ -87,6 +88,11 @@ public final class NabApplicationBuilder {
           return super.getJerseyConfig();
         }
         return JerseyBuilder.prepareNabJerseyConfig(jerseyBuilder);
+      }
+
+      @Override
+      protected List<Class<?>> getWebsocketEndpoints() {
+        return websocketEndpoints;
       }
     });
   }
@@ -152,6 +158,11 @@ public final class NabApplicationBuilder {
 
   public NabApplicationBuilder configureJersey(JerseyBuilder jerseyBuilder) {
     this.jerseyBuilder = jerseyBuilder;
+    return this;
+  }
+
+  public NabApplicationBuilder configureWebsocket(Class<?> endpoint) {
+    this.websocketEndpoints.add(endpoint);
     return this;
   }
 

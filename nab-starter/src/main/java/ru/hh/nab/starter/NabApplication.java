@@ -4,6 +4,7 @@ import static java.text.MessageFormat.format;
 
 import java.util.Optional;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
@@ -165,13 +166,23 @@ public final class NabApplication {
   private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig, WebApplicationContext baseCtx,
       boolean directWebappRoot) {
     WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
-    return webApp -> {
-      servletContextConfig.preConfigureWebApp(webApp, baseCtx);
-      webApp.addEventListener(new ContextLoaderListener(targetCtx) {
+
+    return webAppContext -> {
+      servletContextConfig.preConfigureWebApp(webAppContext, baseCtx);
+
+      if (!servletContextConfig.getWebsocketEndpoints().isEmpty()) {
+        WebSocketServerContainerInitializer.configure(webAppContext, (ctx, container) -> {
+          for (Class<?> aClass : servletContextConfig.getWebsocketEndpoints()) {
+            container.addEndpoint(aClass);
+          }
+        });
+      }
+
+      webAppContext.addEventListener(new ContextLoaderListener(targetCtx) {
         @Override
         public void contextInitialized(ServletContextEvent event) {
           super.contextInitialized(event);
-          servletContextConfig.onWebAppStarted(event.getServletContext(), targetCtx);
+          servletContextConfig.onWebAppStarted(webAppContext, event.getServletContext(), targetCtx);
           servletContextConfig.getListeners(targetCtx).forEach(listener -> listener.contextInitialized(event));
         }
 

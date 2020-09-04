@@ -1,19 +1,21 @@
 package ru.hh.nab.starter;
 
-import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.agent.model.NewService;
-import java.util.ArrayList;
-import javax.annotation.Nullable;
+import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.model.agent.ImmutableRegCheck;
+import com.orbitz.consul.model.agent.ImmutableRegistration;
+import com.orbitz.consul.model.agent.Registration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
+import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
+import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 public class ConsulService {
 
@@ -21,13 +23,14 @@ public class ConsulService {
 
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
 
-  private final ConsulClient client;
-  private final NewService service;
+  private final AgentClient agentClient;
+  private final Registration service;
   private final String id;
   private final boolean enabled;
 
-  public ConsulService(FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata,
+  public ConsulService(AgentClient agentClient, FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
+    this.agentClient = agentClient;
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
       .orElse("127.0.0.1");
@@ -37,39 +40,39 @@ public class ConsulService {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
     }
 
-    NewService.Check check = new NewService.Check();
-    check.setHttp("http://" + applicationHost + ":" + applicationPort + "/status");
-    check.setTimeout(fileSettings.getString("consul.check.timeout"));
-    check.setInterval(fileSettings.getString("consul.check.interval"));
-    check.setMethod("GET");
-    check.setStatus("passing");
+    ImmutableRegCheck regCheck = ImmutableRegCheck.builder()
+            .http("http://" + applicationHost + ":" + applicationPort + "/status")
+            .interval(fileSettings.getString("consul.check.interval"))
+            .timeout(fileSettings.getString("consul.check.timeout"))
+            .build();
 
-    NewService service = new NewService();
-    service.setId(id);
-    service.setName(fileSettings.getString("serviceName"));
-    service.setPort(applicationPort);
-    service.setAddress(address);
-    service.setCheck(check);
-    service.setTags(tags);
-    service.setMeta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()));
+    Registration service = ImmutableRegistration.builder()
+            .id(id)
+            .name(fileSettings.getString("serviceName"))
+            .port(applicationPort)
+            .address(address)
 
-    this.client = new ConsulClient(
-      Optional.ofNullable(fileSettings.getString("consul.http.host")).orElse("127.0.0.1"),
-      fileSettings.getInteger("consul.http.port")
-    );
+            .check(regCheck)
+
+            .tags(tags)
+            .meta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()))
+
+            .build();
+    agentClient.register(service);
+
     this.service = service;
     this.id = id;
     this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);
   }
 
-  public ConsulClient getClient() {
-    return client;
+  public AgentClient getClient() {
+    return agentClient;
   }
 
   public void register() {
     if (enabled) {
       try {
-        client.agentServiceRegister(service);
+        agentClient.register(service);
         LOGGER.info("Registered consul service: {}", service);
       } catch (RuntimeException ex) {
         throw new ConsulServiceException("Can't register service in consul", ex);
@@ -80,7 +83,7 @@ public class ConsulService {
   @PreDestroy
   void deregister() {
     if (enabled) {
-      client.agentServiceDeregister(id);
+      agentClient.deregister(service.getId());
       LOGGER.info("De-registered id: {} from consul", id);
     }
   }
@@ -105,7 +108,7 @@ public class ConsulService {
   @Override
   public String toString() {
     return "ConsulService{" +
-      "client=" + client +
+      "client=" + agentClient +
       ", service=" + service +
       ", id='" + id + '\'' +
       '}';

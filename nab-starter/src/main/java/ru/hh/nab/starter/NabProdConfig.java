@@ -1,10 +1,14 @@
 package ru.hh.nab.starter;
 
-import com.ecwid.consul.v1.ConsulClient;
+import com.google.common.net.HostAndPort;
+import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 
 import java.util.Optional;
+
+import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
@@ -53,16 +57,20 @@ public class NabProdConfig {
   }
 
   @Bean
-  ConsulClient consulClient(FileSettings fileSettings) {
-    return new ConsulClient("localhost", fileSettings.getInteger("consul.http.port"));
+  AgentClient consulClient(FileSettings fileSettings) {
+    HostAndPort hostAndPort = HostAndPort.fromParts(
+            requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"),
+            fileSettings.getInteger("consul.http.port"));
+    return Consul.builder().withHostAndPort(hostAndPort).build().agentClient();
   }
 
   @Bean
   @Lazy(value = false)
-  ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata,
+  ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata, AgentClient agentClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
     var address = InetAddress.getLocalHost().getHostAddress();
-    return new ConsulService(fileSettings, datacenter, address, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
+    return new ConsulService(agentClient, fileSettings, datacenter, address, appMetadata,
+            logLevelOverrideExtensionOptional.orElse(null));
   }
 
   @Bean

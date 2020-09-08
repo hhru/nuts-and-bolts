@@ -65,10 +65,6 @@ public class ConsulService {
     this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);
   }
 
-  public AgentClient getClient() {
-    return agentClient;
-  }
-
   public void register() {
     if (enabled) {
       try {

@@ -1,5 +1,7 @@
 package ru.hh.nab.starter;
 
+import com.orbitz.consul.AgentClient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +15,7 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class NabAppTestConfig {
   @Bean
   ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata) {
-    return spy(new ConsulService(fileSettings, null, null, appMetadata, null));
+    return spy(new ConsulService(mock(AgentClient.class), fileSettings, null, "localhost", appMetadata, null));
   }
 
   @Bean

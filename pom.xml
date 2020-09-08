@@ -44,6 +44,7 @@
         <jclient.version>1.7.5</jclient.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
+        <orbitz.consul.version>1.4.0</orbitz.consul.version>
     </properties>
 
     <dependencyManagement>
@@ -115,11 +116,6 @@
                 <groupId>org.jetbrains</groupId>
                 <artifactId>syslog4j</artifactId>
                 <version>0.9.46</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecwid.consul</groupId>
-                <artifactId>consul-api</artifactId>
-                <version>1.4.2</version>
             </dependency>
 
             <!--Jackson-->

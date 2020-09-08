@@ -9,6 +9,11 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.google.common.net.HostAndPort;
+import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
+import static java.util.Objects.requireNonNullElse;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,13 +23,14 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InOrder;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
-import ru.hh.nab.starter.exceptions.ConsulServiceException;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
@@ -78,15 +84,8 @@ public class NabApplicationTest {
   public void testFailWithoutConsul() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(BrokenConsulConfig.class);
-    aggregateCtx.refresh();
-
-    JettyServer jettyServer = new NabApplication(new NabServletContextConfig()).createJettyServer(
-      aggregateCtx,
-      false,
-      webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(aggregateCtx))
-    );
-
-    assertThrows(ConsulServiceException.class, jettyServer::start);
+    BeanCreationException exception = assertThrows(BeanCreationException.class, aggregateCtx::refresh);
+    assertEquals("consulClient", exception.getBeanName());
   }
 
   @Test
@@ -131,6 +130,14 @@ public class NabApplicationTest {
   @Configuration
   @Import(NabAppTestConfig.class)
   public static class BrokenConsulConfig {
+    @Bean
+    AgentClient consulClient(FileSettings fileSettings) {
+      HostAndPort hostAndPort = HostAndPort.fromParts(
+              requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"),
+              fileSettings.getInteger("consul.http.port"));
+      return Consul.builder().withHostAndPort(hostAndPort).build().agentClient();
+    }
+
     @Bean
     Properties serviceProperties() {
       Properties properties = new Properties();

@@ -4,6 +4,7 @@ import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
+import static java.util.Objects.requireNonNullElse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
@@ -42,8 +43,8 @@ public class ConsulService {
 
     ImmutableRegCheck regCheck = ImmutableRegCheck.builder()
             .http("http://" + applicationHost + ":" + applicationPort + "/status")
-            .interval(fileSettings.getString("consul.check.interval"))
-            .timeout(fileSettings.getString("consul.check.timeout"))
+            .interval(requireNonNullElse(fileSettings.getString("consul.check.interval"), "5"))
+            .timeout(requireNonNullElse(fileSettings.getString("consul.check.timeout"), "5"))
             .build();
 
     Registration service = ImmutableRegistration.builder()

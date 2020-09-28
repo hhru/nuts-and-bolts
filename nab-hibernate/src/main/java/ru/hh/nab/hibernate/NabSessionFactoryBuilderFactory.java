@@ -1,6 +1,7 @@
 package ru.hh.nab.hibernate;
 
 import org.hibernate.boot.SessionFactoryBuilder;
+import org.hibernate.boot.internal.MetadataImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.spi.AbstractDelegatingSessionFactoryOptions;
@@ -46,7 +47,7 @@ public final class NabSessionFactoryBuilderFactory implements SessionFactoryBuil
 
   public static class HhSessionFactoryBuilder extends SessionFactoryBuilderImpl {
     protected HhSessionFactoryBuilder(MetadataImplementor metadata) {
-      super(metadata);
+      super(metadata, ((MetadataImpl)metadata).getBootstrapContext());
     }
 
     @Override

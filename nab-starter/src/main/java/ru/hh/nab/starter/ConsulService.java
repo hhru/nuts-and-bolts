@@ -29,13 +29,13 @@ public class ConsulService {
   private final String id;
   private final boolean enabled;
 
-  public ConsulService(AgentClient agentClient, FileSettings fileSettings, String datacenter, String address, AppMetadata appMetadata,
+  public ConsulService(AgentClient agentClient, FileSettings fileSettings, String datacenter, String host, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     this.agentClient = agentClient;
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
       .orElse("127.0.0.1");
-    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + address + "-" + applicationPort;
+    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + host + "-" + applicationPort;
     var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
     if (logLevelOverrideExtension != null) {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
@@ -43,25 +43,19 @@ public class ConsulService {
 
     ImmutableRegCheck regCheck = ImmutableRegCheck.builder()
             .http("http://" + applicationHost + ":" + applicationPort + "/status")
-            .interval(requireNonNullElse(fileSettings.getString("consul.check.interval"), "5"))
-            .timeout(requireNonNullElse(fileSettings.getString("consul.check.timeout"), "5"))
+            .interval(requireNonNullElse(fileSettings.getString("consul.check.interval"), "5s"))
+            .timeout(requireNonNullElse(fileSettings.getString("consul.check.timeout"), "5s"))
             .build();
 
-    Registration service = ImmutableRegistration.builder()
+    this.service = ImmutableRegistration.builder()
             .id(id)
             .name(fileSettings.getString("serviceName"))
             .port(applicationPort)
-            .address(address)
-
             .check(regCheck)
-
             .tags(tags)
             .meta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()))
-
             .build();
-    agentClient.register(service);
 
-    this.service = service;
     this.id = id;
     this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);
   }

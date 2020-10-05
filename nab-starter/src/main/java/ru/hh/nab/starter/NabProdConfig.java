@@ -68,8 +68,7 @@ public class NabProdConfig {
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata, AgentClient agentClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
-    var address = InetAddress.getLocalHost().getHostAddress();
-    return new ConsulService(agentClient, fileSettings, datacenter, address, appMetadata,
+    return new ConsulService(agentClient, fileSettings, datacenter, InetAddress.getLocalHost().getHostName(), appMetadata,
             logLevelOverrideExtensionOptional.orElse(null));
   }
 

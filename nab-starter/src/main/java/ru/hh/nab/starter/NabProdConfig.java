@@ -57,11 +57,16 @@ public class NabProdConfig {
   }
 
   @Bean
-  AgentClient consulClient(FileSettings fileSettings) {
+  Consul consul(FileSettings fileSettings) {
     HostAndPort hostAndPort = HostAndPort.fromParts(
             requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"),
             fileSettings.getInteger("consul.http.port"));
-    return Consul.builder().withHostAndPort(hostAndPort).build().agentClient();
+    return Consul.builder().withHostAndPort(hostAndPort).build();
+  }
+
+  @Bean
+  AgentClient consulClient(Consul consul) {
+    return consul.agentClient();
   }
 
   @Bean

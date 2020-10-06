@@ -110,7 +110,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     logger.setLevel(ch.qos.logback.classic.Level.toLevel(level.toString()));
     logger.setAdditive(additivity);
     appenders.forEach(logger::addAppender);
-    addInfo("Created logger for name " + name + "level=" + level + ", additivity=" + additivity + ". appenders="
+    addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="
       + appenders.stream().map(Appender::getName).collect(Collectors.joining(",")));
     return new LoggerWrapper(logger);
   }

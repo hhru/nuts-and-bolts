@@ -18,6 +18,7 @@ import ru.hh.nab.starter.NabCommonConfig;
 import java.util.Properties;
 
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -32,7 +33,7 @@ public class NabTestConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ThreadPool jettyThreadPool(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings("jetty"), serviceName, statsDSender);
+    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceName, statsDSender);
   }
 
   @Bean

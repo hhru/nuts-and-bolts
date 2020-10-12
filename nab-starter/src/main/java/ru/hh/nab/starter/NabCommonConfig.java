@@ -14,6 +14,7 @@ import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.metrics.JvmMetricsSender;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
@@ -30,7 +31,7 @@ public class NabCommonConfig {
 
   @Bean
   MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings("jetty"), serviceName, statsDSender);
+    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceName, statsDSender);
   }
 
   @Bean

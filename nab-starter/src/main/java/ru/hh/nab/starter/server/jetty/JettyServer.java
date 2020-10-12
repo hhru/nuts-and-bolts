@@ -19,12 +19,21 @@ import ru.hh.nab.common.properties.FileSettings;
 import java.util.Optional;
 
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPTORS;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPT_QUEUE_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.CONNECTION_IDLE_TIMEOUT_MS;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.HOST;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.OUTPUT_BUFFER_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.PORT;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.REQUEST_HEADER_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.RESPONSE_HEADER_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.SECURE_PORT;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.SELECTORS;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.STOP_TIMEOUT_SIZE;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
-  public static final String JETTY = "jetty";
-  public static final String PORT = "port";
 
   private final FileSettings jettySettings;
   private final Server server;
@@ -65,7 +74,7 @@ public final class JettyServer {
       throw e;
     } catch (Exception e) {
       stopSilently();
-      String msg = ofNullable(jettySettings.getInteger("port")).filter(port -> port != 0).map(port -> ", port=" + port).orElse("");
+      String msg = ofNullable(jettySettings.getInteger(PORT)).filter(port -> port != 0).map(port -> ", port=" + port).orElse("");
       throw new JettyServerException("Unable to start Jetty server" + msg, e);
     }
   }
@@ -93,15 +102,15 @@ public final class JettyServer {
 
   private void configureConnector() {
     ServerConnector serverConnector = new HHServerConnector(
-      server,
-      ofNullable(jettySettings.getInteger("acceptors")).orElse(-1),
-      ofNullable(jettySettings.getInteger("selectors")).orElse(-1),
-      createHttpConnectionFactory(jettySettings));
+        server,
+        ofNullable(jettySettings.getInteger(ACCEPTORS)).orElse(-1),
+        ofNullable(jettySettings.getInteger(SELECTORS)).orElse(-1),
+        createHttpConnectionFactory(jettySettings));
 
-    serverConnector.setHost(jettySettings.getString("host"));
+    serverConnector.setHost(jettySettings.getString(HOST));
     serverConnector.setPort(jettySettings.getInteger(PORT));
-    serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger("connectionIdleTimeoutMs")).orElse(3_000));
-    serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger("acceptQueueSize")).orElse(50));
+    serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger(CONNECTION_IDLE_TIMEOUT_MS)).orElse(3_000));
+    serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger(ACCEPT_QUEUE_SIZE)).orElse(50));
 
     server.addConnector(serverConnector);
   }
@@ -111,15 +120,15 @@ public final class JettyServer {
   }
 
   private void configureStopTimeout() {
-    server.setStopTimeout(ofNullable(jettySettings.getInteger("stopTimeoutMs")).orElse(5_000));
+    server.setStopTimeout(ofNullable(jettySettings.getInteger(STOP_TIMEOUT_SIZE)).orElse(5_000));
   }
 
   private static HttpConnectionFactory createHttpConnectionFactory(FileSettings jettySettings) {
     final HttpConfiguration httpConfiguration = new HttpConfiguration();
-    httpConfiguration.setSecurePort(Optional.ofNullable(jettySettings.getInteger("securePort")).orElse(8443));
-    httpConfiguration.setOutputBufferSize(Optional.ofNullable(jettySettings.getInteger("outputBufferSize")).orElse(65536));
-    httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger("requestHeaderSize")).orElse(16384));
-    httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger("responseHeaderSize")).orElse(65536));
+    httpConfiguration.setSecurePort(Optional.ofNullable(jettySettings.getInteger(SECURE_PORT)).orElse(8443));
+    httpConfiguration.setOutputBufferSize(Optional.ofNullable(jettySettings.getInteger(OUTPUT_BUFFER_SIZE)).orElse(65536));
+    httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger(REQUEST_HEADER_SIZE)).orElse(16384));
+    httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger(RESPONSE_HEADER_SIZE)).orElse(65536));
     httpConfiguration.setSendServerVersion(false);
     // я не понимаю как таймаут можно заменить на темп.
     // org.eclipse.jetty.server.HttpConfiguration.setMinResponseDataRate будет отрывать соединение не через 5 секунд, а уже после первой передачи,

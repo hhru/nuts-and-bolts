@@ -10,8 +10,6 @@ import java.util.Properties;
 import java.util.concurrent.Executors;
 
 import static java.util.Optional.ofNullable;
-import static ru.hh.nab.starter.server.jetty.JettyServer.JETTY;
-import static ru.hh.nab.starter.server.jetty.JettyServer.PORT;
 
 import com.timgroup.statsd.NoOpStatsDClient;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -21,6 +19,13 @@ import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.MAX_THREADS;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.MIN_THREADS;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.PORT;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.QUEUE_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.SESSION_MANAGER_ENABLED;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.THREAD_POOL_IDLE_TIMEOUT_MS;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 
 import javax.annotation.Nullable;
@@ -51,16 +56,16 @@ public final class JettyServerFactory {
   }
 
   public static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, List<WebAppInitializer> webAppInitializer) {
-    boolean sessionEnabled = ofNullable(jettySettings.getBoolean("session-manager.enabled")).orElse(Boolean.FALSE);
+    boolean sessionEnabled = ofNullable(jettySettings.getBoolean(SESSION_MANAGER_ENABLED)).orElse(Boolean.FALSE);
     return new JettyWebAppContext(webAppInitializer, sessionEnabled);
   }
 
   public static MonitoredQueuedThreadPool createJettyThreadPool(FileSettings jettySettings,
                                                                 String serviceName, StatsDSender statsDSender) throws Exception {
-    int maxThreads = ofNullable(jettySettings.getInteger("maxThreads")).orElse(12);
-    int minThreads = ofNullable(jettySettings.getInteger("minThreads")).orElse(maxThreads);
-    int queueSize = ofNullable(jettySettings.getInteger("queueSize")).orElse(maxThreads);
-    int idleTimeoutMs = ofNullable(jettySettings.getInteger("threadPoolIdleTimeoutMs")).orElse(DEFAULT_IDLE_TIMEOUT_MS);
+    int maxThreads = ofNullable(jettySettings.getInteger(MAX_THREADS)).orElse(12);
+    int minThreads = ofNullable(jettySettings.getInteger(MIN_THREADS)).orElse(maxThreads);
+    int queueSize = ofNullable(jettySettings.getInteger(QUEUE_SIZE)).orElse(maxThreads);
+    int idleTimeoutMs = ofNullable(jettySettings.getInteger(THREAD_POOL_IDLE_TIMEOUT_MS)).orElse(DEFAULT_IDLE_TIMEOUT_MS);
 
     MonitoredQueuedThreadPool threadPool = new MonitoredQueuedThreadPool(
       maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(queueSize), serviceName, statsDSender

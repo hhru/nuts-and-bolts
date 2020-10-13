@@ -1,10 +1,12 @@
 package ru.hh.nab.starter;
 
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
-import static java.util.Objects.requireNonNullElse;
+import com.orbitz.consul.model.catalog.ImmutableServiceWeights;
+import com.orbitz.consul.model.catalog.ServiceWeights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
@@ -23,38 +25,57 @@ public class ConsulService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConsulService.class);
 
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
+  private static final int DEFAULT_WEIGHT = 100;
 
   private final AgentClient agentClient;
+  private final KeyValueClient kvClient;
   private final Registration service;
   private final String id;
   private final boolean enabled;
 
-  public ConsulService(AgentClient agentClient, FileSettings fileSettings, String datacenter, String host, AppMetadata appMetadata,
-                       @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
+  public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
+                              FileSettings fileSettings, String datacenter, String hostName, AppMetadata appMetadata,
+                              @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     this.agentClient = agentClient;
+    this.kvClient = kvClient;
+
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
-      .orElse("127.0.0.1");
-    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + host + "-" + applicationPort;
+        .orElse("127.0.0.1");
+    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + hostName + "-" + applicationPort;
     var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
     if (logLevelOverrideExtension != null) {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
     }
 
-    ImmutableRegCheck regCheck = ImmutableRegCheck.builder()
-            .http("http://" + applicationHost + ":" + applicationPort + "/status")
-            .interval(requireNonNullElse(fileSettings.getString("consul.check.interval"), "5s"))
-            .timeout(requireNonNullElse(fileSettings.getString("consul.check.timeout"), "5s"))
-            .build();
+    Registration.RegCheck regCheck = ImmutableRegCheck.builder()
+        .http("http://" + applicationHost + ":" + applicationPort + "/status")
+        .interval(fileSettings.getString("consul.check.interval", "5s"))
+        .timeout(fileSettings.getString("consul.check.timeout", "5s"))
+        .deregisterCriticalServiceAfter(fileSettings.getString("consul.deregisterCritical.timeout", "10m"))
+        .successBeforePassing(fileSettings.getInteger("consul.check.successCount", 2))
+        .failuresBeforeCritical(fileSettings.getInteger("consul.check.failCount", 2))
+        .build();
+    Optional<String> weight = getWeight(hostName);
+    int weightForService;
+    if(weight.isPresent()){
+      weightForService = weight.map(Integer::parseInt).get();
+    }else {
+      LOGGER.warn("No weight for node:{}", hostName);
+      weightForService = DEFAULT_WEIGHT;
+    }
+
+    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weightForService).warning(weightForService / 3).build();
 
     this.service = ImmutableRegistration.builder()
-            .id(id)
-            .name(fileSettings.getString("serviceName"))
-            .port(applicationPort)
-            .check(regCheck)
-            .tags(tags)
-            .meta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()))
-            .build();
+        .id(id)
+        .name(fileSettings.getString("serviceName"))
+        .port(applicationPort)
+        .check(regCheck)
+        .serviceWeights(serviceWeights)
+        .tags(tags)
+        .meta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()))
+        .build();
 
     this.id = id;
     this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);
@@ -69,6 +90,10 @@ public class ConsulService {
         throw new ConsulServiceException("Can't register service in consul", ex);
       }
     }
+  }
+
+  Optional<String> getWeight(String hostName){
+    return kvClient.getValueAsString(String.format("host/%s/weight", hostName));
   }
 
   @PreDestroy

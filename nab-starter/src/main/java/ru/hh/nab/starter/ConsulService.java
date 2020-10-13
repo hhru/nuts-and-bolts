@@ -58,10 +58,10 @@ public class ConsulService {
         .build();
     Optional<String> weight = getWeight(hostName);
     int weightForService;
-    if(weight.isPresent()){
+    if (weight.isPresent()) {
       weightForService = weight.map(Integer::parseInt).get();
-    }else {
-      LOGGER.warn("No weight for node:{}", hostName);
+    } else {
+      LOGGER.warn("No weight present for node:{}", hostName);
       weightForService = DEFAULT_WEIGHT;
     }
 

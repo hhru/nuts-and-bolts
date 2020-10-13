@@ -1,8 +1,8 @@
 package ru.hh.nab.datasource;
 
 public final class DataSourceSettings {
-  // Connection validation timeout = connect timeout + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS
-  public static final int DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS = 100;
+  // validationTimeout = connectionTimeout * DEFAULT_VALIDATION_TIMEOUT_RATIO
+  public static final double DEFAULT_VALIDATION_TIMEOUT_RATIO = 0.8;
 
   public static final String JDBC_URL = "jdbcUrl";
   public static final String USER = "user";

@@ -103,14 +103,14 @@ public final class JettyServer {
   private void configureConnector() {
     ServerConnector serverConnector = new HHServerConnector(
         server,
-        ofNullable(jettySettings.getInteger(ACCEPTORS)).orElse(-1),
-        ofNullable(jettySettings.getInteger(SELECTORS)).orElse(-1),
+        jettySettings.getInteger(ACCEPTORS, -1),
+        jettySettings.getInteger(SELECTORS, -1),
         createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString(HOST));
     serverConnector.setPort(jettySettings.getInteger(PORT));
-    serverConnector.setIdleTimeout(ofNullable(jettySettings.getInteger(CONNECTION_IDLE_TIMEOUT_MS)).orElse(3_000));
-    serverConnector.setAcceptQueueSize(ofNullable(jettySettings.getInteger(ACCEPT_QUEUE_SIZE)).orElse(50));
+    serverConnector.setIdleTimeout(jettySettings.getInteger(CONNECTION_IDLE_TIMEOUT_MS, 3_000));
+    serverConnector.setAcceptQueueSize(jettySettings.getInteger(ACCEPT_QUEUE_SIZE, 50));
 
     server.addConnector(serverConnector);
   }
@@ -120,15 +120,15 @@ public final class JettyServer {
   }
 
   private void configureStopTimeout() {
-    server.setStopTimeout(ofNullable(jettySettings.getInteger(STOP_TIMEOUT_SIZE)).orElse(5_000));
+    server.setStopTimeout(jettySettings.getInteger(STOP_TIMEOUT_SIZE, 5_000));
   }
 
   private static HttpConnectionFactory createHttpConnectionFactory(FileSettings jettySettings) {
     final HttpConfiguration httpConfiguration = new HttpConfiguration();
-    httpConfiguration.setSecurePort(Optional.ofNullable(jettySettings.getInteger(SECURE_PORT)).orElse(8443));
-    httpConfiguration.setOutputBufferSize(Optional.ofNullable(jettySettings.getInteger(OUTPUT_BUFFER_SIZE)).orElse(65536));
-    httpConfiguration.setRequestHeaderSize(Optional.ofNullable(jettySettings.getInteger(REQUEST_HEADER_SIZE)).orElse(16384));
-    httpConfiguration.setResponseHeaderSize(Optional.ofNullable(jettySettings.getInteger(RESPONSE_HEADER_SIZE)).orElse(65536));
+    httpConfiguration.setSecurePort(jettySettings.getInteger(SECURE_PORT, 8443));
+    httpConfiguration.setOutputBufferSize(jettySettings.getInteger(OUTPUT_BUFFER_SIZE, 65536));
+    httpConfiguration.setRequestHeaderSize(jettySettings.getInteger(REQUEST_HEADER_SIZE, 16384));
+    httpConfiguration.setResponseHeaderSize(jettySettings.getInteger(RESPONSE_HEADER_SIZE, 65536));
     httpConfiguration.setSendServerVersion(false);
     // я не понимаю как таймаут можно заменить на темп.
     // org.eclipse.jetty.server.HttpConfiguration.setMinResponseDataRate будет отрывать соединение не через 5 секунд, а уже после первой передачи,

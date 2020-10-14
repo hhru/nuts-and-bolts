@@ -34,8 +34,8 @@ public class ConsulService {
   private final boolean enabled;
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
-                              FileSettings fileSettings, String datacenter, String hostName, AppMetadata appMetadata,
-                              @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
+                       FileSettings fileSettings, String datacenter, String hostName, AppMetadata appMetadata,
+                       @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
 
@@ -44,6 +44,7 @@ public class ConsulService {
         .orElse("127.0.0.1");
     var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + hostName + "-" + applicationPort;
     var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
+    var warningDivider = fileSettings.getInteger("consul.check.warningDivider", 3);
     if (logLevelOverrideExtension != null) {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
     }
@@ -56,6 +57,7 @@ public class ConsulService {
         .successBeforePassing(fileSettings.getInteger("consul.check.successCount", 2))
         .failuresBeforeCritical(fileSettings.getInteger("consul.check.failCount", 2))
         .build();
+
     Optional<String> weight = getWeight(hostName);
     int weightForService;
     if (weight.isPresent()) {
@@ -65,7 +67,7 @@ public class ConsulService {
       weightForService = DEFAULT_WEIGHT;
     }
 
-    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weightForService).warning(weightForService / 3).build();
+    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weightForService).warning(weightForService / warningDivider).build();
 
     this.service = ImmutableRegistration.builder()
         .id(id)

@@ -44,7 +44,7 @@
         <jclient.version>1.7.5</jclient.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <orbitz.consul.version>1.4.0</orbitz.consul.version>
+        <orbitz.consul.version>1.4.0-hh-1.1</orbitz.consul.version>
     </properties>
 
     <dependencyManagement>

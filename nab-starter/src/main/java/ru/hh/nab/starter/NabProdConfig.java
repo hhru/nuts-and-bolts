@@ -3,6 +3,7 @@ package ru.hh.nab.starter;
 import com.google.common.net.HostAndPort;
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 
@@ -65,15 +66,25 @@ public class NabProdConfig {
   }
 
   @Bean
-  AgentClient consulClient(Consul consul) {
+  AgentClient agentClient(Consul consul) {
     return consul.agentClient();
   }
 
   @Bean
+  KeyValueClient keyValueClient(Consul consul) {
+
+    return consul.keyValueClient();
+  }
+
+  @Bean
   @Lazy(value = false)
-  ConsulService consulService(FileSettings fileSettings, String datacenter, AppMetadata appMetadata, AgentClient agentClient,
+  ConsulService consulService(FileSettings fileSettings,
+                              String datacenter,
+                              AppMetadata appMetadata,
+                              AgentClient agentClient,
+                              KeyValueClient keyValueClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
-    return new ConsulService(agentClient, fileSettings, datacenter, InetAddress.getLocalHost().getHostName(), appMetadata,
+    return new ConsulService(agentClient, keyValueClient, fileSettings, datacenter, InetAddress.getLocalHost().getHostName(), appMetadata,
             logLevelOverrideExtensionOptional.orElse(null));
   }
 

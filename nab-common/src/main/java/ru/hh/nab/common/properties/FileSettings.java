@@ -3,6 +3,7 @@ package ru.hh.nab.common.properties;
 import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import static org.springframework.util.Assert.hasLength;
@@ -16,6 +17,10 @@ public class FileSettings {
 
   public String getString(String key) {
     return properties.getProperty(key);
+  }
+
+  public String getString(String key, String defaultValue) {
+    return Objects.requireNonNullElse(properties.getProperty(key), defaultValue);
   }
 
   public int getInteger(String key, int defaultValue) {

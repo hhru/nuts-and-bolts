@@ -9,7 +9,7 @@ import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import javax.sql.DataSource;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS;
+import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
@@ -20,6 +20,8 @@ import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 
 public class DataSourceFactory {
+  private static final int HIKARI_MIN_VALIDATION_TIMEOUT_MS = 250;
+
   private final MetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
 
   public DataSourceFactory(MetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
@@ -72,7 +74,10 @@ public class DataSourceFactory {
     config.setPassword(dataSourceSettings.getString(PASSWORD));
     config.setPoolName(dataSourceName);
     config.setReadOnly(false);
-    config.setValidationTimeout(config.getConnectionTimeout() + DEFAULT_VALIDATION_TIMEOUT_INCREMENT_MS);
+
+    long validationTimeoutMs = Math.round(config.getConnectionTimeout() * DEFAULT_VALIDATION_TIMEOUT_RATIO);
+    config.setValidationTimeout(Math.max(validationTimeoutMs, HIKARI_MIN_VALIDATION_TIMEOUT_MS));
+
     return config;
   }
 

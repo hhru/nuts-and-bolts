@@ -21,7 +21,7 @@ import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThrea
 
 @Configuration
 public class NabCommonConfig {
-  static final String SERVICE_NAME_PROPERTY = "serviceName";
+  public static final String SERVICE_NAME_PROPERTY = "serviceName";
 
   @Bean
   String serviceName(FileSettings fileSettings) {

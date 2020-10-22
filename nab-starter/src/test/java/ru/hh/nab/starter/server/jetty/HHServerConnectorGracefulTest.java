@@ -69,7 +69,7 @@ public class HHServerConnectorGracefulTest {
 
   @Test
   public void testHHServerConnectorWaitsPendingRequests() throws Exception {
-    repeat(100, () -> {
+    repeat(50, () -> {
       ControlledServlet controlledServlet = new ControlledServlet(204);
       Server server = createServer(controlledServlet);
       server.addConnector(new HHServerConnector(server));

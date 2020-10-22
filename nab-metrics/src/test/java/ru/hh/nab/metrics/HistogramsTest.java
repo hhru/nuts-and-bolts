@@ -56,7 +56,7 @@ public class HistogramsTest {
   @Test
   public void twoThreads() throws InterruptedException {
 
-    int increases = 1_000_000;
+    int increases = 100_00;
     Tag tag1 = new Tag("label", "first");
     Tag tag2 = new Tag("label", "second");
     Runnable task = () -> {
@@ -66,7 +66,7 @@ public class HistogramsTest {
       }
     };
 
-    int tests = 100;
+    int tests = 50;
     for (int t = 1; t <= tests; t++) {
       long start = currentTimeMillis();
       List<Map<Tags, Map<Integer, Integer>>> snapshots = new ArrayList<>();

@@ -28,6 +28,7 @@ import java.util.EnumSet;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
+import ru.hh.nab.starter.servlet.NabWebsocketConfig;
 
 public class NabServletContextConfig {
 
@@ -52,6 +53,7 @@ public class NabServletContextConfig {
    * org.eclipse.jetty.servlet.FilterHolder#initialize() will be called by the container later
    */
   void preConfigureWebApp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
+    webAppContext.getServletContext().setExtendedListenerTypes(true);
     webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
     webAppContext.addEventListener(new RequestContextListener());
@@ -91,6 +93,7 @@ public class NabServletContextConfig {
     configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
     registerServlets(servletConfigs, servletContext, rootCtx);
+    NabWebsocketConfig.registerWebSockets(servletContext, rootCtx);
   }
 
   private List<NabServletConfig> compileFullServletConfiguration(WebApplicationContext rootCtx) {

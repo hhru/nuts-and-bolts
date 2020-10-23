@@ -27,15 +27,17 @@ public final class NabApplicationBuilder {
   private final List<NabServletConfig.Builder> servletBuilders;
   private final List<Function<WebApplicationContext, ServletContextListener>> listenerProviders;
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
-  private BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer;
+  private final List<BiConsumer<WebAppContext, WebApplicationContext>> servletContextHandlerConfigurers;
+
   private NabJerseyConfig.Builder jerseyBuilder;
   private String contextPath;
   private ClassLoader classLoader;
 
   NabApplicationBuilder() {
     servletBuilders = new ArrayList<>();
-    servletContextConfigurers = new ArrayList<>();
     listenerProviders = new ArrayList<>();
+    servletContextConfigurers = new ArrayList<>();
+    servletContextHandlerConfigurers = new ArrayList<>();
   }
 
   public NabApplication build() {
@@ -56,7 +58,7 @@ public final class NabApplicationBuilder {
 
       @Override
       protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
-        Optional.ofNullable(servletContextHandlerConfigurer).ifPresent(cfg -> cfg.accept(webAppContext, rootCtx));
+        servletContextHandlerConfigurers.forEach(cfg -> cfg.accept(webAppContext, rootCtx));
       }
 
       @Override
@@ -125,7 +127,7 @@ public final class NabApplicationBuilder {
   }
 
   public NabApplicationBuilder configureWebapp(BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer) {
-    this.servletContextHandlerConfigurer = servletContextHandlerConfigurer;
+    this.servletContextHandlerConfigurers.add(servletContextHandlerConfigurer);
     return this;
   }
 

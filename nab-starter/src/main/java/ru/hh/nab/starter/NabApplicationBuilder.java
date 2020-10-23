@@ -86,7 +86,7 @@ public final class NabApplicationBuilder {
         if (jerseyBuilder == null) {
           return super.getJerseyConfig();
         }
-        return JerseyBuilder.prepareNabJerseyConfig(jerseyBuilder);
+        return jerseyBuilder.prepareNabJerseyConfig();
       }
     });
   }
@@ -412,39 +412,38 @@ public final class NabApplicationBuilder {
     }
 
     public NabApplicationBuilder bindToRoot() {
-      this.mappings = ROOT_MAPPING;
-      return nabApplicationBuilder.configureJersey(this);
+      return bindTo(ROOT_MAPPING);
     }
 
-    private static NabJerseyConfig prepareNabJerseyConfig(JerseyBuilder jerseyBuilder) {
-      return new NabJerseyConfig(jerseyBuilder.childConfigs) {
+    private NabJerseyConfig prepareNabJerseyConfig() {
+      return new NabJerseyConfig(childConfigs) {
         @Override
         public String[] getMapping() {
-          if (jerseyBuilder.mappings.length == 0) {
+          if (mappings.length == 0) {
             return super.getMapping();
           }
-          return jerseyBuilder.mappings;
+          return mappings;
         }
 
         @Override
         public String getName() {
-          if (StringUtils.isEmpty(jerseyBuilder.servletName)) {
+          if (StringUtils.isEmpty(servletName)) {
             return super.getName();
           }
-          return jerseyBuilder.servletName;
+          return servletName;
         }
 
         @Override
         public Set<String> getAllowedPackages() {
-          if (jerseyBuilder.allowedPackages.isEmpty()) {
+          if (allowedPackages.isEmpty()) {
             return super.getAllowedPackages();
           }
-          return jerseyBuilder.allowedPackages;
+          return allowedPackages;
         }
 
         @Override
         public void configure(WebApplicationContext ctx, ResourceConfig resourceConfig) {
-          jerseyBuilder.configurationActions.forEach(action -> action.accept(ctx, resourceConfig));
+          configurationActions.forEach(action -> action.accept(ctx, resourceConfig));
         }
       };
     }

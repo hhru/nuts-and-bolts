@@ -15,7 +15,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
@@ -25,7 +24,6 @@ import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
-import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.NabWebsocketConfig;

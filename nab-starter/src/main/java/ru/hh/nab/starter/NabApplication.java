@@ -162,8 +162,9 @@ public final class NabApplication {
     }
   }
 
-  private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig, WebApplicationContext baseCtx,
-      boolean directWebappRoot) {
+  private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig,
+                                                           WebApplicationContext baseCtx,
+                                                           boolean directWebappRoot) {
     WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
     return webApp -> {
       servletContextConfig.preConfigureWebApp(webApp, baseCtx);

@@ -2,6 +2,7 @@ package ru.hh.nab.starter;
 
 import com.google.common.net.HostAndPort;
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.CatalogClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.timgroup.statsd.NonBlockingStatsDClient;
@@ -74,6 +75,11 @@ public class NabProdConfig {
   KeyValueClient keyValueClient(Consul consul) {
 
     return consul.keyValueClient();
+  }
+
+  @Bean
+  CatalogClient catalogClient(Consul consul) {
+    return consul.catalogClient();
   }
 
   @Bean

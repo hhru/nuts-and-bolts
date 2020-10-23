@@ -29,6 +29,7 @@ import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.NabWebsocketConfig;
+import ru.hh.nab.starter.servlet.StatusServletConfig;
 
 public class NabServletContextConfig {
 
@@ -105,7 +106,7 @@ public class NabServletContextConfig {
     });
     servletConfigs = new ArrayList<>(servletConfigs);
     servletConfigs.add(getJerseyConfig());
-    servletConfigs.add(0, createStatusServletConfig());
+    servletConfigs.add(0, new StatusServletConfig());
     return Collections.unmodifiableList(servletConfigs);
   }
 
@@ -180,24 +181,4 @@ public class NabServletContextConfig {
     }
   }
 
-  private static NabServletConfig createStatusServletConfig() {
-    return new NabServletConfig() {
-      @Override
-      public String[] getMapping() {
-        return new String[] {"/status"};
-      }
-
-      @Override
-      public String getName() {
-        return "status";
-      }
-
-      @Override
-      public Servlet createServlet(WebApplicationContext rootCtx) {
-        ResourceConfig statusResourceConfig = new ResourceConfig();
-        statusResourceConfig.register(new StatusResource(rootCtx.getBean(AppMetadata.class)));
-        return new ServletContainer(statusResourceConfig);
-      }
-    };
-  }
 }

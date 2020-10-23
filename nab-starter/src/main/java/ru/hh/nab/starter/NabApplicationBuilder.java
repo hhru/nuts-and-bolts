@@ -5,8 +5,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.DispatcherType;
@@ -131,6 +131,11 @@ public final class NabApplicationBuilder {
     return this;
   }
 
+  public NabApplicationBuilder onWebAppStarted(BiConsumer<ServletContext, WebApplicationContext> servletContextConfigurer) {
+    this.servletContextConfigurers.add(servletContextConfigurer);
+    return this;
+  }
+
   public NabServletConfig.Builder addServlet(Function<WebApplicationContext, Servlet> servletInitializer, Class<?>... childConfigs) {
     return new NabServletConfig.Builder(this, servletInitializer, childConfigs);
   }
@@ -149,9 +154,14 @@ public final class NabApplicationBuilder {
     return this;
   }
 
-  private NabApplicationBuilder acceptFilter(AbstractFilterBuilder<?> filterBuilder) {
-    servletContextConfigurers.add(filterBuilder::registrationAction);
+  // method for chaning
+  public NabApplicationBuilder apply(Consumer<NabApplicationBuilder> operation) {
+    operation.accept(this);
     return this;
+  }
+
+  private NabApplicationBuilder acceptFilter(AbstractFilterBuilder<?> filterBuilder) {
+    return this.onWebAppStarted(filterBuilder::registrationAction);
   }
 
   private abstract class AbstractFilterBuilder<IMPL extends AbstractFilterBuilder<IMPL>> {

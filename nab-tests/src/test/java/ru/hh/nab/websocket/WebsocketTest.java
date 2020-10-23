@@ -1,7 +1,8 @@
-package ru.hh.nab.starter.websocket;
+package ru.hh.nab.websocket;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import ru.hh.nab.starter.NabApplication;
+import ru.hh.nab.starter.servlet.NabWebsocketConfigurator;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
 import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
@@ -67,7 +69,9 @@ public class WebsocketTest {
   public static class WebsocketCtx implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder().build();
+      return NabApplication.builder()
+          .apply(builder -> NabWebsocketConfigurator.configureWebsocket(builder, Set.of("ru.hh")))
+          .build();
     }
   }
 

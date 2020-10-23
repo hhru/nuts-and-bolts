@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.websocket;
+package ru.hh.nab.websocket;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -8,7 +8,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint("/wsNabTest")
+@ServerEndpoint(TestEndpoint.WS_URL)
 public class TestEndpoint {
 
   public static final String WS_URL = "/wsNabTest";

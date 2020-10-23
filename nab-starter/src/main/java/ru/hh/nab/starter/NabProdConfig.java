@@ -10,6 +10,7 @@ import com.timgroup.statsd.StatsDClient;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheF
 @Configuration
 @Import({NabCommonConfig.class})
 public class NabProdConfig {
+  public static final String CONSUL_PORT_ENV_KEY = "CONSUL_PORT";
   static final String PROPERTIES_FILE_NAME = "service.properties";
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
@@ -59,9 +61,9 @@ public class NabProdConfig {
 
   @Bean
   Consul consul(FileSettings fileSettings) {
-    HostAndPort hostAndPort = HostAndPort.fromParts(
-            requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"),
-            fileSettings.getInteger("consul.http.port"));
+    int port = ofNullable(fileSettings.getInteger("consul.http.port")).or(() -> of(System.getProperty(CONSUL_PORT_ENV_KEY)).map(Integer::valueOf))
+      .orElseThrow(() -> new IllegalStateException("consul.http.port setting or " + CONSUL_PORT_ENV_KEY + " envmust be provided"));
+    HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"), port);
     return Consul.builder().withHostAndPort(hostAndPort).build();
   }
 

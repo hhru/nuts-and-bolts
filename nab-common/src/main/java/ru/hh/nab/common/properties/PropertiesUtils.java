@@ -16,7 +16,7 @@ public class PropertiesUtils {
   }
 
   public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws IOException {
-    final String settingsDir = System.getProperty(SETINGS_DIR_PROPERTY);
+    final String settingsDir = System.getProperty(SETINGS_DIR_PROPERTY, ".");
     final Properties properties = new Properties();
 
     final Path defaultPath = Paths.get(settingsDir, fileName);

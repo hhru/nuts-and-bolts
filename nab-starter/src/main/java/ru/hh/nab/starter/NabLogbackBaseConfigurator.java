@@ -2,7 +2,9 @@ package ru.hh.nab.starter;
 
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.sentry.logback.SentryAppender;
-import java.nio.file.Path;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
 import org.slf4j.event.Level;
@@ -12,6 +14,9 @@ import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
+
+import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import static ru.hh.nab.starter.NabProdConfig.PROPERTIES_FILE_NAME;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 
@@ -27,8 +32,11 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
   }
 
   protected Properties createProperties() {
-    var settingsDir = System.getProperty("settingsDir");
-    return loadPropertiesFile(Path.of(settingsDir).resolve("service.properties"));
+    try {
+      return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   @Override

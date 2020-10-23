@@ -137,7 +137,8 @@ public class NabServletContextConfig {
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, Class<F> filterClass,
-    Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                                       Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes,
+                                                       String... mappings) {
     validateMappings(mappings);
 
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filterClass);
@@ -147,12 +148,12 @@ public class NabServletContextConfig {
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                                       EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
     registerFilter(servletContext, filterName, filter, dispatcherTypes, true, mappings);
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-    EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
+                                                       EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
     validateMappings(mappings);
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
     dynamic.setAsyncSupported(async);
@@ -170,13 +171,12 @@ public class NabServletContextConfig {
   }
 
   public static void registerFilter(ServletContext servletContext, String filterName, FilterHolder filterHolder,
-      EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
     validateMappings(mappings);
     if (filterHolder.isInstance()) {
       registerFilter(servletContext, filterName, filterHolder.getFilter(), dispatcherTypes, mappings);
     } else {
-      registerFilter(servletContext, filterName, filterHolder.getHeldClass(), filterHolder.getInitParameters(),
-        dispatcherTypes, mappings);
+      registerFilter(servletContext, filterName, filterHolder.getHeldClass(), filterHolder.getInitParameters(), dispatcherTypes, mappings);
     }
   }
 

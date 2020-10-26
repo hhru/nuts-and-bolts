@@ -7,7 +7,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.annotation.Name;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import java.nio.channels.SelectableChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * ServerConnector that:<br/>
@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 public final class HHServerConnector extends ServerConnector {
 
   private static final Logger logger = LoggerFactory.getLogger(HHServerConnector.class);
+  private LongAdder requestStat = new LongAdder();
 
   public HHServerConnector(@Name("server") Server server) {
     super(server);
@@ -90,20 +91,16 @@ public final class HHServerConnector extends ServerConnector {
 
     @Override
     public void accept(SelectableChannel channel) {
-      Executor executor = getExecutor();
-      if (executor instanceof QueuedThreadPool) {
-        QueuedThreadPool queuedThreadPool = (QueuedThreadPool) executor;
-        if (queuedThreadPool.isLowOnThreads()) {
-          logger.warn("low on threads, closing accepted socket");
-          try {
-            channel.close();
-          } catch (IOException e) {
-            logger.warn("failed to close socket, leaving socket as is", e);
-          }
-          return;
-        }
+      requestStat.increment();
+      long sum = requestStat.sum();
+      if (sum % 10000 == 0) {
+        logger.warn("low on threads, closing accepted socket already for " + sum + " requests");
       }
-      super.accept(channel);
+      try {
+        channel.close();
+      } catch (IOException e) {
+        logger.warn("failed to close socket, leaving socket as is", e);
+      }
     }
   }
 

@@ -31,6 +31,10 @@ public class ResourceHelper {
     return getServerAddress(jettyServer.getPort()).toString();
   }
 
+  public String baseUrl(String protocol) {
+    return getServerAddress(protocol, jettyServer.getPort()).toString();
+  }
+
   public int port() {
     return jettyServer.getPort();
   }
@@ -70,11 +74,16 @@ public class ResourceHelper {
   }
 
   public static URI getServerAddress(int port) {
+    return getServerAddress(HTTP, port);
+  }
+
+  public static URI getServerAddress(String protocol, int port) {
     try {
       String hostAddress = InetAddress.getLoopbackAddress().getHostAddress();
-      return new URI(HTTP, null, hostAddress, port, null, null, null);
+      return new URI(protocol, null, hostAddress, port, null, null, null);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
+
 }

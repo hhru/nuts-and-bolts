@@ -1,48 +1,43 @@
 package ru.hh.nab.starter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
-import javax.ws.rs.Path;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 
 public final class NabApplicationBuilder {
-  private static final String[] ROOT_MAPPING = {"/*"};
+  public static final String[] ROOT_MAPPING = {"/*"};
 
-  private final List<ServletBuilder> servletBuilders;
+  private final List<NabServletConfig.Builder> servletBuilders;
   private final List<Function<WebApplicationContext, ServletContextListener>> listenerProviders;
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
-  private BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer;
-  private JerseyBuilder jerseyBuilder;
+  private final List<BiConsumer<WebAppContext, WebApplicationContext>> servletContextHandlerConfigurers;
+
+  private NabJerseyConfig.Builder jerseyBuilder;
   private String contextPath;
   private ClassLoader classLoader;
 
   NabApplicationBuilder() {
     servletBuilders = new ArrayList<>();
-    servletContextConfigurers = new ArrayList<>();
     listenerProviders = new ArrayList<>();
+    servletContextConfigurers = new ArrayList<>();
+    servletContextHandlerConfigurers = new ArrayList<>();
   }
 
   public NabApplication build() {
@@ -63,7 +58,7 @@ public final class NabApplicationBuilder {
 
       @Override
       protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
-        Optional.ofNullable(servletContextHandlerConfigurer).ifPresent(cfg -> cfg.accept(webAppContext, rootCtx));
+        servletContextHandlerConfigurers.forEach(cfg -> cfg.accept(webAppContext, rootCtx));
       }
 
       @Override
@@ -78,7 +73,7 @@ public final class NabApplicationBuilder {
 
       @Override
       protected List<NabServletConfig> getServletConfigs(WebApplicationContext rootCtx) {
-        return ServletBuilder.prepareNabServletConfigs(servletBuilders);
+        return servletBuilders.stream().map(NabServletConfig.Builder::build).collect(Collectors.toList());
       }
 
       @Override
@@ -86,7 +81,7 @@ public final class NabApplicationBuilder {
         if (jerseyBuilder == null) {
           return super.getJerseyConfig();
         }
-        return JerseyBuilder.prepareNabJerseyConfig(jerseyBuilder);
+        return jerseyBuilder.build();
       }
     });
   }
@@ -132,32 +127,41 @@ public final class NabApplicationBuilder {
   }
 
   public NabApplicationBuilder configureWebapp(BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer) {
-    this.servletContextHandlerConfigurer = servletContextHandlerConfigurer;
+    this.servletContextHandlerConfigurers.add(servletContextHandlerConfigurer);
     return this;
   }
 
-  public ServletBuilder addServlet(Function<WebApplicationContext, Servlet> servletInitializer, Class<?>... childConfigs) {
-    return new ServletBuilder(this, servletInitializer, childConfigs);
+  public NabApplicationBuilder onWebAppStarted(BiConsumer<ServletContext, WebApplicationContext> servletContextConfigurer) {
+    this.servletContextConfigurers.add(servletContextConfigurer);
+    return this;
   }
 
-  public JerseyBuilder configureJersey(Class<?>... childConfigs) {
-    return new JerseyBuilder(this, childConfigs);
+  public NabServletConfig.Builder addServlet(Function<WebApplicationContext, Servlet> servletInitializer, Class<?>... childConfigs) {
+    return new NabServletConfig.Builder(this, servletInitializer, childConfigs);
   }
 
-  public NabApplicationBuilder addServlet(ServletBuilder servletBuilder) {
+  public NabJerseyConfig.Builder configureJersey(Class<?>... childConfigs) {
+    return new NabJerseyConfig.Builder(this, childConfigs);
+  }
+
+  public NabApplicationBuilder addServlet(NabServletConfig.Builder servletBuilder) {
     servletBuilders.add(servletBuilder);
     return this;
   }
 
-
-  public NabApplicationBuilder configureJersey(JerseyBuilder jerseyBuilder) {
+  public NabApplicationBuilder configureJersey(NabJerseyConfig.Builder jerseyBuilder) {
     this.jerseyBuilder = jerseyBuilder;
     return this;
   }
 
-  private NabApplicationBuilder acceptFilter(AbstractFilterBuilder<?> filterBuilder) {
-    servletContextConfigurers.add(filterBuilder::registrationAction);
+  // method for chaning
+  public NabApplicationBuilder apply(Consumer<NabApplicationBuilder> operation) {
+    operation.accept(this);
     return this;
+  }
+
+  private NabApplicationBuilder acceptFilter(AbstractFilterBuilder<?> filterBuilder) {
+    return this.onWebAppStarted(filterBuilder::registrationAction);
   }
 
   private abstract class AbstractFilterBuilder<IMPL extends AbstractFilterBuilder<IMPL>> {
@@ -198,8 +202,7 @@ public final class NabApplicationBuilder {
     }
 
     public NabApplicationBuilder bindToRoot() {
-      this.mappings = ROOT_MAPPING;
-      return acceptFilter(this);
+      return bindTo(ROOT_MAPPING);
     }
   }
 
@@ -298,157 +301,4 @@ public final class NabApplicationBuilder {
     }
   }
 
-  public static final class ServletBuilder {
-
-    private final NabApplicationBuilder nabApplicationBuilder;
-    private final Class<?>[] childConfigurations;
-    private final Function<WebApplicationContext, Servlet> servletInitializer;
-    private String[] mappings;
-    private String servletName;
-
-    public ServletBuilder(NabApplicationBuilder nabApplicationBuilder, Function<WebApplicationContext, Servlet> servletInitializer,
-      Class<?>... childConfigurations) {
-      this.nabApplicationBuilder = nabApplicationBuilder;
-      this.servletInitializer = servletInitializer;
-      this.childConfigurations = childConfigurations;
-    }
-
-    public ServletBuilder setServletName(String servletName) {
-      this.servletName = servletName;
-      return this;
-    }
-
-    public NabApplicationBuilder bindTo(String... mappings) {
-      this.mappings = mappings;
-      return nabApplicationBuilder.addServlet(this);
-    }
-
-    public NabApplicationBuilder bindToRoot() {
-      this.mappings = ROOT_MAPPING;
-      return nabApplicationBuilder.addServlet(this);
-    }
-
-    private static List<NabServletConfig> prepareNabServletConfigs(List<ServletBuilder> servletBuilders) {
-      return servletBuilders.stream().map(servletBuilder -> new NabServletConfig() {
-        @Override
-        public String[] getMapping() {
-          return servletBuilder.mappings;
-        }
-
-        @Override
-        public String getName() {
-          if (StringUtils.isEmpty(servletBuilder.servletName)) {
-            return String.join("", getMapping());
-          }
-          return servletBuilder.servletName;
-        }
-
-        @Override
-        public Servlet createServlet(WebApplicationContext rootCtx) {
-          WebApplicationContext context = createActiveChildCtx(rootCtx, servletBuilder.childConfigurations);
-          return servletBuilder.servletInitializer.apply(context);
-        }
-      }).collect(Collectors.toList());
-    }
-  }
-
-  public static final class JerseyBuilder {
-    private final NabApplicationBuilder nabApplicationBuilder;
-    private final Class<?>[] childConfigs;
-    private String[] mappings;
-    private final Set<String> allowedPackages;
-    private String servletName;
-    private final List<BiConsumer<WebApplicationContext, ResourceConfig>> configurationActions;
-
-    public JerseyBuilder(NabApplicationBuilder nabApplicationBuilder, Class<?>... childConfigs) {
-      this.nabApplicationBuilder = nabApplicationBuilder;
-      this.childConfigs = childConfigs;
-      allowedPackages = new HashSet<>();
-      configurationActions = new ArrayList<>();
-    }
-
-    public JerseyBuilder registerResources(Class<?>... resources) {
-      if (Stream.of(resources).anyMatch(cls -> cls.isAnnotationPresent(Path.class))) {
-        throw new IllegalArgumentException("Endpoints must be registered with Spring context. " +
-          "The method should be used to register pure jersey components with minimal dependencies");
-      }
-      configurationActions.add((ctx, resourceConfig) -> Arrays.stream(resources).forEach(resourceConfig::register));
-      return this;
-    }
-
-    public JerseyBuilder registerResourceBean(Function<WebApplicationContext, ?> resourceProvider) {
-      configurationActions.add((ctx, resourceConfig) -> resourceConfig.register(resourceProvider.apply(ctx)));
-      return this;
-    }
-
-    public JerseyBuilder registerResourceWithContracts(Class<?> resource, Class<?>... contracts) {
-      configurationActions.add((ctx, resourceConfig) -> resourceConfig.register(resource, contracts));
-      return this;
-    }
-
-    public JerseyBuilder registerProperty(String key, Object value) {
-      configurationActions.add((ctx, resourceConfig) -> resourceConfig.property(key, value));
-      return this;
-    }
-
-    public JerseyBuilder executeOnConfig(Consumer<ResourceConfig> configurationAction) {
-      configurationActions.add((ctx, resourceConfig) -> configurationAction.accept(resourceConfig));
-      return this;
-    }
-
-    public JerseyBuilder setServletName(String servletName) {
-      this.servletName = servletName;
-      return this;
-    }
-
-    public JerseyBuilder addAllowedPackages(String... allowedPackages) {
-      this.allowedPackages.addAll(Arrays.asList(allowedPackages));
-      return this;
-    }
-
-    public NabApplicationBuilder bindTo(String... mappings) {
-      this.mappings = mappings;
-      return nabApplicationBuilder.configureJersey(this);
-    }
-
-    public NabApplicationBuilder bindToRoot() {
-      this.mappings = ROOT_MAPPING;
-      return nabApplicationBuilder.configureJersey(this);
-    }
-
-    private static NabJerseyConfig prepareNabJerseyConfig(JerseyBuilder jerseyBuilder) {
-      return new NabJerseyConfig(jerseyBuilder.childConfigs) {
-        @Override
-        public String[] getMapping() {
-          if (jerseyBuilder.mappings.length == 0) {
-            return super.getMapping();
-          }
-          return jerseyBuilder.mappings;
-        }
-
-        @Override
-        public String getName() {
-          if (StringUtils.isEmpty(jerseyBuilder.servletName)) {
-            return super.getName();
-          }
-          return jerseyBuilder.servletName;
-        }
-
-        @Override
-        public Set<String> getAllowedPackages() {
-          if (jerseyBuilder.allowedPackages.isEmpty()) {
-            return super.getAllowedPackages();
-          }
-          return jerseyBuilder.allowedPackages;
-        }
-
-        @Override
-        public void configure(WebApplicationContext ctx, ResourceConfig resourceConfig) {
-          jerseyBuilder.configurationActions.forEach(action -> action.accept(ctx, resourceConfig));
-        }
-      };
-    }
-  }
 }
-
-

@@ -15,7 +15,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
@@ -25,9 +24,9 @@ import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
-import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
+import ru.hh.nab.starter.servlet.StatusServletConfig;
 
 public class NabServletContextConfig {
 
@@ -102,7 +101,7 @@ public class NabServletContextConfig {
     });
     servletConfigs = new ArrayList<>(servletConfigs);
     servletConfigs.add(getJerseyConfig());
-    servletConfigs.add(0, createStatusServletConfig());
+    servletConfigs.add(0, new StatusServletConfig());
     return Collections.unmodifiableList(servletConfigs);
   }
 
@@ -134,7 +133,8 @@ public class NabServletContextConfig {
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, Class<F> filterClass,
-    Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                                       Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes,
+                                                       String... mappings) {
     validateMappings(mappings);
 
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filterClass);
@@ -144,12 +144,12 @@ public class NabServletContextConfig {
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                                       EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
     registerFilter(servletContext, filterName, filter, dispatcherTypes, true, mappings);
   }
 
   public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-    EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
+                                                       EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
     validateMappings(mappings);
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
     dynamic.setAsyncSupported(async);
@@ -167,34 +167,13 @@ public class NabServletContextConfig {
   }
 
   public static void registerFilter(ServletContext servletContext, String filterName, FilterHolder filterHolder,
-      EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+                                    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
     validateMappings(mappings);
     if (filterHolder.isInstance()) {
       registerFilter(servletContext, filterName, filterHolder.getFilter(), dispatcherTypes, mappings);
     } else {
-      registerFilter(servletContext, filterName, filterHolder.getHeldClass(), filterHolder.getInitParameters(),
-        dispatcherTypes, mappings);
+      registerFilter(servletContext, filterName, filterHolder.getHeldClass(), filterHolder.getInitParameters(), dispatcherTypes, mappings);
     }
   }
 
-  private static NabServletConfig createStatusServletConfig() {
-    return new NabServletConfig() {
-      @Override
-      public String[] getMapping() {
-        return new String[] {"/status"};
-      }
-
-      @Override
-      public String getName() {
-        return "status";
-      }
-
-      @Override
-      public Servlet createServlet(WebApplicationContext rootCtx) {
-        ResourceConfig statusResourceConfig = new ResourceConfig();
-        statusResourceConfig.register(new StatusResource(rootCtx.getBean(AppMetadata.class)));
-        return new ServletContainer(statusResourceConfig);
-      }
-    };
-  }
 }

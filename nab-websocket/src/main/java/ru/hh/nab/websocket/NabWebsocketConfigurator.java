@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.servlet;
+package ru.hh.nab.websocket;
 
 import java.util.Collection;
 import java.util.List;

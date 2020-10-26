@@ -19,7 +19,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.starter.servlet.NabWebsocketConfigurator;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
 import ru.hh.nab.testbase.extensions.NabJunitWebConfig;

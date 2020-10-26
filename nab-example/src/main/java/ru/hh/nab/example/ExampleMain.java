@@ -2,7 +2,7 @@ package ru.hh.nab.example;
 
 import java.util.Set;
 import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.starter.servlet.NabWebsocketConfigurator;
+import ru.hh.nab.websocket.NabWebsocketConfigurator;
 
 public class ExampleMain {
 

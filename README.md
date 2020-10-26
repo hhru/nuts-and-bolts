@@ -24,7 +24,8 @@ update 4.17.10 -> 4.18.0 - should require some additional code
     * graceful shutdown (waits for current requests to be completed before shutdown)
     * built-in off-heap server cache
     * built-in monitoring
-    * logging filters      
+    * logging filters
+    * websocket support
     
 * JDBC:
     * using multiple data sources (master, slaves)
@@ -35,6 +36,9 @@ update 4.17.10 -> 4.18.0 - should require some additional code
 * Hibernate:
     * transaction support for multiple data sources
     * extended logging for queries (requestId, controller name)            
+
+* Kafka-integration:
+    * consumers/producers configuration
 
 ## Getting started
 [Full example](https://github.com/hhru/nuts-and-bolts/tree/master/nab-example)

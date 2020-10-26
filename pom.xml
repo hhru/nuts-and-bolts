@@ -27,6 +27,7 @@
         <module>nab-metrics</module>
         <module>nab-kafka</module>
         <module>nab-testbase-old</module>
+        <module>network-test</module>
     </modules>
 
     <properties>

@@ -1,0 +1,1 @@
+for i in {1..10000}; do curl --fail --silent --show-error localhost:9200/status; done 2>&1 | sort | uniq -c

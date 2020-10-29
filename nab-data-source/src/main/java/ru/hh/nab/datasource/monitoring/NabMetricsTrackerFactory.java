@@ -62,28 +62,19 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
     private final Counters usageCounters, timeoutCounters, sampledUsageCounters;
     private final Histogram creationHistogram, acquisitionHistogram, usageHistogram;
     private final CompressedStackFactory compressedStackFactory;
+    private final Tag datasourceTag, appTag;
 
     MonitoringMetricsTracker(String poolName, PoolStats poolStats) {
       this.poolName = poolName;
+      this.datasourceTag = new Tag("datasource", poolName);
+      this.appTag = new Tag("app", serviceName);
+      Tag[] jdbcTags = new Tag[]{datasourceTag, appTag};
 
       creationHistogram = new Histogram(2000);
       acquisitionHistogram = new Histogram(2000);
       usageHistogram = new Histogram(2000);
       usageCounters = new Counters(500);
       timeoutCounters = new Counters(500);
-
-      String creationMetricName = getFullMetricName(CREATION_MS);
-      String acquisitionMetricName = getFullMetricName(ACQUISITION_MS);
-      String usageMetricName = getFullMetricName(USAGE_MS);
-      String totalUsageMetricName = getFullMetricName(TOTAL_USAGE_MS);
-      String connectionTimeoutsMetricName = getFullMetricName(CONNECTION_TIMEOUTS);
-      String activeConnectionsMetricName = getFullMetricName(ACTIVE_CONNECTIONS);
-      String totalConnectionsMetricName = getFullMetricName(TOTAL_CONNECTIONS);
-      String idleConnectionsMetricName = getFullMetricName(IDLE_CONNECTIONS);
-      String maxConnectionsMetricName = getFullMetricName(MAX_CONNECTIONS);
-      String minConnectionsMetricName = getFullMetricName(MIN_CONNECTIONS);
-      String pendingThreadsMetricName = getFullMetricName(PENDING_THREADS);
-      String sampledUsageMetricName = getFullMetricName(SAMPLED_USAGE_MS);
 
       if (sendSampledStats) {
         compressedStackFactory = new CompressedStackFactory(compressedStackFactoryConfig);
@@ -94,27 +85,23 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       }
 
       statsDSender.sendPeriodically(() -> {
-        statsDSender.sendHistogram(creationMetricName, creationHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendHistogram(acquisitionMetricName, acquisitionHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendHistogram(usageMetricName, usageHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendCounters(totalUsageMetricName, usageCounters);
-        statsDSender.sendCounters(connectionTimeoutsMetricName, timeoutCounters);
+        statsDSender.sendHistogram(CREATION_MS, jdbcTags, creationHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendHistogram(ACQUISITION_MS, jdbcTags, acquisitionHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendHistogram(USAGE_MS, jdbcTags, usageHistogram, DEFAULT_PERCENTILES);
+        statsDSender.sendCounters(TOTAL_USAGE_MS, usageCounters);
+        statsDSender.sendCounters(CONNECTION_TIMEOUTS, timeoutCounters);
 
-        statsDSender.sendGauge(activeConnectionsMetricName, poolStats.getActiveConnections());
-        statsDSender.sendGauge(totalConnectionsMetricName, poolStats.getTotalConnections());
-        statsDSender.sendGauge(idleConnectionsMetricName, poolStats.getIdleConnections());
-        statsDSender.sendGauge(maxConnectionsMetricName, poolStats.getMaxConnections());
-        statsDSender.sendGauge(minConnectionsMetricName, poolStats.getMinConnections());
-        statsDSender.sendGauge(pendingThreadsMetricName, poolStats.getPendingThreads());
+        statsDSender.sendGauge(ACTIVE_CONNECTIONS, poolStats.getActiveConnections(), jdbcTags);
+        statsDSender.sendGauge(TOTAL_CONNECTIONS, poolStats.getTotalConnections(), jdbcTags);
+        statsDSender.sendGauge(IDLE_CONNECTIONS, poolStats.getIdleConnections(), jdbcTags);
+        statsDSender.sendGauge(MAX_CONNECTIONS, poolStats.getMaxConnections(), jdbcTags);
+        statsDSender.sendGauge(MIN_CONNECTIONS, poolStats.getMinConnections(), jdbcTags);
+        statsDSender.sendGauge(PENDING_THREADS, poolStats.getPendingThreads(), jdbcTags);
 
         if (sampledUsageCounters != null) {
-          statsDSender.sendCounters(sampledUsageMetricName, sampledUsageCounters);
+          statsDSender.sendCounters(SAMPLED_USAGE_MS, sampledUsageCounters);
         }
       });
-    }
-
-    private String getFullMetricName(String shortMetricName) {
-      return serviceName + '.' + poolName + '.' + shortMetricName;
     }
 
     @Override
@@ -138,19 +125,18 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
         );
         LOGGER.error(message, new RuntimeException(poolName + " connection usage duration exceeded"));
       }
-
-      Tag controllerTag = new Tag("controller", MDC.getController().orElse("unknown"));
-      usageCounters.add(connectionUsageMs, controllerTag);
+      Tag[] tags = new Tag[]{datasourceTag, appTag, new Tag("controller", MDC.getController().orElse("unknown"))};
+      usageCounters.add(connectionUsageMs, tags);
       usageHistogram.save(connectionUsageMs);
 
       if (sendSampledStats && ThreadLocalRandom.current().nextInt(100) == 0) {
-        sampledUsageCounters.add(connectionUsageMs, new Tag("stack", compressedStackFactory.create()));
+        sampledUsageCounters.add(connectionUsageMs, datasourceTag, appTag, new Tag("stack", compressedStackFactory.create()));
       }
     }
 
     @Override
     public void recordConnectionTimeout() {
-      timeoutCounters.add(1);
+      timeoutCounters.add(1, datasourceTag, appTag);
     }
   }
 }

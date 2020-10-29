@@ -48,6 +48,10 @@ public class StatsDSender {
     computeAndSendPercentiles(metricName, null, histogram.getValueToCountAndReset(), percentiles);
   }
 
+  public void sendHistogram(String metricName, Tag[] tags, Histogram histogram, int... percentiles) {
+    computeAndSendPercentiles(metricName, tags, histogram.getValueToCountAndReset(), percentiles);
+  }
+
   public void sendHistograms(String metricName, Histograms histograms, int... percentiles) {
     Map<Tags, Map<Integer, Integer>> tagsToHistogram = histograms.getTagsToHistogramAndReset();
     for (Map.Entry<Tags, Map<Integer, Integer>> tagsAndHistogram : tagsToHistogram.entrySet()) {

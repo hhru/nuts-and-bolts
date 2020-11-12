@@ -15,6 +15,7 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
   private final KafkaConsumer<T> kafkaConsumer;
   private final Consumer<?, ?> consumer;
   private Integer lastCommittedIndex = null;
+  private boolean isAcknowledge;
 
   public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer,
                                Consumer<?, ?> consumer) {
@@ -50,10 +51,16 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
     ));
     consumer.commitSync(offsetsToCommit);
     seek(processedMessage);
+    isAcknowledge = true;
   }
 
   @Override
   public void seek(ConsumerRecord<String, T> processedMessage) {
     kafkaConsumer.setLastAckedBatchRecord(processedMessage);
+  }
+
+  @Override
+  public boolean isAcknowledge() {
+    return isAcknowledge;
   }
 }

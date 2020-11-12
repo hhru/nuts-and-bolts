@@ -10,4 +10,6 @@ public interface Ack<T> {
 
   void seek(ConsumerRecord<String, T> lastProcessedRecord);
 
+  boolean isAcknowledge();
+
 }

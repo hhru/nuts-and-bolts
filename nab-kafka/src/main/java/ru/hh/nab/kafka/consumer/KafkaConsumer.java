@@ -67,14 +67,12 @@ public class KafkaConsumer<T> {
     currentBatch.set(sortedBatch);
     Ack<T> ack = new KafkaInternalTopicAck<>(this, consumer);
     consumeStrategy.onMessagesBatch(sortedBatch, ack);
-    if (!ack.isAcknowledge()) {
-      rewindToLastAckedOffset(consumer);
-    }
+    rewindToLastAckedOffset(consumer);
   }
 
   public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
     List<ConsumerRecord<String, T>> currentBatch = getCurrentBatch();
-    if (!currentBatch.isEmpty()) {
+    if (!currentBatch.isEmpty() && currentBatch.get(currentBatch.size() - 1) != getLastAckedBatchRecord()) {
       LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = currentBatch.stream().collect(toMap(
           record -> new TopicPartition(record.topic(), record.partition()),
           record -> new OffsetAndMetadata(record.offset()),

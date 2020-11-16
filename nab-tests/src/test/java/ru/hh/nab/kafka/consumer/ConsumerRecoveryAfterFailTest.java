@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,18 +27,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.mock;
 
 public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   private static AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
   private List<String> processedMessages;
   private KafkaConsumer<String> consumer;
-  private Consumer<?, ?> consumerMock;
 
   @BeforeEach
   public void setUp() {
     processedMessages = synchronizedList(new ArrayList<>());
-    consumerMock = mock(Consumer.class);
   }
 
   @Test
@@ -48,19 +44,6 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
 
     startConsumer((messages, ack) -> messages.forEach(m -> processedMessages.add(m.value())));
     assertProcessedMessagesMoreThan(500);
-  }
-
-  @Test
-  public void testRewindToAckOffset() throws InterruptedException {
-    putMessagesIntoKafka(117);
-
-    startConsumer((messages, ack) -> {
-      messages.forEach(m -> processedMessages.add(m.value()));
-      ack.acknowledge();
-      consumer.rewindToLastAckedOffset(consumerMock);
-    });
-
-    assertProcessedMessagesCount(117);
   }
 
   @Test
@@ -83,6 +66,22 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
 
     consumeAllRemainingMessages();
     assertProcessedMessagesCount(117 + 5);
+    assertUniqueProcessedMessagesCount(117);
+  }
+
+  @Test
+  public void testSeekWithoutAck() throws InterruptedException {
+    putMessagesIntoKafka(117);
+    startConsumer((messages, ack) -> {
+      messages.forEach(m -> {
+        processedMessages.add(m.value());
+          ack.seek(m);
+      });
+    });
+    assertProcessedMessagesCount(117);
+
+    consumeAllRemainingMessages();
+    assertProcessedMessagesCount(117 * 2);
     assertUniqueProcessedMessagesCount(117);
   }
 

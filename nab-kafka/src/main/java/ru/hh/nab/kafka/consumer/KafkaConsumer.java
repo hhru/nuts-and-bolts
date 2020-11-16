@@ -83,7 +83,7 @@ public class KafkaConsumer<T> {
       ));
 
       Optional.ofNullable(getLastAckedBatchRecord()).ifPresent(lastAckedBatchRecord -> {
-        for (ConsumerRecord<String, T> record : getCurrentBatch()) {
+        for (ConsumerRecord<String, T> record : currentBatch) {
           offsetsToSeek.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset() + 1));
           if (record == lastAckedBatchRecord) {
             break;

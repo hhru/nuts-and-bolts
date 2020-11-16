@@ -15,7 +15,7 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
   private final KafkaConsumer<T> kafkaConsumer;
   private final Consumer<?, ?> consumer;
   private Integer lastCommittedIndex = null;
-  private boolean isAcknowledge;
+  private boolean isAcknowledge = false;
 
   public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer,
                                Consumer<?, ?> consumer) {

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,30 +43,45 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     putMessagesIntoKafka(117);
 
     startConsumer((messages, ack) -> messages.forEach(m -> processedMessages.add(m.value())));
-    assertProcessedMessagesCount(117);
-
-    consumeAllRemainingMessages();
-    assertProcessedMessagesCount(234);
-    assertUniqueProcessedMessagesCount(117);
+    assertProcessedMessagesMoreThan(500);
   }
 
   @Test
   public void testSeek() throws InterruptedException {
     putMessagesIntoKafka(117);
     AtomicBoolean failed = new AtomicBoolean(false);
-    startConsumer((messages, ack) -> messages.forEach(m -> {
-      processedMessages.add(m.value());
-      if (processedMessages.size() == 40) {
-        ack.seek(m);
-      }
-      if (!failed.get() && processedMessages.size() == 45) {
-        throw new IllegalStateException("Processing failed");
-      }
-    }));
+    startConsumer((messages, ack) -> {
+      messages.forEach(m -> {
+        processedMessages.add(m.value());
+        if (processedMessages.size() == 40) {
+          ack.seek(m);
+        }
+        if (!failed.get() && processedMessages.size() == 45) {
+          throw new IllegalStateException("Processing failed");
+        }
+      });
+      ack.acknowledge();
+    });
     assertProcessedMessagesCount(117 + 5);
 
     consumeAllRemainingMessages();
-    assertProcessedMessagesCount(117 * 2 + 5);
+    assertProcessedMessagesCount(117 + 5);
+    assertUniqueProcessedMessagesCount(117);
+  }
+
+  @Test
+  public void testSeekWithoutAck() throws InterruptedException {
+    putMessagesIntoKafka(117);
+    startConsumer((messages, ack) -> {
+      messages.forEach(m -> {
+        processedMessages.add(m.value());
+          ack.seek(m);
+      });
+    });
+    assertProcessedMessagesCount(117);
+
+    consumeAllRemainingMessages();
+    assertProcessedMessagesCount(117 * 2);
     assertUniqueProcessedMessagesCount(117);
   }
 
@@ -198,8 +214,12 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     waitUntil(() -> assertEquals(expectedCount, processedMessages.size()));
   }
 
+  private void assertProcessedMessagesMoreThan(int expectedCount) throws InterruptedException {
+    waitUntil(() -> assertTrue(expectedCount < processedMessages.size()));
+  }
+
   private void assertUniqueProcessedMessagesCount(int expectedCount) {
-    assertEquals(expectedCount, new HashSet<>(processedMessages).size());
+    assertEquals(expectedCount, new CopyOnWriteArraySet<>(processedMessages).size());
   }
 
   private void waitUntil(Runnable assertion) throws InterruptedException {
@@ -208,7 +228,10 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   }
 
   private void consumeAllRemainingMessages() {
-    startConsumer((messages, ack) -> messages.forEach(m -> processedMessages.add(m.value())));
+    startConsumer((messages, ack) -> {
+      messages.forEach(m -> processedMessages.add(m.value()));
+      ack.acknowledge();
+    });
   }
 
   protected void startConsumer(ConsumeStrategy<String> consumerStrategy) {

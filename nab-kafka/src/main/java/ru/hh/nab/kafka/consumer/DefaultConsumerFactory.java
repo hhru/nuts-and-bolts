@@ -42,6 +42,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     this.statsDSender = statsDSender;
   }
 
+  @Override
   public <T> KafkaConsumer<T> subscribe(String topicName,
                                         String operationName,
                                         Class<T> messageClass,

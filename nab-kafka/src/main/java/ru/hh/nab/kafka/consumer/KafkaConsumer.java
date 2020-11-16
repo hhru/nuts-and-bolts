@@ -2,11 +2,15 @@ package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
@@ -63,5 +67,29 @@ public class KafkaConsumer<T> {
     currentBatch.set(sortedBatch);
     Ack<T> ack = new KafkaInternalTopicAck<>(this, consumer);
     consumeStrategy.onMessagesBatch(sortedBatch, ack);
+    rewindToLastAckedOffset(consumer);
+  }
+
+  public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
+    List<ConsumerRecord<String, T>> currentBatch = getCurrentBatch();
+    if (!currentBatch.isEmpty() && currentBatch.get(currentBatch.size() - 1) != getLastAckedBatchRecord()) {
+      LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = currentBatch.stream().collect(toMap(
+          record -> new TopicPartition(record.topic(), record.partition()),
+          record -> new OffsetAndMetadata(record.offset()),
+          (offset1, offset2) -> offset1,
+          LinkedHashMap::new
+      ));
+
+      Optional.ofNullable(getLastAckedBatchRecord()).ifPresent(lastAckedBatchRecord -> {
+        for (ConsumerRecord<String, T> record : currentBatch) {
+          offsetsToSeek.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset() + 1));
+          if (record == lastAckedBatchRecord) {
+            break;
+          }
+        }
+      });
+
+      offsetsToSeek.forEach(consumer::seek);
+    }
   }
 }

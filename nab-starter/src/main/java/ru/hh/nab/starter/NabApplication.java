@@ -191,7 +191,6 @@ public final class NabApplication {
   private static AnnotationConfigWebApplicationContext createChildWebAppCtx(WebApplicationContext baseCtx) {
     AnnotationConfigWebApplicationContext webAppRootCtx = new HierarchicalWebApplicationContext(baseCtx);
     webAppRootCtx.setParent(baseCtx);
-    webAppRootCtx.registerShutdownHook();
     if (baseCtx.getServletContext() != null) {
       webAppRootCtx.setServletContext(baseCtx.getServletContext());
     }

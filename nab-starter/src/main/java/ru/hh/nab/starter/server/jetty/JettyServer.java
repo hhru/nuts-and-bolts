@@ -82,6 +82,7 @@ public final class JettyServer {
   public void stop() throws JettyServerException {
     try {
       server.stop();
+      LOGGER.info("Jetty stopped");
     } catch (Exception e) {
       throw new JettyServerException("Unable to stop Jetty server", e);
     }

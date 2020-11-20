@@ -34,7 +34,7 @@ public class ConsulService {
   private final boolean enabled;
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
-                       FileSettings fileSettings, String datacenter, String hostName, AppMetadata appMetadata,
+                       FileSettings fileSettings, String hostName, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
@@ -42,7 +42,7 @@ public class ConsulService {
     var applicationPort = fileSettings.getInteger("jetty.port");
     var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
         .orElse("127.0.0.1");
-    var id = fileSettings.getString("serviceName") + "-" + datacenter + "-" + hostName + "-" + applicationPort;
+    var id = fileSettings.getString("serviceName") + "-" + hostName + "-" + applicationPort;
     var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
     var warningDivider = fileSettings.getInteger("consul.check.warningDivider", 3);
     if (logLevelOverrideExtension != null) {

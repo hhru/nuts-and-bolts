@@ -51,7 +51,7 @@ public class ConsulServiceTest {
     assertEquals(204, serviceWeights.getPassing());
     assertEquals(102, serviceWeights.getWarning());
 
-    assertEquals("testService-test1-localhost-0", registration.getId());
+    assertEquals("testService-localhost-0", registration.getId());
     assertEquals("testService", registration.getName());
     assertEquals(0, registration.getPort().get());
     List<String> tags = registration.getTags();
@@ -91,7 +91,7 @@ public class ConsulServiceTest {
     assertEquals(68, serviceWeights.getWarning());
 
 
-    assertEquals("defaultTestService-null-localhost-17", registration.getId());
+    assertEquals("defaultTestService-localhost-17", registration.getId());
     assertEquals("defaultTestService", registration.getName());
     assertEquals(17, registration.getPort().get());
     List<String> tags = registration.getTags();

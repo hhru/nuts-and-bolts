@@ -20,8 +20,7 @@ public class NabAppTestConfig {
 
   @Bean
   ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata, AgentClient agentClient, KeyValueClient keyValueClient) {
-    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, fileSettings.getString("datacenter"),
-        "localhost", appMetadata, null));
+    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, "localhost", appMetadata, null));
   }
 
   @Bean

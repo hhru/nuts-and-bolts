@@ -82,12 +82,11 @@ public class NabProdConfig {
   @Bean
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings,
-                              String datacenter,
                               AppMetadata appMetadata,
                               AgentClient agentClient,
                               KeyValueClient keyValueClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
-    return new ConsulService(agentClient, keyValueClient, fileSettings, datacenter, InetAddress.getLocalHost().getHostName(), appMetadata,
+    return new ConsulService(agentClient, keyValueClient, fileSettings, InetAddress.getLocalHost().getHostName(), appMetadata,
             logLevelOverrideExtensionOptional.orElse(null));
   }
 

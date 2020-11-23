@@ -12,7 +12,7 @@ final class JettyWebAppContext extends WebAppContext {
   JettyWebAppContext(List<WebAppInitializer> webAppInitializer, boolean sessionEnabled) {
     super(null, null, null, null, null, null,
         sessionEnabled ? SESSIONS: 0);
-    webAppInitializer.forEach(initializer->initializer.configureWebApp(this));
+    webAppInitializer.forEach(initializer -> initializer.configureWebApp(this));
     setThrowUnavailableOnStartupException(true);
   }
 

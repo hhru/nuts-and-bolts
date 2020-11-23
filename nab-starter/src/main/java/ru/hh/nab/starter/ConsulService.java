@@ -80,7 +80,7 @@ public class ConsulService {
         .build();
 
     this.id = id;
-    this.enabled = Optional.ofNullable(fileSettings.getBoolean("consul.enabled")).orElse(true);
+    this.enabled = fileSettings.getBoolean("consul.registration.enabled", fileSettings.getBoolean("consul.enabled", true));
   }
 
   public void register() {

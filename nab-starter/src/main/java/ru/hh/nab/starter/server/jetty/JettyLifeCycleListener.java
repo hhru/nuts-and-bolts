@@ -4,6 +4,7 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.springframework.context.ApplicationEventPublisher;
 import ru.hh.nab.starter.events.JettyStartedEvent;
+import ru.hh.nab.starter.events.JettyBeforeStopEvent;
 
 public class JettyLifeCycleListener extends AbstractLifeCycle.AbstractLifeCycleListener {
   private final ApplicationEventPublisher eventPublisher;
@@ -15,5 +16,10 @@ public class JettyLifeCycleListener extends AbstractLifeCycle.AbstractLifeCycleL
   @Override
   public void lifeCycleStarted(LifeCycle lifeCycle) {
     eventPublisher.publishEvent(new JettyStartedEvent());
+  }
+
+  @Override
+  public void lifeCycleStopping(LifeCycle event) {
+    eventPublisher.publishEvent(new JettyBeforeStopEvent());
   }
 }

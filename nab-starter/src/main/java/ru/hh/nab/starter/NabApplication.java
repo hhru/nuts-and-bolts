@@ -94,15 +94,15 @@ public final class NabApplication {
     }
   }
 
-  private JettyServer createJettyServer(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
+  JettyServer createJettyServer(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
     return createJettyServer(
         baseContext,
         directlyUseAsWebAppRoot,
-        webAppContext -> webAppContext.addLifeCycleListener(new JettyLifeCycleListener(baseContext))
+        webAppContext -> webAppContext.getServer().addLifeCycleListener(new JettyLifeCycleListener(baseContext))
     );
   }
 
-  JettyServer createJettyServer(WebApplicationContext baseContext,
+  private JettyServer createJettyServer(WebApplicationContext baseContext,
                                 boolean directlyUseAsWebAppRoot,
                                 WebAppInitializer extwebAppInitializer){
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);

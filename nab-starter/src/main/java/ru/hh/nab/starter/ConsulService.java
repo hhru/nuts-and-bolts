@@ -14,7 +14,6 @@ import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 import javax.annotation.Nullable;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -32,16 +31,17 @@ public class ConsulService {
   private final Registration service;
   private final String id;
   private final boolean enabled;
+  private final long sleepAfterDeregisterMillis;
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, String hostName, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
+    this.sleepAfterDeregisterMillis = fileSettings.getLong("consul.wait.after.deregistration.millis", 300L);
 
     var applicationPort = fileSettings.getInteger("jetty.port");
-    var applicationHost = Optional.ofNullable(fileSettings.getString("consul.check.host"))
-        .orElse("127.0.0.1");
+    var applicationHost = fileSettings.getString("consul.check.host", "127.0.0.1");
     var id = fileSettings.getString("serviceName") + "-" + hostName + "-" + applicationPort;
     var tags = new ArrayList<>(fileSettings.getStringList("consul.tags"));
     var warningDivider = fileSettings.getInteger("consul.check.warningDivider", 3);
@@ -98,11 +98,19 @@ public class ConsulService {
     return kvClient.getValueAsString(String.format("host/%s/weight", hostName));
   }
 
-  @PreDestroy
-  void deregister() {
+  public void deregister() {
     if (enabled) {
       agentClient.deregister(service.getId());
+      LOGGER.debug("De-registered id: {} from consul, going to sleep {}ms to wait possible requests", id, sleepAfterDeregisterMillis);
+      trySleep();
       LOGGER.info("De-registered id: {} from consul", id);
+    }
+  }
+
+  private void trySleep() {
+    try {
+      Thread.sleep(sleepAfterDeregisterMillis);
+    } catch (InterruptedException ignored) {
     }
   }
 

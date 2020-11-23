@@ -102,15 +102,17 @@ public class ConsulService {
     if (enabled) {
       agentClient.deregister(service.getId());
       LOGGER.debug("De-registered id: {} from consul, going to sleep {}ms to wait possible requests", id, sleepAfterDeregisterMillis);
-      trySleep();
+      sleepAfterDeregistration();
       LOGGER.info("De-registered id: {} from consul", id);
     }
   }
 
-  private void trySleep() {
+  private void sleepAfterDeregistration() {
     try {
       Thread.sleep(sleepAfterDeregisterMillis);
-    } catch (InterruptedException ignored) {
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 

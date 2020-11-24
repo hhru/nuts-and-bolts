@@ -23,5 +23,5 @@ public final class JettySettingsConstants {
   public final static String RESPONSE_HEADER_SIZE = "responseHeaderSize";
   public final static String SESSION_MANAGER_ENABLED = "session-manager.enabled";
 
-  public final static String JETTY_PORT = String.join(".", JETTY, PORT);
+  public static final String JETTY_PORT = String.join(".", JETTY, PORT);
 }

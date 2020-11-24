@@ -9,6 +9,8 @@ import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.consul.model.catalog.ImmutableServiceWeights;
 import com.orbitz.consul.model.catalog.ServiceWeights;
 import com.orbitz.consul.model.kv.Value;
+import com.orbitz.consul.option.ConsistencyMode;
+import com.orbitz.consul.option.ImmutableQueryOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
@@ -22,6 +24,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class ConsulService {
 
@@ -41,6 +44,7 @@ public class ConsulService {
   public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
   public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
   public static final String CONSUL_KV_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
+  public static final String CONSUL_KV_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
 
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
@@ -63,7 +67,14 @@ public class ConsulService {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
-    this.kvCache = KVCache.newCache(kvClient, weightPath, fileSettings.getInteger(CONSUL_KV_CACHE_WATCH_INTERVAL_PROPERTY, 10));
+    var consistencyMode = Stream.of(ConsistencyMode.values())
+      .filter(mode -> mode.name().equalsIgnoreCase(fileSettings.getString(CONSUL_KV_CACHE_CONSISTENCY_MODE_PROPERTY, null)))
+      .findAny()
+      .orElse(ConsistencyMode.DEFAULT);
+    this.kvCache = KVCache.newCache(kvClient, weightPath,
+      fileSettings.getInteger(CONSUL_KV_CACHE_WATCH_INTERVAL_PROPERTY, 10),
+      ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
+    );
     this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
 
     this.warningDivider = fileSettings.getInteger(WARNING_DIVIDER_PROPERTY, 3);

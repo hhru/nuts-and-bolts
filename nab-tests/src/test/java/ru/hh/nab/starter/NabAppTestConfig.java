@@ -5,6 +5,10 @@ import com.orbitz.consul.KeyValueClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+
+import com.orbitz.consul.config.ClientConfig;
+import com.orbitz.consul.monitoring.ClientEventCallback;
+import com.orbitz.consul.monitoring.ClientEventHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -32,6 +36,8 @@ public class NabAppTestConfig {
   KeyValueClient keyValueClient() {
     KeyValueClient mock = mock(KeyValueClient.class);
     when(mock.getValueAsString("host/localhost/weight")).thenReturn(Optional.of("204"));
+    when(mock.getConfig()).thenReturn(new ClientConfig());
+    when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
     return mock;
   }
 

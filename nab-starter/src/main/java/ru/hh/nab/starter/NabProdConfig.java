@@ -29,12 +29,19 @@ import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
+
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
 @Import({NabCommonConfig.class})
 public class NabProdConfig {
+
+  public static final String CONSUL_PORT_PROPERTY = "consul.http.port";
+  public static final String CONSUL_HOST_PROPERTY = "consul.http.host";
   public static final String CONSUL_PORT_ENV_KEY = "CONSUL_PORT";
+  public static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
+  public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
+  public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   static final String PROPERTIES_FILE_NAME = "service.properties";
   static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
@@ -61,11 +68,16 @@ public class NabProdConfig {
 
   @Bean
   Consul consul(FileSettings fileSettings) {
-    int port = ofNullable(fileSettings.getInteger("consul.http.port"))
+    int port = ofNullable(fileSettings.getInteger(CONSUL_PORT_PROPERTY))
       .or(() -> of(System.getProperty(CONSUL_PORT_ENV_KEY)).map(Integer::valueOf))
-      .orElseThrow(() -> new IllegalStateException("consul.http.port setting or " + CONSUL_PORT_ENV_KEY + " envmust be provided"));
-    HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"), port);
-    return Consul.builder().withHostAndPort(hostAndPort).build();
+      .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or " + CONSUL_PORT_ENV_KEY + " envmust be provided"));
+    HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
+    return Consul.builder()
+      .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_000))
+      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, 10_000))
+      .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_000))
+      .withHostAndPort(hostAndPort)
+      .build();
   }
 
   @Bean

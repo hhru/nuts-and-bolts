@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 import java.util.List;
 import java.util.Map;
@@ -109,9 +110,9 @@ public class ConsulServiceTest {
     @Primary
     Properties serviceProperties() {
       Properties properties = new Properties();
-      properties.setProperty("consul.enabled", "true");
-      properties.setProperty("serviceName", "defaultTestService");
-      properties.setProperty("jetty.port", "17");
+      properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
+      properties.setProperty(NabCommonConfig.SERVICE_NAME_PROPERTY, "defaultTestService");
+      properties.setProperty(JettySettingsConstants.JETTY_PORT, "17");
       return properties;
     }
   }

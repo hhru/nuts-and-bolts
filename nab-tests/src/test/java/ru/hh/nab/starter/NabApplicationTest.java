@@ -32,9 +32,11 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
+
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import ru.hh.nab.testbase.NabTestConfig;
 
 public class NabApplicationTest {
@@ -181,18 +183,18 @@ public class NabApplicationTest {
     @Bean
     AgentClient consulClient(FileSettings fileSettings) {
       HostAndPort hostAndPort = HostAndPort.fromParts(
-              requireNonNullElse(fileSettings.getString("consul.http.host"), "127.0.0.1"),
-              fileSettings.getInteger("consul.http.port"));
+              requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
+              fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY));
       return Consul.builder().withHostAndPort(hostAndPort).build().agentClient();
     }
 
     @Bean
     Properties serviceProperties() {
       Properties properties = new Properties();
-      properties.setProperty("consul.enabled", "true");
-      properties.setProperty("serviceName", "testService");
-      properties.setProperty("consul.http.port", "123");
-      properties.setProperty("jetty.port", "0");
+      properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
+      properties.setProperty(NabCommonConfig.SERVICE_NAME_PROPERTY, "testService");
+      properties.setProperty(NabProdConfig.CONSUL_PORT_PROPERTY, "123");
+      properties.setProperty(JettySettingsConstants.JETTY_PORT, "0");
       return properties;
     }
   }

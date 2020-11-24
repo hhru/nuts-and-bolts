@@ -73,9 +73,9 @@ public class NabProdConfig {
       .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or " + CONSUL_PORT_ENV_KEY + " envmust be provided"));
     HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
     return Consul.builder()
-      .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_000))
-      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, 10_000))
-      .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_000))
+      .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
+      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, 10_500))
+      .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
       .withHostAndPort(hostAndPort)
       .build();
   }

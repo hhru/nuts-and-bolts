@@ -43,8 +43,9 @@ public class ConsulService {
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
   public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
   public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
-  public static final String CONSUL_KV_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
-  public static final String CONSUL_KV_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
+  public static final String CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY = "consul.consistencyMode";
+  public static final String CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
+  public static final String CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
 
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
@@ -67,12 +68,16 @@ public class ConsulService {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
+    String resultingConsistencyMode = fileSettings.getString(
+      CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
+      fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
+    );
     var consistencyMode = Stream.of(ConsistencyMode.values())
-      .filter(mode -> mode.name().equalsIgnoreCase(fileSettings.getString(CONSUL_KV_CACHE_CONSISTENCY_MODE_PROPERTY, null)))
+      .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
     this.kvCache = KVCache.newCache(kvClient, weightPath,
-      fileSettings.getInteger(CONSUL_KV_CACHE_WATCH_INTERVAL_PROPERTY, 10),
+      fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10),
       ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
     this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);

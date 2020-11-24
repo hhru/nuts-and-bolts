@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.LongAdder;
 import javax.inject.Inject;
 import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +54,7 @@ public class JClientTransactionTest {
   @BeforeEach
   public void beforeTest() {
     httpClient = mock(AsyncHttpClient.class);
-
+    when(httpClient.getConfig()).thenReturn(new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(0).build());
     when(httpClient.executeRequest(isA(Request.class), isA(HttpClientImpl.CompletionHandler.class)))
       .then(iom -> {
         HttpClientImpl.CompletionHandler handler = iom.getArgument(1);
@@ -62,7 +63,7 @@ public class JClientTransactionTest {
       });
 
     httpClientFactory = new HttpClientFactory(
-      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultUpstreamManager(), eventListeners
+      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners
     );
   }
 

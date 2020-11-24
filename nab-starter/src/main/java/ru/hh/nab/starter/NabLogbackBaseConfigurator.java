@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
+
 import org.slf4j.event.Level;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
@@ -71,9 +72,10 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
-    createLogger(context, NabApplication.class, Level.INFO, false, service);
-    createLogger(context, ConsulService.class, Level.INFO, false, service);
-    createLogger(context, JettyServer.class, Level.INFO, false, service);
+    createLogger(context, NabApplication.class, Level.INFO, false, service, sentry);
+    createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
+    createLogger(context, JettyServer.class, Level.INFO, false, service, sentry);
+    createLogger(context, "org.eclipse.jetty.server", Level.INFO, false, List.of(service, sentry));
 
     var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));
     createLogger(context, "ru.hh.nab.jclient.checks.TransactionalCheck", Level.WARN, false, List.of(jClientTransactionalCheck));

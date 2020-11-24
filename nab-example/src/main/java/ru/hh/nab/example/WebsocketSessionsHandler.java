@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 public class WebsocketSessionsHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(WebsocketSessionsHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketSessionsHandler.class);
 
   public Map<Session, LocalDateTime> sessionsTtl;
   public ScheduledExecutorService scheduledExecutorService;
@@ -30,7 +30,7 @@ public class WebsocketSessionsHandler {
       try {
         session.getAsyncRemote().sendPing(byteBuffer);
       } catch (IOException e) {
-        logger.warn("exception during websocket ping", e);
+        LOGGER.warn("exception during websocket ping", e);
       }
     }), 5, 10, TimeUnit.SECONDS);
 
@@ -40,7 +40,7 @@ public class WebsocketSessionsHandler {
     }, 10, 5, TimeUnit.SECONDS);
 
     scheduledExecutorService.scheduleAtFixedRate(() -> {
-      logger.info("has {} sessions active", sessionsTtl.size());
+      LOGGER.debug("has {} sessions active", sessionsTtl.size());
     }, 10, 15, TimeUnit.SECONDS);
 
   }

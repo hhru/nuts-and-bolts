@@ -19,4 +19,10 @@ public class JettyEventListener {
     logger.debug("Registering service in consul");
     consulService.register();
   }
+
+  @EventListener
+  public void onApplicationEvent(JettyBeforeStopEvent ignore) {
+    logger.debug("Deregistering service in consul");
+    consulService.deregister();
+  }
 }

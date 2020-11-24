@@ -21,20 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InOrder;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.spy;
+
+import static org.mockito.Mockito.doAnswer;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;
-import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.testbase.NabTestConfig;
 
@@ -82,27 +81,51 @@ public class NabApplicationTest {
 
 
   @Test
-  public void testRightStartupOrderForConsul() {
+  public void testServiceIsUpOnConsulRegistration() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(NabAppTestConfig.class);
     aggregateCtx.refresh();
 
-    JettyLifeCycleListener lifeCycleListener = spy(new JettyLifeCycleListener(aggregateCtx));
-
     NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
-    JettyServer jettyServer = nabApplication.createJettyServer(
-      aggregateCtx,
-      false,
-      webAppContext -> webAppContext.addLifeCycleListener(lifeCycleListener)
-    );
+    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx, false);
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
+    doAnswer(invocation -> {
+      Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
+        .port(jettyServer.getPort()).build())
+        .path("status").request();
+      try (Response response = statusReq.get()) {
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+      }
+      return null;
+    }).when(consulService).register();
 
     jettyServer.start();
+    jettyServer.stop();
+  }
 
-    InOrder inOrder = inOrder(lifeCycleListener, consulService);
-    inOrder.verify(lifeCycleListener).lifeCycleStarted(any());
-    inOrder.verify(consulService).register();
+  @Test
+  public void testServiceIsUpOnConsulDeregistration() {
+    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    aggregateCtx.register(NabAppTestConfig.class);
+    aggregateCtx.refresh();
+
+    NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
+    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx, false);
+
+    ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
+    doAnswer(invocation -> {
+      Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
+        .port(jettyServer.getPort()).build())
+        .path("status").request();
+      try (Response response = statusReq.get()) {
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+      }
+      return null;
+    }).when(consulService).deregister();
+
+    jettyServer.start();
+    jettyServer.stop();
   }
 
   @Test

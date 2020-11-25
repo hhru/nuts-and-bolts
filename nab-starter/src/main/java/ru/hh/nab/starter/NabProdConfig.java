@@ -14,8 +14,6 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -43,17 +41,10 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   static final String PROPERTIES_FILE_NAME = "service.properties";
-  static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
   Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
-  }
-
-  @Bean
-  String datacenter(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
   }
 
   @Bean
@@ -87,7 +78,6 @@ public class NabProdConfig {
 
   @Bean
   KeyValueClient keyValueClient(Consul consul) {
-
     return consul.keyValueClient();
   }
 
@@ -97,9 +87,8 @@ public class NabProdConfig {
                               AppMetadata appMetadata,
                               AgentClient agentClient,
                               KeyValueClient keyValueClient,
-                              Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) throws UnknownHostException {
-    return new ConsulService(agentClient, keyValueClient, fileSettings, InetAddress.getLocalHost().getHostName(), appMetadata,
-            logLevelOverrideExtensionOptional.orElse(null));
+                              Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
+    return new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
   }
 
   @Bean

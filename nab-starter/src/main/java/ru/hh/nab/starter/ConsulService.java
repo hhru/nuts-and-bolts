@@ -62,10 +62,10 @@ public class ConsulService {
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
-                       FileSettings fileSettings, String hostName, AppMetadata appMetadata,
+                       FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     var applicationPort = fileSettings.getInteger(JettySettingsConstants.JETTY_PORT);
-    this.hostName = hostName;
+    this.hostName = fileSettings.getString(NabCommonConfig.NODE_NAME_PROPERTY);
     this.serviceId = fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;

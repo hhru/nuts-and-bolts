@@ -16,15 +16,13 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;
 
-import java.util.Optional;
-
 @Configuration
 @Import({NabTestConfig.class})
 public class NabAppTestConfig {
 
   @Bean
   ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata, AgentClient agentClient, KeyValueClient keyValueClient) {
-    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, "localhost", appMetadata, null));
+    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, null));
   }
 
   @Bean
@@ -35,7 +33,6 @@ public class NabAppTestConfig {
   @Bean
   KeyValueClient keyValueClient() {
     KeyValueClient mock = mock(KeyValueClient.class);
-    when(mock.getValueAsString("host/localhost/weight")).thenReturn(Optional.of("204"));
     when(mock.getConfig()).thenReturn(new ClientConfig());
     when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
     return mock;

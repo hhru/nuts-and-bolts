@@ -1,14 +1,25 @@
 package ru.hh.nab.starter;
 
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.config.ClientConfig;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.consul.model.catalog.ServiceWeights;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.orbitz.consul.monitoring.ClientEventCallback;
+import com.orbitz.consul.monitoring.ClientEventHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,15 +32,25 @@ import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = NabAppTestConfig.class)
+@ContextConfiguration(classes = ConsulServiceTest.CustomKVConfig.class)
 public class ConsulServiceTest {
+  public static final String TEST_NODE_NAME = "testNode";
+
   @Autowired
   private ConsulService consulService;
   @Autowired
   private AgentClient agentClient;
+  @Autowired
+  private KeyValueClient keyValueClient;
+
+  @BeforeEach
+  void setUp() {
+
+  }
 
   @Test
   public void testRegisterWithFullFileProperties() {
@@ -52,7 +73,7 @@ public class ConsulServiceTest {
     assertEquals(204, serviceWeights.getPassing());
     assertEquals(102, serviceWeights.getWarning());
 
-    assertEquals("testService-localhost-0", registration.getId());
+    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "0"), registration.getId());
     assertEquals("testService", registration.getName());
     assertEquals(0, registration.getPort().get());
     List<String> tags = registration.getTags();
@@ -92,7 +113,7 @@ public class ConsulServiceTest {
     assertEquals(68, serviceWeights.getWarning());
 
 
-    assertEquals("defaultTestService-localhost-17", registration.getId());
+    assertEquals(String.join("-", "defaultTestService", TEST_NODE_NAME, "17"), registration.getId());
     assertEquals("defaultTestService", registration.getName());
     assertEquals(17, registration.getPort().get());
     List<String> tags = registration.getTags();
@@ -104,6 +125,20 @@ public class ConsulServiceTest {
 
   @Configuration
   @Import(NabAppTestConfig.class)
+  public static class CustomKVConfig {
+    @Bean
+    KeyValueClient keyValueClient() {
+      KeyValueClient mock = mock(KeyValueClient.class);
+      when(mock.getConfig()).thenReturn(new ClientConfig());
+      when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
+      when(mock.getValueAsString(String.join("/", "host", TEST_NODE_NAME, "weight"))).thenReturn(Optional.of("204"));
+      return mock;
+    }
+
+  }
+
+  @Configuration
+  @Import(CustomKVConfig.class)
   public static class EmptyConsulConfig {
 
     @Bean
@@ -112,6 +147,8 @@ public class ConsulServiceTest {
       Properties properties = new Properties();
       properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
       properties.setProperty(NabCommonConfig.SERVICE_NAME_PROPERTY, "defaultTestService");
+      properties.setProperty(NabCommonConfig.DATACENTER_NAME_PROPERTY, "test");
+      properties.setProperty(NabCommonConfig.NODE_NAME_PROPERTY, TEST_NODE_NAME);
       properties.setProperty(JettySettingsConstants.JETTY_PORT, "17");
       return properties;
     }

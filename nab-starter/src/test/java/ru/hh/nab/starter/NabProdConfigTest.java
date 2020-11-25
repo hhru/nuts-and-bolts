@@ -33,11 +33,13 @@ import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_TAGS_PROPERTY;
+import static ru.hh.nab.starter.NabCommonConfig.DATACENTER_NAME_PROPERTY;
+import static ru.hh.nab.starter.NabCommonConfig.NODE_NAME_PROPERTY;
 import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
-import static ru.hh.nab.starter.NabProdConfig.DATACENTER_NAME_PROPERTY;
 
 public class NabProdConfigTest {
   private static final String TEST_SERVICE_NAME = "test-service";
+  private static final String TEST_NODE_NAME = "test-host";
   private static final String TEST_DATACENTER_NAME = "test-dc";
   private static final int TEST_CONSUL_PORT = 13199;
 
@@ -69,6 +71,7 @@ public class NabProdConfigTest {
     assertNotNull(context.getBean(FileSettings.class));
 
     assertEquals(TEST_SERVICE_NAME, context.getBean(SERVICE_NAME_PROPERTY, String.class));
+    assertEquals(TEST_NODE_NAME, context.getBean(NODE_NAME_PROPERTY, String.class));
     assertEquals(TEST_DATACENTER_NAME, context.getBean(DATACENTER_NAME_PROPERTY, String.class));
 
     assertNotNull(context.getBean(StatsDClient.class));
@@ -84,6 +87,7 @@ public class NabProdConfigTest {
     Path propertiesFile = Files.createFile(Paths.get(dir.toString(), NabProdConfig.PROPERTIES_FILE_NAME));
     List<String> lines = new ArrayList<>();
     lines.add(String.format("%s=%s", SERVICE_NAME_PROPERTY, TEST_SERVICE_NAME));
+    lines.add(String.format("%s=%s", NODE_NAME_PROPERTY, TEST_NODE_NAME));
     lines.add(String.format("%s=%s", DATACENTER_NAME_PROPERTY, TEST_DATACENTER_NAME));
     lines.add(String.format("%s=%s", JettySettingsConstants.JETTY_PORT, "9999"));
     lines.add(String.format("%s=%s", NabProdConfig.CONSUL_HOST_PROPERTY, "127.0.0.1"));

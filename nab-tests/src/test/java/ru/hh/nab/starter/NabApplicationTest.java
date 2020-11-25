@@ -193,6 +193,8 @@ public class NabApplicationTest {
       Properties properties = new Properties();
       properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
       properties.setProperty(NabCommonConfig.SERVICE_NAME_PROPERTY, "testService");
+      properties.setProperty(NabCommonConfig.DATACENTER_NAME_PROPERTY, "test");
+      properties.setProperty(NabCommonConfig.NODE_NAME_PROPERTY, "localhost");
       properties.setProperty(NabProdConfig.CONSUL_PORT_PROPERTY, "123");
       properties.setProperty(JettySettingsConstants.JETTY_PORT, "0");
       return properties;

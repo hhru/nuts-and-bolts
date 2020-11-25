@@ -123,17 +123,19 @@ public class ConsulService {
     }
     try {
       this.weight.set(getWeightOrDefault(getCurrentWeight()));
-      registerWithWeight(weight.get());
+      var registration = registerWithWeight(weight.get());
       startCache();
-      LOGGER.info("Registered consul service: {} with weight {} and started cache to track weight changes", serviceId, weight);
+      LOGGER.info("Registered consul service: {} and started cache to track weight changes", registration);
     } catch (RuntimeException ex) {
       throw new ConsulServiceException("Can't register service in consul", ex);
     }
   }
 
-  private void registerWithWeight(int weight) {
+  private ImmutableRegistration registerWithWeight(int weight) {
     ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(weight / warningDivider).build();
-    agentClient.register(serviceTemplate.get().serviceWeights(serviceWeights).build());
+    ImmutableRegistration registration = serviceTemplate.get().serviceWeights(serviceWeights).build();
+    agentClient.register(registration);
+    return registration;
   }
 
   private Integer getWeightOrDefault(Optional<String> maybeWeight){
@@ -152,8 +154,8 @@ public class ConsulService {
       var newWeight = getWeightOrDefault(newValues.values().stream().findAny().flatMap(Value::getValueAsString));
       var oldWeight = weight.get();
       if (!Objects.equals(oldWeight, newWeight) && weight.compareAndSet(oldWeight, newWeight)) {
-        registerWithWeight(newWeight);
-        LOGGER.info("Updated registration for consul service: {} with weight {}", serviceId, newWeight);
+        var registration = registerWithWeight(newWeight);
+        LOGGER.info("Updated registration for consul service: {}", registration);
       }
     });
     kvCache.start();

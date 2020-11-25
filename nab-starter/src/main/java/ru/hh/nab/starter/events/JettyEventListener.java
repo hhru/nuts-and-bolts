@@ -16,13 +16,13 @@ public class JettyEventListener {
 
   @EventListener
   public void onApplicationEvent(JettyStartedEvent ignore) {
-    logger.debug("Registering service in consul");
+    logger.debug("Sending event to register service");
     consulService.register();
   }
 
   @EventListener
   public void onApplicationEvent(JettyBeforeStopEvent ignore) {
-    logger.debug("Deregistering service in consul");
+    logger.debug("Sending event to DEregister service");
     consulService.deregister();
   }
 }

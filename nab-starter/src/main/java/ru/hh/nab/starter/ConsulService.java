@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -58,6 +59,7 @@ public class ConsulService {
   private final String weightPath;
   private final int warningDivider;
   private final long sleepAfterDeregisterMillis;
+  private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, String hostName, AppMetadata appMetadata,
@@ -76,7 +78,7 @@ public class ConsulService {
       .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
-    this.kvCache = KVCache.newCache(kvClient, weightPath,
+    this.kvCache = KVCache.newCache(this.kvClient, weightPath,
       fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10),
       ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
@@ -120,8 +122,8 @@ public class ConsulService {
       return;
     }
     try {
-      int weight = getWeightOrDefault(getCurrentWeight());
-      registerWithWeight(weight);
+      this.weight.set(getWeightOrDefault(getCurrentWeight()));
+      registerWithWeight(weight.get());
       startCache();
       LOGGER.info("Registered consul service: {} with weight {} and started cache to track weight changes", serviceId, weight);
     } catch (RuntimeException ex) {
@@ -134,8 +136,8 @@ public class ConsulService {
     agentClient.register(serviceTemplate.get().serviceWeights(serviceWeights).build());
   }
 
-  private int getWeightOrDefault(Optional<String> maybeWeight){
-    return maybeWeight.map(Integer::parseInt).orElseGet(() -> {
+  private Integer getWeightOrDefault(Optional<String> maybeWeight){
+    return maybeWeight.map(Integer::valueOf).orElseGet(() -> {
       LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
       return DEFAULT_WEIGHT;
     });
@@ -145,16 +147,14 @@ public class ConsulService {
     return kvClient.getValueAsString(weightPath);
   }
 
-
   private void startCache() {
     kvCache.addListener(newValues -> {
-      if (kvCache.getMap() == null) {
-        //first cache init
-        return;
-      }
       var newWeight = getWeightOrDefault(newValues.values().stream().findAny().flatMap(Value::getValueAsString));
-      registerWithWeight(newWeight);
-      LOGGER.info("Updated registration for consul service: {} with weight {}", serviceId, newWeight);
+      var oldWeight = weight.get();
+      if (!Objects.equals(oldWeight, newWeight) && weight.compareAndSet(oldWeight, newWeight)) {
+        registerWithWeight(newWeight);
+        LOGGER.info("Updated registration for consul service: {} with weight {}", serviceId, newWeight);
+      }
     });
     kvCache.start();
   }

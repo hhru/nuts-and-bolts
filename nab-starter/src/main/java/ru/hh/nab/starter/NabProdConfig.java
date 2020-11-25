@@ -10,7 +10,6 @@ import com.timgroup.statsd.StatsDClient;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNullElse;
-import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
@@ -36,7 +35,6 @@ public class NabProdConfig {
 
   public static final String CONSUL_PORT_PROPERTY = "consul.http.port";
   public static final String CONSUL_HOST_PROPERTY = "consul.http.host";
-  public static final String CONSUL_PORT_ENV_KEY = "CONSUL_PORT";
   public static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
@@ -59,9 +57,10 @@ public class NabProdConfig {
 
   @Bean
   Consul consul(FileSettings fileSettings) {
-    int port = ofNullable(fileSettings.getInteger(CONSUL_PORT_PROPERTY))
-      .or(() -> of(System.getProperty(CONSUL_PORT_ENV_KEY)).map(Integer::valueOf))
-      .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or " + CONSUL_PORT_ENV_KEY + " envmust be provided"));
+    int port = ofNullable(fileSettings.getString(CONSUL_PORT_PROPERTY))
+      .or(() -> ofNullable(System.getProperty(CONSUL_PORT_PROPERTY)))
+      .map(Integer::parseInt)
+      .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or property be provided"));
     HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
     return Consul.builder()
       .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))

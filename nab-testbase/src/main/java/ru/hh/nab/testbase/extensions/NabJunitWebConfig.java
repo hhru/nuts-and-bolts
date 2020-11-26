@@ -14,7 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 //mostly copy of SpringJUnitWebConfig
-@ExtendWith({NabTestServerExtension.class, SpringExtension.class})
+@ExtendWith({SpringContextStatusCheckExtension.class, NabTestServerExtension.class, SpringExtension.class})
 @ContextConfiguration
 @WebAppConfiguration
 @Documented

@@ -22,11 +22,25 @@ import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThrea
 @Configuration
 public class NabCommonConfig {
   public static final String SERVICE_NAME_PROPERTY = "serviceName";
+  public static final String NODE_NAME_PROPERTY = "nodeName";
+  public static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
   @Bean
   String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY))
-        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
+  }
+
+  @Bean
+  String datacenter(FileSettings fileSettings) {
+    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
+  }
+
+  @Bean
+  String nodeName(FileSettings fileSettings) {
+    return ofNullable(fileSettings.getString(NODE_NAME_PROPERTY))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME_PROPERTY)));
   }
 
   @Bean

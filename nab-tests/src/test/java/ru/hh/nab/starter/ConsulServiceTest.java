@@ -104,8 +104,8 @@ public class ConsulServiceTest {
     assertEquals("5s", regCheck.getInterval().get());
     assertEquals("5s", regCheck.getTimeout().get());
     assertEquals("10m", regCheck.getDeregisterCriticalServiceAfter().get());
-    assertEquals(2, regCheck.getSuccessBeforePassing().get());
-    assertEquals(2, regCheck.getFailuresBeforeCritical().get());
+    assertEquals(1, regCheck.getSuccessBeforePassing().get());
+    assertEquals(1, regCheck.getFailuresBeforeCritical().get());
 
     assertTrue(registration.getServiceWeights().isPresent());
     ServiceWeights serviceWeights = registration.getServiceWeights().get();

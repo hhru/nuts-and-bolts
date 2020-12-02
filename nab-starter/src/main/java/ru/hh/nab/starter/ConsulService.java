@@ -98,8 +98,8 @@ public class ConsulService {
         .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
         .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
         .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))
-        .successBeforePassing(fileSettings.getInteger(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 2))
-        .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 2))
+        .successBeforePassing(fileSettings.getInteger(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 1))
+        .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
         .build();
 
       this.serviceTemplate = () -> ImmutableRegistration.builder()

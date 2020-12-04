@@ -73,6 +73,10 @@ public class NabExceptionMappersTest {
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 
+    response = resourceHelper.executeGet("/connectionTimeoutWrappedWithIllegalState");
+
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+
     response = resourceHelper.executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
@@ -124,6 +128,11 @@ public class NabExceptionMappersTest {
     @Path("/connectionTimeoutWrapped")
     public Response connectionTimeoutWrapped() {
       throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException());
+    }
+
+    @Path("/connectionTimeoutWrappedWithIllegalState")
+    public Response connectionTimeoutWrappedWithIllegal() {
+      throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException(new IllegalStateException()));
     }
 
     @Path("/rejectedExecution")

@@ -1,4 +1,4 @@
-version: 4.27.10
+version: 4.27.11
 build_image: registry.pyn.ru:5000/openjdk11-building:2019.03.14
 docker_files: {none: none}
 build_method: mvn_build

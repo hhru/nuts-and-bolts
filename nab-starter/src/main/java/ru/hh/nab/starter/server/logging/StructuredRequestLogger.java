@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.Optional.ofNullable;
 import static net.logstash.logback.marker.Markers.appendEntries;
 import static ru.hh.nab.starter.server.RequestHeaders.EMPTY_REQUEST_ID;
+import static ru.hh.nab.starter.server.RequestHeaders.EMPTY_USER_AGENT;
 import static ru.hh.nab.starter.server.RequestHeaders.REQUEST_ID;
 import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.starter.server.logging.RequestInfo.NO_CACHE;
@@ -27,13 +29,15 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   public void log(Request request, Response response) {
     final String outerTimoutMs = request.getHeader(X_OUTER_TIMEOUT_MS);
     final String requestId = request.getHeader(REQUEST_ID);
+    final String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
     final String cache = (String) request.getAttribute(CACHE_ATTRIBUTE);
 
     Map<String, Object> context = new HashMap<>();
     context.put("ip", request.getRemoteHost());
-    context.put("rid", requestId == null ? EMPTY_REQUEST_ID : requestId);
+    context.put("rid", ofNullable(requestId).orElse(EMPTY_REQUEST_ID));
+    context.put("userAgent", ofNullable(userAgent).orElse(EMPTY_USER_AGENT));
     context.put("status", response.getCommittedMetaData().getStatus());
-    context.put("cache", cache == null ? NO_CACHE : cache);
+    context.put("cache", ofNullable(cache).orElse(NO_CACHE));
     long executionTime = currentTimeMillis() - request.getTimeStamp();
     context.put("time", executionTime);
     context.put("method", request.getMethod());

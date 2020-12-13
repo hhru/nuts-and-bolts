@@ -11,30 +11,35 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.LifeCycle;
+import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
-
 import org.apache.commons.lang3.StringUtils;
 import ru.hh.nab.logging.json.NabJsonEncoder;
 import ru.hh.nab.logging.json.NabJsonLayout;
-import static java.util.Optional.ofNullable;
 
 public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
-
-  public HhMultiAppender() {
-  }
-
-  public HhMultiAppender(boolean json) {
-    this.json = json;
-  }
-
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
+  private final boolean logToConsole;
 
   protected Appender<ILoggingEvent> appender;
   protected Supplier<Layout<ILoggingEvent>> layoutSupplier;
   protected Supplier<Encoder<ILoggingEvent>> encoderSupplier;
   protected String pattern;
   protected boolean json;
+
+  public HhMultiAppender() {
+    this.logToConsole = true;
+  }
+
+  public HhMultiAppender(boolean json, boolean logToConsole) {
+    this.json = json;
+    this.logToConsole = logToConsole;
+  }
+
+  public HhMultiAppender(boolean json) {
+    this(json, true);
+  }
 
   @Override
   public void start() {
@@ -75,8 +80,8 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   }
 
   protected AppenderConfigurer<?> createAppender() {
-    boolean logToConsole = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
-    if (logToConsole) {
+    boolean logToConsoleProperty = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
+    if (logToConsole && logToConsoleProperty) {
       return new AppenderConfigurer<>(new ConsoleAppender<ILoggingEvent>(), this) {
         @Override
         protected void configure(ConsoleAppender<ILoggingEvent> appender) {

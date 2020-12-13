@@ -58,7 +58,7 @@
                     <systemProperties>
                         <systemProperty>
                             <key>settingsDir</key>
-                            <value>src/etc/nab-example</value>
+                            <value>src/etc</value>
                         </systemProperty>
                     </systemProperties>
                     <mainClass>ru.hh.nab.example.ExampleMain</mainClass>
@@ -92,6 +92,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <reportsDirectory>logs</reportsDirectory>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <useFile>false</useFile>
+                    <disableXmlReport>true</disableXmlReport>
                     <systemPropertyVariables>
                         <settingsDir>${basedir}/src/etc/nab-example</settingsDir>
                     </systemPropertyVariables>

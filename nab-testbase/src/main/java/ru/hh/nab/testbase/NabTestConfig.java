@@ -3,6 +3,7 @@ package ru.hh.nab.testbase;
 import com.timgroup.statsd.NoOpStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import java.io.IOException;
+import java.util.Properties;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -14,9 +15,6 @@ import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.NabCommonConfig;
-
-import java.util.Properties;
-
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 
@@ -24,10 +22,11 @@ import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 @Import({NabCommonConfig.class})
 public class NabTestConfig {
   public static final String TEST_SERVICE_NAME = "testService";
+  static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";
 
   @Bean
   Properties serviceProperties() throws IOException {
-    return createProperties("service-test.properties");
+    return createProperties(TEST_PROPERTIES_FILE_NAME);
   }
 
   @Bean

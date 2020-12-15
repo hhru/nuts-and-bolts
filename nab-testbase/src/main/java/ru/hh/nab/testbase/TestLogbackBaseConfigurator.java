@@ -5,7 +5,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.status.NopStatusListener;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,12 +47,7 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
     if (Boolean.parseBoolean(context.getProperty("log.toConsole", "true"))) {
       appenders.add(createAppender(context, "console", () -> new HhMultiAppender(false)));
     }
-    if (Boolean.parseBoolean(context.getProperty("log.write.into.file", "false"))
-        || Boolean.parseBoolean(context.getProperty("log.toFile", "false"))) {
-      String logFileName = context.getProperty("log.filename", "tests");
-      appenders.add(createAppender(context, logFileName, () -> new HhMultiAppender(false, false)));
-    }
-    loggers().forEach((name, level) -> createLogger(context, name, rootLevel, false, appenders));
+    loggers().forEach((name, level) -> createLogger(context, name, rootLevel.toString(), false, appenders));
     rootLogger.addAppenders(appenders);
   }
 
@@ -68,14 +62,12 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
   }
 
   protected Properties createProperties() {
-    InputStream inputStream = this.getClass().getResourceAsStream(TEST_PROPERTIES_FILE_NAME);
-    if (inputStream == null) {
-      return new Properties();
-    }
     try {
       Properties properties = new Properties();
-      properties.load(inputStream);
+      properties.load(this.getClass().getResourceAsStream(TEST_PROPERTIES_FILE_NAME));
       return properties;
+    } catch (NullPointerException e) {
+      return new Properties();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

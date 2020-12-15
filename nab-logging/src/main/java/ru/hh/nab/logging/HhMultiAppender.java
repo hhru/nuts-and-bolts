@@ -20,7 +20,6 @@ import ru.hh.nab.logging.json.NabJsonLayout;
 public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
-  private final boolean logToConsole;
 
   protected Appender<ILoggingEvent> appender;
   protected Supplier<Layout<ILoggingEvent>> layoutSupplier;
@@ -29,16 +28,10 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   protected boolean json;
 
   public HhMultiAppender() {
-    this.logToConsole = true;
-  }
-
-  public HhMultiAppender(boolean json, boolean logToConsole) {
-    this.json = json;
-    this.logToConsole = logToConsole;
   }
 
   public HhMultiAppender(boolean json) {
-    this(json, true);
+    this.json = json;
   }
 
   @Override
@@ -80,8 +73,8 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   }
 
   protected AppenderConfigurer<?> createAppender() {
-    boolean logToConsoleProperty = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
-    if (logToConsole && logToConsoleProperty) {
+    boolean logToConsole = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
+    if (logToConsole) {
       return new AppenderConfigurer<>(new ConsoleAppender<ILoggingEvent>(), this) {
         @Override
         protected void configure(ConsoleAppender<ILoggingEvent> appender) {
@@ -156,12 +149,12 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
     private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder) {
       return ofNullable(optionsHolder.pattern).or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
-        .map(pattern -> {
-          var layout = new PatternLayout();
-          layout.setPattern(pattern);
-          return layout;
-        //need to throw Error because logback logs and ignores any Exception type
-        }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
+          .map(pattern -> {
+            var layout = new PatternLayout();
+            layout.setPattern(pattern);
+            return layout;
+            //need to throw Error because logback logs and ignores any Exception type
+          }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
   }
 

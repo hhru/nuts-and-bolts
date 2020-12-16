@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>1.44</version>
+        <version>1.47</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
@@ -145,7 +145,6 @@
                 <artifactId>jackson-module-jaxb-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 

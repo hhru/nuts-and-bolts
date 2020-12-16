@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.status.OnConsoleStatusListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,8 +20,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import ch.qos.logback.core.status.OnConsoleStatusListener;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
@@ -31,17 +30,21 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   @Override
   public final void configure(LoggerContext context) {
-    var statusListener = new OnConsoleStatusListener();
-    statusListener.start();
-    context.getStatusManager().add(statusListener);
     try {
       Properties properties = createLoggingProperties();
+      statusListener(context, properties);
       LoggingContextWrapper contextWrapper = new LoggingContextWrapper(context, properties);
       configure(contextWrapper);
     } catch (Exception e) {
       throw new AssertionError(e);
     }
     appenders = null;
+  }
+
+  protected void statusListener(LoggerContext context, Properties properties) {
+    var statusListener = new OnConsoleStatusListener();
+    statusListener.start();
+    context.getStatusManager().add(statusListener);
   }
 
   protected abstract Properties createLoggingProperties();
@@ -106,8 +109,19 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   public LoggerWrapper createLogger(LoggingContextWrapper context, String name, Level level, boolean additivity,
       Collection<Appender> appenders) {
+    return createLogger(context, name, level.toString(), additivity, appenders);
+  }
+
+  /**
+   * Set level as string so we can use not just slf4j levels here,
+   * not using logback levels cause we may move to different logger later
+   *
+   * USE THIS METHOD CAREFULLY!!!
+   * */
+  public LoggerWrapper createLogger(LoggingContextWrapper context, String name, String level, boolean additivity,
+      Collection<Appender> appenders) {
     var logger = context.getContext().getLogger(name);
-    logger.setLevel(ch.qos.logback.classic.Level.toLevel(level.toString()));
+    logger.setLevel(ch.qos.logback.classic.Level.toLevel(level));
     logger.setAdditive(additivity);
     appenders.forEach(logger::addAppender);
     addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="
@@ -145,7 +159,11 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     }
 
     public void setLevel(Level level) {
-      logger.setLevel(ch.qos.logback.classic.Level.valueOf(level.toString()));
+      setLevel(ch.qos.logback.classic.Level.valueOf(level.toString()));
+    }
+
+    public void setLevel(ch.qos.logback.classic.Level level) {
+      logger.setLevel(level);
     }
 
     public void setAdditivity(boolean additivity) {
@@ -154,6 +172,14 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
     public void addAppenders(Appender... appenders) {
       Stream.of(appenders).forEach(logger::addAppender);
+    }
+
+    public void addAppenders(Collection<Appender> appenders) {
+      appenders.forEach(logger::addAppender);
+    }
+
+    public void detachAppenders(Collection<Appender> appenders) {
+      appenders.forEach(logger::detachAppender);
     }
   }
 

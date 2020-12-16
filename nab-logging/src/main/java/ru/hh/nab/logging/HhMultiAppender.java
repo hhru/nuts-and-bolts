@@ -11,22 +11,13 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.LifeCycle;
+import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
-
 import org.apache.commons.lang3.StringUtils;
 import ru.hh.nab.logging.json.NabJsonEncoder;
 import ru.hh.nab.logging.json.NabJsonLayout;
-import static java.util.Optional.ofNullable;
 
 public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
-
-  public HhMultiAppender() {
-  }
-
-  public HhMultiAppender(boolean json) {
-    this.json = json;
-  }
-
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
@@ -35,6 +26,13 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   protected Supplier<Encoder<ILoggingEvent>> encoderSupplier;
   protected String pattern;
   protected boolean json;
+
+  public HhMultiAppender() {
+  }
+
+  public HhMultiAppender(boolean json) {
+    this.json = json;
+  }
 
   @Override
   public void start() {
@@ -151,12 +149,12 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
     private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder) {
       return ofNullable(optionsHolder.pattern).or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
-        .map(pattern -> {
-          var layout = new PatternLayout();
-          layout.setPattern(pattern);
-          return layout;
-        //need to throw Error because logback logs and ignores any Exception type
-        }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
+          .map(pattern -> {
+            var layout = new PatternLayout();
+            layout.setPattern(pattern);
+            return layout;
+            //need to throw Error because logback logs and ignores any Exception type
+          }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
   }
 

@@ -20,7 +20,7 @@ import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,6 +34,7 @@ public class ConsulService {
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
   private static final int DEFAULT_WEIGHT = 100;
 
+  public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String WARNING_DIVIDER_PROPERTY = "consul.check.warningDivider";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
@@ -106,9 +107,10 @@ public class ConsulService {
         .id(serviceId)
         .name(fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY))
         .port(applicationPort)
+        .address(Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)))
         .check(regCheck)
         .tags(tags)
-        .meta(Collections.singletonMap("serviceVersion", appMetadata.getVersion()));
+        .meta(Map.of("serviceVersion", appMetadata.getVersion()));
     } else {
       this.serviceTemplate = () -> {
         throw new IllegalStateException("Registration disabled. Template should not be called");

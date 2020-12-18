@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts hibernate and spring integration</name>
 
+    <properties>
+        <aspectj.version>1.9.6</aspectj.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -84,12 +88,12 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.2</version>
+            <version>${aspectj.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
-            <version>1.9.2</version>
+            <version>${aspectj.version}</version>
         </dependency>
 
         <!--Web-->
@@ -130,7 +134,6 @@
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

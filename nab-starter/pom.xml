@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.ext</groupId>
-            <artifactId>jersey-spring4</artifactId>
+            <artifactId>jersey-spring5</artifactId>
             <version>${jersey.version}</version>
             <exclusions>
                 <exclusion>
@@ -168,12 +168,10 @@
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.2</version>
         </dependency>
 
         <!--cache-->
@@ -207,7 +205,7 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>3.1.6</version>
+            <version>4.0.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

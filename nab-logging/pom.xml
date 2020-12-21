@@ -72,7 +72,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>5.3</version>
+            <version>6.5</version>
         </dependency>
         <dependency>
             <groupId>com.papertrailapp</groupId>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-logback</artifactId>
-            <version>1.7.21</version>
+            <version>3.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

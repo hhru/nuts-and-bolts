@@ -9,6 +9,7 @@ import com.orbitz.consul.monitoring.ClientEventCallback;
 import com.orbitz.consul.monitoring.ClientEventHandler;
 import com.timgroup.statsd.NoOpStatsDClient;
 import com.timgroup.statsd.StatsDClient;
+import okhttp3.OkHttpClient;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.NabCommonConfig;
+import static ru.hh.nab.starter.NabProdConfig.CONSUL_DEFAULT_READ_TIMEOUT_MILLIS;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 
@@ -66,6 +68,14 @@ public class NabTestConfig {
 
     return consulMock;
   }
+
+  @Bean
+  OkHttpClient okHttpClient() {
+    OkHttpClient mock = mock(OkHttpClient.class);
+    when(mock.readTimeoutMillis()).thenReturn(CONSUL_DEFAULT_READ_TIMEOUT_MILLIS);
+    return mock;
+  }
+
 
   @Bean
   StatsDClient statsDClient() {

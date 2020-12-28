@@ -4,7 +4,7 @@ import com.google.common.net.HostAndPort;
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
-import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 
 import java.util.Optional;
@@ -15,11 +15,13 @@ import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.util.Properties;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.ReflectionUtils;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 
@@ -38,6 +40,7 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
+  public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
 
   @Bean
@@ -47,7 +50,7 @@ public class NabProdConfig {
 
   @Bean
   StatsDClient statsDClient() {
-    return new NonBlockingStatsDClient(null, "localhost", 8125, 10000);
+    return new NonBlockingStatsDClientBuilder().hostname("localhost").queueSize(10_000).port(8125).build();
   }
 
   @Bean
@@ -64,7 +67,7 @@ public class NabProdConfig {
     HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
     return Consul.builder()
       .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
-      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, 10_500))
+      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
       .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
       .withHostAndPort(hostAndPort)
       .build();
@@ -81,13 +84,24 @@ public class NabProdConfig {
   }
 
   @Bean
+  OkHttpClient okHttpClient(Consul consul) {
+    return Optional.ofNullable(ReflectionUtils.findField(Consul.class, "okHttpClient", OkHttpClient.class))
+      .map(field -> {
+        ReflectionUtils.makeAccessible(field);
+        return (OkHttpClient) ReflectionUtils.getField(field, consul);
+      })
+      .orElseThrow(() -> new IllegalStateException("must be able to get okHttpClient to check entangled timeouts"));
+  }
+
+  @Bean
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings,
                               AppMetadata appMetadata,
                               AgentClient agentClient,
                               KeyValueClient keyValueClient,
+                              OkHttpClient okHttpClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
-    return new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
+    return new ConsulService(okHttpClient, agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
   }
 
   @Bean

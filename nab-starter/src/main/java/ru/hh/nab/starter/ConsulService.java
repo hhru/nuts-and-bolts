@@ -11,18 +11,22 @@ import com.orbitz.consul.model.catalog.ServiceWeights;
 import com.orbitz.consul.model.kv.Value;
 import com.orbitz.consul.option.ConsistencyMode;
 import com.orbitz.consul.option.ImmutableQueryOptions;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.starter.NabProdConfig.CONSUL_CLIENT_READ_TIMEOUT_PROPERTY;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -62,12 +66,13 @@ public class ConsulService {
   private final long sleepAfterDeregisterMillis;
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
-  public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
+  public ConsulService(@Nonnull OkHttpClient httpClient,
+                       AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
-    var applicationPort = fileSettings.getInteger(JettySettingsConstants.JETTY_PORT);
-    this.hostName = fileSettings.getString(NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceId = fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
+    int applicationPort = Integer.parseInt(validateAndGetFromConfig(fileSettings, JettySettingsConstants.JETTY_PORT));
+    this.hostName = validateAndGetFromConfig(fileSettings, NabCommonConfig.NODE_NAME_PROPERTY);
+    this.serviceId = validateAndGetFromConfig(fileSettings, NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -79,9 +84,9 @@ public class ConsulService {
       .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
-    this.kvCache = KVCache.newCache(this.kvClient, weightPath,
-      fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10),
-      ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
+
+    this.kvCache = KVCache.newCache(this.kvClient, weightPath, validateAndGetCacheWaitSeconds(fileSettings, httpClient),
+        ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
     this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
 
@@ -116,6 +121,25 @@ public class ConsulService {
         throw new IllegalStateException("Registration disabled. Template should not be called");
       };
     }
+  }
+
+  private int validateAndGetCacheWaitSeconds(FileSettings fileSettings, OkHttpClient httpClient) {
+    int cacheWaitSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10);
+    if (httpClient.readTimeoutMillis() <= TimeUnit.SECONDS.toMillis(cacheWaitSeconds)) {
+      throw new IllegalStateException(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY
+        + " must be less than consul http read timeout=" + httpClient.readTimeoutMillis() + "ms. To adjust timeout use configuration key: "
+        + CONSUL_CLIENT_READ_TIMEOUT_PROPERTY + ")"
+      );
+    }
+    return cacheWaitSeconds;
+  }
+
+  private String validateAndGetFromConfig(FileSettings fileSettings, String propertyKey) {
+    final String property = fileSettings.getString(propertyKey);
+    if (property == null || property.isEmpty()) {
+      throw new IllegalStateException(propertyKey + " in configuration must not be empty");
+    }
+    return property;
   }
 
   public void register() {

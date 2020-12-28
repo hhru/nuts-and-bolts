@@ -2,6 +2,7 @@ package ru.hh.nab.starter;
 
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.KeyValueClient;
+import okhttp3.OkHttpClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -21,8 +22,10 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class NabAppTestConfig {
 
   @Bean
-  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata, AgentClient agentClient, KeyValueClient keyValueClient) {
-    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, null));
+  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata,
+                              OkHttpClient client,
+                              AgentClient agentClient, KeyValueClient keyValueClient) {
+    return spy(new ConsulService(client, agentClient, keyValueClient, fileSettings, appMetadata, null));
   }
 
   @Bean

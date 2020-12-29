@@ -70,9 +70,9 @@ public class ConsulService {
                        AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
-    int applicationPort = Integer.parseInt(validateAndGetFromConfig(fileSettings, JettySettingsConstants.JETTY_PORT));
-    this.hostName = validateAndGetFromConfig(fileSettings, NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceId = validateAndGetFromConfig(fileSettings, NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
+    int applicationPort = Integer.parseInt(getNotEmpty(fileSettings, JettySettingsConstants.JETTY_PORT));
+    this.hostName = getNotEmpty(fileSettings, NabCommonConfig.NODE_NAME_PROPERTY);
+    this.serviceId = getNotEmpty(fileSettings, NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -134,7 +134,7 @@ public class ConsulService {
     return cacheWaitSeconds;
   }
 
-  private String validateAndGetFromConfig(FileSettings fileSettings, String propertyKey) {
+  private String getNotEmpty(FileSettings fileSettings, String propertyKey) {
     final String property = fileSettings.getString(propertyKey);
     if (property == null || property.isEmpty()) {
       throw new IllegalStateException(propertyKey + " in configuration must not be empty");

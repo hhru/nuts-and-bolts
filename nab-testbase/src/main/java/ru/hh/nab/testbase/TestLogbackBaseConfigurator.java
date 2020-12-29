@@ -16,7 +16,6 @@ import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_PROPERTIES_FILE_NAME;
 
-@SuppressWarnings("rawtypes")
 public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 
   @Override
@@ -24,7 +23,7 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
     System.setProperty(SETINGS_DIR_PROPERTY, ".");
     Properties properties = createProperties();
     setPropertyIfNotSet(properties, "log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
-    setPropertyIfNotSet(properties, "log.dir", "logs");
+    setPropertyIfNotSet(properties, "log.dir", "target/logs");
     setPropertyIfNotSet(properties, "log.immediate.flush", Boolean.TRUE.toString());
     return properties;
   }
@@ -64,7 +63,7 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
   protected Properties createProperties() {
     try {
       Properties properties = new Properties();
-      properties.load(this.getClass().getResourceAsStream(TEST_PROPERTIES_FILE_NAME));
+      properties.load(this.getClass().getResourceAsStream("/" + TEST_PROPERTIES_FILE_NAME));
       return properties;
     } catch (NullPointerException e) {
       return new Properties();

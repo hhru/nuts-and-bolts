@@ -1,9 +1,9 @@
 package ru.hh.nab.starter;
 
-import com.google.common.net.HostAndPort;
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
+import com.orbitz.google.common.net.HostAndPort;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 
@@ -15,13 +15,11 @@ import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.util.Properties;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.util.ReflectionUtils;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 
@@ -84,24 +82,13 @@ public class NabProdConfig {
   }
 
   @Bean
-  OkHttpClient okHttpClient(Consul consul) {
-    return Optional.ofNullable(ReflectionUtils.findField(Consul.class, "okHttpClient", OkHttpClient.class))
-      .map(field -> {
-        ReflectionUtils.makeAccessible(field);
-        return (OkHttpClient) ReflectionUtils.getField(field, consul);
-      })
-      .orElseThrow(() -> new IllegalStateException("must be able to get okHttpClient to check entangled timeouts"));
-  }
-
-  @Bean
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings,
                               AppMetadata appMetadata,
                               AgentClient agentClient,
                               KeyValueClient keyValueClient,
-                              OkHttpClient okHttpClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
-    return new ConsulService(okHttpClient, agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
+    return new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
   }
 
   @Bean

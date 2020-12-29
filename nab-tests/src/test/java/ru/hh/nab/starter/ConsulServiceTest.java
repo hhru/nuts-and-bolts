@@ -1,6 +1,7 @@
 package ru.hh.nab.starter;
 
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.config.ClientConfig;
 import com.orbitz.consul.model.agent.Registration;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ConsulServiceTest.CustomKVConfig.class)
@@ -130,6 +132,10 @@ public class ConsulServiceTest {
     KeyValueClient keyValueClient() {
       KeyValueClient mock = mock(KeyValueClient.class);
       when(mock.getConfig()).thenReturn(new ClientConfig());
+      when(mock.getNetworkTimeoutConfig()).thenReturn(
+        new Consul.NetworkTimeoutConfig.Builder()
+          .withReadTimeout((int) TimeUnit.SECONDS.toMillis(ConsulService.DEFAULT_WEIGHT_CACHE_WATCH_SECONDS + 1)).build()
+      );
       when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
       when(mock.getValueAsString(String.join("/", "host", TEST_NODE_NAME, "weight"))).thenReturn(Optional.of("204"));
       return mock;

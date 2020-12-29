@@ -11,22 +11,18 @@ import com.orbitz.consul.model.catalog.ServiceWeights;
 import com.orbitz.consul.model.kv.Value;
 import com.orbitz.consul.option.ConsistencyMode;
 import com.orbitz.consul.option.ImmutableQueryOptions;
-import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.starter.NabProdConfig.CONSUL_CLIENT_READ_TIMEOUT_PROPERTY;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -37,6 +33,7 @@ public class ConsulService {
 
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
   private static final int DEFAULT_WEIGHT = 100;
+  public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
@@ -66,8 +63,7 @@ public class ConsulService {
   private final long sleepAfterDeregisterMillis;
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
-  public ConsulService(@Nonnull OkHttpClient httpClient,
-                       AgentClient agentClient, KeyValueClient kvClient,
+  public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     int applicationPort = Integer.parseInt(getNotEmpty(fileSettings, JettySettingsConstants.JETTY_PORT));
@@ -85,7 +81,8 @@ public class ConsulService {
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
 
-    this.kvCache = KVCache.newCache(this.kvClient, weightPath, validateAndGetCacheWaitSeconds(fileSettings, httpClient),
+    int watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
+    this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
         ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
     this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
@@ -121,17 +118,6 @@ public class ConsulService {
         throw new IllegalStateException("Registration disabled. Template should not be called");
       };
     }
-  }
-
-  private int validateAndGetCacheWaitSeconds(FileSettings fileSettings, OkHttpClient httpClient) {
-    int cacheWaitSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10);
-    if (httpClient.readTimeoutMillis() <= TimeUnit.SECONDS.toMillis(cacheWaitSeconds)) {
-      throw new IllegalStateException(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY
-        + " must be less than consul http read timeout=" + httpClient.readTimeoutMillis() + "ms. To adjust timeout use configuration key: "
-        + CONSUL_CLIENT_READ_TIMEOUT_PROPERTY + ")"
-      );
-    }
-    return cacheWaitSeconds;
   }
 
   private String getNotEmpty(FileSettings fileSettings, String propertyKey) {

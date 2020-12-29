@@ -239,21 +239,14 @@
         <repository>
             <id>hh-public</id>
             <name>hh public releases repository</name>
-            <url>http://m2.hh.ru/content/repositories/public-releases</url>
+            <url>https://m2.hh.ru/content/repositories/public-releases</url>
             <releases>
                 <enabled>true</enabled>
+                <checksumPolicy>fail</checksumPolicy>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>public-jboss</id>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss</url>
-        </repository>
-        <repository>
-            <id>dev-java-net-glassfish-m2</id>
-            <url>http://download.java.net/maven/glassfish</url>
         </repository>
     </repositories>
 

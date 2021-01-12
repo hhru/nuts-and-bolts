@@ -43,7 +43,7 @@
         <logback.version>1.2.3</logback.version>
         <jclient.version>3.1.0</jclient.version>
         <java.version>11</java.version>
-        <orbitz.consul.version>1.4.0-hh-1.2-SNAPSHOT</orbitz.consul.version>
+        <orbitz.consul.version>1.4.0-hh-1.4</orbitz.consul.version>
     </properties>
 
     <dependencyManagement>

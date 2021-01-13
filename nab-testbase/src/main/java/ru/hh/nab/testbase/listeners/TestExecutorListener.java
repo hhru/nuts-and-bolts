@@ -169,7 +169,7 @@ public class TestExecutorListener implements TestExecutionListener {
   }
 
   public Connection getNewConnection() {
-    if (canUseDB) {
+    if (canUseDB && getStandType() != null) {
       try {
         return DriverManager.getConnection(
             getDbUrl(),

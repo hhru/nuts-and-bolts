@@ -66,9 +66,9 @@ public class ConsulService {
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
-    int applicationPort = Integer.parseInt(getNotEmpty(fileSettings, JettySettingsConstants.JETTY_PORT));
-    this.hostName = getNotEmpty(fileSettings, NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceId = getNotEmpty(fileSettings, NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
+    int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
+    this.hostName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.NODE_NAME_PROPERTY);
+    this.serviceId = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -118,14 +118,6 @@ public class ConsulService {
         throw new IllegalStateException("Registration disabled. Template should not be called");
       };
     }
-  }
-
-  private String getNotEmpty(FileSettings fileSettings, String propertyKey) {
-    final String property = fileSettings.getString(propertyKey);
-    if (property == null || property.isEmpty()) {
-      throw new IllegalStateException(propertyKey + " in configuration must not be empty");
-    }
-    return property;
   }
 
   public void register() {

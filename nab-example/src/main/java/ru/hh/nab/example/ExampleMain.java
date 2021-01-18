@@ -15,7 +15,7 @@ public class ExampleMain {
   public static void main(String[] args) throws IOException {
     // specify settings dir if its not currentDir
     System.setProperty(PropertiesUtils.SETINGS_DIR_PROPERTY, "nab-example/src/etc");
-    // you need to run consul agent to be able to run NaB application
+    // you need to run consul agent to be able to run NaB application if you don't want to use consul add consul.enabled=false in config
     int consulPort = runConsulMock();
     // better to use settings with fixed port, but for the sake of dynamic usage we use env
     System.setProperty(NabProdConfig.CONSUL_PORT_PROPERTY, String.valueOf(consulPort));

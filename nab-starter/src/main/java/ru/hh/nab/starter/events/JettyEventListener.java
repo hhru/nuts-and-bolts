@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.events;
 
+import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -17,12 +18,12 @@ public class JettyEventListener {
   @EventListener
   public void onApplicationEvent(JettyStartedEvent ignore) {
     logger.debug("Sending event to register service");
-    consulService.register();
+    ofNullable(consulService).ifPresent(ConsulService::register);
   }
 
   @EventListener
   public void onApplicationEvent(JettyBeforeStopEvent ignore) {
     logger.debug("Sending event to DEregister service");
-    consulService.deregister();
+    ofNullable(consulService).ifPresent(ConsulService::deregister);
   }
 }

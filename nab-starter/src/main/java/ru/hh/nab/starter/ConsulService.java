@@ -40,6 +40,7 @@ public class ConsulService {
   public static final String WARNING_DIVIDER_PROPERTY = "consul.check.warningDivider";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
+  public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
   public static final String CONSUL_REGISTRATION_ENABLED_PROPERTY = "consul.registration.enabled";
   public static final String CONSUL_CHECK_INTERVAL_PROPERTY = "consul.check.interval";
   public static final String CONSUL_CHECK_TIMEOUT_PROPERTY = "consul.check.timeout";
@@ -94,7 +95,7 @@ public class ConsulService {
     if (logLevelOverrideExtension != null) {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
     }
-    this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean("consul.enabled", true));
+    this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean(CONSUL_ENABLED_PROPERTY, true));
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck.builder()
         .http("http://" + applicationHost + ":" + applicationPort + "/status")

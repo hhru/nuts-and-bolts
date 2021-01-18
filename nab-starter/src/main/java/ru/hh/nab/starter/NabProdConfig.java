@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
@@ -28,6 +29,7 @@ import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
+import ru.hh.nab.starter.spring.ConsulEnabledCondition;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -56,6 +58,7 @@ public class NabProdConfig {
     return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
   }
 
+  @Conditional(ConsulEnabledCondition.class)
   @Bean
   Consul consul(FileSettings fileSettings) {
     int port = ofNullable(fileSettings.getString(CONSUL_PORT_PROPERTY))
@@ -71,16 +74,19 @@ public class NabProdConfig {
       .build();
   }
 
+  @Conditional(ConsulEnabledCondition.class)
   @Bean
   AgentClient agentClient(Consul consul) {
     return consul.agentClient();
   }
 
+  @Conditional(ConsulEnabledCondition.class)
   @Bean
   KeyValueClient keyValueClient(Consul consul) {
     return consul.keyValueClient();
   }
 
+  @Conditional(ConsulEnabledCondition.class)
   @Bean
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings,
@@ -92,7 +98,7 @@ public class NabProdConfig {
   }
 
   @Bean
-  JettyEventListener jettyEventListener(ConsulService consulService){
-    return new JettyEventListener(consulService);
+  JettyEventListener jettyEventListener(Optional<ConsulService> consulService){
+    return new JettyEventListener(consulService.orElse(null));
   }
 }

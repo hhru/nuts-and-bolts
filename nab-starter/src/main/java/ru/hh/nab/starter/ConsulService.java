@@ -33,6 +33,7 @@ public class ConsulService {
 
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
   private static final int DEFAULT_WEIGHT = 100;
+  public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
@@ -65,9 +66,9 @@ public class ConsulService {
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
-    var applicationPort = fileSettings.getInteger(JettySettingsConstants.JETTY_PORT);
-    this.hostName = fileSettings.getString(NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceId = fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
+    int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
+    this.hostName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.NODE_NAME_PROPERTY);
+    this.serviceId = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -79,9 +80,10 @@ public class ConsulService {
       .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
-    this.kvCache = KVCache.newCache(this.kvClient, weightPath,
-      fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, 10),
-      ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
+
+    int watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
+    this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
+        ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
     this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
 

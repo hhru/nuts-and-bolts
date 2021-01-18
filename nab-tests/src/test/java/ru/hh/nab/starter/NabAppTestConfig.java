@@ -1,6 +1,7 @@
 package ru.hh.nab.starter;
 
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -16,12 +17,15 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;
 
+import java.util.concurrent.TimeUnit;
+
 @Configuration
 @Import({NabTestConfig.class})
 public class NabAppTestConfig {
 
   @Bean
-  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata, AgentClient agentClient, KeyValueClient keyValueClient) {
+  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata,
+                              AgentClient agentClient, KeyValueClient keyValueClient) {
     return spy(new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, null));
   }
 
@@ -34,6 +38,10 @@ public class NabAppTestConfig {
   KeyValueClient keyValueClient() {
     KeyValueClient mock = mock(KeyValueClient.class);
     when(mock.getConfig()).thenReturn(new ClientConfig());
+    when(mock.getNetworkTimeoutConfig()).thenReturn(
+            new Consul.NetworkTimeoutConfig.Builder()
+                    .withReadTimeout((int) TimeUnit.SECONDS.toMillis(ConsulService.DEFAULT_WEIGHT_CACHE_WATCH_SECONDS + 1)).build()
+    );
     when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
     return mock;
   }

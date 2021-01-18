@@ -89,4 +89,12 @@ public class FileSettings {
     String value = getString(key);
     return value == null ? defaultValue : function.apply(value);
   }
+
+  public String getNotEmptyOrThrow(String propertyKey) {
+    final String property = getString(propertyKey);
+    if (property == null || property.isEmpty()) {
+      throw new IllegalStateException(propertyKey + " in configuration must not be empty");
+    }
+    return property;
+  }
 }

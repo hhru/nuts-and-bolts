@@ -1,12 +1,23 @@
 package ru.hh.nab.testbase;
 
+import com.orbitz.consul.AclClient;
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.CatalogClient;
 import com.orbitz.consul.Consul;
+import com.orbitz.consul.CoordinateClient;
+import com.orbitz.consul.EventClient;
 import com.orbitz.consul.HealthClient;
 import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.OperatorClient;
+import com.orbitz.consul.PreparedQueryClient;
+import com.orbitz.consul.SessionClient;
+import com.orbitz.consul.SnapshotClient;
+import com.orbitz.consul.StatusClient;
 import com.orbitz.consul.config.ClientConfig;
 import com.orbitz.consul.monitoring.ClientEventCallback;
 import com.orbitz.consul.monitoring.ClientEventHandler;
+import com.orbitz.okhttp3.ConnectionPool;
+import com.orbitz.okhttp3.OkHttpClient;
 import com.timgroup.statsd.NoOpStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import org.eclipse.jetty.util.thread.ThreadPool;
@@ -27,6 +38,8 @@ import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -47,24 +60,25 @@ public class NabTestConfig {
 
   @Bean
   Consul consul() {
+
     ClientConfig config = new ClientConfig();
-    Consul consulMock = mock(Consul.class);
-
-    KeyValueClient kvMock = mock(KeyValueClient.class);
-    when(kvMock.getConfig()).thenReturn(config);
-    ClientEventHandler handler = new ClientEventHandler("keyvalue", new ClientEventCallback() {
-    });
-    when(kvMock.getEventHandler()).thenReturn(handler);
-    when(consulMock.keyValueClient()).thenReturn(kvMock);
-    when(consulMock.agentClient()).thenReturn(mock(AgentClient.class));
-
+    Consul.NetworkTimeoutConfig networkTimeoutConfig = new Consul.NetworkTimeoutConfig.Builder().withReadTimeout(11).build();
     HealthClient healthMock = mock(HealthClient.class);
     when(healthMock.getConfig()).thenReturn(config);
+    when(healthMock.getNetworkTimeoutConfig()).thenReturn(networkTimeoutConfig);
     when(healthMock.getEventHandler()).thenReturn(new ClientEventHandler("health", new ClientEventCallback() {
     }));
-    when(consulMock.healthClient()).thenReturn(healthMock);
-
-    return consulMock;
+    KeyValueClient kvMock = mock(KeyValueClient.class);
+    when(kvMock.getConfig()).thenReturn(config);
+    when(kvMock.getNetworkTimeoutConfig()).thenReturn(networkTimeoutConfig);
+    when(kvMock.getEventHandler()).thenReturn(new ClientEventHandler("keyvalue", new ClientEventCallback() {
+    }));
+    return new Consul(mock(AgentClient.class), healthMock, kvMock, mock(CatalogClient.class), mock(StatusClient.class),
+      mock(SessionClient.class), mock(EventClient.class), mock(PreparedQueryClient.class), mock(CoordinateClient.class),
+      mock(OperatorClient.class), Executors.newSingleThreadExecutor(),
+      new ConnectionPool(1, 2, TimeUnit.MINUTES),
+      mock(AclClient.class), mock(SnapshotClient.class), mock(OkHttpClient.class)
+    ) {};
   }
 
   @Bean

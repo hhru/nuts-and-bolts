@@ -4,6 +4,7 @@ import static java.util.Optional.ofNullable;
 
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 
 import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -27,19 +28,19 @@ public class NabCommonConfig {
 
   @Bean
   String serviceName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY))
+    return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
   }
 
   @Bean
   String datacenter(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY))
+    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
   }
 
   @Bean
   String nodeName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(NODE_NAME_PROPERTY))
+    return ofNullable(fileSettings.getString(NODE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME_PROPERTY)));
   }
 

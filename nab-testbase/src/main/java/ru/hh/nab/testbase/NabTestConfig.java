@@ -62,7 +62,7 @@ public class NabTestConfig {
   Consul consul() {
 
     ClientConfig config = new ClientConfig();
-    Consul.NetworkTimeoutConfig networkTimeoutConfig = new Consul.NetworkTimeoutConfig.Builder().withReadTimeout(11).build();
+    Consul.NetworkTimeoutConfig networkTimeoutConfig = new Consul.NetworkTimeoutConfig.Builder().withReadTimeout(11_000).build();
     HealthClient healthMock = mock(HealthClient.class);
     when(healthMock.getConfig()).thenReturn(config);
     when(healthMock.getNetworkTimeoutConfig()).thenReturn(networkTimeoutConfig);

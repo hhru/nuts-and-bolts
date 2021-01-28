@@ -118,7 +118,7 @@ public final class NabApplication {
 
   public static void configureSentry(ApplicationContext context) {
     FileSettings settings = context.getBean(FileSettings.class);
-    Optional.ofNullable(settings.getString("sentry.dsn")).ifPresent(dsn -> Sentry.init(options -> options.setDsn(dsn)));
+    Sentry.init(settings.getString("sentry.dsn"));
   }
 
   private static void configureLogger(ApplicationContext context) {

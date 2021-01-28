@@ -1,7 +1,10 @@
-version: 4.28.5
+version: 4.28.6
 build_image: registry.pyn.ru:5000/openjdk11-building:2019.03.14
-docker_files: {none: none}
+docker_files:
+  none: none
 build_method: mvn_build
 deploy_method: mvn_deploy
 update_method: mvn_update
-wiki_links: ['https://wiki.hh.ru/x/qo0eEQ', 'https://github.com/hhru/nuts-and-bolts/releases']
+wiki_links:
+- https://wiki.hh.ru/x/qo0eEQ
+- https://github.com/hhru/nuts-and-bolts/releases

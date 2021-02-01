@@ -17,7 +17,6 @@ import java.util.Properties;
 
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
@@ -29,7 +28,6 @@ import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
-import ru.hh.nab.starter.spring.ConsulEnabledCondition;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -58,9 +56,12 @@ public class NabProdConfig {
     return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
   }
 
-  @Conditional(ConsulEnabledCondition.class)
   @Bean
   Consul consul(FileSettings fileSettings) {
+    if (isConsulDisabled(fileSettings)) {
+      return null;
+    }
+
     int port = ofNullable(fileSettings.getString(CONSUL_PORT_PROPERTY))
       .or(() -> ofNullable(System.getProperty(CONSUL_PORT_PROPERTY)))
       .map(Integer::parseInt)
@@ -74,27 +75,36 @@ public class NabProdConfig {
       .build();
   }
 
-  @Conditional(ConsulEnabledCondition.class)
   @Bean
-  AgentClient agentClient(Consul consul) {
-    return consul.agentClient();
+  AgentClient agentClient(Optional<Consul> consul) {
+    return consul.map(Consul::agentClient).orElse(null);
   }
 
-  @Conditional(ConsulEnabledCondition.class)
   @Bean
-  KeyValueClient keyValueClient(Consul consul) {
-    return consul.keyValueClient();
+  KeyValueClient keyValueClient(Optional<Consul> consul) {
+    return consul.map(Consul::keyValueClient).orElse(null);
   }
 
-  @Conditional(ConsulEnabledCondition.class)
   @Bean
   @Lazy(value = false)
   ConsulService consulService(FileSettings fileSettings,
                               AppMetadata appMetadata,
-                              AgentClient agentClient,
-                              KeyValueClient keyValueClient,
+                              Optional<AgentClient> agentClient,
+                              Optional<KeyValueClient> keyValueClient,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
-    return new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, logLevelOverrideExtensionOptional.orElse(null));
+    if (isConsulDisabled(fileSettings)) {
+      return null;
+    }
+    return new ConsulService(
+        agentClient.orElseThrow(),
+        keyValueClient.orElseThrow(),
+        fileSettings,
+        appMetadata,
+        logLevelOverrideExtensionOptional.orElse(null));
+  }
+
+  private boolean isConsulDisabled(FileSettings fileSettings) {
+    return !fileSettings.getBoolean(ConsulService.CONSUL_ENABLED_PROPERTY, true);
   }
 
   @Bean

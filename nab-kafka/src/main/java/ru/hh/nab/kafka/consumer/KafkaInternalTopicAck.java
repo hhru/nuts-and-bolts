@@ -1,6 +1,10 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -32,6 +36,19 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
   }
 
   @Override
+  public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
+    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = messages.stream().collect(
+        Collectors.toMap(
+            this::getMessagePartition,
+            this::getOffsetOfNextMessage,
+            BinaryOperator.maxBy(Comparator.comparingLong(OffsetAndMetadata::offset))
+        )
+    );
+    consumer.commitSync(latestOffsetsForEachPartition);
+    seek(latestOffsetsForEachPartition);
+  }
+
+  @Override
   public void seek(ConsumerRecord<String, T> message) {
     TopicPartition partition = getMessagePartition(message);
     OffsetAndMetadata offsetOfNextMessageInPartition = getOffsetOfNextMessage(message);
@@ -48,5 +65,9 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
 
   private void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
     kafkaConsumer.getSeekedOffsets().put(topicPartition, offsetAndMetadata);
+  }
+
+  private void seek(Map<TopicPartition, OffsetAndMetadata> offsets) {
+    kafkaConsumer.getSeekedOffsets().putAll(offsets);
   }
 }

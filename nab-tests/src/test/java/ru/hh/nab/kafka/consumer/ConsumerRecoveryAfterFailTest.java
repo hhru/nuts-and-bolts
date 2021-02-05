@@ -1,8 +1,10 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import static java.util.Collections.synchronizedList;
 import static java.util.Collections.synchronizedSet;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -232,6 +235,26 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
 
     consumeAllRemainingMessages();
     assertProcessedMessagesCount(150 + 150 - totalAckedMessagesCount.intValue());
+  }
+
+  @Test
+  public void testAckLastMessageOfEachPartition() throws Exception {
+    putMessagesIntoKafka(150);
+
+    startConsumer((messages, ack) -> {
+      Collection<ConsumerRecord<String, String>> recordsWithMaxOffsetsInPartition = messages.stream().collect(Collectors.toMap(
+          ConsumerRecord::partition,
+          Function.identity(),
+          BinaryOperator.maxBy(Comparator.comparingLong(ConsumerRecord::offset)))
+      ).values();
+
+      messages.forEach(m -> processedMessages.add(m.value()));
+      ack.acknowledge(recordsWithMaxOffsetsInPartition);
+    });
+    assertProcessedMessagesCount(150);
+
+    consumeAllRemainingMessages();
+    assertProcessedMessagesCount(150);
   }
 
   private List<String> putMessagesIntoKafka(int count) {

@@ -1,10 +1,12 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -86,16 +88,16 @@ public class KafkaConsumer<T> {
       return;
     }
 
-    LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = getOffsetOfFirstMessagePerEachPartition(messages);
+    LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = getLowestOffsetsForEachPartition(messages);
     getSeekedOffsets().forEach(offsetsToSeek::put);
     offsetsToSeek.forEach(consumer::seek);
   }
 
-  private LinkedHashMap<TopicPartition, OffsetAndMetadata> getOffsetOfFirstMessagePerEachPartition(List<ConsumerRecord<String, T>> messages) {
+  private LinkedHashMap<TopicPartition, OffsetAndMetadata> getLowestOffsetsForEachPartition(List<ConsumerRecord<String, T>> messages) {
     return messages.stream().collect(toMap(
         record -> new TopicPartition(record.topic(), record.partition()),
         record -> new OffsetAndMetadata(record.offset()),
-        (offset1, offset2) -> offset1.offset() < offset2.offset() ? offset1 : offset2,
+        BinaryOperator.minBy(Comparator.comparing(OffsetAndMetadata::offset)),
         LinkedHashMap::new
     ));
   }

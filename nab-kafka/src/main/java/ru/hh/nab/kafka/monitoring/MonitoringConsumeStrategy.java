@@ -21,7 +21,7 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   }
 
   @Override
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) {
+  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
     timings.resetTime();
     consumeStrategy.onMessagesBatch(messages, ack);
     timings.time();

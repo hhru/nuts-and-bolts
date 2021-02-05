@@ -6,6 +6,6 @@ import java.util.List;
 @FunctionalInterface
 public interface ConsumeStrategy<T> {
 
-  void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack);
+  void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException;
 
 }

@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     startConsumer((messages, ack) -> {
       messages.forEach(m -> {
         processedMessages.add(m.value());
-          ack.seek(m);
+        ack.seek(m);
       });
     });
     assertProcessedMessagesCount(117);
@@ -198,6 +199,39 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     processedMessages.stream()
         .filter(Predicate.not(brokenMessages::contains))
         .forEach(m -> assertEquals(1L, messageProcessedCount.get(m).longValue()));
+  }
+
+  @Test
+  public void testAckLastMessageOfLastBatchPartition() throws Exception {
+    putMessagesIntoKafka(150);
+
+    AtomicLong totalAckedMessagesCount = new AtomicLong(0);
+    AtomicBoolean atLeastOneBatchHasSeveralPartitions = new AtomicBoolean(false);
+    startConsumer((messages, ack) -> {
+      var lastMessage = messages.get(messages.size() - 1);
+      messages.forEach(m -> {
+        processedMessages.add(m.value());
+        if (m == lastMessage) {
+          ack.acknowledge(m);
+        } else {
+          ack.seek(m);
+        }
+      });
+      int lastMessagePartition = lastMessage.partition();
+      long messagesCountForAckedPartition = messages.stream().filter(m -> m.partition() == lastMessagePartition).count();
+
+      Set<Integer> batchPartitions = messages.stream().map(ConsumerRecord::partition).collect(toSet());
+      if (batchPartitions.size() > 1) {
+        atLeastOneBatchHasSeveralPartitions.set(true);
+      }
+      totalAckedMessagesCount.addAndGet(messagesCountForAckedPartition);
+
+    });
+    assertProcessedMessagesCount(150);
+    assertTrue(atLeastOneBatchHasSeveralPartitions.get());
+
+    consumeAllRemainingMessages();
+    assertProcessedMessagesCount(150 + 150 - totalAckedMessagesCount.intValue());
   }
 
   private List<String> putMessagesIntoKafka(int count) {

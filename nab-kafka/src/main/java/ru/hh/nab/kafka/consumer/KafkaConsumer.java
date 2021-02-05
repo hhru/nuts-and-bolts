@@ -1,12 +1,11 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,7 +18,9 @@ public class KafkaConsumer<T> {
   private final AbstractMessageListenerContainer<String, T> springKafkaContainer;
 
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
-  private final ThreadLocal<ConsumerRecord<String, T>> lastAckedBatchRecord = new InheritableThreadLocal<>();
+  private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> seekedOffsets = new InheritableThreadLocal<>();
+  private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>();
+
   private final ConsumeStrategy<T> consumeStrategy;
 
   public KafkaConsumer(ConsumeStrategy<T> consumeStrategy,
@@ -44,52 +45,58 @@ public class KafkaConsumer<T> {
     return springKafkaContainer.getAssignedPartitions();
   }
 
-  public ConsumerRecord<String, T> getLastAckedBatchRecord() {
-    return lastAckedBatchRecord.get();
+  public Map<TopicPartition, OffsetAndMetadata> getSeekedOffsets() {
+    return seekedOffsets.get();
+  }
+
+  public void setWholeBatchCommited(boolean wholeBatchCommitedStatus) {
+    wholeBatchCommited.set(wholeBatchCommitedStatus);
   }
 
   public List<ConsumerRecord<String, T>> getCurrentBatch() {
     return currentBatch.get();
   }
 
-  public void setLastAckedBatchRecord(ConsumerRecord<String, T> record) {
-    lastAckedBatchRecord.set(record);
-  }
-
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
-    List<ConsumerRecord<String, T>> sortedBatch = messages.stream().sorted(
-        Comparator.comparing((Function<ConsumerRecord<String, T>, String>) ConsumerRecord::topic)
-            .thenComparingInt(ConsumerRecord::partition)
-            .thenComparingLong(ConsumerRecord::offset)
-    ).collect(Collectors.toUnmodifiableList());
+    seekedOffsets.set(new ConcurrentHashMap<>());
+    wholeBatchCommited.set(false);
+    currentBatch.set(messages);
 
-    lastAckedBatchRecord.remove();
-    currentBatch.set(sortedBatch);
     Ack<T> ack = new KafkaInternalTopicAck<>(this, consumer);
-    consumeStrategy.onMessagesBatch(sortedBatch, ack);
+    processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }
 
-  public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
-    List<ConsumerRecord<String, T>> currentBatch = getCurrentBatch();
-    if (!currentBatch.isEmpty() && currentBatch.get(currentBatch.size() - 1) != getLastAckedBatchRecord()) {
-      LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = currentBatch.stream().collect(toMap(
-          record -> new TopicPartition(record.topic(), record.partition()),
-          record -> new OffsetAndMetadata(record.offset()),
-          (offset1, offset2) -> offset1,
-          LinkedHashMap::new
-      ));
-
-      Optional.ofNullable(getLastAckedBatchRecord()).ifPresent(lastAckedBatchRecord -> {
-        for (ConsumerRecord<String, T> record : currentBatch) {
-          offsetsToSeek.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset() + 1));
-          if (record == lastAckedBatchRecord) {
-            break;
-          }
-        }
-      });
-
-      offsetsToSeek.forEach(consumer::seek);
+  private void processMessages(List<ConsumerRecord<String, T>> messages, Ack<T> ack) {
+    try {
+      consumeStrategy.onMessagesBatch(messages, ack);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted thread during kafka processing", e);
     }
+  }
+
+  public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
+    if (wholeBatchCommited.get()) {
+      return;
+    }
+
+    List<ConsumerRecord<String, T>> messages = getCurrentBatch();
+    if (messages.isEmpty()) {
+      return;
+    }
+
+    LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = getOffsetOfFirstMessagePerEachPartition(messages);
+    getSeekedOffsets().forEach(offsetsToSeek::put);
+    offsetsToSeek.forEach(consumer::seek);
+  }
+
+  private LinkedHashMap<TopicPartition, OffsetAndMetadata> getOffsetOfFirstMessagePerEachPartition(List<ConsumerRecord<String, T>> messages) {
+    return messages.stream().collect(toMap(
+        record -> new TopicPartition(record.topic(), record.partition()),
+        record -> new OffsetAndMetadata(record.offset()),
+        (offset1, offset2) -> offset1.offset() < offset2.offset() ? offset1 : offset2,
+        LinkedHashMap::new
+    ));
   }
 }

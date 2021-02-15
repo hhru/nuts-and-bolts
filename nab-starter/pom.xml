@@ -127,9 +127,8 @@
             <artifactId>jetty-webapp</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.orbitz.consul</groupId>
+            <groupId>ru.hh.consul</groupId>
             <artifactId>consul-client</artifactId>
-            <classifier>shaded</classifier>
         </dependency>
 
         <!--Jackson-->

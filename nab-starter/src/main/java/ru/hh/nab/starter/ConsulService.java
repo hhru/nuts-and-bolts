@@ -1,16 +1,16 @@
 package ru.hh.nab.starter;
 
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.KeyValueClient;
-import com.orbitz.consul.cache.KVCache;
-import com.orbitz.consul.model.agent.ImmutableRegCheck;
-import com.orbitz.consul.model.agent.ImmutableRegistration;
-import com.orbitz.consul.model.agent.Registration;
-import com.orbitz.consul.model.catalog.ImmutableServiceWeights;
-import com.orbitz.consul.model.catalog.ServiceWeights;
-import com.orbitz.consul.model.kv.Value;
-import com.orbitz.consul.option.ConsistencyMode;
-import com.orbitz.consul.option.ImmutableQueryOptions;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.KeyValueClient;
+import ru.hh.consul.cache.KVCache;
+import ru.hh.consul.model.agent.ImmutableRegCheck;
+import ru.hh.consul.model.agent.ImmutableRegistration;
+import ru.hh.consul.model.agent.Registration;
+import ru.hh.consul.model.catalog.ImmutableServiceWeights;
+import ru.hh.consul.model.catalog.ServiceWeights;
+import ru.hh.consul.model.kv.Value;
+import ru.hh.consul.option.ConsistencyMode;
+import ru.hh.consul.option.ImmutableQueryOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;

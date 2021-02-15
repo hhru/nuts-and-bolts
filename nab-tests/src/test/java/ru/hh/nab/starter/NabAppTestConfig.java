@@ -1,15 +1,15 @@
 package ru.hh.nab.starter;
 
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.KeyValueClient;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.Consul;
+import ru.hh.consul.KeyValueClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.orbitz.consul.config.ClientConfig;
-import com.orbitz.consul.monitoring.ClientEventCallback;
-import com.orbitz.consul.monitoring.ClientEventHandler;
+import ru.hh.consul.config.ClientConfig;
+import ru.hh.consul.monitoring.ClientEventCallback;
+import ru.hh.consul.monitoring.ClientEventHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

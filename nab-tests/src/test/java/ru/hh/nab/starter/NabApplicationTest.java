@@ -11,9 +11,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.Consul;
-import com.orbitz.google.common.net.HostAndPort;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.Consul;
+import com.google.common.net.HostAndPort;
 import static java.util.Objects.requireNonNullElse;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;

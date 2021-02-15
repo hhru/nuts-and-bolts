@@ -43,7 +43,7 @@
         <logback.version>1.2.3</logback.version>
         <jclient.version>3.2.5</jclient.version>
         <java.version>11</java.version>
-        <consul.client.version>1.0.1-SNAPSHOT</consul.client.version>
+        <consul.client.version>1.0.1</consul.client.version>
     </properties>
 
     <dependencyManagement>

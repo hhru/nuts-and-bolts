@@ -129,7 +129,6 @@
         <dependency>
             <groupId>ru.hh.consul</groupId>
             <artifactId>consul-client</artifactId>
-            <classifier>shaded</classifier>
         </dependency>
 
         <!--Jackson-->

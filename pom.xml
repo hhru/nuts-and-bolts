@@ -52,7 +52,11 @@
                 <groupId>ru.hh.consul</groupId>
                 <artifactId>consul-client</artifactId>
                 <version>${consul.client.version}</version>
-                <classifier>shaded</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>29.0-jre</version>
             </dependency>
 
             <dependency>

@@ -3,7 +3,7 @@ package ru.hh.nab.starter;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
-import ru.hh.consul.google.common.net.HostAndPort;
+import com.google.common.net.HostAndPort;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 

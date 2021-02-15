@@ -1,16 +1,16 @@
 package ru.hh.nab.starter;
 
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.KeyValueClient;
-import com.orbitz.consul.config.ClientConfig;
-import com.orbitz.consul.model.agent.Registration;
-import com.orbitz.consul.model.catalog.ServiceWeights;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.Consul;
+import ru.hh.consul.KeyValueClient;
+import ru.hh.consul.config.ClientConfig;
+import ru.hh.consul.model.agent.Registration;
+import ru.hh.consul.model.catalog.ServiceWeights;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.orbitz.consul.monitoring.ClientEventCallback;
-import com.orbitz.consul.monitoring.ClientEventHandler;
+import ru.hh.consul.monitoring.ClientEventCallback;
+import ru.hh.consul.monitoring.ClientEventHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

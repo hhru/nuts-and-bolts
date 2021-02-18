@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ConsulService {
@@ -54,7 +53,7 @@ public class ConsulService {
 
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
-  private final Supplier<ImmutableRegistration.Builder> serviceTemplate;
+  private final ImmutableRegistration serviceTemplate;
   private final KVCache kvCache;
 
   private final String serviceId;
@@ -110,18 +109,17 @@ public class ConsulService {
         .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
         .build();
 
-      this.serviceTemplate = () -> ImmutableRegistration.builder()
+      this.serviceTemplate = ImmutableRegistration.builder()
         .id(serviceId)
         .name(fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY))
         .port(applicationPort)
         .address(Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)))
         .check(regCheck)
         .tags(tags)
-        .meta(Map.of("serviceVersion", appMetadata.getVersion()));
+        .meta(Map.of("serviceVersion", appMetadata.getVersion()))
+        .build();
     } else {
-      this.serviceTemplate = () -> {
-        throw new IllegalStateException("Registration disabled. Template should not be called");
-      };
+      this.serviceTemplate = null;
     }
   }
 
@@ -145,7 +143,7 @@ public class ConsulService {
 
   private ImmutableRegistration registerWithWeight(int weight) {
     ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(weight / warningDivider).build();
-    ImmutableRegistration registration = serviceTemplate.get().serviceWeights(serviceWeights).build();
+    ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
     agentClient.register(registration);
     return registration;
   }

@@ -36,6 +36,7 @@ public class ConsulService {
   public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
+  public static final String INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY = "consul.initial.weight.request.timeout.millis";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String WARNING_DIVIDER_PROPERTY = "consul.check.warningDivider";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
@@ -61,7 +62,9 @@ public class ConsulService {
   private final boolean registrationEnabled;
   private final String weightPath;
   private final int warningDivider;
-  private final long sleepAfterDeregisterMillis;
+  private final int sleepAfterDeregisterMillis;
+  private final int syncWeightTimeoutMillis;
+
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
@@ -86,7 +89,8 @@ public class ConsulService {
     this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
         ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
-    this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
+    this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 0);
+    this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
     this.warningDivider = fileSettings.getInteger(WARNING_DIVIDER_PROPERTY, 3);
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
@@ -127,8 +131,11 @@ public class ConsulService {
       return;
     }
     try {
+      LOGGER.debug("Starting registration");
       this.weight.set(getWeightOrDefault(getCurrentWeight()));
+      LOGGER.trace("Got current weight for service:" + weight.get());
       var registration = registerWithWeight(weight.get());
+      LOGGER.trace("Registered service, starting cache to watch weight change");
       startCache();
       LOGGER.info("Registered consul service: {} and started cache to track weight changes", registration);
     } catch (RuntimeException ex) {
@@ -151,7 +158,7 @@ public class ConsulService {
   }
 
   private Optional<String> getCurrentWeight() {
-    return kvClient.getValueAsString(weightPath);
+    return kvClient.getValueAsString(weightPath, syncWeightTimeoutMillis);
   }
 
   private void startCache() {

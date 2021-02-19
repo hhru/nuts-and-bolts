@@ -37,7 +37,6 @@ public class ConsulService {
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY = "consul.initial.weight.request.timeout.millis";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
-  public static final String WARNING_DIVIDER_PROPERTY = "consul.check.warningDivider";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
   public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
@@ -60,7 +59,6 @@ public class ConsulService {
   private final String hostName;
   private final boolean registrationEnabled;
   private final String weightPath;
-  private final int warningDivider;
   private final int sleepAfterDeregisterMillis;
   private final int syncWeightTimeoutMillis;
 
@@ -91,7 +89,6 @@ public class ConsulService {
     this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 0);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
-    this.warningDivider = fileSettings.getInteger(WARNING_DIVIDER_PROPERTY, 3);
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
 
     var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
@@ -142,7 +139,7 @@ public class ConsulService {
   }
 
   private ImmutableRegistration registerWithWeight(int weight) {
-    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(weight / warningDivider).build();
+    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(0).build();
     ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
     agentClient.register(registration);
     return registration;

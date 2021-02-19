@@ -1,5 +1,7 @@
 package ru.hh.nab.starter;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
@@ -73,7 +75,7 @@ public class ConsulServiceTest {
     assertTrue(registration.getServiceWeights().isPresent());
     ServiceWeights serviceWeights = registration.getServiceWeights().get();
     assertEquals(204, serviceWeights.getPassing());
-    assertEquals(102, serviceWeights.getWarning());
+    assertEquals(0, serviceWeights.getWarning());
 
     assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "0"), registration.getId());
     assertEquals("testService", registration.getName());
@@ -112,7 +114,7 @@ public class ConsulServiceTest {
     assertTrue(registration.getServiceWeights().isPresent());
     ServiceWeights serviceWeights = registration.getServiceWeights().get();
     assertEquals(204, serviceWeights.getPassing());
-    assertEquals(68, serviceWeights.getWarning());
+    assertEquals(0, serviceWeights.getWarning());
 
 
     assertEquals(String.join("-", "defaultTestService", TEST_NODE_NAME, "17"), registration.getId());
@@ -137,7 +139,8 @@ public class ConsulServiceTest {
           .withReadTimeout((int) TimeUnit.SECONDS.toMillis(ConsulService.DEFAULT_WEIGHT_CACHE_WATCH_SECONDS + 1)).build()
       );
       when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
-      when(mock.getValueAsString(String.join("/", "host", TEST_NODE_NAME, "weight"))).thenReturn(Optional.of("204"));
+      when(mock.getValueAsString(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), anyInt()))
+        .thenReturn(Optional.of("204"));
       return mock;
     }
 

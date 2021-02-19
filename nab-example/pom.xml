@@ -25,6 +25,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.15.2</version>
+        </dependency>
+        <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-testbase</artifactId>
             <version>${project.version}</version>

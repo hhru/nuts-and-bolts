@@ -86,7 +86,7 @@ public class ConsulService {
     this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
         ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
-    this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 0);
+    this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 2000);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");

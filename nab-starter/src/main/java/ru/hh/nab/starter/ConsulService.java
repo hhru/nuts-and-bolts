@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ConsulService {
@@ -36,8 +35,8 @@ public class ConsulService {
   public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
+  public static final String INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY = "consul.initial.weight.request.timeout.millis";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
-  public static final String WARNING_DIVIDER_PROPERTY = "consul.check.warningDivider";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
   public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
@@ -53,15 +52,16 @@ public class ConsulService {
 
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
-  private final Supplier<ImmutableRegistration.Builder> serviceTemplate;
+  private final ImmutableRegistration serviceTemplate;
   private final KVCache kvCache;
 
   private final String serviceId;
   private final String hostName;
   private final boolean registrationEnabled;
   private final String weightPath;
-  private final int warningDivider;
-  private final long sleepAfterDeregisterMillis;
+  private final int sleepAfterDeregisterMillis;
+  private final int syncWeightTimeoutMillis;
+
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
@@ -86,9 +86,9 @@ public class ConsulService {
     this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
         ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
-    this.sleepAfterDeregisterMillis = fileSettings.getLong(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300L);
+    this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 2000);
+    this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
-    this.warningDivider = fileSettings.getInteger(WARNING_DIVIDER_PROPERTY, 3);
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
 
     var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
@@ -106,18 +106,17 @@ public class ConsulService {
         .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
         .build();
 
-      this.serviceTemplate = () -> ImmutableRegistration.builder()
+      this.serviceTemplate = ImmutableRegistration.builder()
         .id(serviceId)
         .name(fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY))
         .port(applicationPort)
         .address(Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)))
         .check(regCheck)
         .tags(tags)
-        .meta(Map.of("serviceVersion", appMetadata.getVersion()));
+        .meta(Map.of("serviceVersion", appMetadata.getVersion()))
+        .build();
     } else {
-      this.serviceTemplate = () -> {
-        throw new IllegalStateException("Registration disabled. Template should not be called");
-      };
+      this.serviceTemplate = null;
     }
   }
 
@@ -127,8 +126,11 @@ public class ConsulService {
       return;
     }
     try {
+      LOGGER.debug("Starting registration");
       this.weight.set(getWeightOrDefault(getCurrentWeight()));
+      LOGGER.trace("Got current weight for service:" + weight.get());
       var registration = registerWithWeight(weight.get());
+      LOGGER.trace("Registered service, starting cache to watch weight change");
       startCache();
       LOGGER.info("Registered consul service: {} and started cache to track weight changes", registration);
     } catch (RuntimeException ex) {
@@ -137,8 +139,8 @@ public class ConsulService {
   }
 
   private ImmutableRegistration registerWithWeight(int weight) {
-    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(weight / warningDivider).build();
-    ImmutableRegistration registration = serviceTemplate.get().serviceWeights(serviceWeights).build();
+    ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(0).build();
+    ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
     agentClient.register(registration);
     return registration;
   }
@@ -151,7 +153,7 @@ public class ConsulService {
   }
 
   private Optional<String> getCurrentWeight() {
-    return kvClient.getValueAsString(weightPath);
+    return kvClient.getValueAsString(weightPath, syncWeightTimeoutMillis);
   }
 
   private void startCache() {

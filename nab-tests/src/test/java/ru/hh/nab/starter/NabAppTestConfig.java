@@ -1,7 +1,6 @@
 package ru.hh.nab.starter;
 
 import ru.hh.consul.AgentClient;
-import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -16,8 +15,6 @@ import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;
-
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Import({NabTestConfig.class})
@@ -38,10 +35,6 @@ public class NabAppTestConfig {
   KeyValueClient keyValueClient() {
     KeyValueClient mock = mock(KeyValueClient.class);
     when(mock.getConfig()).thenReturn(new ClientConfig());
-    when(mock.getNetworkTimeoutConfig()).thenReturn(
-            new Consul.NetworkTimeoutConfig.Builder()
-                    .withReadTimeout((int) TimeUnit.SECONDS.toMillis(ConsulService.DEFAULT_WEIGHT_CACHE_WATCH_SECONDS + 1)).build()
-    );
     when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
     return mock;
   }

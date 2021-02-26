@@ -35,7 +35,6 @@ public class ConsulService {
   public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
-  public static final String INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY = "consul.initial.weight.request.timeout.millis";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
@@ -60,7 +59,6 @@ public class ConsulService {
   private final boolean registrationEnabled;
   private final String weightPath;
   private final int sleepAfterDeregisterMillis;
-  private final int syncWeightTimeoutMillis;
 
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
 
@@ -86,7 +84,6 @@ public class ConsulService {
     this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
         ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
     );
-    this.syncWeightTimeoutMillis = fileSettings.getInteger(INITIAL_WEIGHT_REQUEST_TIMEOUT_PROPERTY, 2000);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
@@ -153,7 +150,7 @@ public class ConsulService {
   }
 
   private Optional<String> getCurrentWeight() {
-    return kvClient.getValueAsString(weightPath, syncWeightTimeoutMillis);
+    return kvClient.getValueAsString(weightPath);
   }
 
   private void startCache() {

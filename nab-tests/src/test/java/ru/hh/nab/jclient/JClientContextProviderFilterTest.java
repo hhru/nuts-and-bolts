@@ -1,5 +1,8 @@
 package ru.hh.nab.jclient;
 
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.util.Collections;
 import javax.servlet.FilterChain;
@@ -18,7 +21,11 @@ public class JClientContextProviderFilterTest {
 
   @Test
   public void testInvalidQueryParams() throws IOException, ServletException {
-    JClientContextProviderFilter filter = new JClientContextProviderFilter(mock(HttpClientContextThreadLocalSupplier.class));
+    OpenTelemetrySdk telemetrySdk = OpenTelemetrySdk.builder()
+        .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance())).build();
+
+    JClientContextProviderFilter filter = new JClientContextProviderFilter(mock(HttpClientContextThreadLocalSupplier.class),
+        telemetrySdk.getTracer("test"), new TelemetryPropagator(telemetrySdk));
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
     FilterChain chain = mock(FilterChain.class);

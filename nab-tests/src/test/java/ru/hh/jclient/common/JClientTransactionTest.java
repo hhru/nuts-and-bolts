@@ -1,5 +1,6 @@
 package ru.hh.jclient.common;
 
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,8 @@ public class JClientTransactionTest {
       });
 
     httpClientFactory = new HttpClientFactory(
-      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners
+      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners,
+        OpenTelemetrySdk.builder().build()
     );
   }
 

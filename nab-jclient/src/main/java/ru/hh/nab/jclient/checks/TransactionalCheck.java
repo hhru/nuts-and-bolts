@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import ru.hh.jclient.common.HttpClient;
 import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.Request;
+import ru.hh.jclient.common.telemetry.TelemetryContext;
 import static java.util.stream.Collectors.joining;
 
 public class TransactionalCheck implements HttpClientEventListener {
@@ -73,9 +74,9 @@ public class TransactionalCheck implements HttpClientEventListener {
   }
 
   @Override
-  public void beforeExecute(HttpClient httpClient, Request request) {
+  public Request beforeExecute(HttpClient httpClient, Request request, TelemetryContext telemetryContext) {
     if (action == Action.DO_NOTHING || !TransactionSynchronizationManager.isActualTransactionActive()) {
-      return;
+      return request;
     }
     if (action == Action.RAISE) {
       throw new TransactionalCheckException();
@@ -92,6 +93,7 @@ public class TransactionalCheck implements HttpClientEventListener {
         callInTxStatistics.computeIfAbsent(targetStackTrace, data -> new LongAdder()).increment();
       }
     }
+    return request;
   }
 
   public Action getAction() {

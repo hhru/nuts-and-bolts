@@ -1,4 +1,4 @@
-package ru.hh.nab.jclient;
+package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;

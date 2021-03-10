@@ -62,5 +62,12 @@ public class NabTelemetryConfig {
     return new IdGeneratorImpl(httpClientContextSupplier);
   }
 
+  @Bean
+  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier) {
+    TelemetryProcessorFactoryImpl telemetryRequestDebug = new TelemetryProcessorFactoryImpl(openTelemetry.getTracer("jclient"),
+        openTelemetry.getPropagators().getTextMapPropagator());
+    contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
+    return telemetryRequestDebug;
+  }
 
 }

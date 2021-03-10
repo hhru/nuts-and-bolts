@@ -9,11 +9,13 @@ import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.properties.FileSettings;
 
 @Configuration
@@ -32,7 +34,7 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName) {
+  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
     String url = fileSettings.getString("opentelemetry.collector.url", "http://localhost:9411/api/v2/spans");
     Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
 
@@ -40,6 +42,7 @@ public class NabTelemetryConfig {
     return SdkTracerProvider.builder()
         .addSpanProcessor(SimpleSpanProcessor.create(zipkinExporter))
         .setResource(Resource.getDefault().merge(serviceNameResource))
+        .setIdGenerator(idGenerator)
         .build();
   }
 
@@ -52,6 +55,11 @@ public class NabTelemetryConfig {
   TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator) {
     Tracer tracer = openTelemetry.getTracer("nab");
     return new TelemetryFilter(tracer, telemetryPropagator);
+  }
+
+  @Bean
+  IdGenerator idGenerator(HttpClientContextThreadLocalSupplier httpClientContextSupplier) {
+    return new IdGeneratorImpl(httpClientContextSupplier);
   }
 
 

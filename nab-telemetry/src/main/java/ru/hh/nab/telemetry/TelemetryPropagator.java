@@ -31,7 +31,7 @@ public class TelemetryPropagator {
       public String get(Map<String, List<String>> carrier, String key) {
         List<String> header = carrier.get(key);
         if (header == null || header.isEmpty()) {
-          return "";
+          return null;
         }
         return header.get(0);
       }

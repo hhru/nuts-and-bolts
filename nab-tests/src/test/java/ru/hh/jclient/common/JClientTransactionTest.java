@@ -63,7 +63,8 @@ public class JClientTransactionTest {
       });
 
     httpClientFactory = new HttpClientFactory(
-      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners, null);
+      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners
+    );
   }
 
   @Test

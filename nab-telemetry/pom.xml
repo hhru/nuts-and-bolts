@@ -25,6 +25,11 @@
             <version>${jclient.version}</version>
         </dependency>
         <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-common-api</artifactId>
+            <version>${jclient.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-zipkin</artifactId>
             <version>${opentelemtry.version}</version>

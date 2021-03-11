@@ -37,17 +37,22 @@ public class NabTelemetryConfig {
   @Bean(destroyMethod = "shutdown")
   public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
     String url = fileSettings.getString("opentelemetry.collector.url");
-    if (Strings.isNullOrEmpty(url) && fileSettings.getBoolean("opentelemetry.enabled")) {
-      throw new IllegalStateException("opentelemetry.collector.url can't be empty");
-    }
-    Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
+    boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
+    if (!telemetryEnabled) {
+      return SdkTracerProvider.builder().build();
+    } else {
+      if (Strings.isNullOrEmpty(url)) {
+        throw new IllegalStateException("'opentelemetry.collector.url' property can't be empty");
+      }
+      Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
 
-    ZipkinSpanExporter zipkinExporter = ZipkinSpanExporter.builder().setEndpoint(url).build();
-    return SdkTracerProvider.builder()
-        .addSpanProcessor(SimpleSpanProcessor.create(zipkinExporter))
-        .setResource(Resource.getDefault().merge(serviceNameResource))
-        .setIdGenerator(idGenerator)
-        .build();
+      ZipkinSpanExporter zipkinExporter = ZipkinSpanExporter.builder().setEndpoint(url).build();
+      return SdkTracerProvider.builder()
+          .addSpanProcessor(SimpleSpanProcessor.create(zipkinExporter))
+          .setResource(Resource.getDefault().merge(serviceNameResource))
+          .setIdGenerator(idGenerator)
+          .build();
+    }
   }
 
   @Bean

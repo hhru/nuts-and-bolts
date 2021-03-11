@@ -1,5 +1,6 @@
 package ru.hh.nab.telemetry;
 
+import com.google.common.base.Strings;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
@@ -35,7 +36,10 @@ public class NabTelemetryConfig {
 
   @Bean(destroyMethod = "shutdown")
   public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
-    String url = fileSettings.getString("opentelemetry.collector.url", "http://localhost:9411/api/v2/spans");
+    String url = fileSettings.getString("opentelemetry.collector.url");
+    if (Strings.isNullOrEmpty(url) && fileSettings.getBoolean("opentelemetry.enabled")) {
+      throw new IllegalStateException("opentelemetry.collector.url can't be empty");
+    }
     Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
 
     ZipkinSpanExporter zipkinExporter = ZipkinSpanExporter.builder().setEndpoint(url).build();
@@ -64,7 +68,7 @@ public class NabTelemetryConfig {
 
   @Bean
   TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier) {
-    TelemetryProcessorFactoryImpl telemetryRequestDebug = new TelemetryProcessorFactoryImpl(openTelemetry.getTracer("jclient"),
+    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
         openTelemetry.getPropagators().getTextMapPropagator());
     contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
     return telemetryRequestDebug;

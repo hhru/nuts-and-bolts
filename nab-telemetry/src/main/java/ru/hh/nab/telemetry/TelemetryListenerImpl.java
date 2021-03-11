@@ -9,11 +9,12 @@ import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpHeaders;
+import ru.hh.jclient.common.Param;
 import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.RequestContext;
@@ -23,7 +24,7 @@ import ru.hh.jclient.common.exception.ResponseConverterException;
 public class TelemetryListenerImpl implements RequestDebug {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
 
-  private static final TextMapGetter<HttpClientContext> GETTER = createGetter();
+  private static final TextMapGetter<Map<String, List<String>>> GETTER = createGetter();
   private final Tracer tracer;
   private final TextMapPropagator textMapPropagator;
   private Span span;
@@ -34,21 +35,24 @@ public class TelemetryListenerImpl implements RequestDebug {
   }
 
   @Override
-  public Request onExecuteRequest(Request request, HttpClientContext httpClientContext) {
-    Context context = textMapPropagator.extract(Context.current(), httpClientContext, GETTER);
+  public Request onRequestStart(Request originalRequest, Map<String, List<String>> originalHeaders, List<Param> queryParams, boolean external) {
+    Context context = textMapPropagator.extract(Context.current(), originalHeaders, GETTER);
     span = tracer.spanBuilder(
-        request.getUrl()) //todo более общий
+        originalRequest.getUrl()) //todo более общий
         .setParent(context)
         .setSpanKind(SpanKind.CLIENT)
-        .setAttribute("requestTimeout", request.getRequestTimeout())
-        .setAttribute("readTimeout", request.getReadTimeout())
+        .setAttribute("requestTimeout", originalRequest.getRequestTimeout())
+        .setAttribute("readTimeout", originalRequest.getReadTimeout())
         .startSpan();
     LOGGER.trace("spanStarted : {}", span);
-    RequestBuilder requestBuilder = new RequestBuilder(request);
+    RequestBuilder requestBuilder = new RequestBuilder(originalRequest);
+
+    if (external) {
+      return originalRequest;
+    }
 
     HttpHeaders headers = new HttpHeaders();
-
-    headers.add(request.getHeaders());
+    headers.add(originalRequest.getHeaders());
     try (Scope ignore = span.makeCurrent()) {
       textMapPropagator.inject(Context.current(), headers, HttpHeaders::add);
     }
@@ -72,16 +76,16 @@ public class TelemetryListenerImpl implements RequestDebug {
     LOGGER.trace("span closed: {}", span);
   }
 
-  private static TextMapGetter<HttpClientContext> createGetter() {
+  private static TextMapGetter<Map<String, List<String>>> createGetter() {
     return new TextMapGetter<>() {
       @Override
-      public Iterable<String> keys(HttpClientContext carrier) {
-        return carrier.getHeaders().keySet();
+      public Iterable<String> keys(Map<String, List<String>> originalHeaders) {
+        return originalHeaders.keySet();
       }
 
       @Override
-      public String get(HttpClientContext carrier, String key) {
-        List<String> header = carrier.getHeaders().get(key);
+      public String get(Map<String, List<String>> originalHeaders, String key) {
+        List<String> header = originalHeaders.get(key);
         if (header == null || header.isEmpty()) {
           return "";
         }

@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts tests based on nab-testbase</name>
 
+    <properties>
+        <jmh.version>1.28</jmh.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -63,6 +67,16 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>

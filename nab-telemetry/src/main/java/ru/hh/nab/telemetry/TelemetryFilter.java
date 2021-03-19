@@ -42,22 +42,23 @@ public class TelemetryFilter implements Filter, NabServletFilter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     if (!enabled) {
-      return;
-    }
-    Map<String, List<String>> requestHeadersMap = getRequestHeadersMap(request);
-    Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
-    Span span = tracer.spanBuilder(request.getServerName())
-        .setParent(telemetryContext)
-        .setSpanKind(SpanKind.SERVER)
-        .setAttribute(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? "unknown" : requestHeadersMap.get(USER_AGENT).get(0))
-        .setAttribute(SERVER_URL, ((HttpServletRequest) request).getRequestURL().toString())
-        .startSpan();
-    LOGGER.trace("span started:{}", span);
-
-    try (Scope scope = span.makeCurrent()) {
       chain.doFilter(request, response);
-    } finally {
-      span.end();
+    } else {
+      Map<String, List<String>> requestHeadersMap = getRequestHeadersMap(request);
+      Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
+      Span span = tracer.spanBuilder(request.getServerName())
+          .setParent(telemetryContext)
+          .setSpanKind(SpanKind.SERVER)
+          .setAttribute(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? "unknown" : requestHeadersMap.get(USER_AGENT).get(0))
+          .setAttribute(SERVER_URL, ((HttpServletRequest) request).getRequestURL().toString())
+          .startSpan();
+      LOGGER.trace("span started:{}", span);
+
+      try (Scope scope = span.makeCurrent()) {
+        chain.doFilter(request, response);
+      } finally {
+        span.end();
+      }
     }
   }
 

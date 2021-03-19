@@ -33,6 +33,11 @@ public class NabTelemetryConfig {
     return openTelemetrySdkBuilder.buildAndRegisterGlobal();
   }
 
+  @Bean
+  IdGenerator idGenerator(HttpClientContextThreadLocalSupplier httpClientContextSupplier) {
+    return new IdGeneratorImpl(httpClientContextSupplier);
+  }
+
   @Bean(destroyMethod = "shutdown")
   public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
     String url = fileSettings.getString("opentelemetry.collector.url");
@@ -63,11 +68,6 @@ public class NabTelemetryConfig {
   TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
     Tracer tracer = openTelemetry.getTracer("nab");
     return new TelemetryFilter(tracer, telemetryPropagator, fileSettings.getBoolean("opentelemetry.enabled", false));
-  }
-
-  @Bean
-  IdGenerator idGenerator(HttpClientContextThreadLocalSupplier httpClientContextSupplier) {
-    return new IdGeneratorImpl(httpClientContextSupplier);
   }
 
   @Bean

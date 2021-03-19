@@ -30,8 +30,7 @@ public class NabTelemetryConfig {
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
       openTelemetrySdkBuilder.setTracerProvider(tracerProvider);
     }
-//    OpenTelemetrySdk openTelemetrySdk = openTelemetrySdkBuilder.buildAndRegisterGlobal(); //todo
-    return openTelemetrySdkBuilder.build();
+    return openTelemetrySdkBuilder.buildAndRegisterGlobal();
   }
 
   @Bean(destroyMethod = "shutdown")
@@ -61,9 +60,9 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator) {
+  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
     Tracer tracer = openTelemetry.getTracer("nab");
-    return new TelemetryFilter(tracer, telemetryPropagator);
+    return new TelemetryFilter(tracer, telemetryPropagator, fileSettings.getBoolean("opentelemetry.enabled", false));
   }
 
   @Bean
@@ -72,10 +71,13 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier) {
+  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier,
+                                                      FileSettings fileSettings) {
     TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
         openTelemetry.getPropagators().getTextMapPropagator());
-    contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
+    if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
+      contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
+    }
     return telemetryRequestDebug;
   }
 

@@ -30,15 +30,20 @@ public class TelemetryFilter implements Filter, NabServletFilter {
   private static final String SERVER_URL = "Server-url";
   private final TelemetryPropagator telemetryPropagator;
   private final Tracer tracer;
+  private final boolean enabled;
 
 
-  public TelemetryFilter(Tracer tracer, TelemetryPropagator telemetryPropagator) {
+  public TelemetryFilter(Tracer tracer, TelemetryPropagator telemetryPropagator, boolean enabled) {
     this.telemetryPropagator = telemetryPropagator;
     this.tracer = tracer;
+    this.enabled = enabled;
   }
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    if (!enabled) {
+      return;
+    }
     Map<String, List<String>> requestHeadersMap = getRequestHeadersMap(request);
     Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
     Span span = tracer.spanBuilder(request.getServerName())

@@ -59,8 +59,10 @@ public class ConsulService {
   private final boolean registrationEnabled;
   private final String weightPath;
   private final int sleepAfterDeregisterMillis;
+  private final String appVersion;
 
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
+  private volatile Map<String, String> meta;
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
@@ -71,6 +73,7 @@ public class ConsulService {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
+    this.appVersion = appMetadata.getVersion();
     String resultingConsistencyMode = fileSettings.getString(
       CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
       fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
@@ -110,7 +113,6 @@ public class ConsulService {
         .address(Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)))
         .check(regCheck)
         .tags(tags)
-        .meta(Map.of("serviceVersion", appMetadata.getVersion()))
         .build();
     } else {
       this.serviceTemplate = null;
@@ -126,6 +128,10 @@ public class ConsulService {
       LOGGER.debug("Starting registration");
       this.weight.set(getWeightOrDefault(getCurrentWeight()));
       LOGGER.trace("Got current weight for service:" + weight.get());
+      meta = Map.of(
+          "serviceVersion", appVersion,
+          "startTimestamp", String.valueOf(System.currentTimeMillis())
+      );
       var registration = registerWithWeight(weight.get());
       LOGGER.trace("Registered service, starting cache to watch weight change");
       startCache();
@@ -137,7 +143,7 @@ public class ConsulService {
 
   private ImmutableRegistration registerWithWeight(int weight) {
     ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(0).build();
-    ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
+    ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights).withMeta(meta);
     agentClient.register(registration);
     return registration;
   }

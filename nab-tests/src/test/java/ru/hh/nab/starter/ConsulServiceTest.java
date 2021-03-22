@@ -81,7 +81,7 @@ public class ConsulServiceTest {
     assertEquals(2, tags.size());
     assertEquals(List.of("tag1", "tag2"), tags);
     Map<String, String> meta = registration.getMeta();
-    assertEquals(1, meta.size());
+    assertEquals(2, meta.size());
     assertEquals(Map.of("serviceVersion", "test-version"), meta);
   }
 
@@ -120,7 +120,7 @@ public class ConsulServiceTest {
     List<String> tags = registration.getTags();
     assertEquals(0, tags.size());
     Map<String, String> meta = registration.getMeta();
-    assertEquals(1, meta.size());
+    assertEquals(2, meta.size());
     assertEquals(Map.of("serviceVersion", "unknown"), meta);
   }
 

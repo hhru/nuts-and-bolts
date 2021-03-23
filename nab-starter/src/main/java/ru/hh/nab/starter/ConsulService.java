@@ -45,6 +45,7 @@ public class ConsulService {
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
   public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
   public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
+  public static final String CONSUL_CHECK_PASSING = "consul.check.passing";
   public static final String CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY = "consul.consistencyMode";
   public static final String CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
   public static final String CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
@@ -96,6 +97,7 @@ public class ConsulService {
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck.builder()
         .http("http://" + applicationHost + ":" + applicationPort + "/status")
+        .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
         .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
         .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
         .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))

@@ -33,6 +33,7 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNEC
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabMetricsTrackerFactory.class);
@@ -67,7 +68,7 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
     MonitoringMetricsTracker(String poolName, PoolStats poolStats) {
       this.poolName = poolName;
       this.datasourceTag = new Tag("datasource", poolName);
-      this.appTag = new Tag("app", serviceName);
+      this.appTag = new Tag(APP_TAG_NAME, serviceName);
       Tag[] jdbcTags = new Tag[]{datasourceTag, appTag};
 
       creationHistogram = new Histogram(2000);

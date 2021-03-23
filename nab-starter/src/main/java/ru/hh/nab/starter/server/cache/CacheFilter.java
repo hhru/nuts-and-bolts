@@ -17,9 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.CacheControl;
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
+import ru.hh.nab.metrics.Tag;
+import ru.hh.nab.metrics.TaggedSender;
 import static ru.hh.nab.starter.server.cache.CachedResponse.PLACEHOLDER;
 import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.starter.server.logging.RequestInfo.HIT;
@@ -45,43 +49,40 @@ public class CacheFilter implements Filter {
         .valueSerializer(serializer)
         .build();
 
-    String internalHitsMetricName = getFullMetricName(serviceName, "internal.hits");
-    String internalMissesMetricName = getFullMetricName(serviceName, "internal.misses");
-    String internalEvictionsMetricName = getFullMetricName(serviceName, "internal.evictions");
-    String putAddMetricName = getFullMetricName(serviceName, "put.add");
-    String putReplaceMetricName = getFullMetricName(serviceName, "put.replace");
-    String putFailMetricName = getFullMetricName(serviceName, "put.fail");
-    String capacityMetricName = getFullMetricName(serviceName, "capacity");
-    String freeMetricName = getFullMetricName(serviceName, "free");
-    String hitsMetricName = getFullMetricName(serviceName, "hits");
-    String missesMetricName = getFullMetricName(serviceName, "misses");
-    String placeholderMetricName = getFullMetricName(serviceName, "placeholder");
-    String bypassMetricName = getFullMetricName(serviceName, "bypass");
+    String internalHitsMetricName = "http.cache.internal.hits";
+    String internalMissesMetricName = "http.cache.internal.misses";
+    String internalEvictionsMetricName = "http.cache.internal.evictions";
+    String putAddMetricName = "http.cache.put.add";
+    String putReplaceMetricName = "http.cache.put.replace";
+    String putFailMetricName = "http.cache.put.fail";
+    String capacityMetricName = "http.cache.capacity";
+    String freeMetricName = "http.cache.free";
+    String hitsMetricName = "http.cache.hits";
+    String missesMetricName = "http.cache.misses";
+    String placeholderMetricName = "http.cache.placeholder";
+    String bypassMetricName = "http.cache.bypass";
+    var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
 
     statsDSender.sendPeriodically(() -> {
       OHCacheStats stats = ohCache.stats();
       ohCache.resetStatistics();
 
-      statsDSender.sendCount(internalHitsMetricName, stats.getHitCount());
-      statsDSender.sendCount(internalMissesMetricName, stats.getMissCount());
-      statsDSender.sendCount(internalEvictionsMetricName, stats.getEvictionCount());
+      sender.sendCount(internalHitsMetricName, stats.getHitCount());
+      sender.sendCount(internalMissesMetricName, stats.getMissCount());
+      sender.sendCount(internalEvictionsMetricName, stats.getEvictionCount());
 
-      statsDSender.sendCount(putAddMetricName, stats.getPutAddCount());
-      statsDSender.sendCount(putReplaceMetricName, stats.getPutReplaceCount());
-      statsDSender.sendCount(putFailMetricName, stats.getPutFailCount());
+      sender.sendCount(putAddMetricName, stats.getPutAddCount());
+      sender.sendCount(putReplaceMetricName, stats.getPutReplaceCount());
+      sender.sendCount(putFailMetricName, stats.getPutFailCount());
 
-      statsDSender.sendGauge(capacityMetricName, stats.getCapacity());
-      statsDSender.sendGauge(freeMetricName, stats.getFree());
+      sender.sendGauge(capacityMetricName, stats.getCapacity());
+      sender.sendGauge(freeMetricName, stats.getFree());
 
-      statsDSender.sendCount(hitsMetricName, cachedHits.getAndSet(0));
-      statsDSender.sendCount(missesMetricName, cachedMisses.getAndSet(0));
-      statsDSender.sendCount(placeholderMetricName, cachedPlaceholder.getAndSet(0));
-      statsDSender.sendCount(bypassMetricName, cachedBypass.getAndSet(0));
+      sender.sendCount(hitsMetricName, cachedHits.getAndSet(0));
+      sender.sendCount(missesMetricName, cachedMisses.getAndSet(0));
+      sender.sendCount(placeholderMetricName, cachedPlaceholder.getAndSet(0));
+      sender.sendCount(bypassMetricName, cachedBypass.getAndSet(0));
     }, STATS_UPDATE_RATE);
-  }
-
-  private static String getFullMetricName(String serviceName, String shortMetricName) {
-    return serviceName + ".http.cache." + shortMetricName;
   }
 
   private static byte[] getCacheKey(HttpServletRequest request) {
@@ -122,7 +123,7 @@ public class CacheFilter implements Filter {
       if (maxAge != NO_CACHE) {
         servletRequest.setAttribute(CACHE_ATTRIBUTE, MISS);
         cachedMisses.incrementAndGet();
-        ohCache.putIfAbsent(key, PLACEHOLDER, System.currentTimeMillis() + maxAge * 1000);
+        ohCache.putIfAbsent(key, PLACEHOLDER, System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
       } else {
         cachedBypass.incrementAndGet();
       }
@@ -138,7 +139,7 @@ public class CacheFilter implements Filter {
         cachedPlaceholder.incrementAndGet();
         CachedResponse response = CachedResponse.from(responseWrapper);
 
-        ohCache.put(key, response.getSerialized(), System.currentTimeMillis() + maxAge * 1000);
+        ohCache.put(key, response.getSerialized(), System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
       } else {
         cachedBypass.incrementAndGet();
       }

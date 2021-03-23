@@ -7,6 +7,7 @@ import java.util.Objects;
  * For example, url=/vacancy, node=192.168.1.1, db_name=master.
  */
 public class Tag extends Tags implements Comparable<Tag> {
+  public static final String APP_TAG_NAME = "app";
   public final String name;
   public final String value;
   private final String tag;

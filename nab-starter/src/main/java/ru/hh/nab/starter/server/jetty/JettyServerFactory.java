@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 import com.timgroup.statsd.NoOpStatsDClient;
@@ -17,6 +18,9 @@ import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+import ru.hh.nab.metrics.TaggedSender;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.MAX_THREADS;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.MIN_THREADS;
@@ -32,10 +36,11 @@ public final class JettyServerFactory {
 
   private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
-  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, List<WebAppInitializer> webAppInitializer) {
+  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, TaggedSender statsDSender,
+                                   List<WebAppInitializer> webAppInitializer) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
     ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
-    return new JettyServer(threadPool, jettySettings, contextHandler);
+    return new JettyServer(threadPool, jettySettings, statsDSender, contextHandler);
   }
 
   public static JettyTestServer createTestServer(@Nullable Integer port) {
@@ -45,7 +50,8 @@ public final class JettyServerFactory {
       FileSettings fileSettings = new FileSettings(properties);
       StatsDSender sender = new StatsDSender(new NoOpStatsDClient(), Executors.newScheduledThreadPool(1));
       ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
-      JettyServer server = new JettyServer(createJettyThreadPool(fileSettings, "test", sender), fileSettings, handlerCollection);
+      TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, "test")));
+      JettyServer server = new JettyServer(createJettyThreadPool(fileSettings, "test", sender), fileSettings, appSender, handlerCollection);
       server.start();
       return new JettyTestServer(server, handlerCollection);
     } catch (Exception e) {

@@ -18,6 +18,7 @@ import ru.hh.nab.common.properties.FileSettings;
 
 import java.util.Optional;
 
+import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPTORS;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPT_QUEUE_SIZE;
@@ -37,12 +38,14 @@ public final class JettyServer {
 
   private final FileSettings jettySettings;
   private final Server server;
+  private final TaggedSender statsDSender;
   private final ServletContextHandler servletContextHandler;
   private final ContextHandlerCollection handlerCollection;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ServletContextHandler servletContextHandler) {
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender statsDSender, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
     server = new Server(threadPool);
+    this.statsDSender = statsDSender;
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
@@ -52,9 +55,11 @@ public final class JettyServer {
   }
 
   //ContextHandlerCollection несет доп. логику по маршрутизации внутри коллекции. Поэтому не заменяем ServletContextHandler на него
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollectionForTestRun) {
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender statsDSender,
+              ContextHandlerCollection mutableHandlerCollectionForTestRun) {
     this.jettySettings = jettySettings;
     server = new Server(threadPool);
+    this.statsDSender = statsDSender;
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
@@ -106,7 +111,7 @@ public final class JettyServer {
         server,
         jettySettings.getInteger(ACCEPTORS, -1),
         jettySettings.getInteger(SELECTORS, -1),
-        createHttpConnectionFactory(jettySettings));
+        statsDSender, createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString(HOST));
     serverConnector.setPort(jettySettings.getInteger(PORT));

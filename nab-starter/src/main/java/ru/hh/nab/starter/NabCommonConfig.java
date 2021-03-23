@@ -26,7 +26,7 @@ public class NabCommonConfig {
   public static final String NODE_NAME_PROPERTY = "nodeName";
   public static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
-  @Bean
+  @Bean(SERVICE_NAME_PROPERTY)
   String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));

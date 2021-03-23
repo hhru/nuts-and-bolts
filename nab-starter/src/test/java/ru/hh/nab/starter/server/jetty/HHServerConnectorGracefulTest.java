@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import ru.hh.nab.metrics.TaggedSender;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
 import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.repeat;
 
@@ -34,6 +36,7 @@ public class HHServerConnectorGracefulTest {
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
   private static final SimpleAsyncHTTPClient httpClient = new SimpleAsyncHTTPClient(executorService);
+  private static final TaggedSender statsDSender = mock(TaggedSender.class);
 
   @AfterAll
   public static void afterGracefulServletContextHandlerTestClass() {
@@ -72,7 +75,7 @@ public class HHServerConnectorGracefulTest {
     repeat(50, () -> {
       ControlledServlet controlledServlet = new ControlledServlet(204);
       Server server = createServer(controlledServlet);
-      server.addConnector(new HHServerConnector(server));
+      server.addConnector(new HHServerConnector(server, statsDSender));
       server.start();
       int serverPort = getPort(server);
 

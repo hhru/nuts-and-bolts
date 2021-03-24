@@ -38,14 +38,14 @@ public final class JettyServer {
 
   private final FileSettings jettySettings;
   private final Server server;
-  private final TaggedSender statsDSender;
+  private final TaggedSender taggedSender;
   private final ServletContextHandler servletContextHandler;
   private final ContextHandlerCollection handlerCollection;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender statsDSender, ServletContextHandler servletContextHandler) {
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender taggedSender, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
     server = new Server(threadPool);
-    this.statsDSender = statsDSender;
+    this.taggedSender = taggedSender;
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
@@ -55,11 +55,11 @@ public final class JettyServer {
   }
 
   //ContextHandlerCollection несет доп. логику по маршрутизации внутри коллекции. Поэтому не заменяем ServletContextHandler на него
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender statsDSender,
+  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender taggedSender,
               ContextHandlerCollection mutableHandlerCollectionForTestRun) {
     this.jettySettings = jettySettings;
     server = new Server(threadPool);
-    this.statsDSender = statsDSender;
+    this.taggedSender = taggedSender;
     configureConnector();
     configureRequestLogger();
     configureStopTimeout();
@@ -111,7 +111,7 @@ public final class JettyServer {
         server,
         jettySettings.getInteger(ACCEPTORS, -1),
         jettySettings.getInteger(SELECTORS, -1),
-        statsDSender, createHttpConnectionFactory(jettySettings));
+        taggedSender, createHttpConnectionFactory(jettySettings));
 
     serverConnector.setHost(jettySettings.getString(HOST));
     serverConnector.setPort(jettySettings.getInteger(PORT));

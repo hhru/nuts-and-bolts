@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import com.timgroup.statsd.StatsDClient;
+import javax.inject.Named;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,27 +27,33 @@ public class NabCommonConfig {
   public static final String NODE_NAME_PROPERTY = "nodeName";
   public static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
+  @Named(SERVICE_NAME_PROPERTY)
   @Bean(SERVICE_NAME_PROPERTY)
   String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
   }
 
-  @Bean
+  @Named(DATACENTER_NAME_PROPERTY)
+  @Bean(DATACENTER_NAME_PROPERTY)
   String datacenter(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
   }
 
-  @Bean
+  @Named(NODE_NAME_PROPERTY)
+  @Bean(NODE_NAME_PROPERTY)
   String nodeName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(NODE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
       .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME_PROPERTY)));
   }
 
   @Bean
-  MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceName, statsDSender);
+  MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings,
+    @Named(SERVICE_NAME_PROPERTY) String serviceNameValue,
+    StatsDSender statsDSender
+  ) throws Exception {
+    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
   }
 
   @Bean
@@ -60,11 +67,11 @@ public class NabCommonConfig {
   }
 
   @Bean
-  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient, String serviceName,
-                            FileSettings fileSettings) {
+  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient,
+                            @Named(SERVICE_NAME_PROPERTY) String serviceNameValue, FileSettings fileSettings) {
     StatsDSender statsDSender = new StatsDSender(statsDClient, scheduledExecutorService);
     if (Boolean.TRUE.equals(fileSettings.getBoolean("metrics.jvm.enabled"))) {
-      JvmMetricsSender.create(statsDSender, serviceName);
+      JvmMetricsSender.create(statsDSender, serviceNameValue);
     }
     return statsDSender;
   }

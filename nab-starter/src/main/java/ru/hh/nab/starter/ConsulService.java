@@ -45,6 +45,7 @@ public class ConsulService {
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
   public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
   public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
+  public static final String CONSUL_CHECK_PASSING = "consul.check.passing";
   public static final String CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY = "consul.consistencyMode";
   public static final String CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
   public static final String CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
@@ -67,7 +68,8 @@ public class ConsulService {
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
     this.hostName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceId = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY) + "-" + this.hostName + "-" + applicationPort;
+    String serviceName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY);
+    this.serviceId = serviceName + "-" + this.hostName + "-" + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -82,7 +84,7 @@ public class ConsulService {
 
     int watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
     this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
-        ImmutableQueryOptions.builder().consistencyMode(consistencyMode).build()
+      ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
     );
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
@@ -96,6 +98,7 @@ public class ConsulService {
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck.builder()
         .http("http://" + applicationHost + ":" + applicationPort + "/status")
+        .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
         .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
         .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
         .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))
@@ -138,7 +141,7 @@ public class ConsulService {
   private ImmutableRegistration registerWithWeight(int weight) {
     ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(0).build();
     ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
-    agentClient.register(registration);
+    agentClient.register(registration, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build());
     return registration;
   }
 
@@ -150,7 +153,7 @@ public class ConsulService {
   }
 
   private Optional<String> getCurrentWeight() {
-    return kvClient.getValueAsString(weightPath);
+    return kvClient.getValue(weightPath, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build()).flatMap(Value::getValueAsString);
   }
 
   private void startCache() {
@@ -171,7 +174,7 @@ public class ConsulService {
       return;
     }
     kvCache.stop();
-    agentClient.deregister(serviceId);
+    agentClient.deregister(serviceId, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build());
     LOGGER.debug("De-registered id: {} from consul, going to sleep {}ms to wait possible requests", serviceId, sleepAfterDeregisterMillis);
     sleepAfterDeregistration();
     LOGGER.info("De-registered id: {} from consul", serviceId);

@@ -5,6 +5,11 @@ import static java.text.MessageFormat.format;
 import java.util.Optional;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+import ru.hh.nab.metrics.TaggedSender;
+import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
@@ -31,6 +36,8 @@ import ru.hh.nab.common.properties.FileSettings;
 
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
+import java.util.Set;
+
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
@@ -107,9 +114,10 @@ public final class NabApplication {
                                 WebAppInitializer extwebAppInitializer){
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
     ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
-
+    StatsDSender sender = baseContext.getBean(StatsDSender.class);
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
-    return JettyServerFactory.create(fileSettings, threadPool, List.of(webAppInitializer, extwebAppInitializer));
+    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME_PROPERTY, String.class))));
+    return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer, extwebAppInitializer));
   }
 
   public static NabApplicationBuilder builder() {

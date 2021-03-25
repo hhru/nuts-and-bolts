@@ -1,6 +1,8 @@
 package ru.hh.nab.kafka.consumer;
 
 import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -17,7 +19,7 @@ public class ConsumerGroupId {
     this.topic = topic;
     this.operation = operation;
     this.tags = List.of(
-        new Tag("app", serviceName),
+        new Tag(APP_TAG_NAME, serviceName),
         new Tag("topic", topic),
         new Tag("operation", operation)
     );

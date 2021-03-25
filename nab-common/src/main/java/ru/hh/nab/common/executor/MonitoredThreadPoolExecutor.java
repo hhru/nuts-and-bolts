@@ -7,6 +7,7 @@ import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.StatsDSender;
 
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -19,6 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.Executors.defaultThreadFactory;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
+import ru.hh.nab.metrics.Tag;
+import ru.hh.nab.metrics.TaggedSender;
 
 public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitoredThreadPoolExecutor.class);
@@ -93,23 +96,20 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
         new ArrayBlockingQueue<>(queueSize), threadFactory, rejectedExecutionHandler, threadPoolName, longTaskDurationMs
     );
 
-    String poolSizeMetricName = getFullMetricName(serviceName, threadPoolName, "size");
-    String activeCountMetricName = getFullMetricName(serviceName, threadPoolName, "activeCount");
-    String queueSizeMetricName = getFullMetricName(serviceName, threadPoolName, "queueSize");
-    String taskDurationMetricName = getFullMetricName(serviceName, threadPoolName, "taskDuration");
+    String poolSizeMetricName = "threadPool.size";
+    String activeCountMetricName = "threadPool.activeCount";
+    String queueSizeMetricName = "threadPool.queueSize";
+    String taskDurationMetricName = "threadPool.taskDuration";
+    var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName), new Tag("pool", threadPoolName)));
 
     statsDSender.sendPeriodically(() -> {
-      statsDSender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
-      statsDSender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
-      statsDSender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);
-      statsDSender.sendHistogram(taskDurationMetricName, threadPoolExecutor.taskDurationMetric, DEFAULT_PERCENTILES);
+      sender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
+      sender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
+      sender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);
+      sender.sendHistogram(taskDurationMetricName, threadPoolExecutor.taskDurationMetric, DEFAULT_PERCENTILES);
     });
 
     threadPoolExecutor.prestartAllCoreThreads();
     return threadPoolExecutor;
-  }
-
-  private static String getFullMetricName(String serviceName, String threadPoolName, String shortMetricName) {
-    return serviceName + '.' + threadPoolName + ".threadPool." + shortMetricName;
   }
 }

@@ -3,7 +3,10 @@ package ru.hh.nab.starter.server.jetty;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import ru.hh.nab.metrics.TaggedSender;
 
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 public class MonitoredQueuedThreadPool extends QueuedThreadPool {
@@ -13,19 +16,20 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max totalThreads = new Max(0);
 
   public MonitoredQueuedThreadPool(int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue,
-                                   String serviceName, StatsDSender statsDSender) {
+                                   String poolName, StatsDSender statsDSender) {
     super(maxThreads, minThreads, idleTimeout, -1, queue, null);
 
-    String queueSizeMetricName = getFullMetricName(serviceName, "queueSize");
-    String busyThreadsMetricName = getFullMetricName(serviceName, "busyThreads");
-    String idleThreadsMetricName = getFullMetricName(serviceName, "idleThreads");
-    String totalThreadsMetricName = getFullMetricName(serviceName, "totalThreads");
+    String queueSizeMetricName = "queueSize";
+    String busyThreadsMetricName = "busyThreads";
+    String idleThreadsMetricName = "idleThreads";
+    String totalThreadsMetricName = "totalThreads";
+    var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
 
     statsDSender.sendPeriodically(() -> {
-      statsDSender.sendMax(queueSizeMetricName, queueSize);
-      statsDSender.sendMax(busyThreadsMetricName, busyThreads);
-      statsDSender.sendMax(idleThreadsMetricName, idleThreads);
-      statsDSender.sendMax(totalThreadsMetricName, totalThreads);
+      sender.sendMax(queueSizeMetricName, queueSize);
+      sender.sendMax(busyThreadsMetricName, busyThreads);
+      sender.sendMax(idleThreadsMetricName, idleThreads);
+      sender.sendMax(totalThreadsMetricName, totalThreads);
     });
   }
 
@@ -37,9 +41,5 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     totalThreads.save(getThreads());
 
     super.execute(job);
-  }
-
-  private String getFullMetricName(String serviceName, String shortMetricName) {
-    return serviceName + ".jetty.threadPool." + shortMetricName;
   }
 }

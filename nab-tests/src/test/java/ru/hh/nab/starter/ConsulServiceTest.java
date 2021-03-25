@@ -1,5 +1,6 @@
 package ru.hh.nab.starter;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
@@ -9,6 +10,8 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ru.hh.consul.model.kv.ImmutableValue;
+import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import ru.hh.consul.option.QueryOptions;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +62,7 @@ public class ConsulServiceTest {
   public void testRegisterWithFullFileProperties() {
     ArgumentCaptor<Registration> argument = ArgumentCaptor.forClass(Registration.class);
     consulService.register();
-    verify(agentClient).register(argument.capture());
+    verify(agentClient).register(argument.capture(), any(QueryOptions.class));
     Registration registration = argument.getValue();
 
     assertTrue(registration.getCheck().isPresent());
@@ -96,7 +101,7 @@ public class ConsulServiceTest {
     AgentClient defaultAgentClient = aggregateCtx.getBean(AgentClient.class);
 
     defaultConsulService.register();
-    verify(defaultAgentClient).register(defaultArgument.capture());
+    verify(defaultAgentClient).register(defaultArgument.capture(), any(QueryOptions.class));
     Registration registration = defaultArgument.getValue();
 
     assertTrue(registration.getCheck().isPresent());
@@ -132,8 +137,11 @@ public class ConsulServiceTest {
       KeyValueClient mock = mock(KeyValueClient.class);
       when(mock.getConfig()).thenReturn(new ClientConfig());
       when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
-      when(mock.getValueAsString(eq(String.join("/", "host", TEST_NODE_NAME, "weight"))))
-        .thenReturn(Optional.of("204"));
+      Value weight = ImmutableValue.builder().createIndex(1).modifyIndex(1).lockIndex(1).key("key").flags(1)
+        .value(Base64.getEncoder().encodeToString("204".getBytes()))
+        .build();
+      when(mock.getValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
+        .thenReturn(Optional.of(weight));
       return mock;
     }
 

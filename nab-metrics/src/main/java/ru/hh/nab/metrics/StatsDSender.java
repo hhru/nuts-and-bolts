@@ -36,6 +36,11 @@ public class StatsDSender {
     counterAggregatorSnapshot.forEach((tags, count) -> statsDClient.count(getFullMetricName(metricName, tags.getTags()), count));
   }
 
+  public void sendLongCounters(String metricName, LongCounters counters) {
+    Map<Tags, Long> counterAggregatorSnapshot = counters.getSnapshotAndReset();
+    counterAggregatorSnapshot.forEach((tags, count) -> statsDClient.count(getFullMetricName(metricName, tags.getTags()), count));
+  }
+
   public void sendGauge(String metricName, long metric, Tag... tags) {
     statsDClient.gauge(getFullMetricName(metricName, tags), metric);
   }
@@ -64,9 +69,39 @@ public class StatsDSender {
     }
   }
 
+  public void sendUniformHistogram(String metricName, UniformHistogram histogram, int... percentiles) {
+    computeAndSendPercentiles(metricName, null, histogram.getValuesAndReset(), percentiles);
+  }
+
+  public void sendUniformHistogram(String metricName, Tag[] tags, UniformHistogram histogram, int... percentiles) {
+    computeAndSendPercentiles(metricName, tags, histogram.getValuesAndReset(), percentiles);
+  }
+
+  public void sendUniformHistograms(String metricName, UniformHistograms histograms, int... percentiles) {
+    Map<Tags, long[]> tagsToHistogram = histograms.getTagsToHistogramAndReset();
+    for (Map.Entry<Tags, long[]> tagsAndHistogram : tagsToHistogram.entrySet()) {
+      computeAndSendPercentiles(
+        metricName,
+        tagsAndHistogram.getKey().getTags(),
+        tagsAndHistogram.getValue(),
+        percentiles
+      );
+    }
+  }
+
   private void computeAndSendPercentiles(String metricName, Tag[] tags, Map<Integer, Integer> valueToCount, int... percentiles) {
     Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, percentiles);
     for (Map.Entry<Integer, Integer> percentileAndValue : percentileToValue.entrySet()) {
+      statsDClient.gauge(
+        getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
+        percentileAndValue.getValue()
+      );
+    }
+  }
+
+  private void computeAndSendPercentiles(String metricName, Tag[] tags, long[] values, int... percentiles) {
+    Map<Integer, Long> percentileToValue = Percentiles.computePercentiles(values, percentiles);
+    for (Map.Entry<Integer, Long> percentileAndValue : percentileToValue.entrySet()) {
       statsDClient.gauge(
         getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
         percentileAndValue.getValue()

@@ -37,4 +37,27 @@ public class Percentiles {
     }
     return percentileToValue;
   }
+
+  public static Map<Integer, Long> computePercentiles(long[] values, int... percentiles) {
+    Map<Integer, Long> result = new HashMap<>();
+    Arrays.sort(values);
+
+    for (int percentile : percentiles) {
+      if (values.length == 0) {
+        continue;
+      }
+
+      int index = (int) Math.rint((percentile / 100.0 * (values.length)) - 1);
+
+      if (index < 0) {
+        index = 0;
+      } else if (index >= values.length) {
+        index = values.length - 1;
+      }
+
+      result.put(percentile, values[index]);
+    }
+
+    return result;
+  }
 }

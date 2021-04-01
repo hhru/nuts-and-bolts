@@ -29,6 +29,10 @@ public class ConsumerGroupId {
     return topic;
   }
 
+  public String getOperation() {
+    return operation;
+  }
+
   public List<Tag> toMetricTags() {
     return tags;
   }

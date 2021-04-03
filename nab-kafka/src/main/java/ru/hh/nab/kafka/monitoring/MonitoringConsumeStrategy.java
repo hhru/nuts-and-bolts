@@ -46,7 +46,7 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
 
   private Timings buildTimings(StatsDSender statsDSender, ConsumerGroupId identifier) {
     Timings.Builder builder = new Timings.Builder()
-        .withMetric("batchProcessingTimeMs")
+        .withMetric("batchProcessingTime")
         .withStatsDSender(statsDSender);
     identifier.toMetricTags().forEach(builder::withTag);
     return builder.start();

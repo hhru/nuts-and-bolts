@@ -109,6 +109,21 @@
             <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.12</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -166,6 +181,13 @@
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <useFile>false</useFile>
                     <disableXmlReport>true</disableXmlReport>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>ru.hh.checkstyle</groupId>
+                <artifactId>hh-maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <excludes>ru/hh/nab/performance/generated/*</excludes>
                 </configuration>
             </plugin>
         </plugins>

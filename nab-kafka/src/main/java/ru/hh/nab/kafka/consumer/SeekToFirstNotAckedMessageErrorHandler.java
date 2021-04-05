@@ -1,8 +1,9 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.util.Optional;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.springframework.kafka.KafkaException;
+import org.slf4j.Logger;
 import org.springframework.kafka.listener.ContainerAwareBatchErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.util.backoff.BackOff;
@@ -14,10 +15,12 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
 
   private final ThreadLocal<Long> lastInterval = new ThreadLocal<>();
 
+  private final Logger logger;
   private final BackOff backOff;
   private final KafkaConsumer<T> kafkaConsumer;
 
-  public SeekToFirstNotAckedMessageErrorHandler(BackOff backOff, KafkaConsumer<T> kafkaConsumer) {
+  public SeekToFirstNotAckedMessageErrorHandler(Logger logger, BackOff backOff, KafkaConsumer<T> kafkaConsumer) {
+    this.logger = logger;
     this.backOff = backOff;
     this.kafkaConsumer = kafkaConsumer;
   }
@@ -50,7 +53,9 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
       }
     }
 
-    throw new KafkaException("Seek to current after exception", thrownException);
+    // Since spring-kafka wraps our "business" exception by org.springframework.kafka.listener.ListenerExecutionFailedException
+    var exceptionToLog = Optional.of(thrownException).map(Throwable::getCause).orElse(thrownException);
+    logger.error("exception during kafka processing", exceptionToLog);
   }
 
   @Override
@@ -59,4 +64,10 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
     this.lastInterval.remove();
   }
 
+  @Override
+  public boolean isAckAfterHandle() {
+    // disable, because our handle method just log the exception without throwing it.
+    // all ACK logic should be performed in nab-kafka.messageHandler
+    return false;
+  }
 }

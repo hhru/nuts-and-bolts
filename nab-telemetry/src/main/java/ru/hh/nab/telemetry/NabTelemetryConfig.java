@@ -1,12 +1,14 @@
 package ru.hh.nab.telemetry;
 
 import com.google.common.base.Strings;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
@@ -14,6 +16,7 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
@@ -40,19 +43,25 @@ public class NabTelemetryConfig {
 
   @Bean(destroyMethod = "shutdown")
   public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
-    String url = fileSettings.getString("opentelemetry.collector.url");
+    String url = fileSettings.getString("opentelemetry.collector.host");
+    int port = fileSettings.getInteger("opentelemetry.collector.port");
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();
     } else {
       if (Strings.isNullOrEmpty(url)) {
-        throw new IllegalStateException("'opentelemetry.collector.url' property can't be empty");
+        throw new IllegalStateException("'opentelemetry.collector.host' property can't be empty");
       }
-      Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
 
-      ZipkinSpanExporter zipkinExporter = ZipkinSpanExporter.builder().setEndpoint(url).build();
+      Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
+      ManagedChannel jaegerChannel = ManagedChannelBuilder.forAddress(url, port).usePlaintext().build();
+      JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
+          .setChannel(jaegerChannel)
+          .setTimeout(30, TimeUnit.SECONDS)
+          .build();
+
       return SdkTracerProvider.builder()
-          .addSpanProcessor(SimpleSpanProcessor.create(zipkinExporter))
+          .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
           .setResource(Resource.getDefault().merge(serviceNameResource))
           .setIdGenerator(idGenerator)
           .build();

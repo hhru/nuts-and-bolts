@@ -27,8 +27,8 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_I
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MULTIPLIER;
-import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POOL_TIMEOUT_MS;
-import static ru.hh.nab.kafka.util.ConfigProvider.POOL_TIMEOUT;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
+import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
@@ -134,7 +134,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     containerProperties.setAckOnError(false);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
-    containerProperties.setPollTimeout(nabConsumerSettings.getLong(POOL_TIMEOUT, DEFAULT_POOL_TIMEOUT_MS));
+    containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
     containerProperties.setAuthorizationExceptionRetryInterval(
         Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS)));
     return containerProperties;

@@ -45,7 +45,7 @@
         <jclient.version>3.5.1</jclient.version>
         <java.version>11</java.version>
         <consul.client.version>1.0.4</consul.client.version>
-        <opentelemtry.version>1.0.0</opentelemtry.version>
+        <opentelemtry.version>1.1.0</opentelemtry.version>
     </properties>
 
     <dependencyManagement>

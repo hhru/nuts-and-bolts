@@ -21,8 +21,8 @@ public class ConfigProvider {
   static final String TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE =
       "%s\\.consumer\\.topic\\.%s\\.(?!\\w*(?:default)).*";
   static final String PRODUCER_CONFIG_TEMPLATE = "%s.producer.%s";
-  static final String NAB_SETTING = "nab_setting";
-  static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).contains(NAB_SETTING);
+  public static final String NAB_SETTING = "nab_setting";
+  static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).startsWith(NAB_SETTING + ".");
   public static final String DEFAULT_PRODUCER_NAME = "default";
 
   public static final String BACKOFF_INITIAL_INTERVAL_NAME = "backoff.initial.interval";
@@ -32,8 +32,8 @@ public class ConfigProvider {
   public static final String BACKOFF_MULTIPLIER_NAME = "backoff.multiplier";
   public static final double DEFAULT_BACKOFF_MULTIPLIER = 1.5;
 
-  public static final String POOL_TIMEOUT = "pool.timeout.ms";
-  public static final long DEFAULT_POOL_TIMEOUT_MS = 5000L;
+  public static final String POLL_TIMEOUT = "poll.timeout.ms";
+  public static final long DEFAULT_POLL_TIMEOUT_MS = 5000L;
 
   public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
@@ -68,11 +68,12 @@ public class ConfigProvider {
     removeNonNabProperties(nabProperties);
     FileSettings nabConsumerSettings = new FileSettings(nabProperties).getSubSettings(NAB_SETTING);
 
-    Properties allProperties = new Properties();
-    allProperties.putAll(allConsumerConfigs);
-    FileSettings allConsumerSettings = new FileSettings(allProperties);
+    Properties nonNabProperties = new Properties();
+    nonNabProperties.putAll(allConsumerConfigs);
+    removeNabProperties(nonNabProperties);
+    FileSettings nonNabConsumerSettings = new FileSettings(nonNabProperties);
 
-    checkConfig(nabConsumerSettings, allConsumerSettings);
+    checkConfig(nabConsumerSettings, nonNabConsumerSettings);
     return nabConsumerSettings;
   }
 
@@ -84,22 +85,21 @@ public class ConfigProvider {
     return consumerConfig;
   }
 
-  private void checkConfig(FileSettings nabConsumerSettings, FileSettings allConsumerSettings) {
-    long maxPollMs = allConsumerSettings.getLong(MAX_POLL_INTERVAL_MS_CONFIG, 300000L);
+  private void checkConfig(FileSettings nabConsumerSettings, FileSettings nonNabConsumerSettings) {
+    long maxPollMs = nonNabConsumerSettings.getLong(MAX_POLL_INTERVAL_MS_CONFIG, 300000L);
     long backoffMaxInterval = nabConsumerSettings.getLong(BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL);
     if (backoffMaxInterval > maxPollMs) {
       throw new IllegalArgumentException(
           String.format("'%s' should not be larger then '%s'", BACKOFF_MAX_INTERVAL_NAME, MAX_POLL_INTERVAL_MS_CONFIG)
       );
     }
-    checkNames(allConsumerSettings);
+    checkNames(nonNabConsumerSettings);
   }
 
-  private static void checkNames(FileSettings allConsumerSettings) {
+  private static void checkNames(FileSettings nonNabConsumerSettings) {
     Set<String> supportedNames = ConsumerConfig.configNames();
-    List<String> invalidNames = allConsumerSettings.getProperties().keySet()
+    List<String> invalidNames = nonNabConsumerSettings.getProperties().keySet()
         .stream()
-        .filter(NAB_SETTING_PREDICATE.negate())
         .filter(key -> !supportedNames.contains(key))
         .map(String::valueOf)
         .collect(Collectors.toList());
@@ -161,7 +161,7 @@ public class ConfigProvider {
     return new HashMap<>((Map) fileSettings.getSubProperties(prefix));
   }
 
-  private void removeNabProperties(Map<String, Object> config) {
+  private void removeNabProperties(Map<?, ?> config) {
     config.keySet().removeIf(NAB_SETTING_PREDICATE);
   }
 

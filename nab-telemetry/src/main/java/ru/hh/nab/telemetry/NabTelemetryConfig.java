@@ -43,12 +43,11 @@ public class NabTelemetryConfig {
 
   @Bean(destroyMethod = "shutdown")
   public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
-    String url = fileSettings.getString("opentelemetry.collector.host");
-    int port = fileSettings.getInteger("opentelemetry.collector.port");
-    boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
-    if (!telemetryEnabled) {
+    if (!fileSettings.getBoolean("opentelemetry.enabled", false)) {
       return SdkTracerProvider.builder().build();
     } else {
+      String url = fileSettings.getString("opentelemetry.collector.host");
+      int port = fileSettings.getInteger("opentelemetry.collector.port");
       if (Strings.isNullOrEmpty(url)) {
         throw new IllegalStateException("'opentelemetry.collector.host' property can't be empty");
       }

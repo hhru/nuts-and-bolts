@@ -13,7 +13,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
-import com.google.common.net.HostAndPort;
 import static java.util.Objects.requireNonNullElse;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +32,7 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
 
+import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.server.jetty.JettyServer;
@@ -182,10 +182,11 @@ public class NabApplicationTest {
   public static class BrokenConsulConfig {
     @Bean
     AgentClient consulClient(FileSettings fileSettings) {
-      HostAndPort hostAndPort = HostAndPort.fromParts(
-              requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
-              fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY));
-      return Consul.builder().withHostAndPort(hostAndPort).build().agentClient();
+      Address hostAndPort = new Address(
+        requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
+        fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY)
+      );
+      return Consul.builder().withAddress(hostAndPort).build().agentClient();
     }
 
     @Bean

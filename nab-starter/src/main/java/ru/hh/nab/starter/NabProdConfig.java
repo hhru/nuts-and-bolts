@@ -3,7 +3,6 @@ package ru.hh.nab.starter;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
-import com.google.common.net.HostAndPort;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 
@@ -20,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 
@@ -66,12 +66,12 @@ public class NabProdConfig {
       .or(() -> ofNullable(System.getProperty(CONSUL_PORT_PROPERTY)))
       .map(Integer::parseInt)
       .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or property be provided"));
-    HostAndPort hostAndPort = HostAndPort.fromParts(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
+    Address address = new Address(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
     return Consul.builder()
       .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
       .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
       .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
-      .withHostAndPort(hostAndPort)
+      .withAddress(address)
       .build();
   }
 

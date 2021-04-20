@@ -3,6 +3,7 @@ package ru.hh.nab.starter;
 import static java.text.MessageFormat.format;
 
 import java.util.Optional;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.hh.nab.metrics.StatsDSender;
@@ -159,7 +160,7 @@ public final class NabApplication {
   private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {
     try {
       LOGGER.error("Failed to start, shutting down", e);
-      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), e.getMessage()));
+      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), ExceptionUtils.getRootCause(e).getMessage()));
       return null;
     } finally {
       if (exitOnError) {

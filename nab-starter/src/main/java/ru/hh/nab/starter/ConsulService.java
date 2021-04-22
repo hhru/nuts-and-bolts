@@ -1,5 +1,6 @@
 package ru.hh.nab.starter;
 
+import java.math.BigInteger;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.cache.KVCache;
@@ -53,23 +54,26 @@ public class ConsulService {
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
   private final ImmutableRegistration serviceTemplate;
-  private final KVCache kvCache;
 
+  private final String serviceName;
   private final String serviceId;
   private final String hostName;
   private final boolean registrationEnabled;
   private final String weightPath;
   private final int sleepAfterDeregisterMillis;
+  private final ConsistencyMode consistencyMode;
+  private final int watchSeconds;
 
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
+  private volatile KVCache kvCache;
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
     this.hostName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.NODE_NAME_PROPERTY);
-    String serviceName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY);
-    this.serviceId = serviceName + "-" + this.hostName + "-" + applicationPort;
+    this.serviceName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY);
+    this.serviceId = serviceName + '-' + this.hostName + '-' + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
@@ -77,15 +81,11 @@ public class ConsulService {
       CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
       fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
     );
-    var consistencyMode = Stream.of(ConsistencyMode.values())
+    this.consistencyMode = Stream.of(ConsistencyMode.values())
       .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
       .findAny()
       .orElse(ConsistencyMode.DEFAULT);
-
-    int watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
-    this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds,
-      ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
-    );
+    this.watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
 
     var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
@@ -127,8 +127,12 @@ public class ConsulService {
     }
     try {
       LOGGER.debug("Starting registration");
-      this.weight.set(getWeightOrDefault(getCurrentWeight()));
-      LOGGER.trace("Got current weight for service:" + weight.get());
+      Optional<Map.Entry<BigInteger, Optional<String>>> currentIndexAndWeight = getCurrentWeight();
+      this.weight.set(getWeightOrDefault(currentIndexAndWeight.flatMap(Map.Entry::getValue)));
+      this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds, currentIndexAndWeight.map(Map.Entry::getKey).orElse(null),
+        ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
+      );
+      LOGGER.trace("Got current weight for service: {}", weight.get());
       var registration = registerWithWeight(weight.get());
       LOGGER.trace("Registered service, starting cache to watch weight change");
       startCache();
@@ -141,7 +145,7 @@ public class ConsulService {
   private ImmutableRegistration registerWithWeight(int weight) {
     ServiceWeights serviceWeights = ImmutableServiceWeights.builder().passing(weight).warning(0).build();
     ImmutableRegistration registration = ImmutableRegistration.copyOf(serviceTemplate).withServiceWeights(serviceWeights);
-    agentClient.register(registration, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build());
+    agentClient.register(registration, ImmutableQueryOptions.builder().caller(serviceName).build());
     return registration;
   }
 
@@ -152,8 +156,9 @@ public class ConsulService {
     });
   }
 
-  private Optional<String> getCurrentWeight() {
-    return kvClient.getValue(weightPath, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build()).flatMap(Value::getValueAsString);
+  private Optional<Map.Entry<BigInteger, Optional<String>>> getCurrentWeight() {
+    return kvClient.getConsulResponseWithValue(weightPath, ImmutableQueryOptions.builder().caller(serviceName).build())
+      .map(response -> Map.entry(response.getIndex(), response.getResponse().getValueAsString()));
   }
 
   private void startCache() {
@@ -173,8 +178,8 @@ public class ConsulService {
       LOGGER.info("Registration disabled. Skipping deregistration");
       return;
     }
-    kvCache.stop();
-    agentClient.deregister(serviceId, ImmutableQueryOptions.builder().caller(serviceTemplate.getName()).build());
+    Optional.ofNullable(kvCache).ifPresent(KVCache::stop);
+    agentClient.deregister(serviceId, ImmutableQueryOptions.builder().caller(serviceName).build());
     LOGGER.debug("De-registered id: {} from consul, going to sleep {}ms to wait possible requests", serviceId, sleepAfterDeregisterMillis);
     sleepAfterDeregistration();
     LOGGER.info("De-registered id: {} from consul", serviceId);

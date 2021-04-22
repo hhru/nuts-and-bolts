@@ -76,7 +76,6 @@
                     <artifactId>junit</artifactId>
                 </exclusion>
             </exclusions>
-            <version>${jersey.version}</version>
         </dependency>
 
         <dependency>

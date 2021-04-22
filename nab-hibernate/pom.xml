@@ -99,7 +99,6 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
-            <version>${jersey.version}</version>
             <optional>true</optional>
         </dependency>
 

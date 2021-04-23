@@ -17,7 +17,7 @@
         <repository>
             <id>jetbrains</id>
             <name>repository.jetbrains.com-releases</name>
-            <url>http://repository.jetbrains.com/utils</url>
+            <url>https://repository.jetbrains.com/utils</url>
         </repository>
     </repositories>
 

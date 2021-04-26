@@ -2,9 +2,11 @@ package ru.hh.nab.starter;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import java.math.BigInteger;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.config.ClientConfig;
+import ru.hh.consul.model.ConsulResponse;
 import ru.hh.consul.model.agent.Registration;
 import ru.hh.consul.model.catalog.ServiceWeights;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -140,8 +142,8 @@ public class ConsulServiceTest {
       Value weight = ImmutableValue.builder().createIndex(1).modifyIndex(1).lockIndex(1).key("key").flags(1)
         .value(Base64.getEncoder().encodeToString("204".getBytes()))
         .build();
-      when(mock.getValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
-        .thenReturn(Optional.of(weight));
+      when(mock.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
+        .thenReturn(Optional.of(new ConsulResponse<>(weight, 0, true, BigInteger.ONE, null, null)));
       return mock;
     }
 

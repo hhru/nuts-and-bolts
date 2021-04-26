@@ -38,6 +38,8 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
+  public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
+
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
 
@@ -67,12 +69,12 @@ public class NabProdConfig {
       .map(Integer::parseInt)
       .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or property be provided"));
     Address address = new Address(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
-    return Consul.builder()
+    Consul.Builder builder = Consul.builder()
       .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
       .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
       .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
-      .withAddress(address)
-      .build();
+      .withAddress(address);
+    return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
   }
 
   @Bean

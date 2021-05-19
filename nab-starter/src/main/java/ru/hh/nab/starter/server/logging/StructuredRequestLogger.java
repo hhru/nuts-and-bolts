@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
 
 import static java.lang.System.currentTimeMillis;
@@ -44,10 +45,13 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
     context.put("uri", request.getHttpURI().getPathQuery());
 
     LOGGER.info(appendEntries(context), null);
-    ofNullable(outerTimoutMs).map(Long::valueOf).ifPresent(timeoutMs -> {
-      if (timeoutMs > 0 && executionTime > timeoutMs) {
-        SLOW_REQUESTS.warn(appendEntries(context), null);
-      }
-    });
+    ofNullable(outerTimoutMs)
+      .map(Long::valueOf)
+      .filter(timeoutMs -> timeoutMs > 0)
+      .ifPresent(timeoutMs -> {
+        if (executionTime > timeoutMs) {
+          SLOW_REQUESTS.warn(appendEntries(context), null);
+        }
+      });
   }
 }

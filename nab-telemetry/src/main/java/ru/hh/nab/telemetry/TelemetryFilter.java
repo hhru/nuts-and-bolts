@@ -27,7 +27,6 @@ import ru.hh.nab.common.component.NabServletFilter;
 public class TelemetryFilter implements Filter, NabServletFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
   private static final String USER_AGENT = "User-Agent";
-  private static final String SERVER_URL = "Server-url";
   private final TelemetryPropagator telemetryPropagator;
   private final Tracer tracer;
   private final boolean enabled;
@@ -46,11 +45,10 @@ public class TelemetryFilter implements Filter, NabServletFilter {
     } else {
       Map<String, List<String>> requestHeadersMap = getRequestHeadersMap(request);
       Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
-      Span span = tracer.spanBuilder(request.getServerName())
+      Span span = tracer.spanBuilder(((HttpServletRequest) request).getRequestURI().replaceAll("/([0-9]+)", "/ID_VAR"))
           .setParent(telemetryContext)
           .setSpanKind(SpanKind.SERVER)
           .setAttribute(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? "unknown" : requestHeadersMap.get(USER_AGENT).get(0))
-          .setAttribute(SERVER_URL, ((HttpServletRequest) request).getRequestURL().toString())
           .startSpan();
       LOGGER.trace("span started:{}", span);
 

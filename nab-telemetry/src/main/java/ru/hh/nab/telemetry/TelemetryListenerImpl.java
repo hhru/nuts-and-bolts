@@ -38,7 +38,7 @@ public class TelemetryListenerImpl implements RequestDebug {
   public Request onRequestStart(Request originalRequest, Map<String, List<String>> originalHeaders, List<Param> queryParams, boolean external) {
     Context context = textMapPropagator.extract(Context.current(), originalHeaders, GETTER);
     span = tracer.spanBuilder(
-        originalRequest.getUrl()) //todo более общий
+        originalRequest.getUri().getPath().replaceAll("/([0-9]+)", "/ID_VAR"))
         .setParent(context)
         .setSpanKind(SpanKind.CLIENT)
         .setAttribute("requestTimeout", originalRequest.getRequestTimeout())

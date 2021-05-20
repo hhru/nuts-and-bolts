@@ -13,7 +13,6 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
@@ -76,8 +75,7 @@ public class TelemetryTest {
   @Test
   public void testSpanSending() throws InterruptedException, ExecutionException {
     ArgumentCaptor<Request> peopleCaptor = ArgumentCaptor.forClass(Request.class);
-    httpClientFactory.with(new RequestBuilder().setUrl("http://test/hui/").addQueryParams(Map.of("par1", List.of("100500"))).
-        build()).expectNoContent().result().get();
+    httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
     verify(spanExporter, times(1)).export(any());
   }
 

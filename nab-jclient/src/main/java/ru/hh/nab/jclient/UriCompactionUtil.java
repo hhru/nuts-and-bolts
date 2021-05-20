@@ -15,12 +15,20 @@ public final class UriCompactionUtil {
     .collect(Collectors.toUnmodifiableSet());
   private static final String REPLACEMENT = "[id-or-hash]";
 
+  public static String compactUri(String uriPath, int minCompactingLength, int minPossibleHashLength) {
+    return compactUri(uriPath, minCompactingLength, minPossibleHashLength, REPLACEMENT);
+  }
+
   public static String compactUri(Uri uri, int minCompactingLength, int minPossibleHashLength) {
     return compactUri(uri, minCompactingLength, minPossibleHashLength, REPLACEMENT);
   }
 
   public static String compactUri(Uri uri, int minCompactingLength, int minPossibleHashLength, String replacement) {
-    return ofNullable(uri).map(Uri::getPath)
+    return compactUri(uri == null ? null : uri.getPath(), minCompactingLength, minPossibleHashLength, replacement);
+  }
+
+  public static String compactUri(String uriPath, int minCompactingLength, int minPossibleHashLength, String replacement) {
+    return ofNullable(uriPath)
       .map(path -> {
         StringJoiner joiner = new StringJoiner(SLASH_STR, SLASH_STR, "");
         int startIndex = 0;

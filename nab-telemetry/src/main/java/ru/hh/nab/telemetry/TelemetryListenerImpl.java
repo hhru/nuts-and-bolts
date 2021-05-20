@@ -11,6 +11,7 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.HttpHeaders;
@@ -19,26 +20,28 @@ import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.RequestContext;
 import ru.hh.jclient.common.RequestDebug;
+import ru.hh.jclient.common.Uri;
 import ru.hh.jclient.common.exception.ResponseConverterException;
 
 public class TelemetryListenerImpl implements RequestDebug {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
-
   private static final TextMapGetter<Map<String, List<String>>> GETTER = createGetter();
   private final Tracer tracer;
   private final TextMapPropagator textMapPropagator;
+  private final Function<Uri, String> uriCompactionFunction;
   private Span span;
 
-  public TelemetryListenerImpl(Tracer tracer, TextMapPropagator textMapPropagator) {
+  public TelemetryListenerImpl(Tracer tracer, TextMapPropagator textMapPropagator, Function<Uri, String> uriCompactionFunction) {
     this.tracer = tracer;
     this.textMapPropagator = textMapPropagator;
+    this.uriCompactionFunction = uriCompactionFunction;
   }
 
   @Override
   public Request onRequestStart(Request originalRequest, Map<String, List<String>> originalHeaders, List<Param> queryParams, boolean external) {
     Context context = textMapPropagator.extract(Context.current(), originalHeaders, GETTER);
     span = tracer.spanBuilder(
-        originalRequest.getUri().getPath().replaceAll("/([0-9]+)", "/ID_VAR"))
+        uriCompactionFunction.apply(originalRequest.getUri()))
         .setParent(context)
         .setSpanKind(SpanKind.CLIENT)
         .setAttribute("requestTimeout", originalRequest.getRequestTimeout())

@@ -37,6 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.jclient.NabJClientConfig;
+import ru.hh.nab.jclient.UriCompactionUtil;
 import ru.hh.nab.telemetry.IdGeneratorImpl;
 import ru.hh.nab.telemetry.TelemetryListenerImpl;
 
@@ -96,7 +97,8 @@ public class TelemetryTest {
   }
 
   private static Supplier<RequestDebug> requestDebug() {
-    return () -> new TelemetryListenerImpl(openTelemetry.getTracer("rt"), textMapPropagator);
+    return () -> new TelemetryListenerImpl(openTelemetry.getTracer("rt"), textMapPropagator,
+        uri -> UriCompactionUtil.compactUri(uri, 1, 16));
   }
 
   private static SpanExporter createSpanExporter() {

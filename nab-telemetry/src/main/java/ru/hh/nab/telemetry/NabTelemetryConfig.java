@@ -16,11 +16,13 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import static java.util.Optional.ofNullable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.jclient.UriCompactionUtil;
 
 @Configuration
 public class NabTelemetryConfig {
@@ -76,18 +78,27 @@ public class NabTelemetryConfig {
   @Bean
   TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
     Tracer tracer = openTelemetry.getTracer("nab");
-    return new TelemetryFilter(tracer, telemetryPropagator, fileSettings.getBoolean("opentelemetry.enabled", false));
+    boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
+    int minCompactionLength = ofNullable(fileSettings.getInteger("telemetry.min.compaction.length")).orElse(1);
+    int minHashLength = ofNullable(fileSettings.getInteger("telemetry.min.hash.length")).orElse(16);
+
+    return new TelemetryFilter(tracer, telemetryPropagator, telemetryEnabled,
+        uri -> UriCompactionUtil.compactUri(uri, minCompactionLength, minHashLength));
   }
 
   @Bean
   TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier,
                                                       FileSettings fileSettings) {
+    int minCompactionLength = ofNullable(fileSettings.getInteger("telemetry.min.compaction.length")).orElse(1);
+    int minHashLength = ofNullable(fileSettings.getInteger("telemetry.min.hash.length")).orElse(16);
+
     TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
-        openTelemetry.getPropagators().getTextMapPropagator());
+        openTelemetry.getPropagators().getTextMapPropagator(), uri -> UriCompactionUtil.compactUri(uri, minCompactionLength, minHashLength));
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
       contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
     }
     return telemetryRequestDebug;
   }
+
 
 }

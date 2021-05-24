@@ -39,20 +39,22 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   @Override
   public Request onRequestStart(Request originalRequest, Map<String, List<String>> originalHeaders, List<Param> queryParams, boolean external) {
+    if (external) {
+      return originalRequest;
+    }
+
     Context context = textMapPropagator.extract(Context.current(), originalHeaders, GETTER);
     span = tracer.spanBuilder(
         uriCompactionFunction.apply(originalRequest.getUri()))
         .setParent(context)
         .setSpanKind(SpanKind.CLIENT)
-        .setAttribute("requestTimeout", originalRequest.getRequestTimeout())
-        .setAttribute("readTimeout", originalRequest.getReadTimeout())
         .startSpan();
+
+    TelemetryUtil.setAttributes(span, Map.of("requestTimeout", originalRequest.getRequestTimeout(),
+        "readTimeout", originalRequest.getReadTimeout()));
+
     LOGGER.trace("spanStarted : {}", span);
     RequestBuilder requestBuilder = new RequestBuilder(originalRequest);
-
-    if (external) {
-      return originalRequest;
-    }
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(originalRequest.getHeaders());

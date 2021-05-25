@@ -53,10 +53,11 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           uriCompactionFunction.apply(((HttpServletRequest) request).getRequestURI()))
           .setParent(telemetryContext)
           .setSpanKind(SpanKind.SERVER)
-          .setAttribute(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? UNKNOWN : requestHeadersMap.get(USER_AGENT).get(0))
           .startSpan();
-      LOGGER.trace("span started:{}", span);
+      TelemetryUtil.setAttributes(span,
+          Map.of(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? UNKNOWN : requestHeadersMap.get(USER_AGENT).get(0)));
 
+      LOGGER.trace("span started:{}", span);
       try (Scope scope = span.makeCurrent()) {
         chain.doFilter(request, response);
       } finally {

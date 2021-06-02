@@ -27,7 +27,7 @@ import ru.hh.nab.common.component.NabServletFilter;
 
 public class TelemetryFilter implements Filter, NabServletFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
-  private static final String USER_AGENT = "User-Agent";
+  private static final String USER_AGENT = "user_agent";
   private static final String UNKNOWN = "unknown";
   private final TelemetryPropagator telemetryPropagator;
   private final Tracer tracer;

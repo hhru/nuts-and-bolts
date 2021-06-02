@@ -27,12 +27,12 @@ public class IdGeneratorImpl implements IdGenerator {
   public String generateTraceId() {
     List<String> requestIdHolder = contextSupplier.get().getHeaders().get(HttpHeaderNames.X_REQUEST_ID);
     if (requestIdHolder == null || requestIdHolder.isEmpty()) {
-      LOGGER.warn("unavailable requestId");
+      LOGGER.debug("unavailable requestId");
       return IdGenerator.random().generateTraceId();
     } else {
       String requestId = requestIdHolder.get(0);
       if (!TraceId.isValid(requestId)) {
-        LOGGER.warn("invalid requestId for telemetry {}", requestId);
+        LOGGER.debug("invalid requestId for telemetry {}", requestId);
         return IdGenerator.random().generateTraceId();
       } else {
         return requestId;

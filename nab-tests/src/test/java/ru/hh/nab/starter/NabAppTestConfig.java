@@ -1,17 +1,16 @@
 package ru.hh.nab.starter;
 
-import ru.hh.consul.AgentClient;
-import ru.hh.consul.KeyValueClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-
-import ru.hh.consul.config.ClientConfig;
-import ru.hh.consul.monitoring.ClientEventCallback;
-import ru.hh.consul.monitoring.ClientEventHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.KeyValueClient;
+import ru.hh.consul.config.ClientConfig;
+import ru.hh.consul.monitoring.ClientEventCallback;
+import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;

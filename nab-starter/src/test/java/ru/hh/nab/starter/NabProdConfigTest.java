@@ -26,8 +26,6 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
-
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
@@ -36,6 +34,7 @@ import static ru.hh.nab.starter.ConsulService.CONSUL_TAGS_PROPERTY;
 import static ru.hh.nab.starter.NabCommonConfig.DATACENTER_NAME_PROPERTY;
 import static ru.hh.nab.starter.NabCommonConfig.NODE_NAME_PROPERTY;
 import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
+import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 public class NabProdConfigTest {
   private static final String TEST_SERVICE_NAME = "test-service";

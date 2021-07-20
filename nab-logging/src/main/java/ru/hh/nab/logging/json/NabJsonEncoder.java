@@ -1,7 +1,6 @@
 package ru.hh.nab.logging.json;
 
 import net.logstash.logback.encoder.LogstashEncoder;
-
 import static ru.hh.nab.logging.json.JsonFieldNames.DEFAULT_TIMESTAMP_FORMAT;
 
 public class NabJsonEncoder extends LogstashEncoder {

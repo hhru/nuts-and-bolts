@@ -1,13 +1,12 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
-
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 
 public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max queueSize = new Max(0);

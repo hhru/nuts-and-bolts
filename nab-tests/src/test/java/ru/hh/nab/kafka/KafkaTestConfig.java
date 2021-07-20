@@ -1,7 +1,9 @@
 package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +20,6 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import java.io.IOException;
-import java.util.Properties;
 
 @Configuration
 public class KafkaTestConfig {

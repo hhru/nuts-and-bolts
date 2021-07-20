@@ -3,21 +3,13 @@ package ru.hh.nab.datasource.monitoring;
 import com.zaxxer.hikari.metrics.IMetricsTracker;
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import com.zaxxer.hikari.metrics.PoolStats;
+import static java.util.Optional.ofNullable;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
-import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
-import ru.hh.nab.metrics.Counters;
-import ru.hh.nab.metrics.Histogram;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.Optional.ofNullable;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.ACQUISITION_MS;
@@ -32,7 +24,13 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.SAMPLED_USAG
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNECTIONS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
+import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
+import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
+import ru.hh.nab.metrics.Counters;
+import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
+import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {

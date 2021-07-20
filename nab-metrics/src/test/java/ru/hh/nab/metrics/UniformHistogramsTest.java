@@ -1,12 +1,10 @@
 package ru.hh.nab.metrics;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 import static ru.hh.nab.metrics.TestUtils.tagsOf;
 
 public class UniformHistogramsTest {

@@ -1,12 +1,9 @@
 package ru.hh.nab.starter.server.cache;
 
-import org.caffinitas.ohc.OHCache;
-import org.caffinitas.ohc.OHCacheBuilder;
-import org.caffinitas.ohc.OHCacheStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.hh.nab.metrics.StatsDSender;
-
+import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -16,12 +13,13 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.CacheControl;
-import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
+import org.caffinitas.ohc.OHCache;
+import org.caffinitas.ohc.OHCacheBuilder;
+import org.caffinitas.ohc.OHCacheStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
 import static ru.hh.nab.starter.server.cache.CachedResponse.PLACEHOLDER;

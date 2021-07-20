@@ -1,9 +1,9 @@
 package ru.hh.nab.datasource.monitoring;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.sql.DataSource;
 
 /**
  * A {@link javax.sql.DataSource} that sends Postgresql statement timeout query after obtaining a connection from the underlying datasource.<br/>

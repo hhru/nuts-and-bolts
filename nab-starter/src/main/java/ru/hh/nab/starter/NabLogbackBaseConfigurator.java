@@ -2,22 +2,19 @@ package ru.hh.nab.starter;
 
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.sentry.logback.SentryAppender;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Properties;
-
 import org.slf4j.event.Level;
+import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
+import static ru.hh.nab.starter.NabProdConfig.PROPERTIES_FILE_NAME;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
-
-import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
-import static ru.hh.nab.starter.NabProdConfig.PROPERTIES_FILE_NAME;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 

@@ -2,7 +2,6 @@ package ru.hh.nab.kafka.producer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;

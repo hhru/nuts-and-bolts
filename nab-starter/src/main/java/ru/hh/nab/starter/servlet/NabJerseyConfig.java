@@ -18,9 +18,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplicationBuilder;
+import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 import ru.hh.nab.starter.jersey.DefaultResourceConfig;
 import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
-import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 
 public abstract class NabJerseyConfig implements NabServletConfig {
 

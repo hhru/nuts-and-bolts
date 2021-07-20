@@ -1,7 +1,6 @@
 package ru.hh.nab.starter;
 
 import java.util.Properties;
-
 import java.util.concurrent.TimeUnit;
 
 public class AppMetadata {

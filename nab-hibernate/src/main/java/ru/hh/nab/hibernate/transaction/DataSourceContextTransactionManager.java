@@ -5,11 +5,10 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
+import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-
-import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 

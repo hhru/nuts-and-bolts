@@ -1,5 +1,6 @@
 package ru.hh.nab.datasource;
 
+import javax.sql.DataSource;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,8 +10,6 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
-
-import javax.sql.DataSource;
 
 @Configuration
 @Import({

@@ -3,7 +3,12 @@ package ru.hh.nab.jclient;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import static java.util.Objects.requireNonNull;
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.NONNULL;
 import java.util.Spliterators;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import java.util.stream.StreamSupport;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -15,11 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.common.servlet.UriComponent;
-import static java.util.Objects.requireNonNull;
-import static java.util.Spliterator.DISTINCT;
-import static java.util.Spliterator.NONNULL;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 
 public class JClientContextProviderFilter implements Filter, NabServletFilter {
   private final HttpClientContextThreadLocalSupplier contextThreadLocalSupplier;

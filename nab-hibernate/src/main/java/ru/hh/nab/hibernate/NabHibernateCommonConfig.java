@@ -3,6 +3,11 @@ package ru.hh.nab.hibernate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Function;
+import static java.util.stream.Collectors.toMap;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.integrator.spi.Integrator;
@@ -12,18 +17,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
-
-import javax.sql.DataSource;
-import java.util.Properties;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
-
-import static java.util.stream.Collectors.toMap;
 
 @Configuration
 @EnableTransactionManagement(order = 0)

@@ -1,5 +1,7 @@
 package ru.hh.nab.hibernate;
 
+import java.util.Properties;
+import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -8,9 +10,6 @@ import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
-
-import javax.sql.DataSource;
-import java.util.Properties;
 
 @Configuration
 @Import({

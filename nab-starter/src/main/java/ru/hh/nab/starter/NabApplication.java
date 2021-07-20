@@ -1,31 +1,21 @@
 package ru.hh.nab.starter;
 
+import io.sentry.Sentry;
+import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
-
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import javax.servlet.ServletContextEvent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import ru.hh.nab.metrics.TaggedSender;
-import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
-import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
-import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
-import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
-
-import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
-
-import io.sentry.Sentry;
-
-import java.util.List;
-import java.util.Properties;
-import javax.servlet.ServletContextEvent;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -34,13 +24,17 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-
-import java.lang.management.ManagementFactory;
-import java.time.LocalDateTime;
-import java.util.Set;
-
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+import ru.hh.nab.metrics.TaggedSender;
+import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
+import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
+import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
+import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 

@@ -1,14 +1,13 @@
 package ru.hh.nab.starter.filters;
 
-import org.springframework.util.ClassUtils;
-import ru.hh.nab.common.mdc.MDC;
-
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.ResourceInfo;
+import org.springframework.util.ClassUtils;
+import ru.hh.nab.common.mdc.MDC;
 
 public class ResourceNameLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 

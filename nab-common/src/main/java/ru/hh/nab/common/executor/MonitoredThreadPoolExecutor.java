@@ -1,24 +1,22 @@
 package ru.hh.nab.common.executor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.metrics.Histogram;
-import ru.hh.nab.metrics.Max;
-import ru.hh.nab.metrics.StatsDSender;
-
+import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import static java.util.concurrent.Executors.defaultThreadFactory;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.Optional.ofNullable;
-import static java.util.concurrent.Executors.defaultThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.Max;
+import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;

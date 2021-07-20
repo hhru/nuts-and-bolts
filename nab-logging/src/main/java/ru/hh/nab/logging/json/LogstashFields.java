@@ -1,8 +1,7 @@
 package ru.hh.nab.logging.json;
 
-import net.logstash.logback.fieldnames.LogstashFieldNames;
-
 import static net.logstash.logback.fieldnames.LogstashCommonFieldNames.IGNORE_FIELD_INDICATOR;
+import net.logstash.logback.fieldnames.LogstashFieldNames;
 import static ru.hh.nab.logging.json.JsonFieldNames.EXCEPTION;
 import static ru.hh.nab.logging.json.JsonFieldNames.LEVEL;
 import static ru.hh.nab.logging.json.JsonFieldNames.LOGGER;

@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.util.List;
 import org.eclipse.jetty.util.Loader;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.webapp.Configuration;
@@ -7,8 +8,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
-
-import java.util.List;
 
 final class JettyWebAppContext extends WebAppContext {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyWebAppContext.class);

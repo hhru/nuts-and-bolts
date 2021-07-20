@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonpCharacterEscapes;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.SerializedString;
-
 import java.util.stream.IntStream;
 
 public class JsonCharacterEscapes extends JsonpCharacterEscapes {

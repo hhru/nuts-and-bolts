@@ -1,11 +1,10 @@
 package ru.hh.nab.metrics;
 
+import static java.lang.System.currentTimeMillis;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.lang.System.currentTimeMillis;
 
 public class CountersPerfTest {
 

@@ -1,17 +1,14 @@
 package ru.hh.nab.hibernate.transaction;
 
+import java.util.Map;
+import java.util.Optional;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
-
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.Map;
-import java.util.Optional;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {

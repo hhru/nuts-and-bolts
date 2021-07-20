@@ -1,5 +1,10 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.io.IOException;
+import java.nio.channels.SelectableChannel;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.SelectorManager;
 import org.eclipse.jetty.server.ConnectionFactory;
@@ -12,12 +17,6 @@ import org.eclipse.jetty.util.thread.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.metrics.TaggedSender;
-
-import java.io.IOException;
-import java.nio.channels.SelectableChannel;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 
 /**
  * ServerConnector that:<br/>

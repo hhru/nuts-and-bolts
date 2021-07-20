@@ -8,10 +8,9 @@ import ch.qos.logback.core.rolling.DefaultTimeBasedFileNamingAndTriggeringPolicy
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Is a combo of {@link RollingFileAppender}, {@link FixedWindowRollingPolicy},

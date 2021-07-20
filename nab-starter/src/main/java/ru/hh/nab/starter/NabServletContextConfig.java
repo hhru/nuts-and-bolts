@@ -2,9 +2,11 @@ package ru.hh.nab.starter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
 import javax.servlet.Servlet;
@@ -21,9 +23,6 @@ import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
-
-import javax.servlet.DispatcherType;
-import java.util.EnumSet;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.StatusServletConfig;

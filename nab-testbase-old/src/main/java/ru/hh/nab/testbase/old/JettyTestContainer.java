@@ -3,7 +3,6 @@ package ru.hh.nab.testbase.old;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import org.eclipse.jetty.util.URIUtil;
 import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplication;

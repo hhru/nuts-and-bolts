@@ -3,7 +3,6 @@ package ru.hh.nab.kafka.consumer;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.Deserializer;

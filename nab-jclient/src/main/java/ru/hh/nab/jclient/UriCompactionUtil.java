@@ -1,11 +1,11 @@
 package ru.hh.nab.jclient;
 
 import java.util.Collection;
+import static java.util.Optional.ofNullable;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import ru.hh.jclient.common.Uri;
-import static java.util.Optional.ofNullable;
 
 public final class UriCompactionUtil {
 

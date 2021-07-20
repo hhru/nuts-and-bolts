@@ -1,12 +1,11 @@
 package ru.hh.nab.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An aggregator that accumulates a stream of values as a histogram to compute percentiles.<br/>

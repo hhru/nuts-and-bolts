@@ -1,7 +1,6 @@
 package ru.hh.nab.logging.json;
 
 import net.logstash.logback.layout.LogstashLayout;
-
 import static ru.hh.nab.logging.json.JsonFieldNames.DEFAULT_TIMESTAMP_FORMAT;
 
 public class NabJsonLayout extends LogstashLayout {

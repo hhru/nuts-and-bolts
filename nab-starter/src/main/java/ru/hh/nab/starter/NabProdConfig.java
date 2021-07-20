@@ -1,32 +1,26 @@
 package ru.hh.nab.starter;
 
-import ru.hh.consul.AgentClient;
-import ru.hh.consul.Consul;
-import ru.hh.consul.KeyValueClient;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
-
-import java.util.Optional;
-
-import static java.util.Objects.requireNonNullElse;
-import static java.util.Optional.ofNullable;
-
 import java.io.IOException;
+import static java.util.Objects.requireNonNullElse;
+import java.util.Optional;
+import static java.util.Optional.ofNullable;
 import java.util.Properties;
-
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.Consul;
+import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.metrics.StatsDSender;
-
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
-
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration

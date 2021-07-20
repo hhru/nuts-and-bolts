@@ -1,13 +1,11 @@
 package ru.hh.nab.hibernate.util;
 
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.mdc.MDC;
-
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 public final class SqlRequestIdCommenter {
   private static final Predicate<String> SQL_REQUEST_ID_IS_VALID = Pattern.compile("^[a-z0-9_-]+$", CASE_INSENSITIVE).asPredicate();

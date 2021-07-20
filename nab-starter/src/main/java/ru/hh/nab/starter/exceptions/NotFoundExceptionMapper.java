@@ -4,7 +4,6 @@ import javax.annotation.Priority;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider

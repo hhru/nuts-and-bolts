@@ -17,12 +17,10 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jclient</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>

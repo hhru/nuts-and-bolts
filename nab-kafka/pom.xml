@@ -16,12 +16,10 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-metrics</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh</groupId>

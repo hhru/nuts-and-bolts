@@ -29,13 +29,11 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-hibernate</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Embedded PostgreSQL -->

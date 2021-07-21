@@ -6,7 +6,6 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
-
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 

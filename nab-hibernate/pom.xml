@@ -5,7 +5,7 @@
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <version>4.30.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>nab-hibernate</artifactId>
@@ -36,12 +36,10 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-data-source</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Hibernate -->
@@ -106,7 +104,6 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-logging</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

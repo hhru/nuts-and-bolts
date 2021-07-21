@@ -1,10 +1,9 @@
 package ru.hh.nab.performance.variants;
 
-import org.springframework.util.ConcurrentReferenceHashMap;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 public class PartiallyOverflowingCacheWithSizeAtomicCache<K, V> implements GenericCache<K, V> {
   private final ConcurrentHashMap<K, V> strongStorage = new ConcurrentHashMap<>();

@@ -1,16 +1,15 @@
 package ru.hh.nab.starter.filters;
 
-import org.springframework.web.filter.OncePerRequestFilter;
-import ru.hh.nab.starter.http.RequestContext;
-
+import java.io.IOException;
+import static java.util.Optional.ofNullable;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import ru.hh.nab.starter.server.RequestHeaders;
-import static java.util.Optional.ofNullable;
+import org.springframework.web.filter.OncePerRequestFilter;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
+import ru.hh.nab.starter.http.RequestContext;
+import ru.hh.nab.starter.server.RequestHeaders;
 
 public final class CommonHeadersFilter extends OncePerRequestFilter {
 

@@ -1,5 +1,12 @@
 package ru.hh.nab.starter.jersey;
 
+import java.util.Collections;
+import java.util.Set;
+import javax.inject.Inject;
+import javax.ws.rs.ext.ContextResolver;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import ru.hh.nab.common.cache.PartiallyOverflowingCache;
 import ru.hh.nab.common.properties.FileSettings;
@@ -7,14 +14,6 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.NabCommonConfig;
-
-import javax.inject.Inject;
-import javax.ws.rs.ext.ContextResolver;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.util.Collections;
-import java.util.Set;
 
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
   private final int maxCollectionSize;

@@ -1,6 +1,7 @@
 package ru.hh.nab.starter;
 
 import com.ginsberg.junit.exit.ExpectSystemExitWithStatus;
+import static java.util.Objects.requireNonNullElse;
 import java.util.Properties;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.ClientBuilder;
@@ -10,28 +11,22 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import ru.hh.consul.AgentClient;
-import ru.hh.consul.Consul;
-import static java.util.Objects.requireNonNullElse;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-
 import static org.mockito.Mockito.doAnswer;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-
 import static org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext;
-
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.Consul;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.jersey.TestResource;

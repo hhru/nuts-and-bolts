@@ -1,12 +1,6 @@
 package ru.hh.nab.testbase.postgres.embedded;
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-import ru.hh.nab.common.files.FileSystemUtils;
-import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.datasource.DataSourceFactory;
-import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
-
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +10,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import javax.sql.DataSource;
 import org.apache.commons.text.StringSubstitutor;
-
+import ru.hh.nab.common.files.FileSystemUtils;
+import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
+import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${user}";

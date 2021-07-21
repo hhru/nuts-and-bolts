@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.jersey;
 
+import java.util.Collections;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import ru.hh.nab.starter.exceptions.AnyExceptionMapper;
@@ -10,8 +11,6 @@ import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
 import ru.hh.nab.starter.filters.ErrorAcceptFilter;
 import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
-
-import java.util.Collections;
 
 public final class DefaultResourceConfig extends ResourceConfig {
 

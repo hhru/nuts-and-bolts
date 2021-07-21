@@ -1,32 +1,22 @@
 package ru.hh.nab.starter;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import java.math.BigInteger;
-import ru.hh.consul.AgentClient;
-import ru.hh.consul.KeyValueClient;
-import ru.hh.consul.config.ClientConfig;
-import ru.hh.consul.model.ConsulResponse;
-import ru.hh.consul.model.agent.Registration;
-import ru.hh.consul.model.catalog.ServiceWeights;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import ru.hh.consul.model.kv.ImmutableValue;
-import ru.hh.consul.model.kv.Value;
-import ru.hh.consul.monitoring.ClientEventCallback;
-import ru.hh.consul.monitoring.ClientEventHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import ru.hh.consul.option.QueryOptions;
-import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,13 +25,19 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import ru.hh.consul.AgentClient;
+import ru.hh.consul.KeyValueClient;
+import ru.hh.consul.config.ClientConfig;
+import ru.hh.consul.model.ConsulResponse;
+import ru.hh.consul.model.agent.Registration;
+import ru.hh.consul.model.catalog.ServiceWeights;
+import ru.hh.consul.model.kv.ImmutableValue;
+import ru.hh.consul.model.kv.Value;
+import ru.hh.consul.monitoring.ClientEventCallback;
+import ru.hh.consul.monitoring.ClientEventHandler;
+import ru.hh.consul.option.QueryOptions;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
-
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ConsulServiceTest.CustomKVConfig.class)

@@ -5,7 +5,7 @@
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <version>4.30.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>nab-starter</artifactId>
@@ -17,17 +17,14 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-logging</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-metrics</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -142,6 +139,14 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>

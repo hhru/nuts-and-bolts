@@ -1,14 +1,12 @@
 package ru.hh.nab.metrics;
 
-import org.junit.jupiter.api.Test;
-
+import static java.lang.System.currentTimeMillis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.System.currentTimeMillis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 import static ru.hh.nab.metrics.TestUtils.tagsOf;
 
 public class LongCountersTest {

@@ -5,7 +5,7 @@
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <version>4.30.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>nab-example</artifactId>
@@ -17,12 +17,10 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>nab-websocket</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
@@ -32,7 +30,6 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-testbase</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

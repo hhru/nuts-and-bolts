@@ -1,7 +1,6 @@
 package ru.hh.nab.metrics;
 
 import com.timgroup.statsd.StatsDClient;
-
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>1.48</version>
+        <version>1.50.0</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
@@ -50,6 +50,61 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-data-source</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-hibernate</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-testbase</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-jclient</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-metrics</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-websocket</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>ru.hh.consul</groupId>
                 <artifactId>consul-client</artifactId>

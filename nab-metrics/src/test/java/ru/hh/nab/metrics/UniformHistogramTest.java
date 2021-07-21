@@ -1,9 +1,8 @@
 package ru.hh.nab.metrics;
 
-import org.junit.jupiter.api.Test;
-
 import static java.lang.System.currentTimeMillis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class UniformHistogramTest {
 

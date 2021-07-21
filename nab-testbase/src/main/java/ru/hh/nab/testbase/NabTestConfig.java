@@ -2,6 +2,8 @@ package ru.hh.nab.testbase;
 
 import com.timgroup.statsd.NoOpStatsDClient;
 import com.timgroup.statsd.StatsDClient;
+import java.io.IOException;
+import java.util.Properties;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -15,9 +17,6 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.NabCommonConfig;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
-
-import java.io.IOException;
-import java.util.Properties;
 
 @Configuration
 @Import({NabCommonConfig.class})

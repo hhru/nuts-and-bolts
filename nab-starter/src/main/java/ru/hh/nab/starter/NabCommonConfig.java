@@ -1,12 +1,10 @@
 package ru.hh.nab.starter;
 
+import com.timgroup.statsd.StatsDClient;
 import static java.util.Optional.ofNullable;
-
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
-
-import com.timgroup.statsd.StatsDClient;
 import javax.inject.Named;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -16,10 +14,9 @@ import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.metrics.JvmMetricsSender;
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
-
-import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 
 @Configuration
 public class NabCommonConfig {

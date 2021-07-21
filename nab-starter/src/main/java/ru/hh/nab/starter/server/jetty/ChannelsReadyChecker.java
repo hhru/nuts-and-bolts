@@ -1,15 +1,14 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.HttpChannelState;
 import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.util.thread.Scheduler;
-
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 class ChannelsReadyChecker implements Runnable {
 

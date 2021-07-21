@@ -1,6 +1,15 @@
 package ru.hh.nab.starter;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.cache.KVCache;
@@ -12,20 +21,10 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 public class ConsulService {
 

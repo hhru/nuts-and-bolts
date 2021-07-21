@@ -1,9 +1,8 @@
 package ru.hh.nab.starter.server.jetty;
 
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
-
 import javax.servlet.ServletContext;
-
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -15,9 +14,6 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
-
-import java.util.Optional;
-
 import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPTORS;

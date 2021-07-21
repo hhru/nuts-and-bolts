@@ -2,8 +2,10 @@ package ru.hh.nab.hibernate;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.sql.DataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
@@ -13,9 +15,6 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBuilder;
 import ru.hh.nab.hibernate.interceptor.ControllerPassingInterceptor;
 import ru.hh.nab.hibernate.interceptor.RequestIdPassingInterceptor;
-
-import javax.sql.DataSource;
-import java.util.Properties;
 
 public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 

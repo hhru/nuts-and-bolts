@@ -1,13 +1,12 @@
 package ru.hh.nab.starter.server.jetty;
 
+import javax.servlet.Servlet;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ThreadPool;
-
-import javax.servlet.Servlet;
 
 class HHServerConnectorTestUtils {
 

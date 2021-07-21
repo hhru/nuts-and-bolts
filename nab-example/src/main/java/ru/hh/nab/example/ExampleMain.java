@@ -1,11 +1,10 @@
 package ru.hh.nab.example;
 
+import java.util.Set;
 import org.testcontainers.containers.GenericContainer;
 import ru.hh.nab.common.properties.PropertiesUtils;
-import java.util.Set;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.starter.NabProdConfig;
-
 import ru.hh.nab.websocket.NabWebsocketConfigurator;
 
 public class ExampleMain {

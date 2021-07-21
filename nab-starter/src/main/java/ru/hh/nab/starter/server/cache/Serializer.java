@@ -1,8 +1,7 @@
 package ru.hh.nab.starter.server.cache;
 
-import org.caffinitas.ohc.CacheSerializer;
-
 import java.nio.ByteBuffer;
+import org.caffinitas.ohc.CacheSerializer;
 
 class Serializer implements CacheSerializer<byte[]> {
   @Override

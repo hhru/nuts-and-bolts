@@ -1,6 +1,9 @@
 package ru.hh.nab.metrics;
 
 import com.timgroup.statsd.NoOpStatsDClient;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -8,10 +11,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
-
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Executors;
 
 public class TaggedSenderTest {
 

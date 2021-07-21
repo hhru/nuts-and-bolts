@@ -10,13 +10,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import static java.util.stream.Collectors.joining;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.jclient.common.HttpClient;
 import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.Request;
-import static java.util.stream.Collectors.joining;
 
 public class TransactionalCheck implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransactionalCheck.class);

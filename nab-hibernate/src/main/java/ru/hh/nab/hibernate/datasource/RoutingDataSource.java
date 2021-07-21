@@ -1,13 +1,12 @@
 package ru.hh.nab.hibernate.datasource;
 
+import java.util.HashMap;
+import java.util.Map;
+import javax.sql.DataSource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
-
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RoutingDataSource extends AbstractRoutingDataSource {
 

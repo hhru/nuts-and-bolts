@@ -1,9 +1,12 @@
 package ru.hh.nab.jclient;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
+import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -13,12 +16,8 @@ import ru.hh.jclient.common.HttpClientFactoryBuilder;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.jclient.checks.TransactionalCheck;
-
-import java.util.List;
-import static java.util.Optional.ofNullable;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
+import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 @Configuration
 public class NabJClientConfig {

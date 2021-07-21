@@ -1,9 +1,8 @@
 package ru.hh.nab.common.cache;
 
-import org.springframework.util.ConcurrentReferenceHashMap;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 public class PartiallyOverflowingCache<K, V> {
   private final ConcurrentHashMap<K, V> strongStorage = new ConcurrentHashMap<>();

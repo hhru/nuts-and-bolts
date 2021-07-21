@@ -1,19 +1,17 @@
 package ru.hh.nab.starter.exceptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-
+import static java.util.Optional.ofNullable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.core.Context;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
-
-import static java.util.Optional.ofNullable;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * This exception mapper solves several tasks:

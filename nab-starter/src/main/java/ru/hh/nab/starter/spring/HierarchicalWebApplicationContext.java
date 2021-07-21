@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
+import static java.util.stream.Collectors.toMap;
 import javax.servlet.ServletContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -11,7 +12,6 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
-import static java.util.stream.Collectors.toMap;
 
 public class HierarchicalWebApplicationContext extends AnnotationConfigWebApplicationContext {
 

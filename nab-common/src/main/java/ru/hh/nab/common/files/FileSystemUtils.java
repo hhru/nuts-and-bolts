@@ -1,10 +1,9 @@
 package ru.hh.nab.common.files;
 
-import org.apache.commons.lang3.SystemUtils;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.apache.commons.lang3.SystemUtils;
 
 public class FileSystemUtils {
   private static final String LINUX_TMPFS_PATH = "/dev/shm";

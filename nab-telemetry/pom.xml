@@ -4,7 +4,7 @@
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <version>4.30.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,12 +17,10 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jclient</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>

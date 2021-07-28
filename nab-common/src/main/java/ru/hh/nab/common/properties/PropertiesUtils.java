@@ -6,8 +6,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import static java.util.stream.Collectors.toMap;
 import java.util.stream.Stream;
 
 public class PropertiesUtils {
@@ -21,35 +24,46 @@ public class PropertiesUtils {
 
   public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws IOException {
     Path filePath = Paths.get(System.getProperty(SETINGS_DIR_PROPERTY, ".")).resolve(fileName);
-    Properties properties = new Properties();
 
-    loadFromFileWithOverrides(filePath, configPath -> {
-      try (InputStream inputStream = Files.newInputStream(configPath)) {
-        properties.load(inputStream);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    });
+    Map.Entry<Properties, Map<String, Path>> propertiesAndOverrideLocations = loadFromFileWithOverrides(filePath);
+    Properties config = propertiesAndOverrideLocations.getKey();
+    Map<String, Path> overrideLocations = propertiesAndOverrideLocations.getValue();
 
-    Path customPath = filePath.getParent().resolve(devFileName);
-    if (Files.isReadable(customPath)) {
-      try (InputStream inputStream = Files.newInputStream(customPath)) {
-        properties.load(inputStream);
-      }
+    Path devConfigPath = filePath.getParent().resolve(devFileName);
+    if (Files.isReadable(devConfigPath)) {
+      Properties devConfig = loadPropertiesFromPath(devConfigPath);
+      config.putAll(devConfig);
+      overrideLocations.putAll(devConfig.stringPropertyNames().stream().collect(toMap(Function.identity(), v -> devConfigPath)));
     }
 
-    return properties;
+    overrideLocations.forEach((block, path) -> System.out.println(block + " is effectively loaded from " + path));
+
+    return config;
   }
 
-  public static void loadFromFileWithOverrides(Path filePath, Consumer<Path> merger) throws IOException {
-    try (InputStream inputStream = Files.newInputStream(filePath)) {
-      merger.accept(filePath);
-    }
+  public static Map.Entry<Properties, Map<String, Path>> loadFromFileWithOverrides(Path filePath) throws IOException {
+    Properties initialConfig = loadPropertiesFromPath(filePath);
     Path overridesDirPath = filePath.getParent().resolve(filePath.getFileName() + OVERRIDE_FOLDER_POSTFIX);
+    Map<String, Path> overrideAddress = new HashMap<>();
     if (Files.exists(overridesDirPath) && Files.isDirectory(overridesDirPath)) {
       try (Stream<Path> fileStream = Files.list(overridesDirPath).filter(Files::isRegularFile).sorted()) {
-        fileStream.forEachOrdered(merger);
+        fileStream.forEachOrdered(path -> {
+          Properties overrideConfig = loadPropertiesFromPath(path);
+          initialConfig.putAll(overrideConfig);
+          overrideAddress.putAll(overrideConfig.stringPropertyNames().stream().collect(toMap(Function.identity(), v -> path)));
+        });
       }
+    }
+    return Map.entry(initialConfig, overrideAddress);
+  }
+
+  public static Properties loadPropertiesFromPath(Path path) {
+    Properties props = new Properties();
+    try (InputStream inputStream = Files.newInputStream(path)) {
+      props.load(inputStream);
+      return props;
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 

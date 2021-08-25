@@ -52,7 +52,8 @@ public class TelemetryListenerImpl implements RequestDebug {
 
     TelemetryUtil.setAttributes(span, Map.of("requestTimeout", originalRequest.getRequestTimeout(),
         "readTimeout", originalRequest.getReadTimeout()));
-    LOGGER.trace("spanStarted : {}", LOGGER.isDebugEnabled() ? span : "");
+
+    LOGGER.trace("spanStarted : {}", span);
     RequestBuilder requestBuilder = new RequestBuilder(originalRequest);
 
     HttpHeaders headers = new HttpHeaders();
@@ -69,7 +70,7 @@ public class TelemetryListenerImpl implements RequestDebug {
   public ru.hh.jclient.common.Response onResponse(ru.hh.jclient.common.Response response) {
     span.setStatus(StatusCode.OK, String.format("code:%d; description:%s", response.getStatusCode(), response.getStatusText()));
     span.end();
-    LOGGER.trace("span closed: {}", LOGGER.isDebugEnabled() ? span : "");
+    LOGGER.trace("span closed: {}", span);
     return response;
   }
 
@@ -77,7 +78,7 @@ public class TelemetryListenerImpl implements RequestDebug {
   public void onClientProblem(Throwable t) {
     span.setStatus(StatusCode.ERROR, t.getMessage());
     span.end();
-    LOGGER.trace("span closed: {}", LOGGER.isDebugEnabled() ? span : "");
+    LOGGER.trace("span closed: {}", span);
   }
 
   private static TextMapGetter<Map<String, List<String>>> createGetter() {

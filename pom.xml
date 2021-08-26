@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.30.9-config-split-SNAPSHOT</version>
+    <version>4.30.10-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -45,7 +45,7 @@
         <jclient.version>3.5.1</jclient.version>
         <java.version>11</java.version>
         <consul.client.version>1.1.4</consul.client.version>
-        <opentelemtry.version>1.1.0</opentelemtry.version>
+        <opentelemtry.version>1.5.0</opentelemtry.version>
     </properties>
 
     <dependencyManagement>
@@ -237,6 +237,13 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
                 <version>2.6.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemtry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

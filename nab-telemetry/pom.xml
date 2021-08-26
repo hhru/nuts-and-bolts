@@ -12,7 +12,9 @@
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts telemetry</name>
-
+    <properties>
+        <io.grpc.version>1.38.0</io.grpc.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
@@ -35,6 +37,16 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-jaeger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>${io.grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>${io.grpc.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>

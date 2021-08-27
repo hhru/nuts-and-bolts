@@ -1,5 +1,5 @@
 version: 4.30.10
-build_image: registry.pyn.ru:5000/openjdk11-building:2021.07.06
+build_image: registry.pyn.ru/openjdk11-building:2021.07.06
 docker_files:
   none: none
 build_method: mvn_build

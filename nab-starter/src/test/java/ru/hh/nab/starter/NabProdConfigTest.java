@@ -111,7 +111,7 @@ public class NabProdConfigTest {
   static class TestConsulServiceRegisterHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-      if ("/v1/agent/self".equals(target) || "/v1/agent/service/register".equals(target)) {
+      if ("/v1/agent/self".equals(target) || "/v1/agent/service/register".equals(target) || "/v1/status/leader".equals(target)) {
         baseRequest.setHandled(true);
         response.setStatus(200);
       }

@@ -21,7 +21,12 @@ public class KafkaConsumer<T> {
 
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
   private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> seekedOffsets = new InheritableThreadLocal<>();
-  private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>();
+  private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>() {
+    @Override
+    protected Boolean initialValue() {
+      return Boolean.FALSE;
+    }
+  };
 
   private final ConsumeStrategy<T> consumeStrategy;
 

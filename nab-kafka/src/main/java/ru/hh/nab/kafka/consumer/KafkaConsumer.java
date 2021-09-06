@@ -14,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> {
 
@@ -21,7 +22,12 @@ public class KafkaConsumer<T> {
 
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
   private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> seekedOffsets = new InheritableThreadLocal<>();
-  private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>();
+  private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>() {
+    @Override
+    protected Boolean initialValue() {
+      return Boolean.FALSE;
+    }
+  };
 
   private final ConsumeStrategy<T> consumeStrategy;
 
@@ -84,7 +90,7 @@ public class KafkaConsumer<T> {
     }
 
     List<ConsumerRecord<String, T>> messages = getCurrentBatch();
-    if (messages.isEmpty()) {
+    if (CollectionUtils.isEmpty(messages)) {
       return;
     }
 

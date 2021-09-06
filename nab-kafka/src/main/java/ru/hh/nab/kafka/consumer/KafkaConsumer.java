@@ -14,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> {
 
@@ -89,7 +90,7 @@ public class KafkaConsumer<T> {
     }
 
     List<ConsumerRecord<String, T>> messages = getCurrentBatch();
-    if (messages.isEmpty()) {
+    if (CollectionUtils.isEmpty(messages)) {
       return;
     }
 

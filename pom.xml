@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.30.12-beta-config-split</version>
+    <version>4.30.13-beta-config-split-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -345,6 +345,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>nuts-and-bolts-parent-4.30.12-beta-config-split</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>

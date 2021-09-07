@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
-  private static AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
+  private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
   private List<String> processedMessages;
   private KafkaConsumer<String> consumer;
 
@@ -61,6 +61,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
           ack.seek(m);
         }
         if (!failed.get() && processedMessages.size() == 45) {
+          failed.set(true);
           throw new IllegalStateException("Processing failed");
         }
       });

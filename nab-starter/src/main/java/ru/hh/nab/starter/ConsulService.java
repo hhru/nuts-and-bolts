@@ -1,6 +1,8 @@
 package ru.hh.nab.starter;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +37,7 @@ public class ConsulService {
   public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
+  public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
@@ -86,8 +89,8 @@ public class ConsulService {
       .orElse(ConsistencyMode.DEFAULT);
     this.watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
-
-    var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, "127.0.0.1");
+    Optional<String> address = resolveAddress(fileSettings);
+    var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, address.orElse("127.0.0.1"));
 
     var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
     if (logLevelOverrideExtension != null) {
@@ -109,7 +112,7 @@ public class ConsulService {
         .id(serviceId)
         .name(fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY))
         .port(applicationPort)
-        .address(Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)))
+        .address(address)
         .check(regCheck)
         .tags(tags)
         .meta(Map.of("serviceVersion", appMetadata.getVersion()))
@@ -191,6 +194,21 @@ public class ConsulService {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
+  }
+
+  private static Optional<String> resolveAddress(FileSettings fileSettings) {
+    return Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)).map(addressValue -> {
+      if (AUTO_RESOLVE_ADDRESS_VALUE.equalsIgnoreCase(addressValue)) {
+        try {
+          return InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+          throw new IllegalStateException(
+              SERVICE_ADDRESS_PROPERTY + " is set to " + AUTO_RESOLVE_ADDRESS_VALUE + ", but failed to resolve address", e
+          );
+        }
+      }
+      return addressValue;
+    });
   }
 
   @Override

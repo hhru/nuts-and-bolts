@@ -14,6 +14,7 @@ public final class UriCompactionUtil {
   private static final Collection<Integer> NON_HEX_LETTERS = IntStream.rangeClosed('g', 'z').boxed()
     .collect(Collectors.toUnmodifiableSet());
   private static final String REPLACEMENT = "[id-or-hash]";
+  private static final String EMAIL_MARKER = "@";
 
   public static String compactUri(String uriPath, int minCompactingLength, int minPossibleHashLength) {
     return compactUri(uriPath, minCompactingLength, minPossibleHashLength, REPLACEMENT);
@@ -52,6 +53,9 @@ public final class UriCompactionUtil {
     }
     long digitsCount = pathPart.chars().filter(Character::isDigit).count();
     if (digitsCount == partLength) {
+      return replacement;
+    }
+    if (pathPart.contains(EMAIL_MARKER)) {
       return replacement;
     }
     if (pathPart.chars().anyMatch(NON_HEX_LETTERS::contains)) {

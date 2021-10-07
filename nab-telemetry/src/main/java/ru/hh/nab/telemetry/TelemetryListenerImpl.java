@@ -48,11 +48,9 @@ public class TelemetryListenerImpl implements RequestDebug {
         uriCompactionFunction.apply(originalRequest.getUri()))
         .setParent(context)
         .setSpanKind(SpanKind.CLIENT)
+        .setAttribute("requestTimeout", originalRequest.getRequestTimeout())
+        .setAttribute("readTimeout", originalRequest.getReadTimeout())
         .startSpan();
-
-    TelemetryUtil.setAttributes(span, Map.of("requestTimeout", originalRequest.getRequestTimeout(),
-        "readTimeout", originalRequest.getReadTimeout()));
-
     LOGGER.trace("spanStarted : {}", span);
     RequestBuilder requestBuilder = new RequestBuilder(originalRequest);
 

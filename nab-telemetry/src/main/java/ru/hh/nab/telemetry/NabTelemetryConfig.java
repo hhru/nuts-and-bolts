@@ -8,7 +8,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
@@ -53,6 +53,7 @@ public class NabTelemetryConfig {
     } else {
       String url = fileSettings.getString("opentelemetry.collector.host");
       int port = fileSettings.getInteger("opentelemetry.collector.port");
+      int timeout = fileSettings.getInteger("opentelemetry.export.timeout", 5);
       //1.0 - отправлять все спаны. 0.0 - ничего
       Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
       if (Strings.isNullOrEmpty(url)) {
@@ -61,9 +62,9 @@ public class NabTelemetryConfig {
 
       Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
       ManagedChannel jaegerChannel = ManagedChannelBuilder.forAddress(url, port).usePlaintext().build();
-      JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
+      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter.builder()
           .setChannel(jaegerChannel)
-          .setTimeout(30, TimeUnit.SECONDS)
+          .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
 
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()

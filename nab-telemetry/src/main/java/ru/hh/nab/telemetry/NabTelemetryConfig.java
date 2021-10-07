@@ -14,7 +14,9 @@ import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import static java.util.Optional.ofNullable;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +53,8 @@ public class NabTelemetryConfig {
     } else {
       String url = fileSettings.getString("opentelemetry.collector.host");
       int port = fileSettings.getInteger("opentelemetry.collector.port");
+      //1.0 - отправлять все спаны. 0.0 - ничего
+      Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
       if (Strings.isNullOrEmpty(url)) {
         throw new IllegalStateException("'opentelemetry.collector.host' property can't be empty");
       }
@@ -62,11 +66,16 @@ public class NabTelemetryConfig {
           .setTimeout(30, TimeUnit.SECONDS)
           .build();
 
-      return SdkTracerProvider.builder()
-          .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
-          .setResource(Resource.getDefault().merge(serviceNameResource))
-          .setIdGenerator(idGenerator)
-          .build();
+      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
+              .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
+              .setResource(Resource.getDefault().merge(serviceNameResource))
+              .setIdGenerator(idGenerator)
+              ;
+      if (samplerRatio != null) {
+        tracerProviderBuilder.setSampler(Sampler.traceIdRatioBased(samplerRatio));
+      }
+
+      return tracerProviderBuilder.build();
     }
   }
 

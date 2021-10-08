@@ -70,8 +70,8 @@ public class NabTelemetryConfig {
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
               .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
               .setResource(Resource.getDefault().merge(serviceNameResource))
-              .setIdGenerator(idGenerator)
-              ;
+              .setIdGenerator(idGenerator);
+
       if (samplerRatio != null) {
         tracerProviderBuilder.setSampler(Sampler.traceIdRatioBased(samplerRatio));
       }

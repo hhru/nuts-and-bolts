@@ -8,13 +8,15 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import static java.util.Optional.ofNullable;
 import java.util.concurrent.TimeUnit;
@@ -51,22 +53,30 @@ public class NabTelemetryConfig {
     } else {
       String url = fileSettings.getString("opentelemetry.collector.host");
       int port = fileSettings.getInteger("opentelemetry.collector.port");
+      int timeout = fileSettings.getInteger("opentelemetry.export.timeout", 5);
+      //1.0 - отправлять все спаны. 0.0 - ничего
+      Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
       if (Strings.isNullOrEmpty(url)) {
         throw new IllegalStateException("'opentelemetry.collector.host' property can't be empty");
       }
 
       Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
       ManagedChannel jaegerChannel = ManagedChannelBuilder.forAddress(url, port).usePlaintext().build();
-      JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
+      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter.builder()
           .setChannel(jaegerChannel)
-          .setTimeout(30, TimeUnit.SECONDS)
+          .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
 
-      return SdkTracerProvider.builder()
-          .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
-          .setResource(Resource.getDefault().merge(serviceNameResource))
-          .setIdGenerator(idGenerator)
-          .build();
+      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
+              .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
+              .setResource(Resource.getDefault().merge(serviceNameResource))
+              .setIdGenerator(idGenerator);
+
+      if (samplerRatio != null) {
+        tracerProviderBuilder.setSampler(Sampler.traceIdRatioBased(samplerRatio));
+      }
+
+      return tracerProviderBuilder.build();
     }
   }
 

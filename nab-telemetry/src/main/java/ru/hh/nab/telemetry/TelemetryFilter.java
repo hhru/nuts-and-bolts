@@ -28,7 +28,7 @@ import ru.hh.nab.common.component.NabServletFilter;
 public class TelemetryFilter implements Filter, NabServletFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
   private static final String USER_AGENT = "user_agent";
-  private static final String UNKNOWN = "unknown";
+  private static final List<String> UNKNOWN = List.of("unknown");
   private final TelemetryPropagator telemetryPropagator;
   private final Tracer tracer;
   private final boolean enabled;
@@ -53,11 +53,10 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           uriCompactionFunction.apply(((HttpServletRequest) request).getRequestURI()))
           .setParent(telemetryContext)
           .setSpanKind(SpanKind.SERVER)
+          .setAttribute(USER_AGENT, requestHeadersMap.getOrDefault(USER_AGENT, UNKNOWN).get(0))
           .startSpan();
-      TelemetryUtil.setAttributes(span,
-          Map.of(USER_AGENT, requestHeadersMap.get(USER_AGENT) == null ? UNKNOWN : requestHeadersMap.get(USER_AGENT).get(0)));
-
       LOGGER.trace("span started:{}", span);
+
       try (Scope scope = span.makeCurrent()) {
         chain.doFilter(request, response);
       } finally {

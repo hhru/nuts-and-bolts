@@ -3,7 +3,7 @@
     <parent>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <groupId>ru.hh.nab</groupId>
-        <version>4.30.14-beta-config-split-SNAPSHOT</version>
+        <version>4.30.14-beta-config-split</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

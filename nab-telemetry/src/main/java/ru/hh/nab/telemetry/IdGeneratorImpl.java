@@ -3,7 +3,9 @@ package ru.hh.nab.telemetry;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.HttpClientContext;
@@ -25,7 +27,7 @@ public class IdGeneratorImpl implements IdGenerator {
 
   @Override
   public String generateTraceId() {
-    List<String> requestIdHolder = contextSupplier.get().getHeaders().get(HttpHeaderNames.X_REQUEST_ID);
+    List<String> requestIdHolder = getRequestIdHolder();
     if (requestIdHolder == null || requestIdHolder.isEmpty()) {
       LOGGER.debug("unavailable requestId");
       return IdGenerator.random().generateTraceId();
@@ -38,5 +40,12 @@ public class IdGeneratorImpl implements IdGenerator {
         return requestId;
       }
     }
+  }
+
+  @Nullable
+  private List<String> getRequestIdHolder() {
+    return Optional.ofNullable(contextSupplier.get())
+        .map(context -> context.getHeaders().get(HttpHeaderNames.X_REQUEST_ID))
+        .orElse(null);
   }
 }

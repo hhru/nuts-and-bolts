@@ -170,8 +170,8 @@
         <!--cache-->
         <dependency>
             <groupId>org.caffinitas.ohc</groupId>
-            <artifactId>ohc-core-j8</artifactId>
-            <version>0.6.1</version>
+            <artifactId>ohc-core</artifactId>
+            <version>0.7.1</version>
         </dependency>
 
         <!--Testing-->

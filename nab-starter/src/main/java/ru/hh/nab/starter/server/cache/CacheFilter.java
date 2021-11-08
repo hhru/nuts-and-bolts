@@ -154,13 +154,4 @@ public class CacheFilter implements Filter {
       httpServletResponse.flushBuffer();
     }
   }
-
-  @Override
-  public void destroy() {
-    try {
-      ohCache.close();
-    } catch (IOException e) {
-      LOGGER.warn("Unable to close http cache", e);
-    }
-  }
 }

@@ -1,6 +1,5 @@
 package ru.hh.nab.datasource;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Map;
 import java.util.Properties;
@@ -13,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
+import org.testcontainers.containers.PostgreSQLContainer;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
@@ -27,12 +27,12 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 public class DataSourceFactoryTest {
   private static final String TEST_DATA_SOURCE_TYPE = DataSourceType.MASTER;
 
-  private static EmbeddedPostgres testDb;
+  private static PostgreSQLContainer<?> testDbContainer;
   private static DataSourceFactory dataSourceFactory;
 
   @BeforeAll
   public static void setUpClass() {
-    testDb = EmbeddedPostgresDataSourceFactory.getEmbeddedPostgres();
+    testDbContainer = EmbeddedPostgresDataSourceFactory.getEmbeddedPostgres();
     dataSourceFactory = new DataSourceFactory(new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, mock(StatsDSender.class)));
   }
 
@@ -89,15 +89,17 @@ public class DataSourceFactoryTest {
     Properties properties = new Properties();
 
     final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
-            "port", testDb.getPort(),
-            "host", "localhost",
-            "user", EmbeddedPostgresDataSourceFactory.DEFAULT_USER
+        "port", testDbContainer.getFirstMappedPort(),
+        "host", testDbContainer.getHost(),
+        "database", EmbeddedPostgresDataSourceFactory.DEFAULT_DATABASE
     ));
-    properties.setProperty(getProperty(DataSourceSettings.JDBC_URL),
-      jdbcUrlParamsSubstitutor.replace(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL));
+    properties.setProperty(
+        getProperty(DataSourceSettings.JDBC_URL),
+        jdbcUrlParamsSubstitutor.replace(EmbeddedPostgresDataSourceFactory.DEFAULT_JDBC_URL)
+    );
 
     properties.setProperty(getProperty(DataSourceSettings.USER), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
-    properties.setProperty(getProperty(DataSourceSettings.PASSWORD), EmbeddedPostgresDataSourceFactory.DEFAULT_USER);
+    properties.setProperty(getProperty(DataSourceSettings.PASSWORD), EmbeddedPostgresDataSourceFactory.DEFAULT_PASSWORD);
     return properties;
   }
 

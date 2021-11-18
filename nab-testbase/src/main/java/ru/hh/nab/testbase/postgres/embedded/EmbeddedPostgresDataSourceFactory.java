@@ -20,6 +20,9 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_DATABASE = "postgres";
   public static final String DEFAULT_PASSWORD = "test";
 
+  private static final String DEFAULT_PG_IMAGE = "postgres:13.5";
+  private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
+
   public EmbeddedPostgresDataSourceFactory() {
     super(null);
   }
@@ -50,7 +53,9 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     private static final PostgreSQLContainer<?> INSTANCE = createEmbeddedPostgres();
 
     private static PostgreSQLContainer<?> createEmbeddedPostgres() {
-      PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:13.5")
+      String imageName = Optional.ofNullable(System.getenv(PG_IMAGE_ENV_VARIABLE)).orElse(DEFAULT_PG_IMAGE);
+
+      PostgreSQLContainer<?> container = new PostgreSQLContainer<>(imageName)
           .withUsername(DEFAULT_USER)
           .withPassword(DEFAULT_PASSWORD);
       container.setEnv(List.of("LC_ALL=en_US.UTF-8", "LC_COLLATE=ru_RU.UTF-8", "LC_CTYPE=ru_RU.UTF-8"));
@@ -63,7 +68,6 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
       container.start();
       return container;
     }
-
   }
 
   public static PostgreSQLContainer<?> getEmbeddedPostgres() {

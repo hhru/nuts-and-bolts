@@ -25,15 +25,9 @@
 
         <!-- Embedded PostgreSQL -->
         <dependency>
-            <groupId>com.opentable.components</groupId>
-            <artifactId>otj-pg-embedded</artifactId>
-            <version>0.13.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.postgresql</groupId>
-                    <artifactId>postgresql</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
         </dependency>
 
         <dependency>

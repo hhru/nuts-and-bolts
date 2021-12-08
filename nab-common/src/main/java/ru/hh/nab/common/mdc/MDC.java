@@ -1,11 +1,14 @@
 package ru.hh.nab.common.mdc;
 
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 public class MDC {
   public static final String REQUEST_ID_MDC_KEY = "rid";
   public static final String CONTROLLER_MDC_KEY = "controller";
+
+  private static final Random random = new Random();
 
   public static Optional<String> getRequestId() {
     return getKey(REQUEST_ID_MDC_KEY);
@@ -43,12 +46,13 @@ public class MDC {
     org.slf4j.MDC.remove(key);
   }
 
-  public static String generateRequestId(String suffix) {
-    return System.currentTimeMillis() + suffix;
+  public static String generateRequestId() {
+    return System.currentTimeMillis() + String.format("%016x", random.nextLong()) + String.format("%03x", random.nextInt(2 ^ 12 - 1));
   }
 
+
   /**
-   * @param rid use {@link MDC#generateRequestId(java.lang.String)} to generate valid request ids
+   * @param rid use {@link MDC#generateRequestId()} to generate valid request ids
    * @param operation a callable
    * @return callable result
    */

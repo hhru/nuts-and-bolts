@@ -13,6 +13,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max busyThreads = new Max(0);
   private final Max idleThreads = new Max(0);
   private final Max totalThreads = new Max(0);
+  private final Max maxThreads = new Max(0);
 
   public MonitoredQueuedThreadPool(int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue,
                                    String poolName, StatsDSender statsDSender) {
@@ -22,6 +23,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     String busyThreadsMetricName = "busyThreads";
     String idleThreadsMetricName = "idleThreads";
     String totalThreadsMetricName = "totalThreads";
+    String maxThreadsMetricName = "maxThreads";
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
 
     statsDSender.sendPeriodically(() -> {
@@ -29,6 +31,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       sender.sendMax(busyThreadsMetricName, busyThreads);
       sender.sendMax(idleThreadsMetricName, idleThreads);
       sender.sendMax(totalThreadsMetricName, totalThreads);
+      sender.sendMax(maxThreadsMetricName, this.maxThreads);
     });
   }
 
@@ -38,6 +41,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     busyThreads.save(getBusyThreads());
     idleThreads.save(getIdleThreads());
     totalThreads.save(getThreads());
+    maxThreads.save(getMaxThreads());
 
     super.execute(job);
   }

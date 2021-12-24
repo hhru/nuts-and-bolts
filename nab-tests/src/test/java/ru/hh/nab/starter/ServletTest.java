@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
 import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
@@ -52,7 +53,7 @@ public class ServletTest {
     }
 
     @Bean
-    TestServlet testServlet(Properties serviceProperties) {
+    TestServlet testServlet(@Service Properties serviceProperties) {
       return new TestServlet(serviceProperties.getProperty("customTestProperty"));
     }
   }

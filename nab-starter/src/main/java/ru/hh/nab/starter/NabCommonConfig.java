@@ -12,49 +12,50 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.metrics.JvmMetricsSender;
+import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 @Configuration
 public class NabCommonConfig {
-  public static final String SERVICE_NAME_PROPERTY = "serviceName";
-  public static final String NODE_NAME_PROPERTY = "nodeName";
-  public static final String DATACENTER_NAME_PROPERTY = "datacenter";
 
-  @Named(SERVICE_NAME_PROPERTY)
-  @Bean(SERVICE_NAME_PROPERTY)
+  @Named(SERVICE_NAME)
+  @Bean(SERVICE_NAME)
   String serviceName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(SERVICE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME_PROPERTY)));
+    return ofNullable(fileSettings.getString(SERVICE_NAME)).filter(Predicate.not(String::isEmpty))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
   }
 
-  @Named(DATACENTER_NAME_PROPERTY)
-  @Bean(DATACENTER_NAME_PROPERTY)
+  @Named(DATACENTER)
+  @Bean(DATACENTER)
   String datacenter(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(DATACENTER_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER_NAME_PROPERTY)));
+    return ofNullable(fileSettings.getString(DATACENTER)).filter(Predicate.not(String::isEmpty))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
   }
 
-  @Named(NODE_NAME_PROPERTY)
-  @Bean(NODE_NAME_PROPERTY)
+  @Named(NODE_NAME)
+  @Bean(NODE_NAME)
   String nodeName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(NODE_NAME_PROPERTY)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME_PROPERTY)));
+    return ofNullable(fileSettings.getString(NODE_NAME)).filter(Predicate.not(String::isEmpty))
+      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)));
   }
 
   @Bean
   MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings,
-    @Named(SERVICE_NAME_PROPERTY) String serviceNameValue,
+    @Named(SERVICE_NAME) String serviceNameValue,
     StatsDSender statsDSender
   ) throws Exception {
     return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
   }
 
   @Bean
-  FileSettings fileSettings(Properties serviceProperties) {
+  FileSettings fileSettings(@Service Properties serviceProperties) {
     return new FileSettings(serviceProperties);
   }
 
@@ -65,7 +66,7 @@ public class NabCommonConfig {
 
   @Bean
   StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient,
-                            @Named(SERVICE_NAME_PROPERTY) String serviceNameValue, FileSettings fileSettings) {
+                            @Named(SERVICE_NAME) String serviceNameValue, FileSettings fileSettings) {
     StatsDSender statsDSender = new StatsDSender(statsDClient, scheduledExecutorService);
     if (Boolean.TRUE.equals(fileSettings.getBoolean("metrics.jvm.enabled"))) {
       JvmMetricsSender.create(statsDSender, serviceNameValue);

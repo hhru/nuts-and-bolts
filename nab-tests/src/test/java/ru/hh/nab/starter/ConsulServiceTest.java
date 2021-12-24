@@ -36,6 +36,10 @@ import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
@@ -151,12 +155,13 @@ public class ConsulServiceTest {
 
     @Bean
     @Primary
+    @Service
     Properties serviceProperties() {
       Properties properties = new Properties();
       properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
-      properties.setProperty(NabCommonConfig.SERVICE_NAME_PROPERTY, "defaultTestService");
-      properties.setProperty(NabCommonConfig.DATACENTER_NAME_PROPERTY, "test");
-      properties.setProperty(NabCommonConfig.NODE_NAME_PROPERTY, TEST_NODE_NAME);
+      properties.setProperty(SERVICE_NAME, "defaultTestService");
+      properties.setProperty(DATACENTER, "test");
+      properties.setProperty(NODE_NAME, TEST_NODE_NAME);
       properties.setProperty(JettySettingsConstants.JETTY_PORT, "17");
       return properties;
     }

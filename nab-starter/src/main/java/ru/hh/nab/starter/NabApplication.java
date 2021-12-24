@@ -24,11 +24,11 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
-import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
@@ -111,7 +111,7 @@ public final class NabApplication {
     ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
     StatsDSender sender = baseContext.getBean(StatsDSender.class);
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
-    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME_PROPERTY, String.class))));
+    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
     return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer, extwebAppInitializer));
   }
 

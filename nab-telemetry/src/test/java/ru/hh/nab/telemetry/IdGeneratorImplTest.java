@@ -1,4 +1,4 @@
-package ru.hh.jclient.common;
+package ru.hh.nab.telemetry;
 
 import java.util.Collections;
 import java.util.List;
@@ -6,7 +6,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.Test;
-import ru.hh.nab.telemetry.IdGeneratorImpl;
+import ru.hh.jclient.common.HttpClientContext;
+import ru.hh.jclient.common.HttpHeaderNames;
 
 public class IdGeneratorImplTest {
 

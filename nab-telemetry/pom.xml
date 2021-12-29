@@ -12,9 +12,7 @@
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts telemetry</name>
-    <properties>
-        <io.grpc.version>1.38.0</io.grpc.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
@@ -23,11 +21,6 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jclient</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.jclient-common</groupId>
-            <artifactId>jclient-common</artifactId>
-            <version>${jclient.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>
@@ -43,19 +36,19 @@
             <artifactId>opentelemetry-exporter-otlp-trace</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-protobuf</artifactId>
-            <version>${io.grpc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty-shaded</artifactId>
-            <version>${io.grpc.version}</version>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.9.3</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-semconv</artifactId>
-            <version>${opentelemtry.version}-alpha</version>
+            <version>${opentelemetry.version}-alpha</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-jaeger-proto</artifactId>
+            <version>${opentelemetry.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -64,6 +57,23 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-testbase</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-common-testbase</artifactId>
+            <version>${jclient.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

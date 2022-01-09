@@ -3,9 +3,12 @@ package ru.hh.nab.common.properties;
 import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
+import static java.util.function.Function.identity;
+import java.util.stream.Collectors;
 import static org.springframework.util.Assert.hasLength;
 
 public class FileSettings {
@@ -83,6 +86,11 @@ public class FileSettings {
     Properties propertiesCopy = new Properties();
     propertiesCopy.putAll(this.properties);
     return propertiesCopy;
+  }
+
+  public Map<String, ? extends String> getAsMap() {
+    return properties.stringPropertyNames().stream()
+        .collect(Collectors.toUnmodifiableMap(identity(), properties::getProperty));
   }
 
   private <R> R parseValueOrDefault(String key, Function<String, R> function, R defaultValue) {

@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.33.1-beta-config-split-SNAPSHOT</version>
+    <version>4.33.1-beta-config-split</version>
 
     <name>nuts'n'bolts parent module</name>
 

@@ -31,8 +31,11 @@ public class IdGeneratorImpl implements IdGenerator {
     if (requestIdHolder == null || requestIdHolder.isEmpty()) {
       LOGGER.debug("unavailable requestId");
       return IdGenerator.random().generateTraceId();
+    } else if (requestIdHolder.get(0).length() < 32) {
+      LOGGER.debug("invalid requestId = {} is less than 32 character", requestIdHolder.get(0));
+      return IdGenerator.random().generateTraceId();
     } else {
-      String requestId = requestIdHolder.get(0);
+      String requestId = requestIdHolder.get(0).substring(0, 32);
       if (!TraceId.isValid(requestId)) {
         LOGGER.debug("invalid requestId for telemetry {}", requestId);
         return IdGenerator.random().generateTraceId();

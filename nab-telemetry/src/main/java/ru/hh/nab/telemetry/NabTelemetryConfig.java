@@ -20,10 +20,12 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import static java.util.Optional.ofNullable;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.jclient.UriCompactionUtil;
 
 @Configuration
@@ -46,7 +48,7 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, String serviceName, IdGenerator idGenerator) {
+  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, IdGenerator idGenerator) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();

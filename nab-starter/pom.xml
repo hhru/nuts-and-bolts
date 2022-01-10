@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.30.18-beta-config-split-SNAPSHOT</version>
+        <version>4.33.1-beta-config-split-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -25,12 +25,6 @@
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-metrics</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>1</version>
         </dependency>
 
         <!-- Jersey -->
@@ -170,8 +164,8 @@
         <!--cache-->
         <dependency>
             <groupId>org.caffinitas.ohc</groupId>
-            <artifactId>ohc-core-j8</artifactId>
-            <version>0.6.1</version>
+            <artifactId>ohc-core</artifactId>
+            <version>0.7.1</version>
         </dependency>
 
         <!--Testing-->

@@ -1,18 +1,12 @@
 package ru.hh.nab.testbase.postgres.embedded;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.UUID;
 import javax.sql.DataSource;
 import org.apache.commons.text.StringSubstitutor;
-import ru.hh.nab.common.files.FileSystemUtils;
+import org.testcontainers.containers.PostgreSQLContainer;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
@@ -21,8 +15,13 @@ import static ru.hh.nab.datasource.DataSourceSettings.USER;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
-  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${user}";
+  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${database}";
   public static final String DEFAULT_USER = "postgres";
+  public static final String DEFAULT_DATABASE = "postgres";
+  public static final String DEFAULT_PASSWORD = "test";
+
+  private static final String DEFAULT_PG_IMAGE = "postgres:13.5";
+  private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
 
   public EmbeddedPostgresDataSourceFactory() {
     super(null);
@@ -36,59 +35,42 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
     Properties properties = dataSourceSettings.getProperties();
 
+    PostgreSQLContainer<?> embeddedPostgres = getEmbeddedPostgres();
     final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
-            "port", getEmbeddedPostgres().getPort(),
-            "host", "localhost",
-            "user", DEFAULT_USER
+        "port", embeddedPostgres.getFirstMappedPort(),
+        "host", embeddedPostgres.getHost(),
+        "database", DEFAULT_DATABASE
     ));
     String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
     properties.setProperty(JDBC_URL, jdbcUrl);
     properties.setProperty(USER, DEFAULT_USER);
-    properties.setProperty(PASSWORD, "");
+    properties.setProperty(PASSWORD, DEFAULT_PASSWORD);
 
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
   }
 
   private static class EmbeddedPostgresSingleton {
-    private static final UUID INSTANCE_ID = UUID.randomUUID();
-    private static final EmbeddedPostgres INSTANCE = createEmbeddedPostgres();
+    private static final PostgreSQLContainer<?> INSTANCE = createEmbeddedPostgres();
 
-    private static final String PG_DIR = "embedded-pg";
-    private static final String PG_DIR_PROPERTY = "ot.epg.working-dir";
+    private static PostgreSQLContainer<?> createEmbeddedPostgres() {
+      String imageName = Optional.ofNullable(System.getenv(PG_IMAGE_ENV_VARIABLE)).orElse(DEFAULT_PG_IMAGE);
 
-    private static EmbeddedPostgres createEmbeddedPostgres() {
-      try {
-        File dataDirectory = null;
-        String embeddedPgDir = getEmbeddedPgDir();
-        if (embeddedPgDir != null) {
-          System.setProperty(PG_DIR_PROPERTY, embeddedPgDir);
-          dataDirectory = new File(embeddedPgDir, INSTANCE_ID.toString());
-        }
-        return EmbeddedPostgres.builder()
-          .setServerConfig("autovacuum", "off")
-          .setLocaleConfig("lc-collate", "C")
-          .setDataDirectory(dataDirectory)
-          .start();
-      } catch (IOException e) {
-        throw new IllegalStateException("Can't start embedded Postgres", e);
-      }
-    }
+      PostgreSQLContainer<?> container = new PostgreSQLContainer<>(imageName)
+          .withUsername(DEFAULT_USER)
+          .withPassword(DEFAULT_PASSWORD);
+      container.setEnv(List.of("LC_ALL=en_US.UTF-8", "LC_COLLATE=ru_RU.UTF-8", "LC_CTYPE=ru_RU.UTF-8"));
+      container.setCommand(
+          "postgres",
+          "-c", "fsync=off",
+          "-c", "autovacuum=off"
+      );
 
-    private static String getEmbeddedPgDir() throws IOException {
-      Path tmpfsPath = FileSystemUtils.getTmpfsPath();
-      if (tmpfsPath == null) {
-        return null;
-      }
-
-      Path pgPath = Paths.get(tmpfsPath.toString(), PG_DIR);
-      if (Files.notExists(pgPath)) {
-        Files.createDirectory(pgPath);
-      }
-      return pgPath.toString();
+      container.start();
+      return container;
     }
   }
 
-  public static EmbeddedPostgres getEmbeddedPostgres() {
+  public static PostgreSQLContainer<?> getEmbeddedPostgres() {
     return EmbeddedPostgresSingleton.INSTANCE;
   }
 }

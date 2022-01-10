@@ -15,14 +15,16 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBuilder;
 import ru.hh.nab.hibernate.interceptor.ControllerPassingInterceptor;
 import ru.hh.nab.hibernate.interceptor.RequestIdPassingInterceptor;
+import ru.hh.nab.hibernate.qualifier.Hibernate;
 
 public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 
   private final Collection<ServiceSupplier<?>> serviceSuppliers;
   private final Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers;
 
-  public NabSessionFactoryBean(DataSource dataSource, Properties hibernateProperties, BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
-      Collection<ServiceSupplier<?>> serviceSuppliers, Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers) {
+  public NabSessionFactoryBean(DataSource dataSource, @Hibernate Properties hibernateProperties,
+                               BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, Collection<ServiceSupplier<?>> serviceSuppliers,
+                               Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers) {
     this.serviceSuppliers = new ArrayList<>(serviceSuppliers);
     this.sessionFactoryCreationHandlers = new ArrayList<>(sessionFactoryCreationHandlers);
     MetadataSources metadataSources = new MetadataSources(bootstrapServiceRegistryBuilder.build());
@@ -76,7 +78,7 @@ public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
   @Override
   public SessionFactory getObject() {
     SessionFactory sessionFactory = super.getObject();
-    sessionFactoryCreationHandlers.forEach(handler ->  handler.accept(sessionFactory));
+    sessionFactoryCreationHandlers.forEach(handler -> handler.accept(sessionFactory));
     return sessionFactory;
   }
 

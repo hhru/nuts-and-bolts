@@ -21,7 +21,8 @@ import static ru.hh.nab.datasource.DataSourceSettings.USER;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
-  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${user}";
+  public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${database}";
+  public static final String DEFAULT_DATABASE = "postgres";
   public static final String DEFAULT_USER = "postgres";
 
   public EmbeddedPostgresDataSourceFactory() {
@@ -39,7 +40,7 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
             "port", getEmbeddedPostgres().getPort(),
             "host", "localhost",
-            "user", DEFAULT_USER
+            "database", DEFAULT_DATABASE
     ));
     String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
     properties.setProperty(JDBC_URL, jdbcUrl);

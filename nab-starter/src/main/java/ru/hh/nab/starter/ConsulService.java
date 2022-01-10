@@ -24,6 +24,8 @@ import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
@@ -73,8 +75,8 @@ public class ConsulService {
                        FileSettings fileSettings, AppMetadata appMetadata,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
-    this.hostName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.NODE_NAME_PROPERTY);
-    this.serviceName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY);
+    this.hostName = fileSettings.getNotEmptyOrThrow(NODE_NAME);
+    this.serviceName = fileSettings.getNotEmptyOrThrow(SERVICE_NAME);
     this.serviceId = serviceName + '-' + this.hostName + '-' + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
@@ -110,7 +112,7 @@ public class ConsulService {
 
       this.serviceTemplate = ImmutableRegistration.builder()
         .id(serviceId)
-        .name(fileSettings.getString(NabCommonConfig.SERVICE_NAME_PROPERTY))
+        .name(fileSettings.getString(SERVICE_NAME))
         .port(applicationPort)
         .address(address)
         .check(regCheck)

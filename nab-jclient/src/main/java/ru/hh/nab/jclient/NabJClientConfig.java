@@ -7,6 +7,7 @@ import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import javax.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -16,13 +17,14 @@ import ru.hh.jclient.common.HttpClientFactoryBuilder;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 @Configuration
 public class NabJClientConfig {
   @Bean
-  HttpClientFactoryBuilder httpClientFactoryBuilder(String serviceName, HttpClientContextThreadLocalSupplier contextSupplier,
+  HttpClientFactoryBuilder httpClientFactoryBuilder(@Named(SERVICE_NAME) String serviceName, HttpClientContextThreadLocalSupplier contextSupplier,
                                                     ScheduledExecutorService scheduledExecutorService,
                                                     List<HttpClientEventListener> eventListeners,
                                                     FileSettings fileSettings

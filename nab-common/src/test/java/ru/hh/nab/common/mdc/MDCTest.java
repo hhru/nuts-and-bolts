@@ -3,7 +3,6 @@ package ru.hh.nab.common.mdc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 public class MDCTest {
@@ -45,7 +44,7 @@ public class MDCTest {
 
   @Test
   public void testGenerateRequestId() {
-    assertTrue(MDC.generateRequestId("_test").endsWith("_test"));
+    assertEquals(32, MDC.generateRequestId().length());
   }
 
   @Test

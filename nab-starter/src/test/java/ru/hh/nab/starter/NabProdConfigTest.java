@@ -25,15 +25,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import static ru.hh.nab.starter.ConsulService.CONSUL_TAGS_PROPERTY;
-import static ru.hh.nab.starter.NabCommonConfig.DATACENTER_NAME_PROPERTY;
-import static ru.hh.nab.starter.NabCommonConfig.NODE_NAME_PROPERTY;
-import static ru.hh.nab.starter.NabCommonConfig.SERVICE_NAME_PROPERTY;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 public class NabProdConfigTest {
@@ -69,9 +69,9 @@ public class NabProdConfigTest {
 
     assertNotNull(context.getBean(FileSettings.class));
 
-    assertEquals(TEST_SERVICE_NAME, context.getBean(SERVICE_NAME_PROPERTY, String.class));
-    assertEquals(TEST_NODE_NAME, context.getBean(NODE_NAME_PROPERTY, String.class));
-    assertEquals(TEST_DATACENTER_NAME, context.getBean(DATACENTER_NAME_PROPERTY, String.class));
+    assertEquals(TEST_SERVICE_NAME, context.getBean(SERVICE_NAME, String.class));
+    assertEquals(TEST_NODE_NAME, context.getBean(NODE_NAME, String.class));
+    assertEquals(TEST_DATACENTER_NAME, context.getBean(DATACENTER, String.class));
 
     assertNotNull(context.getBean(StatsDClient.class));
     assertNotNull(context.getBean(StatsDSender.class));
@@ -85,9 +85,9 @@ public class NabProdConfigTest {
   private static Path createTestPropertiesFile(Path dir) throws IOException {
     Path propertiesFile = Files.createFile(Paths.get(dir.toString(), NabProdConfig.PROPERTIES_FILE_NAME));
     List<String> lines = new ArrayList<>();
-    lines.add(String.format("%s=%s", SERVICE_NAME_PROPERTY, TEST_SERVICE_NAME));
-    lines.add(String.format("%s=%s", NODE_NAME_PROPERTY, TEST_NODE_NAME));
-    lines.add(String.format("%s=%s", DATACENTER_NAME_PROPERTY, TEST_DATACENTER_NAME));
+    lines.add(String.format("%s=%s", SERVICE_NAME, TEST_SERVICE_NAME));
+    lines.add(String.format("%s=%s", NODE_NAME, TEST_NODE_NAME));
+    lines.add(String.format("%s=%s", DATACENTER, TEST_DATACENTER_NAME));
     lines.add(String.format("%s=%s", JettySettingsConstants.JETTY_PORT, "9999"));
     lines.add(String.format("%s=%s", NabProdConfig.CONSUL_HOST_PROPERTY, "127.0.0.1"));
     lines.add(String.format("%s=%s", NabProdConfig.CONSUL_PORT_PROPERTY, TEST_CONSUL_PORT));

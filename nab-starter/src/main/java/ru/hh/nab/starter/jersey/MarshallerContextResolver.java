@@ -10,10 +10,10 @@ import javax.xml.bind.Marshaller;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import ru.hh.nab.common.cache.PartiallyOverflowingCache;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
-import ru.hh.nab.starter.NabCommonConfig;
 
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
   private final int maxCollectionSize;
@@ -22,7 +22,7 @@ public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
   @Inject
   public MarshallerContextResolver(FileSettings fileSettings, StatsDSender statsDSender) {
-    String serviceName = fileSettings.getNotEmptyOrThrow(NabCommonConfig.SERVICE_NAME_PROPERTY);
+    String serviceName = fileSettings.getNotEmptyOrThrow(SERVICE_NAME);
     maxCollectionSize = fileSettings.getInteger("jaxbContexts.max.collection.size", defaultMaxCollectionSize);
     jaxbContexts = new PartiallyOverflowingCache<>(maxCollectionSize);
 

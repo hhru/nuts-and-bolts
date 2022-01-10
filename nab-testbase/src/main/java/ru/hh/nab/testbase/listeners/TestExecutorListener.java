@@ -29,7 +29,7 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.starter.NabCommonConfig;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.testbase.listeners.dto.ResultStatus;
 import ru.hh.nab.testbase.listeners.dto.StandType;
 import ru.hh.nab.testbase.listeners.dto.TestExecResult;
@@ -63,7 +63,7 @@ public class TestExecutorListener implements TestExecutionListener {
   public void testPlanExecutionFinished(TestPlan testPlan) {
     StandType standType = getStandType();
     Connection connection = getNewConnection();
-    String serviceName = (String) loadProperties().get(NabCommonConfig.SERVICE_NAME_PROPERTY);
+    String serviceName = (String) loadProperties().get(SERVICE_NAME);
     if (connection == null || standType == null || serviceName == null || serviceName.length() == 0) {
       return;
     }

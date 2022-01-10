@@ -18,6 +18,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.hibernate.qualifier.Hibernate;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
@@ -44,7 +45,7 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, Properties hibernateProperties,
+  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, @Hibernate Properties hibernateProperties,
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
     Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
     Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {

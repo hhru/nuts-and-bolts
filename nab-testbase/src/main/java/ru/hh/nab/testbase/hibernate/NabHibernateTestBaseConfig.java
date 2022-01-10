@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.hibernate.qualifier.Hibernate;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 @Configuration
@@ -15,6 +16,7 @@ public class NabHibernateTestBaseConfig {
   }
 
   @Bean
+  @Hibernate
   PropertiesFactoryBean hibernateProperties() {
     PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
     propertiesFactoryBean.setLocation(new ClassPathResource("hibernate-test.properties"));

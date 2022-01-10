@@ -21,6 +21,7 @@ import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
+import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
@@ -38,6 +39,7 @@ public class NabProdConfig {
   static final String PROPERTIES_FILE_NAME = "service.properties";
 
   @Bean
+  @Service
   Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }

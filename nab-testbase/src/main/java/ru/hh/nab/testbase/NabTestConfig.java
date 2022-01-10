@@ -15,6 +15,7 @@ import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.NabCommonConfig;
+import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 
@@ -25,6 +26,7 @@ public class NabTestConfig {
   static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";
 
   @Bean
+  @Service
   Properties serviceProperties() throws IOException {
     return createProperties(TEST_PROPERTIES_FILE_NAME);
   }

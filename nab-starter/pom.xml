@@ -27,12 +27,6 @@
             <artifactId>nab-metrics</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>1</version>
-        </dependency>
-
         <!-- Jersey -->
         <dependency>
             <groupId>javax.servlet</groupId>

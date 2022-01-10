@@ -78,7 +78,7 @@ public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
   @Override
   public SessionFactory getObject() {
     SessionFactory sessionFactory = super.getObject();
-    sessionFactoryCreationHandlers.forEach(handler ->  handler.accept(sessionFactory));
+    sessionFactoryCreationHandlers.forEach(handler -> handler.accept(sessionFactory));
     return sessionFactory;
   }
 

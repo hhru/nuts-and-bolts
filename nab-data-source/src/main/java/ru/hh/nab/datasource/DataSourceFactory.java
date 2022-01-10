@@ -22,9 +22,9 @@ import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 public class DataSourceFactory {
   private static final int HIKARI_MIN_VALIDATION_TIMEOUT_MS = 250;
 
-  private final MetricsTrackerFactoryProvider metricsTrackerFactoryProvider;
+  private final MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider;
 
-  public DataSourceFactory(MetricsTrackerFactoryProvider metricsTrackerFactoryProvider) {
+  public DataSourceFactory(MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider) {
     this.metricsTrackerFactoryProvider = metricsTrackerFactoryProvider;
   }
 

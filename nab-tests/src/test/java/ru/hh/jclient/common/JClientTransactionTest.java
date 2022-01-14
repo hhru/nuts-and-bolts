@@ -3,7 +3,6 @@ package ru.hh.jclient.common;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.LongAdder;
@@ -63,7 +62,7 @@ public class JClientTransactionTest {
       });
 
     httpClientFactory = new HttpClientFactory(
-      httpClient, Set.of(), new SingletonStorage<>(() -> HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners
+      httpClient, new SingletonStorage<>(HTTP_CLIENT_CONTEXT), Runnable::run, new DefaultRequestStrategy(), eventListeners
     );
   }
 

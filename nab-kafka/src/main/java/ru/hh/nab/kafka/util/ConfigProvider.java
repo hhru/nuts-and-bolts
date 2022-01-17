@@ -1,11 +1,12 @@
 package ru.hh.nab.kafka.util;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,11 +54,13 @@ public class ConfigProvider {
   }
 
   public Map<String, Object> getConsumerConfig(String topicName) {
-    Map<String, Object> consumeConfig = new HashMap<>();
-    consumeConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);
-    consumeConfig.putAll(getAllConsumerConfigs(topicName));
-    removeNabProperties(consumeConfig);
-    return consumeConfig;
+    Map<String, Object> consumerConfig = new HashMap<>();
+    consumerConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);
+    consumerConfig.putAll(getAllConsumerConfigs(topicName));
+    removeNabProperties(consumerConfig);
+
+    checkConsumerNames(consumerConfig);
+    return consumerConfig;
   }
 
   public FileSettings getNabConsumerSettings(String topicName) {
@@ -73,7 +76,7 @@ public class ConfigProvider {
     removeNabProperties(nonNabProperties);
     FileSettings nonNabConsumerSettings = new FileSettings(nonNabProperties);
 
-    checkConfig(nabConsumerSettings, nonNabConsumerSettings);
+    checkConsumerConfig(nabConsumerSettings, nonNabConsumerSettings);
     return nabConsumerSettings;
   }
 
@@ -85,7 +88,7 @@ public class ConfigProvider {
     return consumerConfig;
   }
 
-  private void checkConfig(FileSettings nabConsumerSettings, FileSettings nonNabConsumerSettings) {
+  private void checkConsumerConfig(FileSettings nabConsumerSettings, FileSettings nonNabConsumerSettings) {
     long maxPollMs = nonNabConsumerSettings.getLong(MAX_POLL_INTERVAL_MS_CONFIG, 300000L);
     long backoffMaxInterval = nabConsumerSettings.getLong(BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL);
     if (backoffMaxInterval > maxPollMs) {
@@ -93,22 +96,27 @@ public class ConfigProvider {
           String.format("'%s' should not be larger then '%s'", BACKOFF_MAX_INTERVAL_NAME, MAX_POLL_INTERVAL_MS_CONFIG)
       );
     }
-    checkNames(nonNabConsumerSettings);
   }
 
-  private static void checkNames(FileSettings nonNabConsumerSettings) {
-    Set<String> supportedNames = ConsumerConfig.configNames();
-    List<String> invalidNames = nonNabConsumerSettings.getProperties().keySet()
+  private static void checkNames(Map<String, ?> nonNabSettings, Set<String> supportedNames, String type) {
+    SortedSet<String> invalidNames = nonNabSettings.keySet()
         .stream()
         .filter(key -> !supportedNames.contains(key))
-        .map(String::valueOf)
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(TreeSet::new));
 
     if (!invalidNames.isEmpty()) {
       throw new IllegalArgumentException(
-          String.format("Unsupported kafka consumer properties found: '%s'", String.join(", ", invalidNames))
+          String.format("Unsupported kafka %s properties found: '%s'", type, String.join("', '", invalidNames))
       );
     }
+  }
+
+  private static void checkConsumerNames(Map<String, ?> nonNabConsumerSettings) {
+    checkNames(nonNabConsumerSettings, ConsumerConfig.configNames(), "consumer");
+  }
+
+  private static void checkProducerNames(Map<String, ?> nonNabProducerSettings) {
+    checkNames(nonNabProducerSettings, ProducerConfig.configNames(), "producer");
   }
 
   private Map<String, Object> getDefaultConsumerProperties() {
@@ -128,10 +136,8 @@ public class ConfigProvider {
 
   private Optional<String> findAnyMatchedKey(String pattern) {
     Pattern compiledPattern = Pattern.compile(pattern);
-    return fileSettings.getProperties().keySet()
+    return fileSettings.getProperties().stringPropertyNames()
         .stream()
-        .filter(String.class::isInstance)
-        .map(key -> (String) key)
         .filter(key -> compiledPattern.matcher(key).matches())
         .findAny();
   }
@@ -145,6 +151,8 @@ public class ConfigProvider {
     producerConfig.put(ProducerConfig.CLIENT_ID_CONFIG, serviceName);
     producerConfig.putAll(getCommonProperties());
     producerConfig.putAll(getDefaultProducerProperties(producerName));
+
+    checkProducerNames(producerConfig);
     return producerConfig;
   }
 
@@ -156,9 +164,8 @@ public class ConfigProvider {
     return getConfigAsMap(String.format(COMMON_CONFIG_TEMPLATE, kafkaClusterName));
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> getConfigAsMap(String prefix) {
-    return new HashMap<>((Map) fileSettings.getSubProperties(prefix));
+    return new HashMap<>(fileSettings.getSubSettings(prefix).getAsMap());
   }
 
   private void removeNabProperties(Map<?, ?> config) {

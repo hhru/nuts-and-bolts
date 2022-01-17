@@ -1,11 +1,8 @@
 package ru.hh.nab.telemetry;
 
 import com.google.common.base.Strings;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
@@ -18,15 +15,16 @@ import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
-import static java.util.Optional.ofNullable;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.jclient.UriCompactionUtil;
 
 @Configuration
 public class NabTelemetryConfig {
@@ -48,24 +46,29 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, IdGenerator idGenerator) {
+  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, IdGenerator idGenerator,
+                                             @Named(SERVICE_NAME) String serviceName, @Named(NODE_NAME) String nodeName,
+                                             @Named(DATACENTER) String datacenter, Properties projectProperties) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();
     } else {
-      String url = fileSettings.getString("opentelemetry.collector.host");
-      int port = fileSettings.getInteger("opentelemetry.collector.port");
-      int timeout = fileSettings.getInteger("opentelemetry.export.timeout", 5);
+      String url = fileSettings.getString("opentelemetry.collector.url");
+      int timeout = fileSettings.getInteger("opentelemetry.export.timeout", 2);
       //1.0 - отправлять все спаны. 0.0 - ничего
       Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
       if (Strings.isNullOrEmpty(url)) {
-        throw new IllegalStateException("'opentelemetry.collector.host' property can't be empty");
+        throw new IllegalStateException("'opentelemetry.collector.url' property can't be empty");
       }
 
-      Resource serviceNameResource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName));
-      ManagedChannel jaegerChannel = ManagedChannelBuilder.forAddress(url, port).usePlaintext().build();
+      Resource serviceNameResource = Resource.create(Attributes.builder()
+          .put(ResourceAttributes.SERVICE_NAME, serviceName)
+          .put(ResourceAttributes.SERVICE_VERSION, projectProperties.getProperty("project.version", "unknown"))
+          .put(ResourceAttributes.HOST_NAME, nodeName)
+          .put(ResourceAttributes.CLOUD_REGION, datacenter)
+          .build());
       OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter.builder()
-          .setChannel(jaegerChannel)
+          .setEndpoint(url)
           .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
 
@@ -75,7 +78,7 @@ public class NabTelemetryConfig {
               .setIdGenerator(idGenerator);
 
       if (samplerRatio != null) {
-        tracerProviderBuilder.setSampler(Sampler.traceIdRatioBased(samplerRatio));
+        tracerProviderBuilder.setSampler(Sampler.parentBased(Sampler.traceIdRatioBased(samplerRatio)));
       }
 
       return tracerProviderBuilder.build();
@@ -89,28 +92,21 @@ public class NabTelemetryConfig {
 
   @Bean
   TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
-    Tracer tracer = openTelemetry.getTracer("nab");
-    boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
-    int minCompactionLength = ofNullable(fileSettings.getInteger("telemetry.min.compaction.length")).orElse(1);
-    int minHashLength = ofNullable(fileSettings.getInteger("telemetry.min.hash.length")).orElse(16);
-
-    return new TelemetryFilter(tracer, telemetryPropagator, telemetryEnabled,
-        uri -> UriCompactionUtil.compactUri(uri, minCompactionLength, minHashLength));
+    return new TelemetryFilter(
+        openTelemetry.getTracer("nab"),
+        telemetryPropagator,
+        fileSettings.getBoolean("opentelemetry.enabled", false));
   }
 
   @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, HttpClientContextThreadLocalSupplier contextSupplier,
-                                                      FileSettings fileSettings) {
-    int minCompactionLength = ofNullable(fileSettings.getInteger("telemetry.min.compaction.length")).orElse(1);
-    int minHashLength = ofNullable(fileSettings.getInteger("telemetry.min.hash.length")).orElse(16);
-
+  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator,
+                                                      HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
     TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
-        openTelemetry.getPropagators().getTextMapPropagator(), uri -> UriCompactionUtil.compactUri(uri, minCompactionLength, minHashLength));
+        telemetryPropagator);
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
+      contextSupplier.register(new ContextStorage());
       contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
     }
     return telemetryRequestDebug;
   }
-
-
 }

@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.33.2-beta-config-split-SNAPSHOT</version>
+    <version>4.33.4-beta-config-split-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -42,10 +42,10 @@
         <jackson.version>2.12.0</jackson.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <jclient.version>3.5.1</jclient.version>
+        <jclient.version>3.9.2</jclient.version>
         <java.version>11</java.version>
-        <consul.client.version>1.1.4</consul.client.version>
-        <opentelemtry.version>1.5.0</opentelemtry.version>
+        <consul.client.version>1.2.11</consul.client.version>
+        <opentelemetry.version>1.10.0</opentelemetry.version>
         <testcontainers.version>1.15.2</testcontainers.version>
     </properties>
 
@@ -242,7 +242,7 @@
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
-                <version>${opentelemtry.version}</version>
+                <version>${opentelemetry.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

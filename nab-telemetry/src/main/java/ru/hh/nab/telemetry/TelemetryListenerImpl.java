@@ -33,6 +33,20 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   @Override
   public void onRequest(Request request, Optional<?> requestBodyEntity, RequestContext context) {
+    processRequest(request, context);
+  }
+
+  @Override
+  public void onRetry(Request request, Optional<?> requestBodyEntity, int retryCount, RequestContext context) {
+    processRequest(request, context);
+  }
+
+  private void processRequest(Request request, RequestContext context) {
+    if (span != null) {
+      LOGGER.error("span already exist for {}", request.getUri());
+      return;
+    }
+
     String host = context.upstreamName == null ? getNetloc(request.getUri()) : context.upstreamName;
     SpanBuilder builder = tracer.spanBuilder(request.getMethod() + " " + host)
         .setParent(Context.current())
@@ -46,7 +60,7 @@ public class TelemetryListenerImpl implements RequestDebug {
     }
 
     span = builder.startSpan();
-    LOGGER.trace("spanStarted : {}", span);
+    LOGGER.trace("span started : {}", span);
 
     if (request.isExternalRequest()) {
       return;
@@ -59,15 +73,27 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   @Override
   public ru.hh.jclient.common.Response onResponse(ru.hh.jclient.common.Response response) {
+    if (span == null) {
+      LOGGER.error("span not exist for {}", response.getUri());
+      return response;
+    }
+
     span.setStatus(TelemetryPropagator.getStatus(response.getStatusCode()));
     span.setAttribute(HTTP_STATUS_CODE, response.getStatusCode());
     span.end();
+
     LOGGER.trace("span closed: {}", span);
+
+    span = null;
     return response;
   }
 
   @Override
   public void onClientProblem(Throwable t) {
+    if (span == null) {
+      return;
+    }
+
     span.setStatus(StatusCode.ERROR, t.getMessage());
     span.end();
     LOGGER.trace("span closed: {}", span);
@@ -75,11 +101,6 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   public static String getNetloc(Uri uri) {
     return uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
-  }
-
-  @Override
-  public void onRetry(Request request, Optional<?> requestBodyEntity, int retryCount, RequestContext context) {
-
   }
 
 

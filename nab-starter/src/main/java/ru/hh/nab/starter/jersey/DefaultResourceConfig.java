@@ -4,6 +4,8 @@ import java.util.Collections;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import ru.hh.nab.starter.exceptions.AnyExceptionMapper;
+import ru.hh.nab.starter.exceptions.CompletionExceptionMapper;
+import ru.hh.nab.starter.exceptions.ExecutionExceptionMapper;
 import ru.hh.nab.starter.exceptions.IllegalArgumentExceptionMapper;
 import ru.hh.nab.starter.exceptions.IllegalStateExceptionMapper;
 import ru.hh.nab.starter.exceptions.NotFoundExceptionMapper;
@@ -20,6 +22,8 @@ public final class DefaultResourceConfig extends ResourceConfig {
     register(MarshallerContextResolver.class);
 
     register(AnyExceptionMapper.class);
+    register(CompletionExceptionMapper.class);
+    register(ExecutionExceptionMapper.class);
     register(IllegalArgumentExceptionMapper.class);
     register(IllegalStateExceptionMapper.class);
     register(NotFoundExceptionMapper.class);

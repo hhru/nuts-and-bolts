@@ -12,7 +12,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Properties;
@@ -54,7 +54,11 @@ public class NabTelemetryConfig {
       return SdkTracerProvider.builder().build();
     } else {
       String url = fileSettings.getString("opentelemetry.collector.url");
-      int timeout = fileSettings.getInteger("opentelemetry.export.timeout", 2);
+      int timeout = fileSettings.getInteger("opentelemetry.export.timeoutMs", 10_000);
+      int batchTimeout = fileSettings.getInteger("opentelemetry.export.batchTimeoutMs", 30_000);
+      int batchDelay = fileSettings.getInteger("opentelemetry.export.batchDelayMs", 5000);
+      int batchMaxSize = fileSettings.getInteger("opentelemetry.export.batchMaxSize", 512);
+      int queueSize = fileSettings.getInteger("opentelemetry.export.queueSize", 2048);
       //1.0 - отправлять все спаны. 0.0 - ничего
       Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
       if (Strings.isNullOrEmpty(url)) {
@@ -71,9 +75,15 @@ public class NabTelemetryConfig {
           .setEndpoint(url)
           .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
+      BatchSpanProcessor spanProcessor = BatchSpanProcessor.builder(jaegerExporter)
+          .setExporterTimeout(batchTimeout, TimeUnit.MILLISECONDS)
+          .setScheduleDelay(batchDelay, TimeUnit.MILLISECONDS)
+          .setMaxExportBatchSize(batchMaxSize)
+          .setMaxQueueSize(queueSize)
+          .build();
 
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
-              .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
+              .addSpanProcessor(spanProcessor)
               .setResource(Resource.getDefault().merge(serviceNameResource))
               .setIdGenerator(idGenerator);
 

@@ -4,6 +4,7 @@ import javax.annotation.Priority;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
+import static ru.hh.jclient.common.HttpStatuses.INTERNAL_SERVER_ERROR;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider
@@ -15,7 +16,7 @@ public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplica
 
   @Override
   protected void logException(WebApplicationException wae, LoggingLevel loggingLevel) {
-    if (wae.getCause() == null) {
+    if (wae.getCause() == null && wae.getResponse().getStatus() != INTERNAL_SERVER_ERROR) {
       return;
     }
     if (wae.getResponse().getStatus() < 500) {

@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.util;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
@@ -17,18 +18,19 @@ public class ConfigProviderTest {
 
   private static final String SERVICE_NAME = "testService";
   private static final String KAFKA_CLUSTER_NAME = "kafka";
+  private static final String CONSUMER_TEST_KEY = ConsumerConfig.CLIENT_RACK_CONFIG;
+  private static final String PRODUCER_TEST_KEY = ProducerConfig.TRANSACTIONAL_ID_CONFIG;
 
   @Test
   public void shouldReturnCommonSettings() {
-    String testKey = "key";
     String testValue = "value";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateSettingKey(COMMON_CONFIG_TEMPLATE, testKey), testValue
+        generateSettingKey(COMMON_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), testValue
     ));
 
     var result = createConfigProvider(fileSettings).getConsumerConfig("ignored");
 
-    assertEquals(testValue, result.get(testKey));
+    assertEquals(testValue, result.get(CONSUMER_TEST_KEY));
   }
 
   @Test
@@ -40,40 +42,38 @@ public class ConfigProviderTest {
 
   @Test
   public void shouldReturnConsumerDefaultSetting() {
-    String testKey = "key";
     String testValue = "value";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, testKey), testValue
+        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), testValue
     ));
 
     var result = createConfigProvider(fileSettings).getConsumerConfig("ignored");
 
-    assertEquals(testValue, result.get(testKey));
+    assertEquals(testValue, result.get(CONSUMER_TEST_KEY));
   }
 
   @Test
   public void shouldReturnOverriddenConsumerSettingForSpecificTopic() {
-    String testKey = "key";
     String defaultValue = "value";
     String overriddenValue = "newValue";
     String topicName = "topic";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, testKey), defaultValue,
-        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, topicName, testKey), overriddenValue
+        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), defaultValue,
+        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, topicName, CONSUMER_TEST_KEY), overriddenValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(fileSettings);
 
     var result = configProvider.getConsumerConfig(topicName);
-    assertEquals(overriddenValue, result.get(testKey));
+    assertEquals(overriddenValue, result.get(CONSUMER_TEST_KEY));
 
     result = configProvider.getConsumerConfig("ignored");
-    assertEquals(defaultValue, result.get(testKey));
+    assertEquals(defaultValue, result.get(CONSUMER_TEST_KEY));
   }
 
   @Test
   public void shouldFailOnUnusedOverriddenConsumerSettingForSpecificTopic() {
-    String testKey = "key";
+    String testKey = ConsumerConfig.CLIENT_RACK_CONFIG;
     String defaultValue = "value";
     String overriddenValue = "newValue";
     String invalidOverriddenValue = "invalidValue";
@@ -87,7 +87,7 @@ public class ConfigProviderTest {
     ConfigProvider configProvider = createConfigProvider(fileSettings);
 
     var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig(topicName));
-    assertEquals("Unused property found: 'kafka.consumer.topic.topic.key'", exception.getMessage());
+    assertEquals("Unused property found: 'kafka.consumer.topic.topic.client.rack'", exception.getMessage());
   }
 
   @Test
@@ -102,29 +102,28 @@ public class ConfigProviderTest {
 
     ConfigProvider configProvider = createConfigProvider(fileSettings);
 
-    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getNabConsumerSettings(topicName));
-    assertEquals("Unsupported kafka consumer properties found: 'key1, key2, key3'", exception.getMessage());
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig(topicName));
+    assertEquals("Unsupported kafka consumer properties found: 'key1', 'key2', 'key3'", exception.getMessage());
   }
 
   @Test
   public void shouldReturnDefaultProducerSetting() {
-    String testKey = "key";
     String testValue = "value";
     FileSettings fileSettings = createFileSettings(Map.of(
-        generateProducerSettingKey(testKey), testValue
+        generateProducerSettingKey(PRODUCER_TEST_KEY), testValue
     ));
 
     var result = createConfigProvider(fileSettings).getDefaultProducerConfig();
 
-    assertEquals(testValue, result.get(testKey));
+    assertEquals(testValue, result.get(PRODUCER_TEST_KEY));
   }
 
   @Test
   public void shouldReturnDifferentProducerSettings() {
-    String testKey1 = "key1";
-    String testValue1 = "value1";
-    String testKey2 = "key2";
-    String testValue2 = "value2";
+    String testKey1 = ProducerConfig.BATCH_SIZE_CONFIG;
+    String testValue1 = "444";
+    String testKey2 = ProducerConfig.MAX_REQUEST_SIZE_CONFIG;
+    String testValue2 = "555";
     FileSettings fileSettings = createFileSettings(Map.of(
         generateProducerSettingKey("1", testKey1), testValue1,
         generateProducerSettingKey("2", testKey2), testValue2
@@ -135,6 +134,21 @@ public class ConfigProviderTest {
 
     result = createConfigProvider(fileSettings).getProducerConfig("2");
     assertEquals(testValue2, result.get(testKey2));
+  }
+
+  @Test
+  public void shouldFailOnUnsupportedProducerSetting() {
+    String defaultValue = "value";
+    FileSettings fileSettings = createFileSettings(Map.of(
+        generateProducerSettingKey("key1"), defaultValue,
+        generateProducerSettingKey("key2"), defaultValue,
+        generateProducerSettingKey("key3"), defaultValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(fileSettings);
+
+    var exception = assertThrows(IllegalArgumentException.class, configProvider::getDefaultProducerConfig);
+    assertEquals("Unsupported kafka producer properties found: 'key1', 'key2', 'key3'", exception.getMessage());
   }
 
   private static String generateSettingKey(String template, String testKey) {

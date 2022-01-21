@@ -131,7 +131,6 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
     containerProperties.setGroupId(consumerGroupId.toString());
-    containerProperties.setAckOnError(false);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));

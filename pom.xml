@@ -29,6 +29,7 @@
         <module>nab-kafka</module>
         <module>nab-websocket</module>
         <module>nab-testbase-old</module>
+        <module>nab-contract-tests</module>
     </modules>
 
     <properties>

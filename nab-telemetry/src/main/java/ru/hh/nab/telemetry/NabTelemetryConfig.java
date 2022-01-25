@@ -1,6 +1,5 @@
 package ru.hh.nab.telemetry;
 
-import com.google.common.base.Strings;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -61,7 +60,7 @@ public class NabTelemetryConfig {
       int queueSize = fileSettings.getInteger("opentelemetry.export.queueSize", 2048);
       //1.0 - отправлять все спаны. 0.0 - ничего
       Double samplerRatio = fileSettings.getDouble("opentelemetry.sampler.ratio");
-      if (Strings.isNullOrEmpty(url)) {
+      if (url == null || url.isBlank()) {
         throw new IllegalStateException("'opentelemetry.collector.url' property can't be empty");
       }
 

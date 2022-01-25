@@ -42,12 +42,11 @@
         <jackson.version>2.13.1</jackson.version>
         <slf4j.version>1.7.33</slf4j.version>
         <logback.version>1.2.10</logback.version>
-        <jclient.version>3.9.4</jclient.version>
+        <jclient.version>3.9.6</jclient.version>
         <java.version>11</java.version>
         <consul.client.version>1.2.11</consul.client.version>
         <opentelemetry.version>1.10.0</opentelemetry.version>
         <testcontainers.version>1.16.2</testcontainers.version>
-        <guava.version>31.0.1-jre</guava.version>
         <mockito.version>4.2.0</mockito.version>
         <apache.common.version>3.12.0</apache.common.version>
         <kafka.clients.version>3.0.0</kafka.clients.version>
@@ -157,12 +156,6 @@
                 <version>${junit.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
             </dependency>
 
             <dependency>

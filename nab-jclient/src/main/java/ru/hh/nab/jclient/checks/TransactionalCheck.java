@@ -1,6 +1,5 @@
 package ru.hh.nab.jclient.checks;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -98,14 +97,9 @@ public class TransactionalCheck implements HttpClientEventListener {
     return action;
   }
 
-  @VisibleForTesting
+  // Only for testing
   public void setAction(Action action) {
     this.action = action;
-  }
-
-  @VisibleForTesting
-  public void addSkippedPackage(String skippedPackage) {
-    this.packagesToSkip.add(skippedPackage);
   }
 
   public Map<String, LongAdder> getCallInTxStatistics() {

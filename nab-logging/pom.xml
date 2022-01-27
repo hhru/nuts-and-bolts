@@ -18,6 +18,13 @@
             <id>jetbrains</id>
             <name>repository.jetbrains.com-releases</name>
             <url>https://repository.jetbrains.com/utils</url>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>fail</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 

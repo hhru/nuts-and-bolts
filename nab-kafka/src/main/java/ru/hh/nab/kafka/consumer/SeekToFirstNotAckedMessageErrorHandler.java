@@ -28,6 +28,10 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
   @Override
   public void handle(Exception thrownException, ConsumerRecords<?, ?> data, Consumer<?, ?> consumer,
                      MessageListenerContainer container) {
+    // Since spring-kafka wraps our "business" exception by org.springframework.kafka.listener.ListenerExecutionFailedException
+    var exceptionToLog = Optional.of(thrownException).map(Throwable::getCause).orElse(thrownException);
+    logger.error("exception during kafka processing", exceptionToLog);
+
     kafkaConsumer.rewindToLastAckedOffset(consumer);
 
     if (this.backOff != null) {
@@ -52,10 +56,6 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
         }
       }
     }
-
-    // Since spring-kafka wraps our "business" exception by org.springframework.kafka.listener.ListenerExecutionFailedException
-    var exceptionToLog = Optional.of(thrownException).map(Throwable::getCause).orElse(thrownException);
-    logger.error("exception during kafka processing", exceptionToLog);
   }
 
   @Override

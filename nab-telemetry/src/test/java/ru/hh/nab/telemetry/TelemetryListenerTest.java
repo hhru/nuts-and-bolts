@@ -17,6 +17,7 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -71,7 +72,7 @@ public class TelemetryListenerTest {
     contextSupplier.addContext(Map.of(), Map.of());
 
     httpClientFactory = new HttpClientFactory(
-        new DefaultAsyncHttpClient(), contextSupplier, Runnable::run, new DefaultRequestStrategy(), List.of());
+        new DefaultAsyncHttpClient(), contextSupplier, Set.of(), Runnable::run, new DefaultRequestStrategy(), List.of());
   }
 
   @BeforeEach

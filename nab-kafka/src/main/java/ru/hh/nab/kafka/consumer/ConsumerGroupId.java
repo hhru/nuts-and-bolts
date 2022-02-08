@@ -24,6 +24,10 @@ public class ConsumerGroupId {
     );
   }
 
+  public String getServiceName() {
+    return serviceName;
+  }
+
   public String getTopic() {
     return topic;
   }

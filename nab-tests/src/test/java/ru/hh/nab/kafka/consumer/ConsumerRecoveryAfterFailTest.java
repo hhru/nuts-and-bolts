@@ -57,7 +57,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     startConsumer((messages, ack) -> {
       messages.forEach(m -> {
         processedMessages.add(m.value());
-        if (processedMessages.size() == 40) {
+        if (processedMessages.size() <= 40) {
           ack.seek(m);
         }
         if (!failed.get() && processedMessages.size() == 45) {

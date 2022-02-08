@@ -32,7 +32,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
-  private final ConfigProvider configProvider;
+  protected final ConfigProvider configProvider;
   private final DeserializerSupplier deserializerSupplier;
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
@@ -85,13 +85,13 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       return getSpringMessageListenerContainer(consumerFactory, containerProperties, errorHandler);
     };
 
-    KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(monitor(consumerGroupId, consumeStrategy), springContainerProvider);
+    KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(prepare(consumerGroupId, consumeStrategy), springContainerProvider);
 
     kafkaConsumer.start();
     return kafkaConsumer;
   }
 
-  private <T> ConsumeStrategy<T> monitor(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+  protected  <T> ConsumeStrategy<T> prepare(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
   }
 

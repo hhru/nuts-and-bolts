@@ -53,6 +53,10 @@ public class ConfigProvider {
     return serviceName;
   }
 
+  public String getKafkaClusterName() {
+    return kafkaClusterName;
+  }
+
   public Map<String, Object> getConsumerConfig(String topicName) {
     Map<String, Object> consumerConfig = new HashMap<>();
     consumerConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);

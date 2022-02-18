@@ -102,6 +102,11 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-kafka</artifactId>
                 <version>${project.version}</version>
             </dependency>

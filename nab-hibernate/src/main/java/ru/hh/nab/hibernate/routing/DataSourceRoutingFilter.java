@@ -1,6 +1,7 @@
 package ru.hh.nab.hibernate.routing;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,7 +27,9 @@ public class DataSourceRoutingFilter implements Filter {
     try {
       HttpServletRequest httpServletRequest = (HttpServletRequest) request;
       MultivaluedMap<String, String> queryParams = UriComponent.decodeQuery(httpServletRequest.getQueryString(), false);
-      String targetDataSource = queryParams.getFirst(NAB_TARGET_DATA_SOURCE);
+
+      String targetDataSource = Optional.ofNullable(queryParams.getFirst(NAB_TARGET_DATA_SOURCE))
+          .orElseGet(() -> httpServletRequest.getHeader("X-" + NAB_TARGET_DATA_SOURCE));
       if (targetDataSource != null && !targetDataSource.isEmpty()) {
         wrapInDataSource(request, response, chain, targetDataSource);
       } else if (Boolean.parseBoolean(queryParams.getFirst(REPLICA_ONLY_RQ))) {

@@ -69,7 +69,7 @@ public class TelemetryFilter implements Filter, NabServletFilter {
         }
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
-        span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus()));
+        span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));
       } finally {
         span.end();
       }

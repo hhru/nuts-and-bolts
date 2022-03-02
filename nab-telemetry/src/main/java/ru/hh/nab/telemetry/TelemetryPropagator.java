@@ -45,12 +45,12 @@ public class TelemetryPropagator {
     };
   }
 
-  public static StatusCode getStatus(int httpStatusCode) {
+  public static StatusCode getStatus(int httpStatusCode, boolean isServer) {
     if (httpStatusCode < 100) {
       return StatusCode.ERROR;
-    } else if (httpStatusCode <= 299) {
+    } else if (httpStatusCode <= 399) {
       return StatusCode.UNSET;
-    } else if (httpStatusCode <= 499) {
+    } else if (httpStatusCode <= 499 && isServer) {
       return StatusCode.UNSET;
     }
 

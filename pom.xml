@@ -32,27 +32,8 @@
     </modules>
 
     <properties>
-        <jackson.version>2.13.1</jackson.version>
-        <jersey.version>2.35</jersey.version>
-        <junit.version>5.8.2</junit.version>
-        <logback.version>1.2.10</logback.version>
-        <apache.common.version>3.12.0</apache.common.version>
-        <kafka.clients.version>3.0.0</kafka.clients.version>
-
-        <jetty.version>9.4.44.v20210927</jetty.version>
-        <!--одна минорная версия разницы-->
-        <spring.version>5.3.15</spring.version>
         <!--нет-->
         <opentelemetry.version>1.10.0</opentelemetry.version>
-        <!--одна минорная версия разницы-->
-        <spring.kafka.version>2.8.2</spring.kafka.version>
-        <!--одна минорная версия разницы-->
-        <hibernate.version>5.6.4.Final</hibernate.version>
-        <!--две минорные версия разницы-->
-        <postgres.jdbc.version>42.3.1</postgres.jdbc.version>
-        <!--три минорные версия разницы-->
-        <slf4j.version>1.7.33</slf4j.version>
-        <!--нет-->
         <jclient.version>3.9.7</jclient.version>
         <java.version>11</java.version>
         <!--нет-->
@@ -132,60 +113,11 @@
             </dependency>
             <!--Bom imports-->
             <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>${jackson.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey</groupId>
-                <artifactId>jersey-bom</artifactId>
-                <version>${jersey.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-bom</artifactId>
-                <version>${jetty.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-framework-bom</artifactId>
-                <version>${spring.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
                 <version>${opentelemetry.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>${junit.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <!--совпадает-->
-                <version>4.0.1</version>
-            </dependency>
-
-            <dependency>
-                <groupId>jakarta.ws.rs</groupId>
-                <artifactId>jakarta.ws.rs-api</artifactId>
-                <!--совпадает-->
-                <version>2.1.6</version>
             </dependency>
 
             <dependency>
@@ -210,81 +142,10 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${apache.common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jul-to-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>syslog4j</artifactId>
                 <!--нет-->
                 <version>0.9.46</version>
-            </dependency>
-
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <!--совпадает-->
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>jaxb-runtime</artifactId>
-                <!--отстает на 4 минорных-->
-                <version>2.3.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-core</artifactId>
-                <version>${hibernate.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-ehcache</artifactId>
-                <version>${hibernate.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.kafka</groupId>
-                <artifactId>spring-kafka</artifactId>
-                <version>${spring.kafka.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka-clients</artifactId>
-                <version>${kafka.clients.version}</version>
             </dependency>
 
         </dependencies>
@@ -358,6 +219,20 @@
         </profile>
     </profiles>
 
+
+    <distributionManagement>
+        <repository>
+            <id>hh</id>
+            <name>hh releases repository</name>
+            <url>dav:https://m2.hh.ru/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>hh-public-snapshots</id>
+            <name>hh public snapshots repository</name>
+            <url>dav:https://m2.hh.ru/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>hh-public</id>
@@ -371,7 +246,32 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>hh-public-snapshots</id>
+            <name>hh public snapshots repository</name>
+            <url>https://m2.hh.ru/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public-plugin-repo</id>
+            <url>https://m2.hh.ru/content/repositories/public-releases</url>
+            <releases>
+                <checksumPolicy>fail</checksumPolicy>
+            </releases>
+            <snapshots>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>

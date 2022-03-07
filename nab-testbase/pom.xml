@@ -44,6 +44,7 @@
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
+            <!--нет-->
             <version>1.7.0</version>
         </dependency>
 

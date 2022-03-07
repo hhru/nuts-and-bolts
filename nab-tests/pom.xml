@@ -54,6 +54,7 @@
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>system-rules</artifactId>
+            <!--нет-->
             <version>1.19.0</version>
             <exclusions>
                 <exclusion>
@@ -87,28 +88,33 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
+            <!--в спринге 4.1.1-->
             <version>4.0.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.ginsberg</groupId>
             <artifactId>junit5-system-exit</artifactId>
+            <!--нет-->
             <version>1.1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
+            <!--нет-->
             <version>1.23</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
+            <!--нет-->
             <version>1.23</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+            <!--нет-->
             <version>0.9.12</version>
         </dependency>
     </dependencies>

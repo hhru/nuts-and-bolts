@@ -52,6 +52,7 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
+            <!--совпадает-->
             <version>2.2</version>
             <scope>test</scope>
         </dependency>
@@ -78,11 +79,13 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
+            <!--нет-->
             <version>6.5</version>
         </dependency>
         <dependency>
             <groupId>com.papertrailapp</groupId>
             <artifactId>logback-syslog4j</artifactId>
+            <!--нет-->
             <version>1.0.0</version>
             <exclusions>
                 <exclusion>
@@ -94,6 +97,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-logback</artifactId>
+            <!--нет-->
             <version>1.7.21</version>
         </dependency>
 <!--        required for sentry. See EnvelopeReader.java-->

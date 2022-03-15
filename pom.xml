@@ -17,6 +17,7 @@
     <modules>
         <module>nab-common</module>
         <module>nab-starter</module>
+        <module>nab-starter-new</module>
         <module>nab-data-source</module>
         <module>nab-example</module>
         <module>nab-hibernate</module>

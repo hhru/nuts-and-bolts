@@ -86,7 +86,6 @@ public class NabServletContextConfig {
    * org.eclipse.jetty.servlet.FilterHolder#initialize() won't be called anymore
    */
   void onWebAppStarted(ServletContext servletContext, WebApplicationContext rootCtx) {
-    configureServletContext(servletContext, rootCtx);
     List<NabServletConfig> servletConfigs = compileFullServletConfiguration(rootCtx);
     registerServlets(servletConfigs, servletContext, rootCtx);
   }
@@ -103,8 +102,6 @@ public class NabServletContextConfig {
     servletConfigs.add(0, new StatusServletConfig());
     return Collections.unmodifiableList(servletConfigs);
   }
-
-  protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
 
   private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
     servletConfigs.stream()

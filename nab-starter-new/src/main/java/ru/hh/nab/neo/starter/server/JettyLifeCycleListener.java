@@ -1,9 +1,9 @@
-package ru.hh.nab.starter.server.jetty;
+package ru.hh.nab.neo.starter.server;
 
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.springframework.context.ApplicationEventPublisher;
-import ru.hh.nab.starter.events.JettyBeforeStopEvent;
-import ru.hh.nab.starter.events.JettyStartedEvent;
+import ru.hh.nab.neo.starter.events.JettyBeforeStopEvent;
+import ru.hh.nab.neo.starter.events.JettyStartedEvent;
 
 public class JettyLifeCycleListener implements LifeCycle.Listener {
   private final ApplicationEventPublisher eventPublisher;

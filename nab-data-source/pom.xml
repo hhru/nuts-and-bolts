@@ -51,11 +51,11 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgres.jdbc.version}</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
+            <!--в спринге 4.0.3-->
             <version>3.4.5</version>
         </dependency>
 

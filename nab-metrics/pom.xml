@@ -17,6 +17,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>java-dogstatsd-client</artifactId>
+            <!--нет-->
             <version>2.10.5</version>
         </dependency>
 

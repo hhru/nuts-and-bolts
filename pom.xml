@@ -29,7 +29,6 @@
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
         <module>nab-websocket</module>
-        <module>nab-testbase-old</module>
     </modules>
 
     <properties>

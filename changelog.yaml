@@ -1,3 +1,8 @@
+-   name: 4.34.5
+    date: '2022-04-04T17:16:49.705138+03:00'
+    description: Удалил модуль nab-testbase-old. Нигде не пригодился
+    instructions: ''
+    compatible: true
 -   name: 4.34.4
     date: '2022-04-04T12:08:48.598374+03:00'
     description: Обновление безопасности

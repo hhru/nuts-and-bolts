@@ -78,6 +78,9 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));
     createLogger(context, "ru.hh.nab.jclient.checks.TransactionalCheck", Level.WARN, false, List.of(jClientTransactionalCheck));
 
+    var jclientGlobalTimeoutCheck = createAppender(context, "jclient-timeout-check", () -> new HhMultiAppender(true));
+    createLogger(context, "ru.hh.jclient.common.check.GlobalTimeoutCheck", Level.WARN, false, List.of(jclientGlobalTimeoutCheck));
+
     HhMultiAppender slowRequests = createAppender(context, "slowRequests", () -> {
       var multiAppender = new HhMultiAppender(true);
       multiAppender.setLayoutSupplier(NabTSOnlyJsonLayout::new);

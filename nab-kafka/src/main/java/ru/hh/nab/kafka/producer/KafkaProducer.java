@@ -2,15 +2,26 @@ package ru.hh.nab.kafka.producer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
-public interface KafkaProducer {
+public abstract class KafkaProducer {
 
-  <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, T kafkaMessage);
+  public final <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, T kafkaMessage) {
+    return sendMessage(topic, null, kafkaMessage, Runnable::run);
+  }
 
-  <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, T kafkaMessage, Executor executor);
+  public final <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, T kafkaMessage, Executor executor) {
+    return sendMessage(topic, null, kafkaMessage, executor);
+  }
 
-  <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, String key, T kafkaMessage);
+  public final <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, String key, T kafkaMessage) {
+    return sendMessage(topic, key, kafkaMessage, Runnable::run);
+  }
 
-  <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, String key, T kafkaMessage, Executor executor);
+  public final <T> CompletableFuture<KafkaSendResult<T>> sendMessage(String topic, String key, T kafkaMessage, Executor executor) {
+    return sendMessage(new ProducerRecord<>(topic, key, kafkaMessage), executor);
+  }
+
+  public abstract <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor);
 
 }

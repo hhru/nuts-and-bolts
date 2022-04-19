@@ -11,7 +11,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 
 public class KafkaProducerFactory {
 
-  private final ConfigProvider configProvider;
+  protected final ConfigProvider configProvider;
   private final SerializerSupplier serializerSupplier;
 
   public KafkaProducerFactory(ConfigProvider configProvider,
@@ -34,6 +34,10 @@ public class KafkaProducerFactory {
         serializerSupplier.supply()
     );
 
-    return new DefaultKafkaProducer(new KafkaTemplate<>(producerFactory));
+    return prepare(new KafkaTemplate<>(producerFactory));
+  }
+
+  protected KafkaProducer prepare(KafkaTemplate<String, Object> template) {
+    return new DefaultKafkaProducer(template);
   }
 }

@@ -8,16 +8,7 @@ public final class ExceptionUtils {
   }
 
   public static <T> T getOrThrowMappable(Callable<T> supplier) {
-    try {
-      return supplier.call();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new NabMappableException(e);
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new NabMappableException(e);
-    }
+    return ru.hh.nab.common.util.ExceptionUtils.getOrThrow(supplier, NabMappableException::new);
   }
 
   public static <T> T getOrThrowMappable(Future<T> future) {

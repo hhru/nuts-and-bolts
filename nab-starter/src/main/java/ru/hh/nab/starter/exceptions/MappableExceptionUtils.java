@@ -3,8 +3,8 @@ package ru.hh.nab.starter.exceptions;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-public final class ExceptionUtils {
-  private ExceptionUtils() {
+public final class MappableExceptionUtils {
+  private MappableExceptionUtils() {
   }
 
   public static <T> T getOrThrowMappable(Callable<T> supplier) {

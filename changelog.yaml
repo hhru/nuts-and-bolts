@@ -1,8 +1,15 @@
+-   name: 4.34.8
+    date: '2022-04-29T13:17:57.044167+03:00'
+    description: support concurrency for kafka consumer
+    instructions: ''
+    compatible: true
+
 -   name: 4.34.7
     date: '2022-04-28T14:19:51.611705+03:00'
     description: "Added ru.hh.nab.common.util.ExceptionUtils\r\nRenamed ru.hh.nab.starter.exceptions.ExceptionUtils\
         \ to MappableExceptionUtils"
-    instructions: 'Заменить использование ru.hh.nab.starter.exceptions.ExceptionUtils на ru.hh.nab.starter.exceptions.MappableExceptionUtils'
+    instructions: Заменить использование ru.hh.nab.starter.exceptions.ExceptionUtils
+        на ru.hh.nab.starter.exceptions.MappableExceptionUtils
     compatible: false
 
 -   name: 4.34.6

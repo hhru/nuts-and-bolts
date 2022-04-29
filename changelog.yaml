@@ -1,3 +1,9 @@
+-   name: 4.34.9
+    date: '2022-04-29T14:48:45.437066+03:00'
+    description: Добавил использование bom для testcontaiers
+    instructions: ''
+    compatible: true
+
 -   name: 4.34.8
     date: '2022-04-29T13:17:57.044167+03:00'
     description: support concurrency for kafka consumer

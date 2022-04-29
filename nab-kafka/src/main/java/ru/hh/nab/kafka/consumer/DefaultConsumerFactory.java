@@ -23,6 +23,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MAX_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MULTIPLIER_NAME;
+import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
@@ -82,7 +83,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
           topicName
       );
       SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = getBatchErrorHandler(topicName, kafkaConsumer, logger);
-      return getSpringMessageListenerContainer(consumerFactory, containerProperties, errorHandler);
+      return getSpringMessageListenerContainer(consumerFactory, containerProperties, errorHandler, configProvider, topicName);
     };
 
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(prepare(consumerGroupId, consumeStrategy), springContainerProvider);
@@ -97,9 +98,12 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
 
   public static <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(ConsumerFactory<String, T> consumerFactory,
                                                                                                     ContainerProperties containerProperties,
-                                                                                                    BatchErrorHandler errorHandler) {
+                                                                                                    BatchErrorHandler errorHandler,
+                                                                                                    ConfigProvider configProvider,
+                                                                                                    String topicName) {
     var container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setBatchErrorHandler(errorHandler);
+    container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
     return container;
   }
 

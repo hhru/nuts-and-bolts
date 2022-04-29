@@ -38,6 +38,7 @@ public class ConfigProvider {
 
   public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
+  public static final String CONCURRENCY = "concurrency";
 
   private final String serviceName;
   private final String kafkaClusterName;

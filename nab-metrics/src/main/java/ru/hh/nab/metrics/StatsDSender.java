@@ -148,19 +148,19 @@ public class StatsDSender {
 
     StringBuilder stringBuilder = new StringBuilder(metricName);
 
-    for (int i = 0; i < tagsLength; i++) {
-      if (tags[i].name == null) {
+    for (Tag tag : tags) {
+      if (tag.name == null) {
         LOGGER.warn("Null tag name for metric: {}", metricName);
         continue;
       }
-      if (tags[i].value == null) {
-        LOGGER.warn("Null tag value for tag name: {}, for metric: {}", tags[i].name, metricName);
+      if (tag.value == null) {
+        LOGGER.warn("Null tag value for tag name: {}, for metric: {}", tag.name, metricName);
       }
 
       stringBuilder.append('.')
-        .append(tags[i].name.replace('.', '-'))
-        .append("_is_")
-        .append(Optional.ofNullable(tags[i].value).map(value -> value.replace('.', '-')).orElse("null"));
+          .append(tag.name.replace('.', '-'))
+          .append("_is_")
+          .append(Optional.ofNullable(tag.value).map(value -> value.replace('.', '-')).orElse("null"));
     }
     return stringBuilder.toString();
   }

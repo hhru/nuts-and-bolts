@@ -137,12 +137,7 @@ public class StatsDSender {
   }
 
   static String getFullMetricName(String metricName, Tag[] tags) {
-    if (tags == null) {
-      return metricName;
-    }
-
-    int tagsLength = tags.length;
-    if (tagsLength == 0) {
+    if (tags == null || tags.length == 0) {
       return metricName;
     }
 

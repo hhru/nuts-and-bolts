@@ -40,4 +40,36 @@ public class StatsDSenderTest {
       )
     );
   }
+
+  @Test
+  public void testGetTagStringSkipNullTagName() {
+    assertEquals(
+      "metricName",
+      StatsDSender.getFullMetricName("metricName", new Tag[]{new Tag(null, "42")})
+    );
+  }
+
+  @Test
+  public void testGetTagStringSkipAllNullTagName() {
+    assertEquals(
+        "metricName.answer_is_42.label_is_right",
+        StatsDSender.getFullMetricName(
+          "metricName",
+          new Tag[]{
+            new Tag(null, null),
+            new Tag("answer", "42"),
+            new Tag(null, "43"),
+            new Tag("label", "right"),
+            new Tag(null, "44")
+          })
+    );
+  }
+
+  @Test
+  public void testGetTagStringNullTagValue() {
+    assertEquals(
+        "metricName.answer_is_null",
+        StatsDSender.getFullMetricName("metricName", new Tag[]{new Tag("answer", null)})
+    );
+  }
 }

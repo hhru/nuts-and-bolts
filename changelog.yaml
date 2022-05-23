@@ -1,3 +1,9 @@
+-   name: 4.34.11
+    date: '2022-05-23T12:11:41.260970+03:00'
+    description: Fix NPE in StatsDSender.getFullMetricName
+    instructions: ''
+    compatible: true
+
 -   name: 4.34.10
     date: '2022-05-20T14:50:42.301502+03:00'
     description: Поднял версию public-pom, удалил дублирующие зависимости

@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.34.11-beta-config-split</version>
+    <version>4.34.12-beta-config-split-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -87,7 +87,7 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-telemetry-kafka</artifactId>
-                <version>4.34.11-beta-config-split</version>
+                <version>4.34.5</version>
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>

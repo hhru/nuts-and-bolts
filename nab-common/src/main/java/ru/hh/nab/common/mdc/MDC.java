@@ -3,6 +3,7 @@ package ru.hh.nab.common.mdc;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import ru.hh.nab.common.util.ExceptionUtils;
 
 public class MDC {
   public static final String REQUEST_ID_MDC_KEY = "rid";
@@ -60,9 +61,7 @@ public class MDC {
     String previousRequestId = MDC.getRequestId().orElse(null);
     try {
       MDC.setRequestId(rid);
-      return operation.call();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      return ExceptionUtils.getOrThrow(operation);
     } finally {
       MDC.setRequestId(previousRequestId);
     }

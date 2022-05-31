@@ -1,10 +1,50 @@
+-   name: 4.34.11
+    date: '2022-05-23T12:11:41.260970+03:00'
+    description: Fix NPE in StatsDSender.getFullMetricName
+    instructions: ''
+    compatible: true
+
+-   name: 4.34.10
+    date: '2022-05-20T14:50:42.301502+03:00'
+    description: Поднял версию public-pom, удалил дублирующие зависимости
+    instructions: ''
+    compatible: true
+
+-   name: 4.34.9
+    date: '2022-04-29T14:48:45.437066+03:00'
+    description: Добавил использование bom для testcontaiers
+    instructions: ''
+    compatible: true
+
+-   name: 4.34.8
+    date: '2022-04-29T13:17:57.044167+03:00'
+    description: support concurrency for kafka consumer
+    instructions: ''
+    compatible: true
+
+-   name: 4.34.7
+    date: '2022-04-28T14:19:51.611705+03:00'
+    description: "Added ru.hh.nab.common.util.ExceptionUtils\r\nRenamed ru.hh.nab.starter.exceptions.ExceptionUtils\
+        \ to MappableExceptionUtils"
+    instructions: Заменить использование ru.hh.nab.starter.exceptions.ExceptionUtils
+        на ru.hh.nab.starter.exceptions.MappableExceptionUtils
+    compatible: false
+
+-   name: 4.34.6
+    date: '2022-04-27T13:07:42.914857+03:00'
+    description: Вынес логи от `GlobalTimeoutCheck` в отдельный файл (`jclient-timeout-check.slog`)
+    instructions: ''
+    compatible: true
+
 -   name: 4.34.5
     date: '2022-04-04T17:16:49.705138+03:00'
     description: Удалил модуль nab-testbase-old. Нигде не пригодился
     instructions: ''
     compatible: true
+
 -   name: 4.34.4
     date: '2022-04-04T12:08:48.598374+03:00'
     description: Обновление безопасности
     instructions: ''
     compatible: true
+

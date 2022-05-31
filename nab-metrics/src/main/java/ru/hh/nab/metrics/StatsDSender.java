@@ -2,8 +2,11 @@ package ru.hh.nab.metrics;
 
 import com.timgroup.statsd.StatsDClient;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A glue between aggregators ({@link Counters}, {@link Histogram}, etc.) and StatsDClient.<br/>
@@ -11,6 +14,8 @@ import java.util.concurrent.TimeUnit;
  * This task sends snapshot of the aggregator to a monitoring system and resets the aggregator.
  */
 public class StatsDSender {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(StatsDSender.class);
   private static final int DEFAULT_SEND_INTERVAL_SECONDS = 60;
   public static final int[] DEFAULT_PERCENTILES = {95, 99, 100};
 
@@ -132,24 +137,25 @@ public class StatsDSender {
   }
 
   static String getFullMetricName(String metricName, Tag[] tags) {
-    if (tags == null) {
+    if (tags == null || tags.length == 0) {
       return metricName;
     }
 
-    int tagsLength = tags.length;
-    if (tagsLength == 0) {
-      return metricName;
-    }
+    StringBuilder stringBuilder = new StringBuilder(metricName);
 
-    StringBuilder stringBuilder = new StringBuilder(metricName + '.');
-
-    for (int i = 0; i < tagsLength; i++) {
-      stringBuilder.append(tags[i].name.replace('.', '-'))
-        .append("_is_")
-        .append(tags[i].value.replace('.', '-'));
-      if (i != tagsLength - 1) {
-        stringBuilder.append('.');
+    for (Tag tag : tags) {
+      if (tag.name == null) {
+        LOGGER.warn("Null tag name for metric: {}", metricName);
+        continue;
       }
+      if (tag.value == null) {
+        LOGGER.warn("Null tag value for tag name: {}, for metric: {}", tag.name, metricName);
+      }
+
+      stringBuilder.append('.')
+          .append(tag.name.replace('.', '-'))
+          .append("_is_")
+          .append(Optional.ofNullable(tag.value).map(value -> value.replace('.', '-')).orElse("null"));
     }
     return stringBuilder.toString();
   }

@@ -7,8 +7,8 @@
 -   name: 4.34.10
     date: '2022-05-20T14:50:42.301502+03:00'
     description: Поднял версию public-pom, удалил дублирующие зависимости
-    instructions: ''
-    compatible: true
+    instructions: 'Чтобы не было проблем с зависимостями нужно поднять в приложении версию common-pom до 1.47.1 или выше'
+    compatible: false
 
 -   name: 4.34.9
     date: '2022-04-29T14:48:45.437066+03:00'
@@ -24,8 +24,8 @@
 
 -   name: 4.34.7
     date: '2022-04-28T14:19:51.611705+03:00'
-    description: "Added ru.hh.nab.common.util.ExceptionUtils\r\nRenamed ru.hh.nab.starter.exceptions.ExceptionUtils\
-        \ to MappableExceptionUtils"
+    description: 'Added ru.hh.nab.common.util.ExceptionUtils\r\nRenamed ru.hh.nab.starter.exceptions.ExceptionUtils\
+        \ to MappableExceptionUtils'
     instructions: Заменить использование ru.hh.nab.starter.exceptions.ExceptionUtils
         на ru.hh.nab.starter.exceptions.MappableExceptionUtils
     compatible: false
@@ -48,3 +48,457 @@
     instructions: ''
     compatible: true
 
+-   name: 4.34.0
+    date: '2022-03-03T18:36:00.000000+03:00'
+    description: jakarta.ws.rs-api добавлена в dependencyManagement
+    instructions: 'Найдите явное использование jakarta.ws.rs-api в pom-файла и удалите версию, чтобы уменьшить риск конфликта зависимостей'
+    compatible: false
+
+-   name: 4.33.14
+    date: '2022-03-02T18:22:00.000000+03:00'
+    description: HTTP-cтатус телеметрии соответствует спецификации
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.13
+    date: '2022-02-18T12:08:00.000000+03:00'
+    description: Фикс зависимости nab-telemetry-kafka
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.12
+    date: '2022-02-17T19:36:00.000000+03:00'
+    description: Добавление телеметрии в кафку
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.11
+    date: '2022-02-04T17:16:00.000000+03:00'
+    description: Обновление JClient до 3.9.7
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.10
+    date: '2022-01-28T16:20:00.000000+03:00'
+    description: Фикс логгирования ошибок кафки
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.9
+    date: '2022-01-25T15:51:00.000000+03:00'
+    description: Обновление JClient и удаление Guav'ы
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.8
+    date: '2022-01-21T15:39:00.000000+03:00'
+    description: Обновление библиотек
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.7
+    date: '2022-01-19T15:03:00.000000+03:00'
+    description: Фикс listener'а телеметрии
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.6
+    date: '2022-01-17T17:07:00.000000+03:00'
+    description: NaB теперь падает при неизвестных настройках kafk'и
+    instructions: '* Если в конфигах кафка продюсеров есть неизвестные настройки - падаем. Часто встречающаяся левая настройка - timeout.ms,\
+        \ её надо удалять.\n\
+        \ * Добавилась пара новых ExceptionMapper-ов (для CompletionException и ExecutionException), так что свои можно удалить.\'
+    compatible: false
+
+-   name: 4.33.5
+    date: '2022-01-17T16:16:00.000000+03:00'
+    description: Batch-процессор для телеметрии
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.4
+    date: '2022-01-14T13:14:00.000000+03:00'
+    description: Обновление Consul-клиента
+    instructions: ''
+    compatible: true
+
+-   name: 4.33.3
+    date: '2022-01-14T11:33:00.000000+03:00'
+    description: Изменение формата настроек для телеметрии
+    instructions: 'В конфиге вместо opentelemetry.collector.host и opentelemetry.collector.port используется opentelemetry.collector.url,\
+        \ который выглядит как http://{opentelemetry.collector.host}:{opentelemetry.collector.port}'
+    compatible: false
+
+-   name: 4.33.0
+    date: '2022-01-10T16:26:00.000000+03:00'
+    description: Реорганизация квалификаторов
+    instructions: 'Ищем текстовым поиском в Spring Config''е:\n\
+        * String serviceName и добавляем квалификатор @Named(SERVICE_NAME) (Если уже был квалификатор @Named(SERVICE_NAME_PROPERTY) то вместо него)\n\
+        * String nodeName и добавляем квалификатор @Named(NODE_NAME) (Если уже был квалификатор @Named(NODE_NAME_PROPERTY) то вместо него)\n\
+        * String datacenter и добавляем квалификатор @Named(DATACENTER) (Если уже был квалификатор @Named(DATACENTER_NAME_PROPERTY) то вместо него)\n\
+        * Properties hibernateProperties и добавляем квалификатор @Hibernate\n\
+        * Properties serviceProperties и добавляем квалификатор @Service\n\
+        * PropertiesFactoryBean serviceProperties и добавляем квалификатор @Service\n\n\
+        * https://github.com/hhru/java-service-common-config/pull/38/files\n\
+        * https://github.com/hhru/deploy-dev-secure/pull/2982/files'
+    compatible: false
+
+-   name: 4.32.1
+    date: '2021-12-24T11:55:00.000000+03:00'
+    description: Добавились метрики maxThreads для MonitoredQueuedThreadPool и maxSize для MonitoredThreadPoolExecutor
+    instructions: ''
+    compatible: true
+
+-   name: 4.32.0
+    date: '2021-12-09T15:45:00.000000+03:00'
+    description: Изменение сигнатуры MDC#generateRequestId
+    instructions: 'Метод теперь не принимает параметров. Если вам нужно передавать свой кастомный постфикс, используйте библиотеку для генерации rid\
+         \ из hh-java-libs - RequestIdGenerator#makeRequestId(String origin).'
+    compatible: false
+
+-   name: 4.31.0
+    date: '2021-11-19T17:47:00.000000+03:00'
+    description: Переезд с embedded postgres на testcontainers для юнит-тестов
+    instructions: 'Может понадобиться поменять jdbc-урл в тестовых настройках.\nhttps://github.com/hhru/hh.ru/pull/9469/files'
+    compatible: false
+
+-   name: 4.30.13
+    date: '2021-09-28T14:06:00.000000+03:00'
+    description: Можно использовать в конфиге consul.service.address=resolve, чтобы резолвить адрес инстанса из OS
+    instructions: ''
+    compatible: true
+
+-   name: 4.30.0
+    date: '2021-04-20T15:52:00.000000+03:00'
+    description: Изменилось название метрики про обработку кафка-батчей
+    instructions: '* было batchProcessingTimeMs, стало batchProcessingTime. Нужно обновить графики в мониторинге, если она использовалась.\n\
+        \* Изменилось название property для кафки: было *.nab_setting.pool.timeout.ms, стало *.nab_setting.poll.timeout.ms,\
+        \ так что надо будет поправить конфиги. И проверка имён кафка propert''ей стала чуть строже.'
+    compatible: false
+
+-   name: 4.29.11
+    date: '2021-04-09T12:39:00.000000+03:00'
+    description: 'В MarshallerContextResolver заменена коллекция, используемая в качестве кэша. Добавлена настройка количества хранимых STRONG\
+        \ ссылок с дефолтом и метрики про переполнение кэша.'
+    instructions: ''
+    compatible: true
+
+-   name: 4.29.1
+    date: '2021-02-15T18:47:00.000000+03:00'
+    description: Замена orbits consul клиента на форк ru.hh.Consul
+    instructions: 'Нужно только если по каким-то причинам, манипулировали с бином Consul''а в сервисе. Замена пакетов com.orbitz -> на ru.hh\n\
+        \https://github.com/hhru/hh-session/pull/457/files'
+    compatible: false
+
+-   name: 4.28.11
+    date: '2021-02-10T13:09:00.000000+03:00'
+    description: Остановка kvCache перед де-регистрацией в консуле
+    instructions: ''
+    compatible: true
+
+-   name: 4.28.11
+    date: '2021-02-10T13:09:00.000000+03:00'
+    description: Остановка kvCache перед де-регистрацией в консуле
+    instructions: ''
+    compatible: true
+
+-   name: 4.28.6
+    date: '2021-01-28T18:22:00.000000+03:00'
+    description: Даунгрейд версии sentry
+    instructions: ''
+    compatible: true
+
+-   name: 4.28.5
+    date: '2021-01-21T14:47:00.000000+03:00'
+    description: Фикс тестов консула
+    instructions: ''
+    compatible: true
+
+-   name: 4.28.3
+    date: '2021-01-18T17:59:00.000000+03:00'
+    description: DependencyManagement и возможность полного отключения консула
+    instructions: 'https://github.com/hhru/hh.ru/pull/8288/files\n\
+        \https://github.com/hhru/deploy-dev/pull/3644/files\n\
+        \https://github.com/hhru/deploy-dev-secure/pull/2018/files'
+    compatible: false
+
+-   name: 4.28.0
+    date: '2020-12-21T15:03:00.000000+03:00'
+    description: DependencyManagement и возможность полного отключения консула
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.13
+    date: '2020-12-16T18:43:00.000000+03:00'
+    description: Переписаны настройки логирования для тестов с xml на Configurator
+    instructions: 'Если вы не добавите конфигуратор в META-INF тестов, то сработает конфигуратор из проекта, с сопутствующими ресурсами\n\
+        \https://github.com/hhru/hh.ru/pull/8218/files'
+    compatible: false
+
+-   name: 4.27.12
+    date: '2020-12-10T11:59:00.000000+03:00'
+    description: Пишем userAgent в requests.slog
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.11
+    date: '2020-12-07T12:55:00.000000+03:00'
+    description: Добавлен junit5 extention для fail fast остановки тестов, если не стартует spring context
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.10
+    date: '2020-12-04T13:18:00.000000+03:00'
+    description: 'Фикс ExceptionMapper''а'
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.8
+    date: '2020-11-27T16:22:00.000000+03:00'
+    description: Динамическая перерегистрация веса
+    instructions: 'В service.properties становится обязательным nodeName\n\
+        \https://github.com/hhru/hh-session/pull/444/files\n\
+        \https://github.com/hhru/deploy-dev/pull/3482/files\n\
+        \https://github.com/hhru/deploy-dev-secure/pull/1924'
+    compatible: false
+
+-   name: 4.27.6
+    date: '2020-11-19T18:40:00.000000+03:00'
+    description: hibernate обновлен до 5.4.21
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.5
+    date: '2020-11-19T11:59:00.000000+03:00'
+    description: 'Фикс shutdown hook''а'
+    instructions: ''
+    compatible: true
+
+-   name: 4.27.4
+    date: '2020-11-16T12:18:00.000000+03:00'
+    description: Реализована логика отката локального оффсета кафки
+    instructions: 'Могут понадобится изменения в коде потребителя данных из кафки в реализации интерфейса ru.hh.nab.kafka.consumer.ConsumeStrategy\n\
+        \https://github.com/hhru/resume-search/pull/102/files'
+    compatible: false
+
+-   name: 4.27.3
+    date: '2020-11-03T16:45:00.000000+03:00'
+    description: Добавлен листенер, который пишет данные прогона юнит тестов на стенде в базу
+    instructions: 'Для подключения профилирования необходимо добавить расширение в папку .mvn\n
+        \Для подключения листенера юнит тестов нужно в папку test/resources/META_INF/services/ добавить файл с именем \
+        \org.junit.platform.launcher.TestExecutionListener, в котором написать reference к \
+        \listener -ru.hh.nab.testbase.listeners.TestExecutorListener\n\
+        \Пример подключения к проекту:\n\
+        \https://github.com/hhru/hh.ru/compare/HH-118582'
+    compatible: false
+
+-   name: 4.27.1
+    date: '2020-10-29T18:11:00.000000+03:00'
+    description: Изменены метрики по БД
+    instructions: 'Изменений в коде сервиса не требуется, только в мониторинге.\n\
+       \Было: name="service_name.datasource_type.connection.creation_ms"\n\
+       \Стало: name="jdbc_pool.connection.creation_ms", datasource="datasource_type", app="service_name"\n\
+       \Имя сервиса и тип БД (slow, readonly, etc) перенесены в тэги\n\
+       \https://github.com/hhru/hh-dictionaries/pull/32/files'
+    compatible: false
+
+-   name: 4.26.7
+    date: '2020-10-15T16:54:00.000000+03:00'
+    description: Добавление новых параметров при регистрации
+    instructions: ''
+    compatible: true
+
+-   name: 4.26.4
+    date: '2020-10-13T18:21:00.000000+03:00'
+    description: Обновление parent pom
+    instructions: ''
+    compatible: true
+
+-   name: 4.26.4
+    date: '2020-10-13T18:21:00.000000+03:00'
+    description: Обновление parent pom
+    instructions: ''
+    compatible: true
+
+-   name: 4.26.1
+    date: '2020-09-08T12:11:00.000000+03:00'
+    description: Замена клиента консула с Ecwid на rickfast
+    instructions: ''
+    compatible: true
+
+-   name: 4.26.0
+    date: '2020-08-18T14:37:00.000000+03:00'
+    description: Удалён старый механизм оверрайда логов через конфиги
+    instructions: ''
+    compatible: true
+
+-   name: 4.26.0
+    date: '2020-08-18T14:37:00.000000+03:00'
+    description: Удалён старый механизм оверрайда логов через конфиги
+    instructions: ''
+    compatible: true
+
+-   name: 4.25.13
+    date: '2020-08-12T19:22:00.000000+03:00'
+    description: NaB добавляет в Consul специальный tag если в Spring контексте присутствует LogLevelOverrideExtension
+    instructions: ''
+    compatible: true
+
+-   name: 4.25.12
+    date: '2020-08-10T12:15:00.000000+03:00'
+    description: Добавлена настройка logLevelOverrideExtension.updateIntervalInMinutes
+    instructions: ''
+    compatible: true
+
+-   name: 4.25.10
+    date: '2020-08-03T15:33:00.000000+03:00'
+    description: Добавлены метрики fetch-size-avg, records-per-request-avgдля для kafka консюмера
+    instructions: ''
+    compatible: true
+
+-   name: 4.25.8
+    date: '2020-07-27T19:49:00.000000+03:00'
+    description: Добавился LogLevelOverrideExtension
+    instructions: 'NabApplication.configureLogger() больше не публичный. Скорее всего его использования можно удалить, \
+        \т.к. метод и так вызывается внутри nabApplication.run().'
+    compatible: false
+
+-   name: 4.25.6
+    date: '2020-07-02T17:11:00.000000+03:00'
+    description: Не стартуем консюмер кафки, если прописаны некорректные названия настроек
+    instructions: 'Некорректные - это которые:\n\
+        \* не содержат подстроки nab_setting и не прописаны в org.apache.kafka.clients.consumer.ConsumerConfig#configNames\n\
+        \* для конкретного топика не соответствуют шаблону <kafkaCluster>.consumer.topic.<topicName>.default\n\
+        \Пример: https://github.com/hhru/hh-events-enricher/pull/14'
+    compatible: false
+
+-   name: 4.25.5
+    date: '2020-06-25T20:24:00.000000+03:00'
+    description: Добавлен ThreadDiagnosticRejectedExecutionHandler
+    instructions: ''
+    compatible: true
+
+-   name: 4.25.4
+    date: '2020-06-25T20:00:00.000000+03:00'
+    description: Добавлен ThreadDiagnosticRejectedExecutionHandler (неудачный деплой)
+    instructions: 'Неудачный деплой, обновляйтесь сразу на 4.25.5'
+    compatible: false
+
+-   name: 4.25.3
+    date: '2020-06-17T16:24:00.000000+03:00'
+    description: Возможность стартовать jetty в тестах раньше, чем приложение
+    instructions: 'Несовместимая версия с nab-testbase-old. Если он используется лучше сразу обновляться на 4.25.5+'
+    compatible: false
+
+-   name: 4.25.1
+    date: '2020-05-24T17:40:00.000000+03:00'
+    description: Убран дефолт из ExecuteOnDataSource
+    instructions: 'Нужно добавить в использования аннотации @ExecuteOnDataSource параметр dataSourceType = DataSourceType.READONLY, где его нет.'
+    compatible: false
+
+-   name: 4.25.0
+    date: '2020-05-23T23:26:00.000000+03:00'
+    description: Убран дефолт из ExecuteOnDataSource (неудачный деплой)
+    instructions: 'Неудачный деплой, обновляйтесь сразу на 4.25.1'
+    compatible: false
+
+-   name: 4.24.4
+    date: '2020-05-20T17:30:00.000000+03:00'
+    description: Fail-fast настройки для кафки
+    instructions: ''
+    compatible: true
+
+-   name: 4.24.0
+    date: '2020-05-11T17:40:00.000000+03:00'
+    description: Переход на JUnit-5
+    instructions: 'https://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4\n\
+       \Если нет желания обновляться на новый junit то можно при обновлении использовать модуль nab-testbase-old'
+    compatible: false
+
+-   name: 4.22.22
+    date: '2020-01-28T16:21:00.000000+03:00'
+    description: Обновление Jetty
+    instructions: 'https://github.com/hhru/hh.ru/pull/6852/files\n\
+        https://github.com/hhru/hhid/pull/562'
+    compatible: false
+
+-   name: 4.22.22
+    date: '2020-01-28T16:21:00.000000+03:00'
+    description: Обновление Jetty
+    instructions: 'https://github.com/hhru/hh.ru/pull/6852/files\n\
+        https://github.com/hhru/hhid/pull/562'
+    compatible: false
+
+-   name: 4.22.5
+    date: '2019-10-24T14:54:00.000000+03:00'
+    description: Обновление JClient
+    instructions: 'https://github.com/hhru/jlogic/pull/627/files\n\
+        \https://github.com/hhru/deploy-dev/pull/2248/files'
+    compatible: false
+
+-   name: 4.22.1
+    date: '2019-10-11T17:53:00.000000+03:00'
+    description: Асинхронные фильтры
+    instructions: 'https://github.com/hhru/hhid/pull/546/files + https://github.com/hhru/hhid/pull/548\n\
+        \https://github.com/hhru/deploy-dev/pull/2199/files  (больше нет необходимости заводить переменную и выключать Consul в тестовом окружении)\n\
+        \https://github.com/hhru/deploy-dev-secure/pull/1181 (больше нет необходимости заводить переменную и выключать Consul в тестовом окружении)'
+    compatible: false
+
+-   name: 4.21.3
+    date: '2019-10-08T13:23:00.000000+03:00'
+    description: Default context
+    instructions: ''
+    compatible: true
+
+-   name: 4.21.0
+    date: '2019-10-02T15:48:00.000000+03:00'
+    description: Трекинг таймаутов
+    instructions: 'https://github.com/hhru/resume-search/pull/35/files\n\
+        \https://github.com/hhru/jlogic/pull/616/files'
+    compatible: false
+
+-   name: 4.20.6
+    date: '2019-09-25T16:12:00.000000+03:00'
+    description: TransactionalScope + depricate DataSourceContext.executeOn
+    instructions: ''
+    compatible: true
+
+-   name: 4.20.4
+    date: '2019-08-23T14:45:00.000000+03:00'
+    description: Readonly Hicari CP теперь будет использовать не readonly коннекшены
+    instructions: ''
+    compatible: true
+
+-   name: 4.20.2
+    date: '2019-08-08T14:08:00.000000+03:00'
+    description: 'Обновление Jackson''а'
+    instructions: ''
+    compatible: true
+
+-   name: 4.20.1
+    date: '2019-07-30T18:46:00.000000+03:00'
+    description: Изменение syslog ident для json логов
+    instructions: 'https://github.com/hhru/deploy-dev/pull/2039/files'
+    compatible: false
+
+-   name: 4.19.11
+    date: '2019-06-11T16:03:00.000000+03:00'
+    description: Logback java config, mx4j removing, nab-jclient, nab-metrics, jclient-utils removing
+    instructions: 'https://github.com/hhru/mobile-notifier/pull/136/files\n\
+        \https://github.com/hhru/deploy-dev/pull/1910/files\n\
+        \https://github.com/hhru/deploy-dev-secure/pull/1040/files'
+    compatible: false
+
+-   name: 4.8.1
+    date: '2018-11-26T14:35:00.000000+03:00'
+    description: HikariCP
+    instructions: 'https://github.com/hhru/hh-dictionaries/pull/5/files\n\
+        \https://github.com/hhru/deploy-dev/commit/659d725859e99eea611d25cc1cfda9cbcc8e990b\n\
+        \https://github.com/hhru/deploy-dev-secure/commit/7a850ac245c3ec869d223e43ebc9833f929266f2'
+    compatible: false
+
+-   name: 4.7.2
+    date: '2018-11-15T16:53:00.000000+03:00'
+    description: Jetty порт доступен до старта
+    instructions: 'https://github.com/hhru/mobile-notifier/pull/120/files'
+    compatible: false

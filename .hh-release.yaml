@@ -4,7 +4,4 @@ type: library
 build_method: mvn_build
 deploy_method: mvn_deploy
 update_method: mvn_update
-wiki_links:
-- https://wiki.hh.ru/x/qo0eEQ
-- https://github.com/hhru/nuts-and-bolts/releases
 changelog: true

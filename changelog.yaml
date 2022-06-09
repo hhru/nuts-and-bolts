@@ -196,12 +196,6 @@
     instructions: ''
     compatible: true
 
--   name: 4.28.11
-    date: '2021-02-10T13:09:00.000000+03:00'
-    description: Остановка kvCache перед де-регистрацией в консуле
-    instructions: ''
-    compatible: true
-
 -   name: 4.28.6
     date: '2021-01-28T18:22:00.000000+03:00'
     description: Даунгрейд версии sentry
@@ -332,12 +326,6 @@
     instructions: ''
     compatible: true
 
--   name: 4.26.0
-    date: '2020-08-18T14:37:00.000000+03:00'
-    description: Удалён старый механизм оверрайда логов через конфиги
-    instructions: ''
-    compatible: true
-
 -   name: 4.25.13
     date: '2020-08-12T19:22:00.000000+03:00'
     description: NaB добавляет в Consul специальный tag если в Spring контексте присутствует LogLevelOverrideExtension
@@ -413,13 +401,6 @@
     description: Переход на JUnit-5
     instructions: 'https://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4\n\
        \Если нет желания обновляться на новый junit то можно при обновлении использовать модуль nab-testbase-old'
-    compatible: false
-
--   name: 4.22.22
-    date: '2020-01-28T16:21:00.000000+03:00'
-    description: Обновление Jetty
-    instructions: 'https://github.com/hhru/hh.ru/pull/6852/files\n\
-        https://github.com/hhru/hhid/pull/562'
     compatible: false
 
 -   name: 4.22.22

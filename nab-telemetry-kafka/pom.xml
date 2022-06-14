@@ -9,7 +9,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>nab-telemetry-kafka</artifactId>
-  <version>4.34.5</version>
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts telemetry for kafka</name>

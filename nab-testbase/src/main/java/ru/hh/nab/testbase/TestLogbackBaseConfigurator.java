@@ -46,7 +46,7 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
     if (Boolean.parseBoolean(context.getProperty("log.toConsole", "true"))) {
       appenders.add(createAppender(context, "console", () -> new HhMultiAppender(false)));
     }
-    loggers().forEach((name, level) -> createLogger(context, name, rootLevel.toString(), false, appenders));
+    loggers().forEach((name, level) -> createLogger(context, name, level.toString(), false, appenders));
     rootLogger.addAppenders(appenders);
   }
 

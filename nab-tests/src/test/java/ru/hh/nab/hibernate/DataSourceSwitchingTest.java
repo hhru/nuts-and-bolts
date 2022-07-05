@@ -1,9 +1,7 @@
 package ru.hh.nab.hibernate;
 
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -13,6 +11,7 @@ import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -25,6 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.datasource.monitoring.UnhealthyDataSourceException;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;
 import ru.hh.nab.hibernate.model.TestEntity;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
@@ -51,7 +51,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   }
 
   @Test
-  public void testDsManageInsideTxScope() throws SQLException, ExecutionException, InterruptedException {
+  public void testDsManageInsideTxScope() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
     CompletableFuture.supplyAsync(() -> {
         Supplier<TestEntity> supplier = () -> {
@@ -66,19 +66,33 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   }
 
   @Test
-  public void testTxScopeDoesntChangeDs() throws SQLException, ExecutionException, InterruptedException {
+  public void testTxScopeDoesntChangeDs() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
     CompletableFuture.supplyAsync(() -> {
         TargetMethod<TestEntity> method = () -> {
           Session currentSession = sessionFactory.getCurrentSession();
           return currentSession.find(TestEntity.class, 1);
         };
-        Supplier<TestEntity> supplier = () -> {
-          return transactionalScope.read(method);
-        };
+        Supplier<TestEntity> supplier = () -> transactionalScope.read(method);
         return onDataSource("second", supplier);
       }, executor).get();
     verify(firstDataSourceSpy, never()).getConnection();
+    verify(secondDataSourceSpy, times(1)).getConnection();
+  }
+
+  @Test
+  public void testSwitchingToDefaultDataSourceOnUnhealthyDataSourceException() throws Exception {
+    doThrow(UnhealthyDataSourceException.class).when(secondDataSourceSpy).getConnection();
+    Executor executor = Executors.newFixedThreadPool(1);
+    CompletableFuture.supplyAsync(() -> {
+      Supplier<TestEntity> supplier = () -> {
+        Session currentSession = sessionFactory.getCurrentSession();
+        return currentSession.find(TestEntity.class, 1);
+      };
+      TargetMethod<TestEntity> method = () -> onDataSource("second", supplier);
+      return transactionalScope.read(method);
+    }, executor).get();
+    verify(firstDataSourceSpy, times(1)).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();
   }
 

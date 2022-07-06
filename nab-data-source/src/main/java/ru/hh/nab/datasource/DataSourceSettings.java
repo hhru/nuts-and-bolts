@@ -15,6 +15,8 @@ public final class DataSourceSettings {
   public static final String MONITORING_LONG_CONNECTION_USAGE_MS = "monitoring.longConnectionUsageMs";
   public static final String MONITORING_SEND_SAMPLED_STATS = "monitoring.sendSampledStats";
 
+  public static final String HEALTH_CHECK_DELAY = "healthcheck.delay";
+
   private DataSourceSettings() {
   }
 }

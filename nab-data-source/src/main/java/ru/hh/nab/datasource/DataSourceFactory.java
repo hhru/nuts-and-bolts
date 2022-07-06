@@ -1,5 +1,6 @@
 package ru.hh.nab.datasource;
 
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import static java.lang.Integer.parseInt;
@@ -10,12 +11,14 @@ import java.util.Properties;
 import javax.sql.DataSource;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_RATIO;
+import static ru.hh.nab.datasource.DataSourceSettings.HEALTH_CHECK_DELAY;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.POOL_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
+import ru.hh.nab.datasource.monitoring.HealthCheckedDataSource;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 
@@ -38,7 +41,15 @@ public class DataSourceFactory {
       hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
     }
 
+    HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
+    hikariConfig.setHealthCheckRegistry(healthCheckRegistry);
+
     DataSource hikariDataSource = new HikariDataSource(hikariConfig);
+
+    Long healthCheckDelayMs = dataSourceSettings.getLong(HEALTH_CHECK_DELAY);
+    if (healthCheckDelayMs != null && healthCheckDelayMs > 0) {
+      hikariDataSource = new HealthCheckedDataSource(hikariDataSource, hikariConfig.getPoolName(), healthCheckRegistry, healthCheckDelayMs);
+    }
 
     String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
     if (statementTimeoutMsVal != null) {

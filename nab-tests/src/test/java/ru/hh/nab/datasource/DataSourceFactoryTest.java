@@ -14,10 +14,12 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.testcontainers.containers.PostgreSQLContainer;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.datasource.DataSourceSettings.HEALTH_CHECK_DELAY;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
+import ru.hh.nab.datasource.monitoring.HealthCheckedDataSource;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.metrics.StatsDSender;
@@ -54,6 +56,14 @@ public class DataSourceFactoryTest {
 
     HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
     assertEquals(TEST_DATA_SOURCE_TYPE, dataSource.getPoolName());
+  }
+
+  @Test
+  public void testCreateHealthCheckedDataSource() {
+    Properties properties = createTestProperties();
+    properties.setProperty(getProperty(HEALTH_CHECK_DELAY), "5000");
+
+    assertTrue(createTestDataSource(properties) instanceof HealthCheckedDataSource);
   }
 
   @Test

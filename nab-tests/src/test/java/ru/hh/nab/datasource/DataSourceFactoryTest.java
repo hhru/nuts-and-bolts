@@ -14,12 +14,14 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.testcontainers.containers.PostgreSQLContainer;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.datasource.DataSourceSettings.HEALTH_CHECK_DELAY;
+import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
+import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
-import ru.hh.nab.datasource.monitoring.HealthCheckedDataSource;
+import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
+import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.metrics.StatsDSender;
@@ -35,7 +37,11 @@ public class DataSourceFactoryTest {
   @BeforeAll
   public static void setUpClass() {
     testDbContainer = EmbeddedPostgresDataSourceFactory.getEmbeddedPostgres();
-    dataSourceFactory = new DataSourceFactory(new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, mock(StatsDSender.class)));
+    StatsDSender statsDSender = mock(StatsDSender.class);
+    dataSourceFactory = new DataSourceFactory(
+        new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, statsDSender),
+        new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, statsDSender)
+    );
   }
 
   @Test
@@ -61,9 +67,8 @@ public class DataSourceFactoryTest {
   @Test
   public void testCreateHealthCheckedDataSource() {
     Properties properties = createTestProperties();
-    properties.setProperty(getProperty(HEALTH_CHECK_DELAY), "5000");
-
-    assertTrue(createTestDataSource(properties) instanceof HealthCheckedDataSource);
+    properties.setProperty(getProperty(HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED), "true");
+    assertTrue(createTestDataSource(properties) instanceof HealthCheckHikariDataSource);
   }
 
   @Test

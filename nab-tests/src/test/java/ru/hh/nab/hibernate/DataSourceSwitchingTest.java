@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
-import ru.hh.nab.datasource.monitoring.UnhealthyDataSourceException;
+import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;
 import ru.hh.nab.hibernate.model.TestEntity;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;

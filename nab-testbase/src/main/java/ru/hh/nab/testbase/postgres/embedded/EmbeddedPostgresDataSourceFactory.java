@@ -12,6 +12,7 @@ import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
+import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
@@ -24,11 +25,12 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
 
   public EmbeddedPostgresDataSourceFactory() {
-    super(null);
+    super(null, null);
   }
 
-  public EmbeddedPostgresDataSourceFactory(NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider) {
-    super(nabMetricsTrackerFactoryProvider);
+  public EmbeddedPostgresDataSourceFactory(NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
+                                           HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory) {
+    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory);
   }
 
   @Override

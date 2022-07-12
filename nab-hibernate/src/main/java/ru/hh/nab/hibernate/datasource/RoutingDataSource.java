@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
-import ru.hh.nab.datasource.monitoring.UnhealthyDataSourceException;
+import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 
 public class RoutingDataSource extends AbstractRoutingDataSource {

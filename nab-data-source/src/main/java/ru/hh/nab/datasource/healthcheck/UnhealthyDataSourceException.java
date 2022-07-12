@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.monitoring;
+package ru.hh.nab.datasource.healthcheck;
 
 import java.sql.SQLException;
 

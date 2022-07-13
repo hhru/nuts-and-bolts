@@ -18,19 +18,19 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckHikariDataSource.class);
   private static final long DEFAULT_HEALTHCHECK_DELAY = 5000L;
-  private static final String DATA_SOURCE_HEALTHCHECK_FAILED = "nab.db.healthcheck.failed";
-  private static final String UNHEALTHY_DATA_SOURCE_CONNECTION_ATTEMPTS = "nab.db.unhealthy_datasource.connection_attempts";
+  private static final String FAILED_HEALTHCHECK_METRIC_NAME = "nab.db.healthcheck.failed";
 
   private final String dataSourceName;
-  private final TaggedSender metricsSender;
   private final AsyncHealthCheckDecorator healthCheck;
 
   public HealthCheckHikariDataSource(HikariConfig hikariConfig, TaggedSender metricsSender) {
     super(hikariConfig);
     this.dataSourceName = hikariConfig.getPoolName();
-    this.metricsSender = metricsSender;
-    this.healthCheck = new AsyncHealthCheckDecorator((HealthCheckRegistry) hikariConfig.getHealthCheckRegistry(),
-        Long.parseLong(hikariConfig.getHealthCheckProperties().getProperty(HEALTHCHECK_DELAY, "0")));
+    this.healthCheck = new AsyncHealthCheckDecorator(
+        (HealthCheckRegistry) hikariConfig.getHealthCheckRegistry(),
+        metricsSender,
+        Long.parseLong(hikariConfig.getHealthCheckProperties().getProperty(HEALTHCHECK_DELAY, "0"))
+    );
   }
 
   @Override
@@ -48,7 +48,6 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
     if (healthCheckResult.isHealthy()) {
       return connectionSupplier.get();
     } else {
-      metricsSender.sendCount(UNHEALTHY_DATA_SOURCE_CONNECTION_ATTEMPTS, 1L);
       throw new UnhealthyDataSourceException(dataSourceName, healthCheckResult.getError());
     }
   }
@@ -56,10 +55,12 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
   private class AsyncHealthCheckDecorator extends HealthCheck implements Runnable {
 
     private final HealthCheckRegistry healthCheckRegistry;
+    private final TaggedSender metricsSender;
     private volatile Result result;
 
-    private AsyncHealthCheckDecorator(HealthCheckRegistry healthCheckRegistry, long healthCheckDelayMs) {
+    private AsyncHealthCheckDecorator(HealthCheckRegistry healthCheckRegistry, TaggedSender metricsSender, long healthCheckDelayMs) {
       this.healthCheckRegistry = healthCheckRegistry;
+      this.metricsSender = metricsSender;
       this.result = Result.healthy();
 
       ScheduledExecutorService executorService = new ScheduledExecutor();
@@ -80,10 +81,10 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
           .orElseGet(Result::healthy);
 
       if (result.isHealthy()) {
-        metricsSender.sendGauge(DATA_SOURCE_HEALTHCHECK_FAILED, 0L);
+        metricsSender.sendGauge(FAILED_HEALTHCHECK_METRIC_NAME, 0L);
         LOGGER.debug("DataSource {} is healthy", dataSourceName);
       } else {
-        metricsSender.sendGauge(DATA_SOURCE_HEALTHCHECK_FAILED, 1L);
+        metricsSender.sendGauge(FAILED_HEALTHCHECK_METRIC_NAME, 1L);
         LOGGER.error("DataSource {} is unhealthy: {}", dataSourceName, result.getMessage(), result.getError());
       }
     }

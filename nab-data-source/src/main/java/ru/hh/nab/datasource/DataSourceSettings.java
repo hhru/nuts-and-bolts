@@ -19,6 +19,8 @@ public final class DataSourceSettings {
   public static final String HEALTHCHECK_ENABLED = "enabled";
   public static final String HEALTHCHECK_DELAY = "delayMs";
 
+  public static final String ROUTING_SECONDARY_DATASOURCE = "routing.failedHealthcheck.secondaryDataSource";
+
   private DataSourceSettings() {
   }
 }

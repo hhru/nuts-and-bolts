@@ -17,6 +17,7 @@ import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.POOL_SETTINGS_PREFIX;
+import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
@@ -29,6 +30,10 @@ public class DataSourceFactory {
   private final MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider;
   private final HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory;
 
+  /**
+   * @deprecated Use {@link DataSourceFactory#DataSourceFactory(MetricsTrackerFactoryProvider, HealthCheckHikariDataSourceFactory)}
+   */
+  @Deprecated
   public DataSourceFactory(MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider) {
     this(metricsTrackerFactoryProvider, null);
   }
@@ -49,10 +54,18 @@ public class DataSourceFactory {
       hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
     }
 
-    DataSource hikariDataSource;
-
     FileSettings healthCheckSettings = dataSourceSettings.getSubSettings(HEALTHCHECK_SETTINGS_PREFIX);
-    if (healthCheckHikariDataSourceFactory != null && healthCheckSettings.getBoolean(HEALTHCHECK_ENABLED, false)) {
+    boolean healthCheckEnabled = healthCheckSettings.getBoolean(HEALTHCHECK_ENABLED, false);
+    String secondaryDataSource = dataSourceSettings.getString(ROUTING_SECONDARY_DATASOURCE);
+    if (!healthCheckEnabled && secondaryDataSource != null) {
+      throw new RuntimeException(String.format(
+          "Exception during %s datasource initialization: if %s is configured, healthcheck should be enabled. " +
+              "To prevent misconfiguration application startup will be aborted.", hikariConfig.getPoolName(), ROUTING_SECONDARY_DATASOURCE
+      ));
+    }
+
+    DataSource hikariDataSource;
+    if (healthCheckHikariDataSourceFactory != null && healthCheckEnabled) {
       hikariConfig.setHealthCheckRegistry(new HealthCheckRegistry());
       hikariConfig.setHealthCheckProperties(healthCheckSettings.getProperties());
       hikariDataSource = healthCheckHikariDataSourceFactory.create(hikariConfig);
@@ -69,7 +82,7 @@ public class DataSourceFactory {
     }
 
     checkDataSource(hikariDataSource, hikariConfig.getPoolName());
-    DataSourceType.registerPropertiesFor(hikariConfig, isReadonly);
+    DataSourceType.registerPropertiesFor(hikariConfig.getPoolName(), new DataSourceType.DataSourceProperties(!isReadonly, secondaryDataSource));
     return hikariDataSource;
   }
 

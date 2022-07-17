@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import static java.util.Optional.ofNullable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -26,11 +27,15 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
   public HealthCheckHikariDataSource(HikariConfig hikariConfig, TaggedSender metricsSender) {
     super(hikariConfig);
     this.dataSourceName = hikariConfig.getPoolName();
-    this.healthCheck = new AsyncHealthCheckDecorator(
-        (HealthCheckRegistry) hikariConfig.getHealthCheckRegistry(),
-        metricsSender,
-        Long.parseLong(hikariConfig.getHealthCheckProperties().getProperty(HEALTHCHECK_DELAY, "0"))
-    );
+    Long healthCheckDelayMs = ofNullable(hikariConfig.getHealthCheckProperties().getProperty(HEALTHCHECK_DELAY))
+        .map(Long::parseLong)
+        .filter(delay -> delay > 0)
+        .orElse(DEFAULT_HEALTHCHECK_DELAY);
+    this.healthCheck = new AsyncHealthCheckDecorator((HealthCheckRegistry) hikariConfig.getHealthCheckRegistry(), metricsSender, healthCheckDelayMs);
+  }
+
+  public AsyncHealthCheckDecorator getHealthCheck() {
+    return healthCheck;
   }
 
   @Override
@@ -52,7 +57,7 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
     }
   }
 
-  private class AsyncHealthCheckDecorator extends HealthCheck implements Runnable {
+  public class AsyncHealthCheckDecorator extends HealthCheck implements Runnable {
 
     private final HealthCheckRegistry healthCheckRegistry;
     private final TaggedSender metricsSender;
@@ -64,8 +69,7 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
       this.result = Result.healthy();
 
       ScheduledExecutorService executorService = new ScheduledExecutor();
-      executorService.scheduleWithFixedDelay(this, 0L, healthCheckDelayMs > 0 ? healthCheckDelayMs : DEFAULT_HEALTHCHECK_DELAY,
-          TimeUnit.MILLISECONDS);
+      executorService.scheduleWithFixedDelay(this, 0L, healthCheckDelayMs, TimeUnit.MILLISECONDS);
     }
 
     @Override

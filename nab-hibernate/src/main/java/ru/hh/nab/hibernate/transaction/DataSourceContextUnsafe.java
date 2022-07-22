@@ -1,5 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import ru.hh.nab.common.mdc.MDC;
@@ -52,6 +53,10 @@ public final class DataSourceContextUnsafe {
 
   public static boolean isCurrentDataSourceWritable() {
     return isWritableDataSource(getDataSourceKey());
+  }
+
+  public static Optional<String> getSecondaryDataSourceName(String primaryDataSourceName) {
+    return DataSourceType.getPropertiesFor(primaryDataSourceName).getSecondaryDataSource();
   }
 
   public static void setDefaultMDC() {

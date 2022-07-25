@@ -2,6 +2,7 @@ package ru.hh.nab.hibernate;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
@@ -46,14 +47,18 @@ public class NabHibernateCommonConfig {
 
   @Bean
   NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, @Hibernate Properties hibernateProperties,
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, MappingConfig mappingConfig,
+    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, List<MappingConfig> mappingConfigs,
     Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
     Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
     NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
       serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
     sessionFactoryBean.setDataSource(dataSource);
-    sessionFactoryBean.setAnnotatedClasses(mappingConfig.getAnnotatedClasses());
-    sessionFactoryBean.setPackagesToScan(mappingConfig.getPackagesToScan());
+
+    Class<?>[] annotatedClasses = mappingConfigs.stream().flatMap(mc -> Stream.of(mc.getAnnotatedClasses())).toArray(Class[]::new);
+    String[] packagesToScan = mappingConfigs.stream().flatMap(mc -> Stream.of(mc.getPackagesToScan())).toArray(String[]::new);
+
+    sessionFactoryBean.setAnnotatedClasses(annotatedClasses);
+    sessionFactoryBean.setPackagesToScan(packagesToScan);
     sessionFactoryBean.setHibernateProperties(hibernateProperties);
     return sessionFactoryBean;
   }

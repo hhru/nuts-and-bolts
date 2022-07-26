@@ -1,3 +1,9 @@
+-   name: 4.34.17
+    date: '2022-07-26T11:55:41.919444+03:00'
+    description: '- добавлена возможность иметь несколько MappingConfig'
+    instructions: ''
+    compatible: true
+
 -   name: 4.34.16
     date: '2022-07-22T14:15:26.262943+03:00'
     description: Добавлена настройка routing.failedHealthcheck.secondaryDataSource,

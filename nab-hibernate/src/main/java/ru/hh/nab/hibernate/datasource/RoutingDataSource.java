@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Optional.ofNullable;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -32,7 +31,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private static final String SECONDARY_DATASOURCE_TAG_NAME = "secondary_datasource";
   private static final String SECONDARY_DATASOURCE_NAME_FORMAT = "%s.%s";
 
-  private final DataSource defaultDataSource;
+  private final LazyConnectionDataSource defaultDataSource;
   private final Map<String, DataSource> replicas = new HashMap<>();
   private final Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
@@ -48,7 +47,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   }
 
   public RoutingDataSource(DataSource defaultDataSource, String serviceName, StatsDSender statsDSender) {
-    this.defaultDataSource = defaultDataSource;
+    // create defaultDataSource lazy proxy. defaultAutoCommit and defaultTransactionIsolation will be determine via connection to defaultDataSource
+    this.defaultDataSource = new LazyConnectionDataSource(defaultDataSource);
     this.serviceName = serviceName;
     this.successfulSwitchingCounters = new Counters(50);
     this.failedSwitchingCounters = new Counters(50);
@@ -95,16 +95,14 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
             entry -> {
               String primaryDataSourceName = entry.getKey();
               String secondaryDataSourceName = entry.getValue().get();
-              UnaryOperator<DataSource> secondaryDataSourceCreationFunction = dataSource -> new SecondaryDataSourceProxy(dataSource,
-                  primaryDataSourceName, secondaryDataSourceName);
               return ofNullable(replicas.get(secondaryDataSourceName))
-                  .map(secondaryDataSourceCreationFunction)
-                  .orElseGet(() -> createDefaultDataSourceProxy(secondaryDataSourceCreationFunction.apply(defaultDataSource)));
+                  .map(dataSource -> this.createSecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName))
+                  .orElseGet(() -> this.createSecondaryDataSourceProxy(defaultDataSource, primaryDataSourceName, secondaryDataSourceName));
             }));
 
     this.dataSourceHealthChecks.putAll(dataSourceHealthChecks);
     this.replicas.putAll(secondaryDataSources);
-    setDefaultTargetDataSource(createDefaultDataSourceProxy(defaultDataSource));
+    setDefaultTargetDataSource(defaultDataSource);
     setTargetDataSources(new HashMap<>(replicas));
     super.afterPropertiesSet();
   }
@@ -133,8 +131,45 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     }
   }
 
-  private DataSource createDefaultDataSourceProxy(DataSource defaultDataSource) {
-    return new LazyConnectionDataSourceProxy(defaultDataSource);
+  private DataSource createSecondaryDataSourceProxy(DataSource dataSource, String primaryDataSourceName, String secondaryDataSourceName) {
+    return new SecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName);
+  }
+
+  private DataSource createSecondaryDataSourceProxy(LazyConnectionDataSource defaultDataSource, String primaryDataSourceName,
+                                                    String secondaryDataSourceName) {
+    DataSource secondaryDataSource = this.createSecondaryDataSourceProxy(defaultDataSource.getTargetDataSource(), primaryDataSourceName,
+        secondaryDataSourceName);
+
+    // create secondaryDataSource lazy proxy via default constructor and set defaultAutoCommit and defaultTransactionIsolation parameters
+    // determined on defaultDataSource lazy proxy creation. In this case connection will not be established again to defaultDataSource
+    LazyConnectionDataSource lazyConnectionSecondaryDataSource = new LazyConnectionDataSource();
+    lazyConnectionSecondaryDataSource.setTargetDataSource(secondaryDataSource);
+    ofNullable(defaultDataSource.defaultAutoCommit()).ifPresent(lazyConnectionSecondaryDataSource::setDefaultAutoCommit);
+    ofNullable(defaultDataSource.defaultTransactionIsolation()).ifPresent(lazyConnectionSecondaryDataSource::setDefaultTransactionIsolation);
+    lazyConnectionSecondaryDataSource.afterPropertiesSet();
+    return lazyConnectionSecondaryDataSource;
+  }
+
+  // class is created to access protected defaultAutoCommit() and defaultTransactionIsolation() methods
+  private static class LazyConnectionDataSource extends LazyConnectionDataSourceProxy {
+
+    private LazyConnectionDataSource() {
+      super();
+    }
+
+    private LazyConnectionDataSource(DataSource targetDataSource) {
+      super(targetDataSource);
+    }
+
+    @Override
+    protected Boolean defaultAutoCommit() {
+      return super.defaultAutoCommit();
+    }
+
+    @Override
+    protected Integer defaultTransactionIsolation() {
+      return super.defaultTransactionIsolation();
+    }
   }
 
   private class SecondaryDataSourceProxy extends DelegatingDataSource {

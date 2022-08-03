@@ -15,7 +15,10 @@
     date: '2022-07-22T14:15:26.262943+03:00'
     description: Добавлена настройка routing.failedHealthcheck.secondaryDataSource,
         в которой можно указать бд, на которую будет осуществляться переключение при
-        неуспешном хелсчеке основной бд
+        неуспешном хелсчеке основной бд. 
+        Для включения хелсчека бд и отправки запросов в secondaryDataSource, нужно
+        * добавить в конфиги необходимые параметры https://github.com/hhru/deploy-dev/pull/6071/files
+        * исправить в коде создание объектов DataSourceFactory и RoutingDataSource https://github.com/hhru/hh.ru/pull/10690/files
     instructions: ''
     compatible: true
 

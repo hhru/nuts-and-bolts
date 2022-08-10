@@ -4,7 +4,7 @@ import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
-import ru.hh.nab.starter.ConsulService;
+import ru.hh.nab.starter.consul.ConsulService;
 
 public class JettyEventListener {
   private static final Logger logger = LoggerFactory.getLogger(JettyEventListener.class);

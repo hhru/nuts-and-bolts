@@ -13,6 +13,7 @@ import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
 import static ru.hh.nab.starter.NabProdConfig.PROPERTIES_FILE_NAME;
+import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 

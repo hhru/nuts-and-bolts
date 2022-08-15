@@ -1,4 +1,4 @@
-package ru.hh.nab.starter;
+package ru.hh.nab.starter.consul;
 
 import java.math.BigInteger;
 import java.util.Base64;
@@ -39,6 +39,7 @@ import ru.hh.consul.option.QueryOptions;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.starter.NabAppTestConfig;
 import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;

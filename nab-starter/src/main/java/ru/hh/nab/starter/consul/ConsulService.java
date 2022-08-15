@@ -1,4 +1,4 @@
-package ru.hh.nab.starter;
+package ru.hh.nab.starter.consul;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -26,6 +26,7 @@ import ru.hh.consul.option.ImmutableQueryOptions;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;

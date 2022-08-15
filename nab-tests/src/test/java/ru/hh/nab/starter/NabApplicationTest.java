@@ -32,6 +32,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettyServer;

@@ -29,11 +29,12 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
-import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
-import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
-import static ru.hh.nab.starter.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
-import static ru.hh.nab.starter.ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY;
-import static ru.hh.nab.starter.ConsulService.CONSUL_TAGS_PROPERTY;
+import ru.hh.nab.starter.consul.ConsulService;
+import static ru.hh.nab.starter.consul.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulService.CONSUL_TAGS_PROPERTY;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 public class NabProdConfigTest {

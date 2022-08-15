@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
+import javax.inject.Named;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,9 @@ import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.starter.consul.ConsulMetricsTracker;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
@@ -35,6 +38,7 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
+  public static final String CONSUL_CLIENT_SEND_STATS = "consul.client.sendStats";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -56,7 +60,7 @@ public class NabProdConfig {
   }
 
   @Bean
-  Consul consul(FileSettings fileSettings) {
+  Consul consul(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
     if (isConsulDisabled(fileSettings)) {
       return null;
     }
@@ -71,6 +75,9 @@ public class NabProdConfig {
       .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
       .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
       .withAddress(address);
+    if (fileSettings.getBoolean(CONSUL_CLIENT_SEND_STATS, false)) {
+      builder.withClientEventCallback(new ConsulMetricsTracker(serviceName, statsDSender));
+    }
     return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
   }
 

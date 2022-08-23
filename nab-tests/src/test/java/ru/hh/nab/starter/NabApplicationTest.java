@@ -94,8 +94,8 @@ public class NabApplicationTest {
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
       Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
-        .port(jettyServer.getPort()).build())
-        .path("status").request();
+              .port(jettyServer.getPort()).build())
+          .path("status").request();
       try (Response response = statusReq.get()) {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       }
@@ -118,8 +118,8 @@ public class NabApplicationTest {
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
       Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
-        .port(jettyServer.getPort()).build())
-        .path("status").request();
+              .port(jettyServer.getPort()).build())
+          .path("status").request();
       try (Response response = statusReq.get()) {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       }
@@ -142,8 +142,8 @@ public class NabApplicationTest {
   @ExpectSystemExitWithStatus(1)
   public void runShouldFailOnServletMappingConflict() {
     NabApplication.builder()
-      .addServlet(ctx -> new DefaultServlet()).setServletName("conflictingServlet").bindTo("/status")
-      .build().run(NabTestConfig.class);
+        .addServlet(ctx -> new DefaultServlet()).setServletName("conflictingServlet").bindTo("/status")
+        .build().run(NabTestConfig.class);
   }
 
   @Test
@@ -183,8 +183,8 @@ public class NabApplicationTest {
     @Bean
     AgentClient consulClient(FileSettings fileSettings) {
       Address hostAndPort = new Address(
-        requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
-        fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY)
+          requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
+          fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY)
       );
       return Consul.builder().withAddress(hostAndPort).build().agentClient();
     }

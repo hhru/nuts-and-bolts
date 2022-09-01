@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import javax.servlet.ServletContextEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
@@ -121,7 +122,12 @@ public final class NabApplication {
 
   public static void configureSentry(ApplicationContext context) {
     FileSettings settings = context.getBean(FileSettings.class);
-    Sentry.init(settings.getString("sentry.dsn"));
+    String dsn = settings.getString("sentry.dsn");
+    if (StringUtils.isBlank(dsn)) {
+      LOGGER.warn("Sentry DSN is empty!");
+    } else {
+      Sentry.init(dsn);
+    }
   }
 
   private static void configureLogger(ApplicationContext context) {

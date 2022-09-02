@@ -21,10 +21,16 @@ public class StatsDSender {
 
   private final StatsDClient statsDClient;
   private final ScheduledExecutorService scheduledExecutorService;
+  private final int defaultPeriodicSendInterval;
 
   public StatsDSender(StatsDClient statsDClient, ScheduledExecutorService scheduledExecutorService) {
+    this(statsDClient, scheduledExecutorService, DEFAULT_SEND_INTERVAL_SECONDS);
+  }
+
+  public StatsDSender(StatsDClient statsDClient, ScheduledExecutorService scheduledExecutorService, int defaultPeriodicSendInterval) {
     this.statsDClient = statsDClient;
     this.scheduledExecutorService = scheduledExecutorService;
+    this.defaultPeriodicSendInterval = defaultPeriodicSendInterval > 0 ? defaultPeriodicSendInterval : DEFAULT_SEND_INTERVAL_SECONDS;
   }
 
   public void sendTime(String metricName, long value, Tag... tags) {
@@ -129,7 +135,7 @@ public class StatsDSender {
   }
 
   public void sendPeriodically(Runnable command) {
-    scheduledExecutorService.scheduleAtFixedRate(command, DEFAULT_SEND_INTERVAL_SECONDS, DEFAULT_SEND_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    sendPeriodically(command, defaultPeriodicSendInterval);
   }
 
   public void sendPeriodically(Runnable command, int sendIntervalSeconds) {

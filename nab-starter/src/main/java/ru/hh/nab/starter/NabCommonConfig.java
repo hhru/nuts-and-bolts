@@ -1,6 +1,7 @@
 package ru.hh.nab.starter;
 
 import com.timgroup.statsd.StatsDClient;
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +25,8 @@ import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 @Configuration
 public class NabCommonConfig {
+
+  private static final String STATSD_DEFAULT_PERIODIC_SEND_INTERVAL = "statsd.defaultPeriodicSendIntervalSec";
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
@@ -67,7 +70,9 @@ public class NabCommonConfig {
   @Bean
   StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient,
                             @Named(SERVICE_NAME) String serviceNameValue, FileSettings fileSettings) {
-    StatsDSender statsDSender = new StatsDSender(statsDClient, scheduledExecutorService);
+    StatsDSender statsDSender = Optional.ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
+        .map(defaultPeriodicSendInterval -> new StatsDSender(statsDClient, scheduledExecutorService, defaultPeriodicSendInterval))
+        .orElseGet(() -> new StatsDSender(statsDClient, scheduledExecutorService));
     if (Boolean.TRUE.equals(fileSettings.getBoolean("metrics.jvm.enabled"))) {
       JvmMetricsSender.create(statsDSender, serviceNameValue);
     }

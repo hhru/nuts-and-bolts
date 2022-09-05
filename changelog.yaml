@@ -1,3 +1,12 @@
+-   name: 4.35.1
+    date: '2022-09-05T14:30:32.414884+03:00'
+    description: Удалена обработка настройки consul.client.sendStats - теперь метрики
+        о запросах в консул отправляются всегда. Добавлена возможность указать statsd.defaultPeriodicSendIntervalSec
+        (дефолтный интервал отправки метрик), который будет использоваться при вызове
+        метода StatsDSender.sendPeriodically(Runnable)
+    instructions: ''
+    compatible: true
+
 -   name: 4.35.00
     date: '2022-09-01T18:17:52.769907+03:00'
     description: обновлен клиент sentry до последнего

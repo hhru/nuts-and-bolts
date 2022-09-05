@@ -38,7 +38,6 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
-  public static final String CONSUL_CLIENT_SEND_STATS = "consul.client.sendStats";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -75,9 +74,7 @@ public class NabProdConfig {
       .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
       .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
       .withAddress(address);
-    if (fileSettings.getBoolean(CONSUL_CLIENT_SEND_STATS, false)) {
-      builder.withClientEventCallback(new ConsulMetricsTracker(serviceName, statsDSender));
-    }
+    builder.withClientEventCallback(new ConsulMetricsTracker(serviceName, statsDSender));
     return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
   }
 

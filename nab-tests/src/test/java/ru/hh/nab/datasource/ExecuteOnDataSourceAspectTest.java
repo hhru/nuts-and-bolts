@@ -3,12 +3,13 @@ package ru.hh.nab.datasource;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.Properties;
 import javax.inject.Inject;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -19,11 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
+import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
@@ -50,14 +52,8 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     );
   }
 
-  @AfterEach
-  public void tearDown() {
-    DataSourceType.clear();
-  }
-
   @Test
   public void testReadOnly() throws Throwable {
-    DataSourceType.registerPropertiesFor(DataSourceType.READONLY, new DataSourceType.DataSourceProperties(false));
     startTransaction();
     assertEquals(MASTER, getDataSourceKey());
     masterSession = getCurrentSession();
@@ -196,7 +192,35 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   }
 
   @Configuration
-  @Import(TestService.class)
   static class AspectConfig {
+
+    @Bean
+    DataSource readOnlyDataSource(DataSourceFactory dataSourceFactory, FileSettings readOnlySettings) {
+      return dataSourceFactory.create(DataSourceType.READONLY, true, readOnlySettings);
+    }
+
+    @Bean
+    FileSettings readOnlySettings() {
+      Properties properties = new Properties();
+      properties.setProperty(DataSourceType.READONLY + ".pool.maximumPoolSize", "2");
+      return new FileSettings(properties);
+    }
+
+    @Bean
+    DataSource writableDataSource(DataSourceFactory dataSourceFactory, FileSettings writableSettings) {
+      return dataSourceFactory.create(WRITABLE_DATASOURCE, false, writableSettings);
+    }
+
+    @Bean
+    FileSettings writableSettings() {
+      Properties properties = new Properties();
+      properties.setProperty(WRITABLE_DATASOURCE + ".pool.maximumPoolSize", "2");
+      return new FileSettings(properties);
+    }
+
+    @Bean
+    TestService testService(SessionFactory sessionFactory) {
+      return new TestService(sessionFactory);
+    }
   }
 }

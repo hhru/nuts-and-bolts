@@ -21,8 +21,11 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.hibernate.qualifier.Hibernate;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
+import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
+
 
 @Configuration
 @EnableTransactionManagement(order = 0)
@@ -35,6 +38,16 @@ public class NabHibernateCommonConfig {
     HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
     simpleTransactionManager.setAutodetectDataSource(true);
     return new DataSourceContextTransactionManager(simpleTransactionManager);
+  }
+
+  @Bean
+  ExecuteOnDataSourceBeanPostProcessor executeOnDataSourceBeanPostProcessor() {
+    return new ExecuteOnDataSourceBeanPostProcessor();
+  }
+
+  @Bean
+  DataSourcesReadyTarget dataSourcesReadyTarget(List<DataSource> dataSources) {
+    return new DataSourcesReadyTarget(dataSources);
   }
 
   @Bean

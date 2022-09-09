@@ -15,6 +15,7 @@ import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
+import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.metrics.Counters;
@@ -31,7 +32,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private static final String SECONDARY_DATASOURCE_TAG_NAME = "secondary_datasource";
   private static final String SECONDARY_DATASOURCE_NAME_FORMAT = "%s.%s";
 
-  private final LazyConnectionDataSource defaultDataSource;
+  private final LazyConnectionDataSource targetDataSource;
   private final Map<String, DataSource> replicas = new HashMap<>();
   private final Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
@@ -42,13 +43,13 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
    * @deprecated Use {@link RoutingDataSourceFactory#create(DataSource)}
    */
   @Deprecated
-  public RoutingDataSource(DataSource defaultDataSource) {
-    this(defaultDataSource, null, null);
+  public RoutingDataSource(DataSource targetDataSource) {
+    this(targetDataSource, null, null);
   }
 
-  public RoutingDataSource(DataSource defaultDataSource, String serviceName, StatsDSender statsDSender) {
-    // create defaultDataSource lazy proxy. defaultAutoCommit and defaultTransactionIsolation will be determine via connection to defaultDataSource
-    this.defaultDataSource = new LazyConnectionDataSource(defaultDataSource);
+  public RoutingDataSource(DataSource targetDataSource, String serviceName, StatsDSender statsDSender) {
+    // create lazy proxy. defaultAutoCommit and defaultTransactionIsolation will be determine via connection
+    this.targetDataSource = new LazyConnectionDataSource(targetDataSource);
     this.serviceName = serviceName;
     this.successfulSwitchingCounters = new Counters(50);
     this.failedSwitchingCounters = new Counters(50);
@@ -82,7 +83,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   @Override
   public void afterPropertiesSet() {
     Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks =
-        Stream.concat(Stream.of(defaultDataSource), replicas.values().stream())
+        Stream.concat(Stream.of(targetDataSource), replicas.values().stream())
             .filter(this::isWrapperForHealthCheckHikariDataSource)
             .map(this::unwrapHealthCheckHikariDataSource)
             .collect(Collectors.toMap(HikariConfig::getPoolName, HealthCheckHikariDataSource::getHealthCheck));
@@ -97,13 +98,14 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
               String secondaryDataSourceName = entry.getValue().get();
               return ofNullable(replicas.get(secondaryDataSourceName))
                   .map(dataSource -> this.createSecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName))
-                  .orElseGet(() -> this.createSecondaryDataSourceProxy(defaultDataSource, primaryDataSourceName, secondaryDataSourceName));
+                  .orElseGet(() -> this.createSecondaryDataSourceProxy(targetDataSource, primaryDataSourceName, secondaryDataSourceName));
             }));
 
     this.dataSourceHealthChecks.putAll(dataSourceHealthChecks);
     this.replicas.putAll(secondaryDataSources);
-    setDefaultTargetDataSource(defaultDataSource);
-    setTargetDataSources(new HashMap<>(replicas));
+    HashMap<Object, Object> targetDataSources = new HashMap<>(replicas);
+    targetDataSources.put(DataSourceType.MASTER, targetDataSource);
+    setTargetDataSources(targetDataSources);
     super.afterPropertiesSet();
   }
 

@@ -32,6 +32,10 @@ public final class DataSourceType {
     return PROPERTIES_STORAGE.getOrDefault(dataSourceName, DataSourceProperties.DEFAULT_PROPERTIES);
   }
 
+  public static boolean isConfigured(String dataSourceName) {
+    return PROPERTIES_STORAGE.get(dataSourceName) != null;
+  }
+
   public static final class DataSourceProperties {
 
     private static final DataSourceProperties DEFAULT_PROPERTIES = new DataSourceProperties(true);

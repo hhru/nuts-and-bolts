@@ -1,3 +1,11 @@
+-   name: 4.36.0
+    date: '2022-09-09T16:19:02.683653+03:00'
+    description: Убран master как выбор по-умолчанию для RoutingDataSource, при попытке
+        использовать DataSource без конфигурации будет получена ошибка.
+    instructions: "* Необходимо добавить недостающие DataSource в конфигурацию\r\n\
+        * Добавить новые DataSource в RoutingDataSource"
+    compatible: false
+
 -   name: 4.35.2
     date: '2022-09-08T19:16:15.739460+03:00'
     description: Метрика consul.request переименована в consul-client.request. Также

@@ -126,7 +126,10 @@ public final class NabApplication {
     if (StringUtils.isBlank(dsn)) {
       LOGGER.warn("Sentry DSN is empty!");
     } else {
-      Sentry.init(dsn);
+      Sentry.init(options -> {
+        options.setEnableExternalConfiguration(true);
+        options.setDsn(dsn);
+      });
     }
   }
 

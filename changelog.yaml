@@ -1,3 +1,9 @@
+-   name: 4.36.2
+    date: '2022-10-12T13:15:00.333439+03:00'
+    description: Обновление public-pom до 1.52.3
+    instructions: ''
+    compatible: true
+
 -   name: 4.36.1
     date: '2022-10-10T20:14:57.205411+03:00'
     description: '- fix sentry configuration so it reads sentry.properties'

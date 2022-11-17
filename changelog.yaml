@@ -1,6 +1,6 @@
 -   name: 4.36.3
     date: '2022-11-16T14:41:38.679710+03:00'
-    description: ''
+    description: 'Добавлен testcontainer Redis'
     instructions: ''
     compatible: true
 

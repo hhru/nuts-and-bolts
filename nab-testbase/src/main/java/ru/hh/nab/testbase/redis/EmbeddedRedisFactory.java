@@ -5,9 +5,9 @@ import org.testcontainers.containers.GenericContainer;
 
 public class EmbeddedRedisFactory {
 
-  private static final String DEFAULT_REDIS_IMAGE = "redis:5.0.7";
+  private static final String DEFAULT_REDIS_IMAGE = "redis:6.2.3";
   //переменная окружения для возможности оверрайда дефолтной версии Redis-контейнера
-  private static final String REDIS_IMAGE_ENV_VARIABLE = "EXT_REDIS_IMAGE";
+  public static final String REDIS_IMAGE_ENV_VARIABLE = "EXT_REDIS_IMAGE";
   public static final int REDIS_DEFAULT_PORT = 6379;
 
   private static class EmbeddedRedisSingleton {

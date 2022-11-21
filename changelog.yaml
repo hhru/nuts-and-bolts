@@ -1,6 +1,14 @@
+-   name: 4.36.4
+    date: '2022-11-21T16:48:00.485040+03:00'
+    description: Поднята версия дефолтного образа тестконтейнера Redis до 6.2.3. Поле
+        REDIS_IMAGE_ENV_VARIABLE, по значению которого можно подтягивать версию образа
+        Redis из переменных окружения, сделано публичным.
+    instructions: ''
+    compatible: true
+
 -   name: 4.36.3
     date: '2022-11-16T14:41:38.679710+03:00'
-    description: 'Добавлен testcontainer Redis'
+    description: Добавлен testcontainer Redis
     instructions: ''
     compatible: true
 

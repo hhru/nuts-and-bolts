@@ -1,3 +1,9 @@
+-   name: 4.36.6
+    date: '2022-12-14T16:20:02.308311+03:00'
+    description: Обновление jclient до 3.9.11
+    instructions: ''
+    compatible: true
+
 -   name: 4.36.5
     date: '2022-12-14T10:17:19.677881+03:00'
     description: Обновление jclient до 3.9.10

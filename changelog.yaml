@@ -1,3 +1,9 @@
+-   name: 4.36.7
+    date: '2022-12-19T11:25:36.204665+03:00'
+    description: Обновление public-pom до 1.52.4
+    instructions: ''
+    compatible: true
+
 -   name: 4.36.6
     date: '2022-12-14T16:20:02.308311+03:00'
     description: Обновление jclient до 3.9.11

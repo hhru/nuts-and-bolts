@@ -15,7 +15,8 @@ public interface LogLevelOverrideExtension {
 
   /**
    * Triggers your application to retrieve log level overrides.
+   * The extension may throw special {@link SkipLogLevelOverrideException} to skip overriding on this call without any error.
    * @return Future with overrides map; map contains logger names and log levels as a keys and values respectively
    */
-  CompletableFuture<Map<String, String>> loadLogLevelOverrides();
+  CompletableFuture<Map<String, String>> loadLogLevelOverrides() throws SkipLogLevelOverrideException;
 }

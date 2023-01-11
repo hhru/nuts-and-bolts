@@ -51,6 +51,8 @@ public class LogLevelOverrideApplier {
     executor.scheduleWithFixedDelay(() -> {
       try {
         applyOverrides(getOrThrow(extension.loadLogLevelOverrides()));
+      } catch (SkipLogLevelOverrideException e) {
+        LOGGER.debug("Log level overriding skipped", e);
       } catch (RuntimeException e) {
         LOGGER.error("Could not apply log level overrides", e);
       }
@@ -88,7 +90,7 @@ public class LogLevelOverrideApplier {
     });
   }
 
-  private <T> T getOrThrow(CompletableFuture<T> future) {
+  private <T> T getOrThrow(CompletableFuture<T> future) throws SkipLogLevelOverrideException {
     try {
       return future.get();
     } catch (InterruptedException e) {
@@ -96,6 +98,9 @@ public class LogLevelOverrideApplier {
       throw new RuntimeException("Interrupted while waiting for completable future to complete", e);
     } catch (ExecutionException e) {
       Throwable cause = e.getCause();
+      if (cause instanceof SkipLogLevelOverrideException) {
+        throw (SkipLogLevelOverrideException) cause;
+      }
       if (cause instanceof RuntimeException) {
         throw (RuntimeException) cause;
       }

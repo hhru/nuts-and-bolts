@@ -30,7 +30,7 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: ["
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: ["
         + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
         + "] ERROR logger:1 mdc={} - message",
       "message");
@@ -44,7 +44,7 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test.slog: ["
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.slog/: ["
         + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
         + "] ERROR logger:1 mdc={} - message",
       "message");
@@ -58,7 +58,7 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: ["
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: ["
       + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
       + "] ERROR logger:1 mdc={} - сообщение", "сообщение");
   }
@@ -75,7 +75,7 @@ public class HhSyslogAppenderTest {
       patternLayout.start();
       return appender;
     };
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test.log: message", "message");
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: message", "message");
   }
 
   protected void testLogging(Function<Context, ? extends AppenderBase> appenderCreateFunction, String pid, String expected,
@@ -84,6 +84,7 @@ public class HhSyslogAppenderTest {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogHost", "localhost");
     context.putProperty("log.syslogPort", String.valueOf(serverSocket.getLocalPort()));
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
     var appender = appenderCreateFunction.apply(context);
     appender.setName(pid);

@@ -25,6 +25,7 @@ public class HhMultiAppenderTest {
     context.putProperty("log.toConsole", "true");
     context.putProperty("log.syslogHost", "localhost");
     context.putProperty("log.syslogPort", "123");
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
@@ -38,6 +39,7 @@ public class HhMultiAppenderTest {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogHost", "localhost");
     context.putProperty("log.syslogPort", "123");
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
@@ -50,6 +52,7 @@ public class HhMultiAppenderTest {
   public void testIfSyslogPortOnlySetRollingAppenderCreated() {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogPort", "123");
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
@@ -63,6 +66,7 @@ public class HhMultiAppenderTest {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogHost", "localhost");
     context.putProperty("log.syslogPort", "abc");
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
@@ -110,6 +114,7 @@ public class HhMultiAppenderTest {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogHost", "localhost");
     context.putProperty("log.syslogPort", "123");
+    context.putProperty("log.syslogTag", "test");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);

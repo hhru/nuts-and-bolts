@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Layout;
 import com.papertrailapp.logback.Syslog4jAppender;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.productivity.java.syslog4j.SyslogConstants;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import static ru.hh.nab.logging.HhMultiAppender.LOG_PATTERN_PROPERTY_KEY;
@@ -15,6 +16,8 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
   public static final String SYSLOG_PORT_PROPERTY_KEY = "log.syslogPort";
   public static final String SYSLOG_HOST_PROPERTY_KEY = "log.syslogHost";
   public static final String SYSLOG_MAX_MSG_LENGTH_PROPERTY_KEY = "log.syslogMaxMessageLength";
+  public static final String SYSLOG_TAG = "log.syslogTag";
+  private static final String SYSLOG_DELIMITER = "/";
 
   private final boolean json;
 
@@ -32,8 +35,9 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
     }
     var host = context.getProperty(SYSLOG_HOST_PROPERTY_KEY);
     var port = context.getProperty(SYSLOG_PORT_PROPERTY_KEY);
-    var udpNetSyslogConfig = new UDPNetSyslogConfig(SyslogConstants.FACILITY_USER, host, Integer.valueOf(port));
-    udpNetSyslogConfig.setIdent(getName() + (json ? ".slog" : ".log"));
+    var tag = context.getProperty(SYSLOG_TAG);
+    var udpNetSyslogConfig = new UDPNetSyslogConfig(SyslogConstants.FACILITY_USER, host, Integer.parseInt(port));
+    udpNetSyslogConfig.setIdent(generateIdent(tag));
     //better truncate than garbage file
     udpNetSyslogConfig.setTruncateMessage(true);
     udpNetSyslogConfig.setSendLocalName(false);
@@ -48,6 +52,10 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
     udpNetSyslogConfig.setMaxMessageLength(maxMessageLength);
     setSyslogConfig(udpNetSyslogConfig);
     super.start();
+  }
+
+  private String generateIdent(String tag) {
+    return (StringUtils.isNotEmpty(tag) ? tag + SYSLOG_DELIMITER : "") + getName() + (json ? ".slog" : ".log") + SYSLOG_DELIMITER;
   }
 
   protected Layout<ILoggingEvent> buildDefaultLayout() {

@@ -1,4 +1,4 @@
-version: 4.37.0
+version: 4.37.1
 build_image: registry.pyn.ru/openjdk11-building:2021.07.06
 type: library
 build_method: mvn_build

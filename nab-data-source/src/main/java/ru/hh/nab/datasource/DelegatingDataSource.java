@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.monitoring;
+package ru.hh.nab.datasource;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -7,11 +7,11 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 
-abstract class DelegatingDataSource implements DataSource {
+public abstract class DelegatingDataSource implements DataSource {
 
-  private final DataSource delegate;
+  protected final DataSource delegate;
 
-  DelegatingDataSource(DataSource delegate) {
+  public DelegatingDataSource(DataSource delegate) {
     this.delegate = delegate;
   }
 
@@ -52,11 +52,14 @@ abstract class DelegatingDataSource implements DataSource {
 
   @Override
   public <T> T unwrap(Class<T> iface) throws SQLException {
+    if (iface.isInstance(this)) {
+      return (T) this;
+    }
     return delegate.unwrap(iface);
   }
 
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return delegate.isWrapperFor(iface);
+    return iface.isInstance(this) || delegate.isWrapperFor(iface);
   }
 }

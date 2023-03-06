@@ -25,14 +25,14 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
 
   public EmbeddedPostgresDataSourceFactory() {
-    super(null, null);
+    super(null, null, null);
   }
 
   public EmbeddedPostgresDataSourceFactory(
       NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
       HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory
   ) {
-    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory);
+    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, null);
   }
 
   @Override

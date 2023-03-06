@@ -27,6 +27,7 @@
         <module>nab-jclient</module>
         <module>nab-metrics</module>
         <module>nab-telemetry</module>
+        <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
         <module>nab-websocket</module>
@@ -88,6 +89,11 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-telemetry-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

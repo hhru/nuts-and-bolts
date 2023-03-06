@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
+import ru.hh.nab.datasource.DelegatingDataSource;
 
 /**
  * A {@link javax.sql.DataSource} that sends Postgresql statement timeout query after obtaining a connection from the underlying datasource.<br/>

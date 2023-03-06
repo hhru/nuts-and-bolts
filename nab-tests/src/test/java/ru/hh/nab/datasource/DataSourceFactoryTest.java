@@ -1,6 +1,7 @@
 package ru.hh.nab.datasource;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -44,7 +45,8 @@ public class DataSourceFactoryTest {
     StatsDSender statsDSender = mock(StatsDSender.class);
     dataSourceFactory = new DataSourceFactory(
         new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, statsDSender),
-        new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, statsDSender)
+        new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, statsDSender),
+        null
     );
   }
 
@@ -66,10 +68,10 @@ public class DataSourceFactoryTest {
   }
 
   @Test
-  public void testCreateDataSource() {
+  public void testCreateDataSource() throws SQLException {
     Properties properties = createTestProperties();
 
-    HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
+    HikariDataSource dataSource = createTestDataSource(properties).unwrap(HikariDataSource.class);
     assertEquals(TEST_DATA_SOURCE_TYPE, dataSource.getPoolName());
   }
 
@@ -77,7 +79,7 @@ public class DataSourceFactoryTest {
   public void testCreateHealthCheckHikariDataSource() {
     Properties properties = createTestProperties();
     properties.setProperty(getProperty(HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED), "true");
-    assertTrue(createTestDataSource(properties) instanceof HealthCheckHikariDataSource);
+    assertSuccessfulUnwrap(createTestDataSource(properties), HealthCheckHikariDataSource.class);
     assertTrue(DataSourceType.getPropertiesFor(TEST_DATA_SOURCE_TYPE).getSecondaryDataSource().isEmpty());
   }
 
@@ -109,19 +111,26 @@ public class DataSourceFactoryTest {
   public void testCreateStatementTimeoutDataSource() {
     Properties properties = createTestProperties();
     properties.setProperty(getProperty(STATEMENT_TIMEOUT_MS), "100");
-
-    assertTrue(createTestDataSource(properties) instanceof StatementTimeoutDataSource);
+    assertSuccessfulUnwrap(createTestDataSource(properties), StatementTimeoutDataSource.class);
   }
 
   @Test
-  public void testCreateDataSourceWithMetrics() {
+  public void testCreateDataSourceWithMetrics() throws SQLException {
     Properties properties = createTestProperties();
     properties.setProperty(getProperty(MONITORING_SEND_STATS), "true");
     properties.setProperty(getProperty(MONITORING_LONG_CONNECTION_USAGE_MS), "10");
     properties.setProperty(getProperty(MONITORING_SEND_SAMPLED_STATS), "true");
 
-    HikariDataSource dataSource = (HikariDataSource) createTestDataSource(properties);
+    HikariDataSource dataSource = createTestDataSource(properties).unwrap(HikariDataSource.class);
     assertNotNull(dataSource.getMetricsTrackerFactory());
+  }
+
+  private void assertSuccessfulUnwrap(DataSource dataSource, Class<?> clazz) {
+    try {
+      dataSource.unwrap(clazz);
+    } catch (SQLException e) {
+      fail(() -> "Unable to unwrap to " + clazz.getSimpleName());
+    }
   }
 
   private static DataSource createTestDataSource(Properties properties) {

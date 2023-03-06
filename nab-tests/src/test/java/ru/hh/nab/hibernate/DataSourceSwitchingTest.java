@@ -1,6 +1,9 @@
 package ru.hh.nab.hibernate;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -158,7 +161,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     DataSourceFactory dataSourceFactory(StatsDSender statsDSender) {
       return new EmbeddedPostgresDataSourceFactory(
           new NabMetricsTrackerFactoryProvider(SERVICE_NAME, statsDSender),
-          new HealthCheckHikariDataSourceFactory(SERVICE_NAME, statsDSender)
+          new HealthCheckHikariDataSourceFactory(SERVICE_NAME, statsDSender) {
+            @Override
+            public HikariDataSource create(HikariConfig hikariConfig) {
+              return spy(super.create(hikariConfig));
+            }
+          }
       );
     }
 
@@ -235,10 +243,13 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
 
     private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String dataSourceName, Properties properties) {
       DataSource dataSource = spy(dataSourceFactory.create(dataSourceName, false, new FileSettings(properties)));
-      if (dataSource instanceof HealthCheckHikariDataSource) {
+      try {
+        var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
         HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
         when(failedHealthCheck.check()).thenReturn(HealthCheck.Result.unhealthy("Data source is unhealthy"));
-        when(((HealthCheckHikariDataSource) dataSource).getHealthCheck()).thenReturn(failedHealthCheck);
+        when(healthCheckHikariDataSource.getHealthCheck()).thenReturn(failedHealthCheck);
+      } catch (SQLException e) {
+        // empty
       }
       return dataSource;
     }

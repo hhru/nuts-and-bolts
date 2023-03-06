@@ -16,6 +16,7 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
 import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.metrics.Counters;
@@ -112,6 +113,19 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
 
   public void addDataSource(String dataSourceName, DataSource dataSource) {
     replicas.put(dataSourceName, dataSource);
+  }
+
+  /**
+   * Original DataSource must be wrapped with {@link ru.hh.nab.datasource.NamedDataSource} otherwise IllegalArgumentException will be thrown.
+   * If DataSource doesn't wrapped with {@link ru.hh.nab.datasource.NamedDataSource} prefer to use {@link #addDataSource(String, DataSource)}.
+   */
+  public void addNamedDataSource(DataSource dataSource) {
+    replicas.put(
+        NamedDataSource
+            .getName(dataSource)
+            .orElseThrow(() -> new IllegalArgumentException("Original DataSource doesn't wrapped with NamedDataSource")),
+        dataSource
+    );
   }
 
   public void setProxyFactory(DataSourceProxyFactory proxyFactory) {

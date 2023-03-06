@@ -1,5 +1,6 @@
 package ru.hh.nab.starter;
 
+import javax.inject.Named;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import ru.hh.consul.config.ClientConfig;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;
@@ -21,9 +23,9 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class NabAppTestConfig {
 
   @Bean
-  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata,
+  ConsulService consulService(FileSettings fileSettings, AppMetadata appMetadata, @Named(NODE_NAME) String nodeName,
                               AgentClient agentClient, KeyValueClient keyValueClient) {
-    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, null));
+    return spy(new ConsulService(agentClient, keyValueClient, fileSettings, appMetadata, nodeName, null));
   }
 
   @Bean

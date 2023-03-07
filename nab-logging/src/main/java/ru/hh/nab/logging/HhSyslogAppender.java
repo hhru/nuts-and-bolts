@@ -13,6 +13,7 @@ import static ru.hh.nab.logging.HhMultiAppender.LOG_PATTERN_PROPERTY_KEY;
 public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
 
   private static final int DEFAULT_MSG_LENGTH = 60000;
+  public static final String SYSLOG_HOST_ENV = "SYSLOG_HOST";
   public static final String SYSLOG_PORT_PROPERTY_KEY = "log.syslogPort";
   public static final String SYSLOG_HOST_PROPERTY_KEY = "log.syslogHost";
   public static final String SYSLOG_MAX_MSG_LENGTH_PROPERTY_KEY = "log.syslogMaxMessageLength";
@@ -33,7 +34,7 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
       setLayout(defaultLayout);
       getLayout().start();
     }
-    var host = context.getProperty(SYSLOG_HOST_PROPERTY_KEY);
+    var host = Optional.ofNullable(System.getenv(SYSLOG_HOST_ENV)).orElseGet(() -> context.getProperty(SYSLOG_HOST_PROPERTY_KEY));
     var port = context.getProperty(SYSLOG_PORT_PROPERTY_KEY);
     var tag = context.getProperty(SYSLOG_TAG);
     var udpNetSyslogConfig = new UDPNetSyslogConfig(SyslogConstants.FACILITY_USER, host, Integer.parseInt(port));

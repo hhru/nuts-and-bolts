@@ -27,6 +27,7 @@ import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 public class NabCommonConfig {
 
   private static final String STATSD_DEFAULT_PERIODIC_SEND_INTERVAL = "statsd.defaultPeriodicSendIntervalSec";
+  private static final String NODE_NAME_ENV = "NODE_NAME";
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
@@ -45,8 +46,9 @@ public class NabCommonConfig {
   @Named(NODE_NAME)
   @Bean(NODE_NAME)
   String nodeName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(NODE_NAME)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)));
+    return ofNullable(System.getenv(NODE_NAME_ENV))
+        .orElseGet(() -> ofNullable(fileSettings.getString(NODE_NAME)).filter(Predicate.not(String::isEmpty))
+            .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME))));
   }
 
   @Bean

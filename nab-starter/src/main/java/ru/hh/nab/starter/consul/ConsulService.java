@@ -24,7 +24,6 @@ import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
@@ -74,9 +73,10 @@ public class ConsulService {
 
   public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
                        FileSettings fileSettings, AppMetadata appMetadata,
+                       String nodeName,
                        @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
     int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
-    this.hostName = fileSettings.getNotEmptyOrThrow(NODE_NAME);
+    this.hostName = nodeName;
     this.serviceName = fileSettings.getNotEmptyOrThrow(SERVICE_NAME);
     this.serviceId = serviceName + '-' + this.hostName + '-' + applicationPort;
     this.agentClient = agentClient;

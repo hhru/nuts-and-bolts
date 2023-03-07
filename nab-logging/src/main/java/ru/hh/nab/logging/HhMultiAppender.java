@@ -11,9 +11,12 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.LifeCycle;
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
+import static ru.hh.nab.logging.HhSyslogAppender.SYSLOG_HOST_ENV;
+import static ru.hh.nab.logging.HhSyslogAppender.SYSLOG_HOST_PROPERTY_KEY;
 import ru.hh.nab.logging.json.NabJsonEncoder;
 import ru.hh.nab.logging.json.NabJsonLayout;
 
@@ -83,7 +86,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       };
     }
 
-    String host = getContext().getProperty(HhSyslogAppender.SYSLOG_HOST_PROPERTY_KEY);
+    String host = Optional.ofNullable(System.getenv(SYSLOG_HOST_ENV)).orElseGet(() -> getContext().getProperty(SYSLOG_HOST_PROPERTY_KEY));
     String port = getContext().getProperty(HhSyslogAppender.SYSLOG_PORT_PROPERTY_KEY);
     if (StringUtils.isNotEmpty(host) && StringUtils.isNumeric(port)) {
       return new AppenderConfigurer<>(new HhSyslogAppender(this.json), this) {

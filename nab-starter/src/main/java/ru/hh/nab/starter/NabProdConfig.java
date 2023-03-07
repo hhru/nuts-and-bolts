@@ -19,6 +19,7 @@ import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.consul.ConsulMetricsTracker;
@@ -94,6 +95,7 @@ public class NabProdConfig {
                               AppMetadata appMetadata,
                               Optional<AgentClient> agentClient,
                               Optional<KeyValueClient> keyValueClient,
+                              @Named(NODE_NAME) String nodeName,
                               Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
     if (isConsulDisabled(fileSettings)) {
       return null;
@@ -103,6 +105,7 @@ public class NabProdConfig {
         keyValueClient.orElseThrow(),
         fileSettings,
         appMetadata,
+        nodeName,
         logLevelOverrideExtensionOptional.orElse(null));
   }
 

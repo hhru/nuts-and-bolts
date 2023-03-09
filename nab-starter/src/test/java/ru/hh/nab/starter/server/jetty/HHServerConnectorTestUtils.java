@@ -11,14 +11,10 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 class HHServerConnectorTestUtils {
 
   static void repeat(int times, TestIteration testIteration) throws Exception {
-    for (int i=1; i<=times; i++) {
+    for (int i = 1; i <= times; i++) {
       System.out.println("Running iteration " + i + " of " + times);
       testIteration.run();
     }
-  }
-
-  interface TestIteration {
-    void run() throws Exception;
   }
 
   static Server createServer(ThreadPool threadPool, Servlet servlet) {
@@ -41,5 +37,9 @@ class HHServerConnectorTestUtils {
   }
 
   private HHServerConnectorTestUtils() {
+  }
+
+  interface TestIteration {
+    void run() throws Exception;
   }
 }

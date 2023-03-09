@@ -53,7 +53,7 @@ public final class NabApplicationBuilder {
 
       @Override
       protected String getContextPath() {
-        return StringUtils.isEmpty(contextPath) ? super.getContextPath() : contextPath;
+        return StringUtils.hasLength(contextPath) ? contextPath : super.getContextPath();
       }
 
       @Override
@@ -237,7 +237,7 @@ public final class NabApplicationBuilder {
       final String filterName = getFilterName();
       NabServletContextConfig.registerFilter(
               servletContext,
-              !StringUtils.isEmpty(filterName) ? filterName : filterClass.getName(),
+              StringUtils.hasLength(filterName) ? filterName : filterClass.getName(),
               filterClass,
               getInitParameters(),
               getDispatcherTypes(),
@@ -265,7 +265,7 @@ public final class NabApplicationBuilder {
       F filter = filterProvider.apply(webApplicationContext);
       NabServletContextConfig.registerFilter(
               servletContext,
-              !StringUtils.isEmpty(filterName) ? filterName : filter.getClass().getName(),
+              StringUtils.hasLength(filterName) ? filterName : filter.getClass().getName(),
               filter,
               getDispatcherTypes(),
               getMappings()
@@ -293,7 +293,7 @@ public final class NabApplicationBuilder {
       getInitParameters().forEach(filterHolder::setInitParameter);
       NabServletContextConfig.registerFilter(
               servletContext,
-              !StringUtils.isEmpty(filterName) ? filterName : filterHolder.getName(),
+              StringUtils.hasLength(filterName) ? filterName : filterHolder.getName(),
               filterHolder,
               getDispatcherTypes(),
               getMappings()

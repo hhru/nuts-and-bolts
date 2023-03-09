@@ -12,7 +12,7 @@ public final class UriCompactionUtil {
   private static final char SLASH = '/';
   private static final String SLASH_STR = String.valueOf(SLASH);
   private static final Collection<Integer> NON_HEX_LETTERS = IntStream.rangeClosed('g', 'z').boxed()
-    .collect(Collectors.toUnmodifiableSet());
+      .collect(Collectors.toUnmodifiableSet());
   private static final String REPLACEMENT = "[id-or-hash]";
   private static final String EMAIL_REPLACEMENT = "[email]";
   private static final String EMAIL_MARKER = "@";
@@ -31,20 +31,20 @@ public final class UriCompactionUtil {
 
   public static String compactUri(String uriPath, int minCompactingLength, int minPossibleHashLength, String replacement) {
     return ofNullable(uriPath)
-      .map(path -> {
-        StringJoiner joiner = new StringJoiner(SLASH_STR, SLASH_STR, "");
-        int startIndex = 0;
-        do {
-          final int endIndex = path.indexOf(SLASH, startIndex);
-          if (endIndex == -1) {
-            joiner.add(compactPathPart(path.substring(startIndex), minCompactingLength, minPossibleHashLength, replacement));
-          } else if (endIndex > startIndex) {
-            joiner.add(compactPathPart(path.substring(startIndex, endIndex), minCompactingLength, minPossibleHashLength, replacement));
-          }
-          startIndex = endIndex + 1;
-        } while (startIndex > 0 && startIndex < path.length());
-        return joiner.toString();
-      }).orElse(null);
+        .map(path -> {
+          StringJoiner joiner = new StringJoiner(SLASH_STR, SLASH_STR, "");
+          int startIndex = 0;
+          do {
+            final int endIndex = path.indexOf(SLASH, startIndex);
+            if (endIndex == -1) {
+              joiner.add(compactPathPart(path.substring(startIndex), minCompactingLength, minPossibleHashLength, replacement));
+            } else if (endIndex > startIndex) {
+              joiner.add(compactPathPart(path.substring(startIndex, endIndex), minCompactingLength, minPossibleHashLength, replacement));
+            }
+            startIndex = endIndex + 1;
+          } while (startIndex > 0 && startIndex < path.length());
+          return joiner.toString();
+        }).orElse(null);
   }
 
   private static String compactPathPart(String pathPart, int minCompactingLength, int minPossibleHashLength, String replacement) {

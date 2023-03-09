@@ -12,8 +12,8 @@ public class JsonCharacterEscapes extends JsonpCharacterEscapes {
   private static final int[] asciiEscapes = CharacterEscapes.standardAsciiEscapesForJSON();
   static {
     IntStream.range(0, 0x20)
-      .filter(i -> CharacterEscapeBase.isInvalidTextSymbol((char) i))
-      .forEach(i -> asciiEscapes[i] = CharacterEscapes.ESCAPE_CUSTOM);
+        .filter(i -> CharacterEscapeBase.isInvalidTextSymbol((char) i))
+        .forEach(i -> asciiEscapes[i] = CharacterEscapes.ESCAPE_CUSTOM);
   }
 
   @Override

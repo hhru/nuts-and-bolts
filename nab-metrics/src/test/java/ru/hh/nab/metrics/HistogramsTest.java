@@ -42,14 +42,14 @@ public class HistogramsTest {
     histograms.save(7, new Tag("label2", "second"), new Tag("label1", "first"));
     tagsToHistogram = histograms.getTagsToHistogramAndReset();
     assertEquals(
-      2,
-      tagsToHistogram.get(tagsOf(new Tag("label1", "first"), new Tag("label2", "second")))
-        .get(7).intValue()
+        2,
+        tagsToHistogram.get(tagsOf(new Tag("label1", "first"), new Tag("label2", "second")))
+            .get(7).intValue()
     );
     assertEquals(
-      1,
-      tagsToHistogram.get(tagsOf(new Tag("label1", "second"), new Tag("label2", "first")))
-        .get(7).intValue()
+        1,
+        tagsToHistogram.get(tagsOf(new Tag("label1", "second"), new Tag("label2", "first")))
+            .get(7).intValue()
     );
   }
 

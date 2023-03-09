@@ -13,7 +13,7 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 @Configuration
 @Import({
-  NabTestConfig.class,
+    NabTestConfig.class,
 })
 public class DataSourceTestConfig {
   @Bean

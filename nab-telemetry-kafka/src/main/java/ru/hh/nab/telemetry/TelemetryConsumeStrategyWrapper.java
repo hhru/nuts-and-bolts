@@ -9,8 +9,8 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_KIND;
+import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_NAME;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_CONSUMER_GROUP;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_OPERATION;
@@ -48,7 +48,7 @@ public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
         .setAttribute(SERVICE_NAME, clusterName)
         .setAttribute(MESSAGING_SYSTEM, "kafka")
         .setAttribute(MESSAGING_OPERATION, PROCESS)
-        .setAttribute(MESSAGING_DESTINATION, consumerGroupId.getTopic())
+        .setAttribute(MESSAGING_DESTINATION_NAME, consumerGroupId.getTopic())
         .setAttribute(MESSAGING_DESTINATION_KIND, TOPIC)
         .setAttribute(MESSAGING_KAFKA_CLIENT_ID, consumerGroupId.getServiceName())
         .setAttribute(MESSAGING_KAFKA_CONSUMER_GROUP, consumerGroupId.toString());

@@ -17,8 +17,8 @@ public class Percentiles {
     }
 
     Iterator<Map.Entry<Integer, Integer>> increasingValueToCountIterator = valueToCount.entrySet().stream()
-      .sorted(Map.Entry.comparingByKey())
-      .iterator();
+        .sorted(Map.Entry.comparingByKey())
+        .iterator();
     int currentObservations = 0;
     int percentileIndex = 0;
     Map<Integer, Integer> percentileToValue = new HashMap<>();
@@ -26,7 +26,7 @@ public class Percentiles {
       Map.Entry<Integer, Integer> valueAndCount = increasingValueToCountIterator.next();
       currentObservations += valueAndCount.getValue();
       for (; percentileIndex < percentiles.length
-        && totalObservations * percentiles[percentileIndex] / 100.0 <= currentObservations;
+          && totalObservations * percentiles[percentileIndex] / 100.0 <= currentObservations;
            percentileIndex++) {
 
         percentileToValue.put(percentiles[percentileIndex], valueAndCount.getKey());

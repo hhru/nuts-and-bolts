@@ -43,12 +43,12 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
 
     LOGGER.info(appendEntries(context), null);
     ofNullable(outerTimoutMs)
-      .map(Long::valueOf)
-      .filter(timeoutMs -> timeoutMs > 0)
-      .ifPresent(timeoutMs -> {
-        if (executionTime > timeoutMs) {
-          SLOW_REQUESTS.warn(appendEntries(context), null);
-        }
-      });
+        .map(Long::valueOf)
+        .filter(timeoutMs -> timeoutMs > 0)
+        .ifPresent(timeoutMs -> {
+          if (executionTime > timeoutMs) {
+            SLOW_REQUESTS.warn(appendEntries(context), null);
+          }
+        });
   }
 }

@@ -49,7 +49,7 @@ public class NabApplicationTest {
     long upTimeSeconds = appMetadata.getUpTimeSeconds();
     assertEquals(NabTestConfig.TEST_SERVICE_NAME, webApplicationContext.getBean("serviceName"));
     Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost").port(server.getPort()).build())
-      .path("status").request();
+        .path("status").request();
     try (Response response = statusReq.get()) {
       assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       Project project = response.readEntity(Project.class);

@@ -99,7 +99,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
               return ofNullable(replicas.get(secondaryDataSourceName))
                   .map(dataSource -> this.createSecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName))
                   .orElseGet(() -> this.createSecondaryDataSourceProxy(targetDataSource, primaryDataSourceName, secondaryDataSourceName));
-            }));
+            }
+        ));
 
     this.dataSourceHealthChecks.putAll(dataSourceHealthChecks);
     this.replicas.putAll(secondaryDataSources);
@@ -137,10 +138,16 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     return new SecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName);
   }
 
-  private DataSource createSecondaryDataSourceProxy(LazyConnectionDataSource defaultDataSource, String primaryDataSourceName,
-                                                    String secondaryDataSourceName) {
-    DataSource secondaryDataSource = this.createSecondaryDataSourceProxy(defaultDataSource.getTargetDataSource(), primaryDataSourceName,
-        secondaryDataSourceName);
+  private DataSource createSecondaryDataSourceProxy(
+      LazyConnectionDataSource defaultDataSource,
+      String primaryDataSourceName,
+      String secondaryDataSourceName
+  ) {
+    DataSource secondaryDataSource = this.createSecondaryDataSourceProxy(
+        defaultDataSource.getTargetDataSource(),
+        primaryDataSourceName,
+        secondaryDataSourceName
+    );
 
     // create secondaryDataSource lazy proxy via default constructor and set defaultAutoCommit and defaultTransactionIsolation parameters
     // determined on defaultDataSource lazy proxy creation. In this case connection will not be established again to defaultDataSource
@@ -185,7 +192,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
       this.tags = new Tag[]{
           new Tag(APP_TAG_NAME, serviceName),
           new Tag(PRIMARY_DATASOURCE_TAG_NAME, primaryDataSourceName),
-          new Tag(SECONDARY_DATASOURCE_TAG_NAME, secondaryDataSourceName)
+          new Tag(SECONDARY_DATASOURCE_TAG_NAME, secondaryDataSourceName),
       };
     }
 

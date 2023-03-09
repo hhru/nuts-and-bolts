@@ -75,7 +75,7 @@ public interface NabServletConfig {
 
         @Override
         public String getName() {
-          if (StringUtils.isEmpty(servletName)) {
+          if (!StringUtils.hasLength(servletName)) {
             return String.join("", getMapping());
           }
           return servletName;

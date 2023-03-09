@@ -51,13 +51,15 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
   }
 
   protected Map<String, Level> loggers() {
-    return new HashMap<>() {{
-      put("org.hibernate.tool.hbm2ddl", Level.INFO);
-      put("org.hibernate.orm.deprecation", Level.OFF);
-      put("com.opentable.db.postgres.embedded", Level.INFO);
-      put("org.testcontainers", Level.INFO);
-      put("org.testcontainers.utility.ResourceReaper", Level.OFF);
-    }};
+    return new HashMap<>() {
+      {
+        put("org.hibernate.tool.hbm2ddl", Level.INFO);
+        put("org.hibernate.orm.deprecation", Level.OFF);
+        put("com.opentable.db.postgres.embedded", Level.INFO);
+        put("org.testcontainers", Level.INFO);
+        put("org.testcontainers.utility.ResourceReaper", Level.OFF);
+      }
+    };
   }
 
   protected Properties createProperties() {

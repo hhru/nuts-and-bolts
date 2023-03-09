@@ -53,10 +53,22 @@ public class NabServletContextConfig {
     webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
     webAppContext.addEventListener(new RequestContextListener());
-    registerFilter(webAppContext.getServletContext(), RequestIdLoggingFilter.class.getName(), RequestIdLoggingFilter.class,
-      Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
-    registerFilter(webAppContext.getServletContext(), CommonHeadersFilter.class.getName(), CommonHeadersFilter.class,
-      Collections.emptyMap(), EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
+    registerFilter(
+        webAppContext.getServletContext(),
+        RequestIdLoggingFilter.class.getName(),
+        RequestIdLoggingFilter.class,
+        Collections.emptyMap(),
+        EnumSet.allOf(DispatcherType.class),
+        DEFAULT_MAPPING
+    );
+    registerFilter(
+        webAppContext.getServletContext(),
+        CommonHeadersFilter.class.getName(),
+        CommonHeadersFilter.class,
+        Collections.emptyMap(),
+        EnumSet.allOf(DispatcherType.class),
+        DEFAULT_MAPPING
+    );
     if (rootCtx.containsBean("cacheFilter")) {
       FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
       if (cacheFilter.isInstance()) {
@@ -64,9 +76,10 @@ public class NabServletContextConfig {
       }
     }
     rootCtx.getBeansOfType(NabServletFilter.class).entrySet().stream()
-      .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
-      .forEach(entry -> registerFilter(webAppContext.getServletContext(), entry.getKey(), entry.getValue(),
-        EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING));
+        .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
+        .forEach(entry -> registerFilter(webAppContext.getServletContext(), entry.getKey(), entry.getValue(),
+            EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING
+        ));
     configureWebapp(webAppContext, rootCtx);
   }
 
@@ -108,8 +121,8 @@ public class NabServletContextConfig {
 
   private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
     servletConfigs.stream()
-      .filter(servletConfig -> !servletConfig.isDisabled())
-      .forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
+        .filter(servletConfig -> !servletConfig.isDisabled())
+        .forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
   }
 
   private static void registerServlet(NabServletConfig nabServletConfig, ServletContext servletContext, WebApplicationContext rootCtx) {
@@ -131,9 +144,14 @@ public class NabServletContextConfig {
     }
   }
 
-  public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, Class<F> filterClass,
-                                                       Map<String, String> initParameters, EnumSet<DispatcherType> dispatcherTypes,
-                                                       String... mappings) {
+  public static <F extends Filter> void registerFilter(
+      ServletContext servletContext,
+      String filterName,
+      Class<F> filterClass,
+      Map<String, String> initParameters,
+      EnumSet<DispatcherType> dispatcherTypes,
+      String... mappings
+  ) {
     validateMappings(mappings);
 
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filterClass);
@@ -142,21 +160,36 @@ public class NabServletContextConfig {
     dynamic.setAsyncSupported(Boolean.parseBoolean(initParameters.getOrDefault("async-supported", "true")));
   }
 
-  public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-                                                       EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+  public static <F extends Filter> void registerFilter(
+      ServletContext servletContext,
+      String filterName,
+      F filter,
+      EnumSet<DispatcherType> dispatcherTypes,
+      String... mappings
+  ) {
     registerFilter(servletContext, filterName, filter, dispatcherTypes, true, mappings);
   }
 
-  public static <F extends Filter> void registerFilter(ServletContext servletContext, String filterName, F filter,
-                                                       EnumSet<DispatcherType> dispatcherTypes, boolean async, String... mappings) {
+  public static <F extends Filter> void registerFilter(
+      ServletContext servletContext,
+      String filterName,
+      F filter,
+      EnumSet<DispatcherType> dispatcherTypes,
+      boolean async,
+      String... mappings
+  ) {
     validateMappings(mappings);
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
     dynamic.setAsyncSupported(async);
     dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
   }
 
-  public static void registerFilter(ServletHandler servletContextHandler, FilterHolder filterHolder,
-                                    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+  public static void registerFilter(
+      ServletHandler servletContextHandler,
+      FilterHolder filterHolder,
+      EnumSet<DispatcherType> dispatcherTypes,
+      String... mappings
+  ) {
     validateMappings(mappings);
     FilterMapping mapping = new FilterMapping();
     mapping.setFilterName(filterHolder.getName());
@@ -165,8 +198,13 @@ public class NabServletContextConfig {
     servletContextHandler.addFilter(filterHolder, mapping);
   }
 
-  public static void registerFilter(ServletContext servletContext, String filterName, FilterHolder filterHolder,
-                                    EnumSet<DispatcherType> dispatcherTypes, String... mappings) {
+  public static void registerFilter(
+      ServletContext servletContext,
+      String filterName,
+      FilterHolder filterHolder,
+      EnumSet<DispatcherType> dispatcherTypes,
+      String... mappings
+  ) {
     validateMappings(mappings);
     if (filterHolder.isInstance()) {
       registerFilter(servletContext, filterName, filterHolder.getFilter(), dispatcherTypes, mappings);

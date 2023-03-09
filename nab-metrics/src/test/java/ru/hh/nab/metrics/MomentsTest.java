@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 public class MomentsTest {
   private static final int THREAD_COUNT = 1000;
   private static final float DELTA = 0.00001f;
-  private static final float[] SAMPLE = new float[] {10.0454f, 20.5545f, 30.4444f, 40.6656f, 15.435354f, 11.456233f, 25.56565f};
+  private static final float[] SAMPLE = new float[]{10.0454f, 20.5545f, 30.4444f, 40.6656f, 15.435354f, 11.456233f, 25.56565f};
 
   @Test
   public void testUpdate() {
@@ -55,7 +55,7 @@ public class MomentsTest {
     Moments moments = new Moments();
     List<Thread> threads = new ArrayList<>(THREAD_COUNT);
 
-    for (int i =0; i < THREAD_COUNT; i++) {
+    for (int i = 0; i < THREAD_COUNT; i++) {
       Thread thread = new Thread(() -> {
         Moments currentMoments = new Moments();
 

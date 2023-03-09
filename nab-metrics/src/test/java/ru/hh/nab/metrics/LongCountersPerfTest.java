@@ -15,14 +15,14 @@ public class LongCountersPerfTest {
 
   private static String[] createTagValues(int numOfTagValues) {
     String[] tagValues = new String[numOfTagValues];
-    for (int i=0; i<tagValues.length; i++) {
+    for (int i = 0; i < tagValues.length; i++) {
       tagValues[i] = Integer.toString(i);
     }
     return tagValues;
   }
 
   public static void main(String[] args) throws InterruptedException {
-    for(int t=1; t<=tests; t++) {
+    for (int t = 1; t <= tests; t++) {
       test(t);
     }
   }
@@ -68,7 +68,7 @@ public class LongCountersPerfTest {
 
   private static void checkSnapshots(Collection<Map<Tags, Long>> snapshots) {
     Map<Tags, Long> tagsToValue = merge(snapshots);
-    for (int i = 0; i<tagValues.length; i++) {
+    for (int i = 0; i < tagValues.length; i++) {
       long expected = increases * 2 / tagValues.length;
       long actual = tagsToValue.get(createTag(i));
       if (actual != expected) {

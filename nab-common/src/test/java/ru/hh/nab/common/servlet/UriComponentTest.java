@@ -14,7 +14,7 @@ public class UriComponentTest {
     var values = List.of("value1", "value2");
     var shortKey = "shortForm";
     String queryString = Stream.concat(Stream.of(shortKey), values.stream().map(value -> String.join("=", fullKey, value)))
-      .collect(Collectors.joining("&"));
+        .collect(Collectors.joining("&"));
     Map<String, List<String>> result = UriComponent.decodeQuery(queryString, true, true);
     List<String> actual = result.get(fullKey);
     assertEquals(values, actual);

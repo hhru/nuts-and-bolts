@@ -13,7 +13,7 @@ final class JettyWebAppContext extends WebAppContext {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyWebAppContext.class);
 
   JettyWebAppContext(List<WebAppInitializer> webAppInitializers, boolean sessionEnabled) {
-    super(null, null, null, null, null, null, sessionEnabled ? SESSIONS: 0);
+    super(null, null, null, null, null, null, sessionEnabled ? SESSIONS : 0);
     this.addLifeCycleListener(new BeforeStartListener(webAppInitializers));
     setThrowUnavailableOnStartupException(true);
   }
@@ -32,7 +32,7 @@ final class JettyWebAppContext extends WebAppContext {
     setConfigurations(configurations);
   }
 
-  private final class BeforeStartListener extends AbstractLifeCycleListener {
+  private final class BeforeStartListener implements LifeCycle.Listener {
     private final List<WebAppInitializer> initializers;
 
     private BeforeStartListener(List<WebAppInitializer> initializers) {

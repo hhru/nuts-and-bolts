@@ -12,48 +12,51 @@ import org.eclipse.jetty.util.thread.Scheduler;
 
 class ChannelsReadyChecker implements Runnable {
 
-    private final CompletableFuture<Void> channelsReadyFuture;
-    private final Supplier<Collection<EndPoint>> endPointsSupplier;
-    private final Scheduler scheduler;
+  private final CompletableFuture<Void> channelsReadyFuture;
+  private final Supplier<Collection<EndPoint>> endPointsSupplier;
+  private final Scheduler scheduler;
 
-    ChannelsReadyChecker(CompletableFuture<Void> channelsReadyFuture,
-                         Supplier<Collection<EndPoint>> endPointsSupplier,
-                         Scheduler scheduler) {
-      this.channelsReadyFuture = channelsReadyFuture;
-      this.endPointsSupplier = endPointsSupplier;
-      this.scheduler = scheduler;
+  ChannelsReadyChecker(
+      CompletableFuture<Void> channelsReadyFuture,
+      Supplier<Collection<EndPoint>> endPointsSupplier,
+      Scheduler scheduler
+  ) {
+    this.channelsReadyFuture = channelsReadyFuture;
+    this.endPointsSupplier = endPointsSupplier;
+    this.scheduler = scheduler;
+  }
+
+  @Override
+  public void run() {
+    if (channelsReadyFuture.isCancelled()) {
+      return;
     }
-
-    @Override
-    public void run() {
-      if (channelsReadyFuture.isCancelled()) {
-        return;
+    try {
+      if (allEndPointsReadyToBeClosed()) {
+        channelsReadyFuture.complete(null);
+      } else {
+        scheduler.schedule(
+            new ChannelsReadyChecker(channelsReadyFuture, endPointsSupplier, scheduler),
+            10, TimeUnit.MILLISECONDS
+        );
       }
-      try {
-        if (allEndPointsReadyToBeClosed()) {
-          channelsReadyFuture.complete(null);
-        } else {
-          scheduler.schedule(
-              new ChannelsReadyChecker(channelsReadyFuture, endPointsSupplier, scheduler),
-              10, TimeUnit.MILLISECONDS);
-        }
-      } catch (RuntimeException e) {
-        channelsReadyFuture.completeExceptionally(e);
-      }
-    }
-
-    private boolean allEndPointsReadyToBeClosed() {
-      return endPointsSupplier.get().stream().allMatch(ChannelsReadyChecker::endPointReadyToBeClosed);
-    }
-
-    private static boolean endPointReadyToBeClosed(EndPoint endPoint) {
-      Connection connection = endPoint.getConnection();
-      if (!(connection instanceof HttpConnection)) {
-        return true;
-      }
-      HttpConnection httpConnection = (HttpConnection) connection;
-      HttpChannelState channelState = httpConnection.getHttpChannel().getState();
-      HttpChannelState.State state = channelState.getState();
-      return channelState.isResponseCompleted() || state == HttpChannelState.State.IDLE;
+    } catch (RuntimeException e) {
+      channelsReadyFuture.completeExceptionally(e);
     }
   }
+
+  private boolean allEndPointsReadyToBeClosed() {
+    return endPointsSupplier.get().stream().allMatch(ChannelsReadyChecker::endPointReadyToBeClosed);
+  }
+
+  private static boolean endPointReadyToBeClosed(EndPoint endPoint) {
+    Connection connection = endPoint.getConnection();
+    if (!(connection instanceof HttpConnection)) {
+      return true;
+    }
+    HttpConnection httpConnection = (HttpConnection) connection;
+    HttpChannelState channelState = httpConnection.getHttpChannel().getState();
+    HttpChannelState.State state = channelState.getState();
+    return channelState.isResponseCompleted() || state == HttpChannelState.State.IDLE;
+  }
+}

@@ -28,8 +28,10 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     super(null, null);
   }
 
-  public EmbeddedPostgresDataSourceFactory(NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
-                                           HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory) {
+  public EmbeddedPostgresDataSourceFactory(
+      NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
+      HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory
+  ) {
     super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory);
   }
 
@@ -51,6 +53,10 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
   }
 
+  public static PostgreSQLContainer<?> getEmbeddedPostgres() {
+    return EmbeddedPostgresSingleton.INSTANCE;
+  }
+
   private static class EmbeddedPostgresSingleton {
     private static final PostgreSQLContainer<?> INSTANCE = createEmbeddedPostgres();
 
@@ -70,9 +76,5 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
       container.start();
       return container;
     }
-  }
-
-  public static PostgreSQLContainer<?> getEmbeddedPostgres() {
-    return EmbeddedPostgresSingleton.INSTANCE;
   }
 }

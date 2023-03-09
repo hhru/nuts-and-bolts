@@ -141,10 +141,10 @@ public class ConsulServiceTest {
       when(mock.getConfig()).thenReturn(new ClientConfig());
       when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
       Value weight = ImmutableValue.builder().createIndex(1).modifyIndex(1).lockIndex(1).key("key").flags(1)
-        .value(Base64.getEncoder().encodeToString("204".getBytes()))
-        .build();
+          .value(Base64.getEncoder().encodeToString("204".getBytes()))
+          .build();
       when(mock.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
-        .thenReturn(Optional.of(new ConsulResponse<>(weight, 0, true, BigInteger.ONE, null, null)));
+          .thenReturn(Optional.of(new ConsulResponse<>(weight, 0, true, BigInteger.ONE, null, null)));
       return mock;
     }
 

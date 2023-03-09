@@ -34,8 +34,12 @@ public final class JettyServerFactory {
 
   private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
-  public static JettyServer create(FileSettings fileSettings, ThreadPool threadPool, TaggedSender statsDSender,
-                                   List<WebAppInitializer> webAppInitializer) {
+  public static JettyServer create(
+      FileSettings fileSettings,
+      ThreadPool threadPool,
+      TaggedSender statsDSender,
+      List<WebAppInitializer> webAppInitializer
+  ) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
     ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
     return new JettyServer(threadPool, jettySettings, statsDSender, contextHandler);
@@ -62,15 +66,23 @@ public final class JettyServerFactory {
     return new JettyWebAppContext(webAppInitializer, sessionEnabled);
   }
 
-  public static MonitoredQueuedThreadPool createJettyThreadPool(FileSettings jettySettings,
-                                                                String serviceName, StatsDSender statsDSender) throws Exception {
+  public static MonitoredQueuedThreadPool createJettyThreadPool(
+      FileSettings jettySettings,
+      String serviceName,
+      StatsDSender statsDSender
+  ) throws Exception {
     int maxThreads = jettySettings.getInteger(MAX_THREADS, 12);
     int minThreads = jettySettings.getInteger(MIN_THREADS, maxThreads);
     int queueSize = jettySettings.getInteger(QUEUE_SIZE, maxThreads);
     int idleTimeoutMs = jettySettings.getInteger(THREAD_POOL_IDLE_TIMEOUT_MS, DEFAULT_IDLE_TIMEOUT_MS);
 
     MonitoredQueuedThreadPool threadPool = new MonitoredQueuedThreadPool(
-      maxThreads, minThreads, idleTimeoutMs, new BlockingArrayQueue<>(queueSize), serviceName, statsDSender
+        maxThreads,
+        minThreads,
+        idleTimeoutMs,
+        new BlockingArrayQueue<>(queueSize),
+        serviceName,
+        statsDSender
     );
     threadPool.start();
     return threadPool;

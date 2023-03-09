@@ -66,15 +66,15 @@ public class NabProdConfig {
     }
 
     int port = ofNullable(fileSettings.getString(CONSUL_PORT_PROPERTY))
-      .or(() -> ofNullable(System.getProperty(CONSUL_PORT_PROPERTY)))
-      .map(Integer::parseInt)
-      .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or property be provided"));
+        .or(() -> ofNullable(System.getProperty(CONSUL_PORT_PROPERTY)))
+        .map(Integer::parseInt)
+        .orElseThrow(() -> new IllegalStateException(CONSUL_PORT_PROPERTY + " setting or property be provided"));
     Address address = new Address(requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"), port);
     Consul.Builder builder = Consul.builder()
-      .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
-      .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
-      .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
-      .withAddress(address);
+        .withConnectTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY, 10_500))
+        .withReadTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_READ_TIMEOUT_PROPERTY, CONSUL_DEFAULT_READ_TIMEOUT_MILLIS))
+        .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
+        .withAddress(address);
     builder.withClientEventCallback(new ConsulMetricsTracker(serviceName, statsDSender));
     return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
   }
@@ -91,12 +91,14 @@ public class NabProdConfig {
 
   @Bean
   @Lazy(value = false)
-  ConsulService consulService(FileSettings fileSettings,
-                              AppMetadata appMetadata,
-                              Optional<AgentClient> agentClient,
-                              Optional<KeyValueClient> keyValueClient,
-                              @Named(NODE_NAME) String nodeName,
-                              Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional) {
+  ConsulService consulService(
+      FileSettings fileSettings,
+      AppMetadata appMetadata,
+      Optional<AgentClient> agentClient,
+      Optional<KeyValueClient> keyValueClient,
+      @Named(NODE_NAME) String nodeName,
+      Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional
+  ) {
     if (isConsulDisabled(fileSettings)) {
       return null;
     }
@@ -106,7 +108,8 @@ public class NabProdConfig {
         fileSettings,
         appMetadata,
         nodeName,
-        logLevelOverrideExtensionOptional.orElse(null));
+        logLevelOverrideExtensionOptional.orElse(null)
+    );
   }
 
   private boolean isConsulDisabled(FileSettings fileSettings) {
@@ -114,7 +117,7 @@ public class NabProdConfig {
   }
 
   @Bean
-  JettyEventListener jettyEventListener(Optional<ConsulService> consulService){
+  JettyEventListener jettyEventListener(Optional<ConsulService> consulService) {
     return new JettyEventListener(consulService.orElse(null));
   }
 }

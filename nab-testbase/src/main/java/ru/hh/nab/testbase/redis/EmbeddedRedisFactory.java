@@ -10,6 +10,10 @@ public class EmbeddedRedisFactory {
   public static final String REDIS_IMAGE_ENV_VARIABLE = "EXT_REDIS_IMAGE";
   public static final int REDIS_DEFAULT_PORT = 6379;
 
+  public static GenericContainer<?> getEmbeddedRedis() {
+    return EmbeddedRedisFactory.EmbeddedRedisSingleton.INSTANCE;
+  }
+
   private static class EmbeddedRedisSingleton {
     private static final GenericContainer<?> INSTANCE = createEmbeddedRedis();
     private static GenericContainer<?> createEmbeddedRedis() {
@@ -20,9 +24,5 @@ public class EmbeddedRedisFactory {
       container.start();
       return container;
     }
-  }
-
-  public static GenericContainer<?> getEmbeddedRedis() {
-    return EmbeddedRedisFactory.EmbeddedRedisSingleton.INSTANCE;
   }
 }

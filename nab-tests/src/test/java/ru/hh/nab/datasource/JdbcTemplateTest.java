@@ -37,8 +37,8 @@ public class JdbcTemplateTest {
     jdbcTemplate.execute("INSERT INTO test_table VALUES (1, 'test');");
 
     String result = jdbcTemplate.queryForObject(
-      "SELECT * FROM test_table;",
-      (resultSet, rowNum) -> resultSet.getInt("id") + ":" + resultSet.getString("data")
+        "SELECT * FROM test_table;",
+        (resultSet, rowNum) -> resultSet.getInt("id") + ":" + resultSet.getString("data")
     );
 
     assertEquals("1:test", result);

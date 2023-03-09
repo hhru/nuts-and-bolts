@@ -7,8 +7,8 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_KIND;
+import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_NAME;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_SYSTEM;
@@ -42,7 +42,7 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
         .setSpanKind(SpanKind.PRODUCER)
         .setAttribute(PEER_SERVICE, clusterName)
         .setAttribute(MESSAGING_SYSTEM, "kafka")
-        .setAttribute(MESSAGING_DESTINATION, record.topic())
+        .setAttribute(MESSAGING_DESTINATION_NAME, record.topic())
         .setAttribute(MESSAGING_DESTINATION_KIND, TOPIC)
         .setAttribute(MESSAGING_KAFKA_CLIENT_ID, clientId);
 

@@ -33,55 +33,76 @@ public final class HHServerConnector extends ServerConnector {
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("acceptors") int acceptors,
-                           @Name("selectors") int selectors, TaggedSender statsDSender) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("acceptors") int acceptors,
+      @Name("selectors") int selectors,
+      TaggedSender statsDSender
+  ) {
     super(server, acceptors, selectors);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("acceptors") int acceptors,
-                           @Name("selectors") int selectors,
-                           TaggedSender statsDSender, @Name("factories") ConnectionFactory... factories) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("acceptors") int acceptors,
+      @Name("selectors") int selectors,
+      TaggedSender statsDSender,
+      @Name("factories") ConnectionFactory... factories
+  ) {
     super(server, acceptors, selectors, factories);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           TaggedSender statsDSender, @Name("factories") ConnectionFactory... factories) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      TaggedSender statsDSender,
+      @Name("factories") ConnectionFactory... factories
+  ) {
     super(server, factories);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("sslContextFactory") SslContextFactory sslContextFactory, TaggedSender statsDSender) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      TaggedSender statsDSender
+  ) {
     super(server, sslContextFactory);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("acceptors") int acceptors,
-                           @Name("selectors") int selectors,
-                           @Name("sslContextFactory") SslContextFactory sslContextFactory, TaggedSender statsDSender) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("acceptors") int acceptors,
+      @Name("selectors") int selectors,
+      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      TaggedSender statsDSender
+  ) {
     super(server, acceptors, selectors, sslContextFactory);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("sslContextFactory") SslContextFactory sslContextFactory,
-                           TaggedSender statsDSender, @Name("factories") ConnectionFactory... factories) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      TaggedSender statsDSender,
+      @Name("factories") ConnectionFactory... factories
+  ) {
     super(server, sslContextFactory, factories);
     this.statsDSender = statsDSender;
   }
 
-  public HHServerConnector(@Name("server") Server server,
-                           @Name("executor") Executor executor,
-                           @Name("scheduler") Scheduler scheduler,
-                           @Name("bufferPool") ByteBufferPool bufferPool,
-                           @Name("acceptors") int acceptors,
-                           @Name("selectors") int selectors,
-                           TaggedSender statsDSender, @Name("factories") ConnectionFactory... factories) {
+  public HHServerConnector(
+      @Name("server") Server server,
+      @Name("executor") Executor executor,
+      @Name("scheduler") Scheduler scheduler,
+      @Name("bufferPool") ByteBufferPool bufferPool,
+      @Name("acceptors") int acceptors,
+      @Name("selectors") int selectors,
+      TaggedSender statsDSender,
+      @Name("factories") ConnectionFactory... factories
+  ) {
     super(server, executor, scheduler, bufferPool, acceptors, selectors, factories);
     this.statsDSender = statsDSender;
   }
@@ -89,6 +110,15 @@ public final class HHServerConnector extends ServerConnector {
   @Override
   protected SelectorManager newSelectorManager(Executor executor, Scheduler scheduler, int selectors) {
     return new FailFastServerConnectorManager(executor, scheduler, selectors);
+  }
+
+  @Override
+  public Future<Void> shutdown() {
+    super.shutdown();
+
+    CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();
+    new ChannelsReadyChecker(shutdownFuture, this::getConnectedEndPoints, getScheduler()).run();
+    return shutdownFuture;
   }
 
   private class FailFastServerConnectorManager extends ServerConnectorManager {
@@ -116,15 +146,5 @@ public final class HHServerConnector extends ServerConnector {
       super.accept(channel);
     }
   }
-
-  @Override
-  public Future<Void> shutdown() {
-    super.shutdown();
-
-    CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();
-    new ChannelsReadyChecker(shutdownFuture, this::getConnectedEndPoints, getScheduler()).run();
-    return shutdownFuture;
-  }
-
 }
 

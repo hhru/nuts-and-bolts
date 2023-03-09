@@ -112,6 +112,7 @@ public class NabSessionFactoryBuilderFactoryTest {
       simpleTransactionManager.setDataSource(routingDataSource);
       return new DataSourceContextTransactionManager(simpleTransactionManager);
     }
+
     @Bean
     NabSessionFactoryBean.ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
       return new NabSessionFactoryBean.ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
@@ -132,7 +133,8 @@ public class NabSessionFactoryBuilderFactoryTest {
       var props = new Properties();
       props.load(TestContext.class.getResourceAsStream("/hibernate-test.properties"));
       return new NabSessionFactoryBean(dataSource, props,
-        new BootstrapServiceRegistryBuilder(), List.of(supplier), List.of());
+          new BootstrapServiceRegistryBuilder(), List.of(supplier), List.of()
+      );
     }
 
     @Bean

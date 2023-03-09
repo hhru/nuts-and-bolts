@@ -25,7 +25,7 @@ public class MonitoredThreadPoolExecutorTest {
     tpe.execute(TASK);
     tpe.execute(TASK);
 
-    var rejected = false;
+    boolean rejected = false;
 
     try {
       IntStream.range(0, 5).forEach(i -> tpe.execute(TASK));

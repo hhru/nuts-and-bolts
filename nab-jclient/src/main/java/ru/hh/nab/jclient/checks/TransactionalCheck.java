@@ -21,7 +21,10 @@ public class TransactionalCheck implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransactionalCheck.class);
   private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
   public static final Set<String> DEFAULT_PACKAGES_TO_SKIP = Set.of(
-    TransactionalCheck.class.getPackageName(), "ru.hh.jclient.common", "org.springframework");
+      TransactionalCheck.class.getPackageName(),
+      "ru.hh.jclient.common",
+      "org.springframework"
+  );
   private final ConcurrentMap<String, LongAdder> callInTxStatistics;
   private final Set<String> packagesToSkip;
   private final int stackTraceDepthLimit;
@@ -30,8 +33,7 @@ public class TransactionalCheck implements HttpClientEventListener {
 
 
   /**
-   * @deprecated
-   * use {@link TransactionalCheck#TransactionalCheck(ru.hh.nab.jclient.checks.TransactionalCheck.Action,
+   * @deprecated use {@link TransactionalCheck#TransactionalCheck(ru.hh.nab.jclient.checks.TransactionalCheck.Action,
    * int, java.util.concurrent.ScheduledExecutorService, long, java.lang.String...)}
    */
   @Deprecated(forRemoval = true)
@@ -43,8 +45,13 @@ public class TransactionalCheck implements HttpClientEventListener {
     stackTraceDepthLimit = -1;
   }
 
-  public TransactionalCheck(Action action, int filteredTraceStackDepthLimit, ScheduledExecutorService executorService, long intervalMs,
-                            Set<String> packagesToSkip) {
+  public TransactionalCheck(
+      Action action,
+      int filteredTraceStackDepthLimit,
+      ScheduledExecutorService executorService,
+      long intervalMs,
+      Set<String> packagesToSkip
+  ) {
     this.action = action;
     this.stackTraceDepthLimit = filteredTraceStackDepthLimit;
     callInTxStatistics = new ConcurrentHashMap<>();
@@ -58,17 +65,14 @@ public class TransactionalCheck implements HttpClientEventListener {
     callInTxStatistics.clear();
     copy.forEach((data, counter) -> {
       long currentRequestCount = counter.sum();
-      LOGGER.error("For last {} ms, got {} jclient calls inside tx:{}{}",
-        intervalMs,
-        currentRequestCount,
-        System.lineSeparator(),
-        data
+      LOGGER.error(
+          "For last {} ms, got {} jclient calls inside tx:{}{}",
+          intervalMs,
+          currentRequestCount,
+          System.lineSeparator(),
+          data
       );
     });
-  }
-
-  public enum Action {
-    DO_NOTHING, LOG, RAISE
   }
 
   @Override
@@ -84,10 +88,10 @@ public class TransactionalCheck implements HttpClientEventListener {
         LOGGER.warn("logging executeRequest in transaction", new TransactionalCheckException());
       } else {
         var targetStackTrace = STACK_WALKER.walk(stackStream -> stackStream
-          .filter(frame -> packagesToSkip.stream().noneMatch(packageToSkip -> frame.getDeclaringClass().getPackageName().startsWith(packageToSkip)))
-          .limit(stackTraceDepthLimit)
-          .map(StackWalker.StackFrame::toStackTraceElement)
-          .map(StackTraceElement::toString).collect(joining(System.lineSeparator())));
+            .filter(frame -> packagesToSkip.stream().noneMatch(packageToSkip -> frame.getDeclaringClass().getPackageName().startsWith(packageToSkip)))
+            .limit(stackTraceDepthLimit)
+            .map(StackWalker.StackFrame::toStackTraceElement)
+            .map(StackTraceElement::toString).collect(joining(System.lineSeparator())));
         callInTxStatistics.computeIfAbsent(targetStackTrace, data -> new LongAdder()).increment();
       }
     }
@@ -110,5 +114,9 @@ public class TransactionalCheck implements HttpClientEventListener {
     TransactionalCheckException() {
       super("transaction is active during executeRequest");
     }
+  }
+
+  public enum Action {
+    DO_NOTHING, LOG, RAISE
   }
 }

@@ -43,8 +43,12 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
   private final Integer longConnectionUsageMs;
   private final CompressedStackFactoryConfig compressedStackFactoryConfig;
 
-  public NabMetricsTrackerFactory(String serviceName, StatsDSender statsDSender, CompressedStackFactoryConfig compressedStackFactoryConfig,
-                                  FileSettings dataSourceSettings) {
+  public NabMetricsTrackerFactory(
+      String serviceName,
+      StatsDSender statsDSender,
+      CompressedStackFactoryConfig compressedStackFactoryConfig,
+      FileSettings dataSourceSettings
+  ) {
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
     this.sendSampledStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_SAMPLED_STATS)).orElse(Boolean.FALSE);
@@ -120,8 +124,10 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
 
       if (longConnectionUsageMs != null && connectionUsageMs >= longConnectionUsageMs) {
         String message = String.format(
-          "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
-          poolName, longConnectionUsageMs, connectionUsageMs
+            "%s connection was used for more than %d ms (%d ms), not fatal, but should be fixed",
+            poolName,
+            longConnectionUsageMs,
+            connectionUsageMs
         );
         LOGGER.error(message, new RuntimeException(poolName + " connection usage duration exceeded"));
       }

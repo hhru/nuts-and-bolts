@@ -1,3 +1,10 @@
+-   name: 4.37.3
+    date: '2023-03-24T15:07:49.388971+03:00'
+    description: В WebApplicationExceptionMapper добавлено логирование 502 ошибок
+        с уровнем DEBUG
+    instructions: ''
+    compatible: true
+
 -   name: 4.37.2
     date: '2023-03-07T07:13:51.781740+03:00'
     description: Добавлена возможность получать nodeName из env NODE_NAME и syslogHost

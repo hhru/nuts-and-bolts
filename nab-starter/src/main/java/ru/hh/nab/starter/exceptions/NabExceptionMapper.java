@@ -39,7 +39,8 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
     ERROR_WITH_STACK_TRACE,
     WARN_WITHOUT_STACK_TRACE,
     INFO_WITH_STACK_TRACE,
-    INFO_WITHOUT_STACK_TRACE
+    INFO_WITHOUT_STACK_TRACE,
+    DEBUG_WITH_STACK_TRACE,
   }
 
   public NabExceptionMapper(Response.StatusType defaultStatus, LoggingLevel defaultLoggingLevel) {
@@ -76,6 +77,10 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
       }
       case INFO_WITHOUT_STACK_TRACE: {
         LOGGER.info(exception.getMessage());
+        break;
+      }
+      case DEBUG_WITH_STACK_TRACE: {
+        LOGGER.debug(exception.getMessage(), exception);
         break;
       }
       default: {

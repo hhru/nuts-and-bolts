@@ -37,6 +37,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
   protected enum LoggingLevel {
     NOTHING,
     ERROR_WITH_STACK_TRACE,
+    WARN_WITH_STACK_TRACE,
     WARN_WITHOUT_STACK_TRACE,
     INFO_WITH_STACK_TRACE,
     INFO_WITHOUT_STACK_TRACE,
@@ -65,6 +66,10 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
       }
       case ERROR_WITH_STACK_TRACE: {
         LOGGER.error(exception.getMessage(), exception);
+        break;
+      }
+      case WARN_WITH_STACK_TRACE: {
+        LOGGER.warn(exception.getMessage(), exception);
         break;
       }
       case WARN_WITHOUT_STACK_TRACE: {

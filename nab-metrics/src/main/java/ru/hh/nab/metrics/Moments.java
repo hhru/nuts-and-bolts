@@ -6,39 +6,12 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * Central moments aggregator.
  *
  * References:
- *  "Simpler Online Updates for Arbitrary-Order Central Moments." http://arxiv.org/abs/1510.04923
+ * "Simpler Online Updates for Arbitrary-Order Central Moments." http://arxiv.org/abs/1510.04923
  */
 public class Moments {
-  public static class MomentsData {
-    private int n;
-    private double max;
-    private double min;
-    private double mean;
-    private double variance;
-
-    public int getNumber() {
-      return n;
-    }
-
-    public double getMax() {
-      return max;
-    }
-
-    public double getMin() {
-      return min;
-    }
-
-    public double getMean() {
-      return mean;
-    }
-
-    public double getVariance() {
-      return n == 0 ? 0.0f : variance / n;
-    }
-  }
 
   private static final AtomicReferenceFieldUpdater<Moments, MomentsData> UPDATER =
-    AtomicReferenceFieldUpdater.newUpdater(Moments.class, MomentsData.class, "data");
+      AtomicReferenceFieldUpdater.newUpdater(Moments.class, MomentsData.class, "data");
 
   private volatile MomentsData data = new MomentsData();
 
@@ -74,5 +47,33 @@ public class Moments {
 
   public MomentsData getAndReset() {
     return UPDATER.getAndSet(this, new MomentsData());
+  }
+
+  public static class MomentsData {
+    private int n;
+    private double max;
+    private double min;
+    private double mean;
+    private double variance;
+
+    public int getNumber() {
+      return n;
+    }
+
+    public double getMax() {
+      return max;
+    }
+
+    public double getMin() {
+      return min;
+    }
+
+    public double getMean() {
+      return mean;
+    }
+
+    public double getVariance() {
+      return n == 0 ? 0.0f : variance / n;
+    }
   }
 }

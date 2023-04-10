@@ -32,8 +32,8 @@ public class MaxTest {
     int maxValue = 99;
     int snapshotIteration = 1000;
     Runnable task = () -> {
-      for (int i = 0; i<increases; i++) {
-        max.save(i % (maxValue+1));
+      for (int i = 0; i < increases; i++) {
+        max.save(i % (maxValue + 1));
       }
     };
 
@@ -46,9 +46,9 @@ public class MaxTest {
       long start = currentTimeMillis();
 
       thread.start();
-      for (int i = 0; i<increases; i++) {
-        max.save(i % (maxValue+1));
-        if (i%1000 == 0) {
+      for (int i = 0; i < increases; i++) {
+        max.save(i % (maxValue + 1));
+        if (i % 1000 == 0) {
           snapshots.add(max.getAndReset());
         }
       }

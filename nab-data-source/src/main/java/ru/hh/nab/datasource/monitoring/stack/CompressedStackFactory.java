@@ -22,7 +22,7 @@ public class CompressedStackFactory {
 
     List<String> shortFrames = new ArrayList<>();
     String prevClass = null;
-    for(; frameIndex < frames.length; frameIndex++) {
+    for (; frameIndex < frames.length; frameIndex++) {
       StackTraceElement frame = frames[frameIndex];
       String className = frame.getClassName();
       String methodName = frame.getMethodName();
@@ -52,7 +52,7 @@ public class CompressedStackFactory {
   }
 
   private int findStartIndex(StackTraceElement[] frames) {
-    for (int frameIndex = 0; frameIndex<frames.length; frameIndex++) {
+    for (int frameIndex = 0; frameIndex < frames.length; frameIndex++) {
       StackTraceElement frame = frames[frameIndex];
       if (frame.getClassName().equals(config.getInnerClassExcluding())
           && frame.getMethodName().equals(config.getInnerMethodExcluding())) {

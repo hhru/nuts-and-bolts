@@ -108,6 +108,19 @@ public class HHServerConnectorGracefulTest {
     });
   }
 
+  private static Server createServer(Servlet servlet) {
+    Server server = HHServerConnectorTestUtils.createServer(null, servlet);
+    server.setStopTimeout(STOP_TIMEOUT_MS);
+    return server;
+  }
+
+  private static Future<Void> stop(Server server) {
+    return executorService.submit(() -> {
+      server.stop();
+      return null;
+    });
+  }
+
   static class ControlledServlet extends GenericServlet {
 
     private final int responseCode;
@@ -140,18 +153,5 @@ public class HHServerConnectorGracefulTest {
     void respond() {
       readyToProceedRequests.remove().countDown();
     }
-  }
-
-  private static Server createServer(Servlet servlet) {
-    Server server = HHServerConnectorTestUtils.createServer(null, servlet);
-    server.setStopTimeout(STOP_TIMEOUT_MS);
-    return server;
-  }
-
-  private static Future<Void> stop(Server server) {
-    return executorService.submit(() -> {
-      server.stop();
-      return null;
-    });
   }
 }

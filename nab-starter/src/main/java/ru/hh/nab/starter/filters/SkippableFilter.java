@@ -29,7 +29,7 @@ public abstract class SkippableFilter extends OncePerRequestFilter {
   }
 
   protected abstract void performFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-    throws ServletException, IOException;
+      throws ServletException, IOException;
 
   protected String getCurrentPath(HttpServletRequest request) {
     return StringUtils.substringBefore(getUrlPathHelper().getLookupPathForRequest(request), ".");
@@ -41,8 +41,8 @@ public abstract class SkippableFilter extends OncePerRequestFilter {
     }
 
     return Pattern.compile(",").splitAsStream(exclusionsString.replace("\n", ""))
-      .filter(StringUtils::isNotBlank)
-      .map(String::trim);
+        .filter(StringUtils::isNotBlank)
+        .map(String::trim);
   }
 
   protected UrlPathHelper getUrlPathHelper() {

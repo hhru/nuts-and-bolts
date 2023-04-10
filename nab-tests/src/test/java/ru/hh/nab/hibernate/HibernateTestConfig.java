@@ -13,8 +13,8 @@ import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 
 @Configuration
 @Import({
-  NabHibernateCommonConfig.class,
-  NabHibernateTestBaseConfig.class
+    NabHibernateCommonConfig.class,
+    NabHibernateTestBaseConfig.class
 })
 public class HibernateTestConfig {
   static final String TEST_PACKAGE = "ru.hh.nab.hibernate.model.test";

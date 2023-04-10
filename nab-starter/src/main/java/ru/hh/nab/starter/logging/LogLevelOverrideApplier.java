@@ -18,19 +18,6 @@ import ru.hh.nab.common.properties.FileSettings;
 
 public class LogLevelOverrideApplier {
 
-  private static class LogInfo {
-    private String logLevel;
-
-    public Optional<String> getLogLevelOptional() {
-      return Optional.ofNullable(logLevel);
-    }
-
-    public LogInfo setLogLevel(String logLevel) {
-      this.logLevel = logLevel;
-      return this;
-    }
-  }
-
   public static final String UPDATE_INTERVAL_IN_MINUTES_PROPERTY = "logLevelOverrideExtension.updateIntervalInMinutes";
   public static final int DEFAULT_INTERVAL_IN_MINUTES = 5;
 
@@ -112,5 +99,18 @@ public class LogLevelOverrideApplier {
     return currentOverrides.entrySet().stream()
         .filter(entry -> !entry.getValue().equals(previousOverrides.get(entry.getKey())))
         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static class LogInfo {
+    private String logLevel;
+
+    public Optional<String> getLogLevelOptional() {
+      return Optional.ofNullable(logLevel);
+    }
+
+    public LogInfo setLogLevel(String logLevel) {
+      this.logLevel = logLevel;
+      return this;
+    }
   }
 }

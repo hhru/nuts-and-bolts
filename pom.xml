@@ -5,7 +5,7 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>1.52.4</version>
+        <version>1.53.1</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
@@ -27,6 +27,7 @@
         <module>nab-jclient</module>
         <module>nab-metrics</module>
         <module>nab-telemetry</module>
+        <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
         <module>nab-websocket</module>
@@ -34,7 +35,7 @@
 
     <properties>
         <jclient.version>3.9.11</jclient.version>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <consul.client.version>1.2.12</consul.client.version>
     </properties>
 
@@ -88,6 +89,11 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-telemetry-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

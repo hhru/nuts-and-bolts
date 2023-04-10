@@ -34,12 +34,15 @@ import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(
-  classes = {HibernateTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
+    classes = {HibernateTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
 )
 public class JClientTransactionTest {
   private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
-  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(),
-    List.of(() -> DEBUG));
+  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(
+      Collections.emptyMap(),
+      Collections.emptyMap(),
+      List.of(() -> DEBUG)
+  );
 
   @Inject
   private TransactionalScope transactionalScope;
@@ -56,14 +59,19 @@ public class JClientTransactionTest {
     httpClient = mock(AsyncHttpClient.class);
     when(httpClient.getConfig()).thenReturn(new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(0).build());
     when(httpClient.executeRequest(isA(Request.class), isA(HttpClientImpl.CompletionHandler.class)))
-      .then(iom -> {
-        HttpClientImpl.CompletionHandler handler = iom.getArgument(1);
-        handler.onCompleted(mock(Response.class));
-        return null;
-      });
+        .then(iom -> {
+          HttpClientImpl.CompletionHandler handler = iom.getArgument(1);
+          handler.onCompleted(mock(Response.class));
+          return null;
+        });
 
     httpClientFactory = new HttpClientFactory(
-      httpClient, new SingletonStorage<>(HTTP_CLIENT_CONTEXT), Set.of(), Runnable::run, new DefaultRequestStrategy(), eventListeners
+        httpClient,
+        new SingletonStorage<>(HTTP_CLIENT_CONTEXT),
+        Set.of(),
+        Runnable::run,
+        new DefaultRequestStrategy(),
+        eventListeners
     );
   }
 
@@ -121,7 +129,7 @@ public class JClientTransactionTest {
     });
     Map<String, LongAdder> callInTxStatistics = transactionalCheck.getCallInTxStatistics();
     callInTxStatistics.forEach((stack, counter) -> assertFalse(
-      stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
+        stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
     ));
   }
 

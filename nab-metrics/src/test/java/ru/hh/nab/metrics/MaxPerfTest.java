@@ -14,7 +14,7 @@ public class MaxPerfTest {
   private static final int snapshotIteration = 100_000;
 
   public static void main(String[] args) throws InterruptedException {
-    for(int t=1; t<=tests; t++) {
+    for (int t = 1; t <= tests; t++) {
       test(t);
     }
   }
@@ -23,7 +23,7 @@ public class MaxPerfTest {
     Max max = new Max(0);
 
     Runnable task = () -> {
-      for (int i=1; i<=increases; i++) {
+      for (int i = 1; i <= increases; i++) {
         save(max, i);
       }
     };
@@ -48,7 +48,7 @@ public class MaxPerfTest {
   }
 
   private static void save(Max max, int iteration) {
-    max.save(iteration % (maxValue+1));
+    max.save(iteration % (maxValue + 1));
   }
 
   private static void checkSnapshots(Collection<Integer> snapshots) {

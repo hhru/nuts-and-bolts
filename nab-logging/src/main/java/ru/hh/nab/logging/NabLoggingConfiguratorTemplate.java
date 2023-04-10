@@ -79,7 +79,12 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     return createLogger(context, cls, level, false, Set.of(appender));
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context, Class<?> cls,
+      Level level,
+      boolean additivity,
+      Appender appender
+  ) {
     return createLogger(context, cls, level, additivity, Set.of(appender));
   }
 
@@ -87,28 +92,56 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     return createLogger(context, cls, level, false, Set.of(appender, appender2));
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, boolean additivity, Appender appender,
-      Appender appender2) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      Class<?> cls,
+      Level level,
+      boolean additivity,
+      Appender appender,
+      Appender appender2
+  ) {
     return createLogger(context, cls, level, additivity, Set.of(appender, appender2));
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, Appender appender2,
-      Appender appender3) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      Class<?> cls, Level level,
+      Appender appender,
+      Appender appender2,
+      Appender appender3
+  ) {
     return createLogger(context, cls, level, false, Set.of(appender, appender2, appender3));
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender, boolean additivity,
-      Appender appender2, Appender appender3) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      Class<?> cls,
+      Level level,
+      Appender appender,
+      boolean additivity,
+      Appender appender2,
+      Appender appender3
+  ) {
     return createLogger(context, cls, level, additivity, Set.of(appender, appender2, appender3));
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> aClass, Level level, boolean additivity,
-      Collection<Appender> appenders) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      Class<?> aClass,
+      Level level,
+      boolean additivity,
+      Collection<Appender> appenders
+  ) {
     return createLogger(context, aClass.getName(), level, additivity, appenders);
   }
 
-  public LoggerWrapper createLogger(LoggingContextWrapper context, String name, Level level, boolean additivity,
-      Collection<Appender> appenders) {
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      String name,
+      Level level,
+      boolean additivity,
+      Collection<Appender> appenders
+  ) {
     return createLogger(context, name, level.toString(), additivity, appenders);
   }
 
@@ -117,15 +150,20 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
    * not using logback levels cause we may move to different logger later
    *
    * USE THIS METHOD CAREFULLY!!!
-   * */
-  public LoggerWrapper createLogger(LoggingContextWrapper context, String name, String level, boolean additivity,
-      Collection<Appender> appenders) {
+   */
+  public LoggerWrapper createLogger(
+      LoggingContextWrapper context,
+      String name,
+      String level,
+      boolean additivity,
+      Collection<Appender> appenders
+  ) {
     var logger = context.getContext().getLogger(name);
     logger.setLevel(ch.qos.logback.classic.Level.toLevel(level));
     logger.setAdditive(additivity);
     appenders.forEach(logger::addAppender);
     addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="
-      + appenders.stream().map(Appender::getName).collect(Collectors.joining(",")));
+        + appenders.stream().map(Appender::getName).collect(Collectors.joining(",")));
     return new LoggerWrapper(logger);
   }
 
@@ -212,7 +250,8 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
         } catch (Exception e) {
           addWarn("Failed to map value: " + key + '=' + val, e);
           return null;
-        }}).orElse(defaultValue);
+        }
+      }).orElse(defaultValue);
     }
 
     public void addListener(LoggerContextListener listener) {

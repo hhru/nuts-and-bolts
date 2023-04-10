@@ -24,11 +24,13 @@ import ru.hh.nab.jclient.checks.TransactionalCheck;
 @Configuration
 public class NabJClientConfig {
   @Bean
-  HttpClientFactoryBuilder httpClientFactoryBuilder(@Named(SERVICE_NAME) String serviceName, HttpClientContextThreadLocalSupplier contextSupplier,
-                                                    ScheduledExecutorService scheduledExecutorService,
-                                                    List<HttpClientEventListener> eventListeners,
-                                                    FileSettings fileSettings
-    ) {
+  HttpClientFactoryBuilder httpClientFactoryBuilder(
+      @Named(SERVICE_NAME) String serviceName,
+      HttpClientContextThreadLocalSupplier contextSupplier,
+      ScheduledExecutorService scheduledExecutorService,
+      List<HttpClientEventListener> eventListeners,
+      FileSettings fileSettings
+  ) {
     var subSettings = fileSettings.getSubSettings("jclient.listener.timeout-check");
 
     long thresholdMs = ofNullable(subSettings.getLong("threshold.ms")).orElse(100L);
@@ -36,10 +38,14 @@ public class NabJClientConfig {
     int minHashLength = ofNullable(subSettings.getInteger("min.hash.length")).orElse(16);
     long sendIntervalMinutes = ofNullable(subSettings.getInteger("send.interval.minutes")).orElse(1);
     return new HttpClientFactoryBuilder(contextSupplier, eventListeners)
-      .addEventListener(
-        new GlobalTimeoutCheck(Duration.ofMillis(thresholdMs), scheduledExecutorService,
-          uri -> compactUri(uri, minCompactionLength, minHashLength), MINUTES.toMillis(sendIntervalMinutes))
-      ).withUserAgent(serviceName);
+        .addEventListener(
+            new GlobalTimeoutCheck(
+                Duration.ofMillis(thresholdMs),
+                scheduledExecutorService,
+                uri -> compactUri(uri, minCompactionLength, minHashLength),
+                MINUTES.toMillis(sendIntervalMinutes)
+            )
+        ).withUserAgent(serviceName);
   }
 
   @Bean
@@ -50,18 +56,18 @@ public class NabJClientConfig {
     int stacktraceDepthLimit = ofNullable(subSettings.getInteger("stacktrace.depth.limit")).orElse(10);
     var packagesToSkip = ofNullable(subSettings.getStringList("packages.to.skip")).map(Set::copyOf).orElseGet(Set::of);
     return new TransactionalCheck(
-      failOnCheck ? TransactionalCheck.Action.RAISE : TransactionalCheck.Action.LOG,
-      stacktraceDepthLimit,
-      executorService, MINUTES.toMillis(sendIntervalMinutes),
-      packagesToSkip
+        failOnCheck ? TransactionalCheck.Action.RAISE : TransactionalCheck.Action.LOG,
+        stacktraceDepthLimit,
+        executorService, MINUTES.toMillis(sendIntervalMinutes),
+        packagesToSkip
     );
   }
 
   @Bean
   HttpClientContextThreadLocalSupplier httpClientContextStorage(Optional<HttpClientContext> defaultContext) {
     return defaultContext.map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
-      .orElseGet(HttpClientContextThreadLocalSupplier::new)
-      .register(new MDCStorage());
+        .orElseGet(HttpClientContextThreadLocalSupplier::new)
+        .register(new MDCStorage());
   }
 
   @Bean

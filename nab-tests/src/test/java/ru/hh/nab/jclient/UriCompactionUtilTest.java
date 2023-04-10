@@ -12,8 +12,8 @@ public class UriCompactionUtilTest {
     var replacement = "<>";
     Uri uri = Uri.create("http://localhost:2800/resource/123456/daba9e610001f70104003acc866d55656d6a5a/get");
     assertEquals(
-      new StringJoiner("/", "/", "").add("resource").add(replacement).add(replacement).add("get").toString(),
-      UriCompactionUtil.compactUri(uri, 4, 16, replacement)
+        new StringJoiner("/", "/", "").add("resource").add(replacement).add(replacement).add("get").toString(),
+        UriCompactionUtil.compactUri(uri, 4, 16, replacement)
     );
   }
 

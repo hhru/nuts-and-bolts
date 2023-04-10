@@ -33,14 +33,14 @@ public class NabCommonConfig {
   @Bean(SERVICE_NAME)
   String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
+        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
   }
 
   @Named(DATACENTER)
   @Bean(DATACENTER)
   String datacenter(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(DATACENTER)).filter(Predicate.not(String::isEmpty))
-      .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
+        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
   }
 
   @Named(NODE_NAME)
@@ -52,9 +52,10 @@ public class NabCommonConfig {
   }
 
   @Bean
-  MonitoredQueuedThreadPool jettyThreadPool(FileSettings fileSettings,
-    @Named(SERVICE_NAME) String serviceNameValue,
-    StatsDSender statsDSender
+  MonitoredQueuedThreadPool jettyThreadPool(
+      FileSettings fileSettings,
+      @Named(SERVICE_NAME) String serviceNameValue,
+      StatsDSender statsDSender
   ) throws Exception {
     return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
   }
@@ -70,8 +71,12 @@ public class NabCommonConfig {
   }
 
   @Bean
-  StatsDSender statsDSender(ScheduledExecutorService scheduledExecutorService, StatsDClient statsDClient,
-                            @Named(SERVICE_NAME) String serviceNameValue, FileSettings fileSettings) {
+  StatsDSender statsDSender(
+      ScheduledExecutorService scheduledExecutorService,
+      StatsDClient statsDClient,
+      @Named(SERVICE_NAME) String serviceNameValue,
+      FileSettings fileSettings
+  ) {
     StatsDSender statsDSender = Optional.ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
         .map(defaultPeriodicSendInterval -> new StatsDSender(statsDClient, scheduledExecutorService, defaultPeriodicSendInterval))
         .orElseGet(() -> new StatsDSender(statsDClient, scheduledExecutorService));

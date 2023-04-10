@@ -1,6 +1,9 @@
 package ru.hh.nab.hibernate;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -46,8 +49,13 @@ import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
-@ContextConfiguration(classes = {NabHibernateTestBaseConfig.class, NabHibernateCommonConfig.class,
-  DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class})
+@ContextConfiguration(
+    classes = {
+        NabHibernateTestBaseConfig.class,
+        NabHibernateCommonConfig.class,
+        DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
+    }
+)
 public class DataSourceSwitchingTest extends HibernateTestBase {
   @Inject
   private TransactionalScope transactionalScope;
@@ -76,12 +84,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   public void testDsManageInsideTxScope() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
     CompletableFuture.supplyAsync(() -> {
-        Supplier<TestEntity> supplier = () -> {
-          Session currentSession = sessionFactory.getCurrentSession();
-          return currentSession.find(TestEntity.class, 1);
-        };
-        TargetMethod<TestEntity> method = () -> onDataSource("second", supplier);
-        return transactionalScope.read(method);
+      Supplier<TestEntity> supplier = () -> {
+        Session currentSession = sessionFactory.getCurrentSession();
+        return currentSession.find(TestEntity.class, 1);
+      };
+      TargetMethod<TestEntity> method = () -> onDataSource("second", supplier);
+      return transactionalScope.read(method);
     }, executor).get();
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();
@@ -93,13 +101,13 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   public void testTxScopeDoesntChangeDs() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
     CompletableFuture.supplyAsync(() -> {
-        TargetMethod<TestEntity> method = () -> {
-          Session currentSession = sessionFactory.getCurrentSession();
-          return currentSession.find(TestEntity.class, 1);
-        };
-        Supplier<TestEntity> supplier = () -> transactionalScope.read(method);
-        return onDataSource("second", supplier);
-      }, executor).get();
+      TargetMethod<TestEntity> method = () -> {
+        Session currentSession = sessionFactory.getCurrentSession();
+        return currentSession.find(TestEntity.class, 1);
+      };
+      Supplier<TestEntity> supplier = () -> transactionalScope.read(method);
+      return onDataSource("second", supplier);
+    }, executor).get();
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, times(1)).getConnection();
     verify(thirdDataSourceSpy, never()).getConnection();
@@ -113,8 +121,10 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
       Session currentSession = sessionFactory.getCurrentSession();
       return currentSession.find(TestEntity.class, 1);
     };
-    PersistenceException ex = assertThrows(PersistenceException.class,
-        () -> onDataSource("third", () -> transactionalScope.read(method)));
+    PersistenceException ex = assertThrows(
+        PersistenceException.class,
+        () -> onDataSource("third", () -> transactionalScope.read(method))
+    );
     assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, never()).getConnection();
@@ -151,7 +161,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     DataSourceFactory dataSourceFactory(StatsDSender statsDSender) {
       return new EmbeddedPostgresDataSourceFactory(
           new NabMetricsTrackerFactoryProvider(SERVICE_NAME, statsDSender),
-          new HealthCheckHikariDataSourceFactory(SERVICE_NAME, statsDSender)
+          new HealthCheckHikariDataSourceFactory(SERVICE_NAME, statsDSender) {
+            @Override
+            public HikariDataSource create(HikariConfig hikariConfig) {
+              return spy(super.create(hikariConfig));
+            }
+          }
       );
     }
 
@@ -194,8 +209,13 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
 
     @Primary
     @Bean
-    RoutingDataSource dataSource(RoutingDataSourceFactory routingDataSourceFactory, DataSource firstDataSourceSpy, DataSource secondDataSourceSpy,
-                                 DataSource thirdDataSourceSpy, DataSource fourthDataSourceSpy) {
+    RoutingDataSource dataSource(
+        RoutingDataSourceFactory routingDataSourceFactory,
+        DataSource firstDataSourceSpy,
+        DataSource secondDataSourceSpy,
+        DataSource thirdDataSourceSpy,
+        DataSource fourthDataSourceSpy
+    ) {
       RoutingDataSource routingDataSource = routingDataSourceFactory.create(firstDataSourceSpy);
       routingDataSource.addDataSource("second", secondDataSourceSpy);
       routingDataSource.addDataSource("third", thirdDataSourceSpy);
@@ -223,10 +243,13 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
 
     private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String dataSourceName, Properties properties) {
       DataSource dataSource = spy(dataSourceFactory.create(dataSourceName, false, new FileSettings(properties)));
-      if (dataSource instanceof HealthCheckHikariDataSource) {
+      try {
+        var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
         HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
         when(failedHealthCheck.check()).thenReturn(HealthCheck.Result.unhealthy("Data source is unhealthy"));
-        when(((HealthCheckHikariDataSource) dataSource).getHealthCheck()).thenReturn(failedHealthCheck);
+        when(healthCheckHikariDataSource.getHealthCheck()).thenReturn(failedHealthCheck);
+      } catch (SQLException e) {
+        // empty
       }
       return dataSource;
     }

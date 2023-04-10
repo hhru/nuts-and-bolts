@@ -25,12 +25,14 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
 
   public EmbeddedPostgresDataSourceFactory() {
-    super(null, null);
+    super(null, null, null);
   }
 
-  public EmbeddedPostgresDataSourceFactory(NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
-                                           HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory) {
-    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory);
+  public EmbeddedPostgresDataSourceFactory(
+      NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
+      HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory
+  ) {
+    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, null);
   }
 
   @Override
@@ -49,6 +51,10 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     properties.setProperty(PASSWORD, DEFAULT_PASSWORD);
 
     return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
+  }
+
+  public static PostgreSQLContainer<?> getEmbeddedPostgres() {
+    return EmbeddedPostgresSingleton.INSTANCE;
   }
 
   private static class EmbeddedPostgresSingleton {
@@ -70,9 +76,5 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
       container.start();
       return container;
     }
-  }
-
-  public static PostgreSQLContainer<?> getEmbeddedPostgres() {
-    return EmbeddedPostgresSingleton.INSTANCE;
   }
 }

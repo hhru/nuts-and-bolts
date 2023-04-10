@@ -30,10 +30,14 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: ["
-        + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
-        + "] ERROR logger:1 mdc={} - message",
-      "message");
+    testLogging(
+        hhSyslogAppenderFunction,
+        "test",
+        "<11>test/test.log/: ["
+            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + "] ERROR logger:1 mdc={} - message",
+        "message"
+    );
   }
 
   @Test
@@ -44,10 +48,14 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.slog/: ["
-        + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
-        + "] ERROR logger:1 mdc={} - message",
-      "message");
+    testLogging(
+        hhSyslogAppenderFunction,
+        "test",
+        "<11>test/test.slog/: ["
+            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + "] ERROR logger:1 mdc={} - message",
+        "message"
+    );
   }
 
   @Test
@@ -58,9 +66,13 @@ public class HhSyslogAppenderTest {
       return appender;
     };
     LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: ["
-      + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
-      + "] ERROR logger:1 mdc={} - сообщение", "сообщение");
+    testLogging(
+        hhSyslogAppenderFunction,
+        "test",
+        "<11>test/test.log/: ["
+            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + "] ERROR logger:1 mdc={} - сообщение", "сообщение"
+    );
   }
 
   @Test
@@ -78,8 +90,12 @@ public class HhSyslogAppenderTest {
     testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: message", "message");
   }
 
-  protected void testLogging(Function<Context, ? extends AppenderBase> appenderCreateFunction, String pid, String expected,
-                             String message) throws Exception {
+  protected void testLogging(
+      Function<Context, ? extends AppenderBase> appenderCreateFunction,
+      String pid,
+      String expected,
+      String message
+  ) throws Exception {
     DatagramSocket serverSocket = new DatagramSocket();
     LoggerContext context = new LoggerContext();
     context.putProperty("log.syslogHost", "localhost");
@@ -103,9 +119,7 @@ public class HhSyslogAppenderTest {
     });
     checker.start();
     LoggingEvent eventObject = new LoggingEvent();
-    eventObject.setCallerData(new StackTraceElement[]{
-      new StackTraceElement("class", "method", null, 1)
-    });
+    eventObject.setCallerData(new StackTraceElement[]{new StackTraceElement("class", "method", null, 1)});
     eventObject.setMDCPropertyMap(Collections.emptyMap());
     eventObject.setLevel(Level.ERROR);
     eventObject.setTimeStamp(0);

@@ -71,10 +71,10 @@ public class StatsDSender {
     Map<Tags, Map<Integer, Integer>> tagsToHistogram = histograms.getTagsToHistogramAndReset();
     for (Map.Entry<Tags, Map<Integer, Integer>> tagsAndHistogram : tagsToHistogram.entrySet()) {
       computeAndSendPercentiles(
-        metricName,
-        tagsAndHistogram.getKey().getTags(),
-        tagsAndHistogram.getValue(),
-        percentiles
+          metricName,
+          tagsAndHistogram.getKey().getTags(),
+          tagsAndHistogram.getValue(),
+          percentiles
       );
     }
   }
@@ -91,10 +91,10 @@ public class StatsDSender {
     Map<Tags, long[]> tagsToHistogram = histograms.getTagsToHistogramAndReset();
     for (Map.Entry<Tags, long[]> tagsAndHistogram : tagsToHistogram.entrySet()) {
       computeAndSendPercentiles(
-        metricName,
-        tagsAndHistogram.getKey().getTags(),
-        tagsAndHistogram.getValue(),
-        percentiles
+          metricName,
+          tagsAndHistogram.getKey().getTags(),
+          tagsAndHistogram.getValue(),
+          percentiles
       );
     }
   }
@@ -103,8 +103,8 @@ public class StatsDSender {
     Map<Integer, Integer> percentileToValue = Percentiles.computePercentiles(valueToCount, percentiles);
     for (Map.Entry<Integer, Integer> percentileAndValue : percentileToValue.entrySet()) {
       statsDClient.gauge(
-        getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
-        percentileAndValue.getValue()
+          getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
+          percentileAndValue.getValue()
       );
     }
   }
@@ -113,8 +113,8 @@ public class StatsDSender {
     Map<Integer, Long> percentileToValue = Percentiles.computePercentiles(values, percentiles);
     for (Map.Entry<Integer, Long> percentileAndValue : percentileToValue.entrySet()) {
       statsDClient.gauge(
-        getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
-        percentileAndValue.getValue()
+          getFullMetricName(metricName, tags) + ".percentile_is_" + percentileAndValue.getKey(),
+          percentileAndValue.getValue()
       );
     }
   }

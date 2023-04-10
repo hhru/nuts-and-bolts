@@ -105,6 +105,16 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     };
   }
 
+  private static <T extends LifeCycle & ContextAware> void initIfNeeded(T configItem, Context context) {
+    if (configItem.getContext() == null) {
+      configItem.setContext(context);
+    }
+    if (!configItem.isStarted()) {
+      configItem.start();
+    }
+    context.register(configItem);
+  }
+
   private abstract static class AppenderConfigurer<T extends Appender<ILoggingEvent>> {
     private final T appender;
     private final HhMultiAppender optionsHolder;
@@ -159,15 +169,5 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
             //need to throw Error because logback logs and ignores any Exception type
           }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
-  }
-
-  private static <T extends LifeCycle & ContextAware> void initIfNeeded(T configItem, Context context) {
-    if (configItem.getContext() == null) {
-      configItem.setContext(context);
-    }
-    if (!configItem.isStarted()) {
-      configItem.start();
-    }
-    context.register(configItem);
   }
 }

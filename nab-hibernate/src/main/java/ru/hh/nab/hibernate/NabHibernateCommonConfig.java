@@ -53,18 +53,27 @@ public class NabHibernateCommonConfig {
   @Bean
   ExecuteOnDataSourceAspect executeOnDataSourceAspect(ApplicationContext applicationContext) {
     var txManagers
-      = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
+        = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
         .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, DataSourceContextTransactionManager.class)));
-      return new ExecuteOnDataSourceAspect(applicationContext.getBean(DataSourceContextTransactionManager.class), txManagers);
+    return new ExecuteOnDataSourceAspect(applicationContext.getBean(DataSourceContextTransactionManager.class), txManagers);
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, @Hibernate Properties hibernateProperties,
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, List<MappingConfig> mappingConfigs,
-    Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
-    Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(dataSource, hibernateProperties, bootstrapServiceRegistryBuilder,
-      serviceSuppliers.orElseGet(ArrayList::new), sessionFactoryCreationHandlers.orElseGet(ArrayList::new));
+  NabSessionFactoryBean sessionFactoryBean(
+      DataSource dataSource,
+      @Hibernate Properties hibernateProperties,
+      BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
+      List<MappingConfig> mappingConfigs,
+      Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
+      Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers
+  ) {
+    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(
+        dataSource,
+        hibernateProperties,
+        bootstrapServiceRegistryBuilder,
+        serviceSuppliers.orElseGet(ArrayList::new),
+        sessionFactoryCreationHandlers.orElseGet(ArrayList::new)
+    );
     sessionFactoryBean.setDataSource(dataSource);
 
     Class<?>[] annotatedClasses = mappingConfigs.stream().flatMap(mc -> Stream.of(mc.getAnnotatedClasses())).toArray(Class[]::new);

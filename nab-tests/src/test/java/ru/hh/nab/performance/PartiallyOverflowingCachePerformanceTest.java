@@ -37,140 +37,140 @@ import ru.hh.nab.performance.variants.PartiallyOverflowingCacheWithSizeCache;
 @Warmup(iterations = 3)
 @Measurement(iterations = 4)
 public class PartiallyOverflowingCachePerformanceTest {
-    private final List<Class<?>> dataMap = createClassData();
-    private final int dataSize = dataMap.size();
-    private final int strongCollectionSize = dataSize / 3;
-    private final int dataSetLoopSize = 4;
+  private final List<Class<?>> dataMap = createClassData();
+  private final int dataSize = dataMap.size();
+  private final int strongCollectionSize = dataSize / 3;
+  private final int dataSetLoopSize = 4;
 
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-            .include(PartiallyOverflowingCachePerformanceTest.class.getSimpleName())
-            .forks(1)
-            .build();
-        new Runner(opt).run();
+  public static void main(String[] args) throws RunnerException {
+    Options opt = new OptionsBuilder()
+        .include(PartiallyOverflowingCachePerformanceTest.class.getSimpleName())
+        .forks(1)
+        .build();
+    new Runner(opt).run();
+  }
+
+  ExecutorService executorService = Executors.newFixedThreadPool(8);
+
+  @Benchmark
+  public void partiallyOverflowingCacheBigTest() {
+    PartiallyOverflowingCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCache<>(dataSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheOptionalBigTest() {
+    PartiallyOverflowingCacheOptional<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheOptional<>(dataSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheWithSizeCacheBigTest() {
+    PartiallyOverflowingCacheWithSizeCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheWithSizeCache<>(dataSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheWithSizeAtomicCacheBigTest() {
+    PartiallyOverflowingCacheWithSizeAtomicCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheWithSizeAtomicCache<>(dataSize);
+    process(doubleStorageCache);
+  }
+
+
+  @Benchmark
+  public void partiallyOverflowingCacheTest() {
+    PartiallyOverflowingCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCache<>(strongCollectionSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheOptionalTest() {
+    PartiallyOverflowingCacheOptional<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheOptional<>(strongCollectionSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheWithSizeCacheTest() {
+    PartiallyOverflowingCacheWithSizeCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheWithSizeCache<>(strongCollectionSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void partiallyOverflowingCacheWithSizeAtomicCacheTest() {
+    PartiallyOverflowingCacheWithSizeAtomicCache<Class<?>, Object> doubleStorageCache =
+        new PartiallyOverflowingCacheWithSizeAtomicCache<>(strongCollectionSize);
+    process(doubleStorageCache);
+  }
+
+  @Benchmark
+  public void concurrentHashMapTest() {
+    ConcurrentHashMap<Class<?>, Object> concurrentHashMap = new ConcurrentHashMap<>();
+    process(concurrentHashMap);
+  }
+
+  private void process(GenericCache<Class<?>, Object> data) {
+    List<Callable<Object>> tasks = new ArrayList<>();
+    for (int i = 0; i < dataSetLoopSize; i++) {
+      for (Class<?> key : dataMap) {
+        tasks.add(() -> data.computeIfAbsent(key, k -> computeNewObject()));
+      }
     }
+    try {
+      executorService.invokeAll(tasks);
+    } catch (InterruptedException e) {
 
-    ExecutorService executorService = Executors.newFixedThreadPool(8);
-
-    @Benchmark
-    public void partiallyOverflowingCacheBigTest() {
-        PartiallyOverflowingCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCache<>(dataSize);
-        process(doubleStorageCache);
     }
+  }
 
-    @Benchmark
-    public void partiallyOverflowingCacheOptionalBigTest() {
-        PartiallyOverflowingCacheOptional<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheOptional<>(dataSize);
-        process(doubleStorageCache);
+  private void process(ConcurrentHashMap<Class<?>, Object> data) {
+    List<Callable<Object>> tasks = new ArrayList<>();
+    for (int i = 0; i < dataSetLoopSize; i++) {
+      for (Class<?> key : dataMap) {
+        tasks.add(() -> data.computeIfAbsent(key, k -> computeNewObject()));
+      }
     }
+    try {
+      executorService.invokeAll(tasks);
+    } catch (InterruptedException e) {
 
-    @Benchmark
-    public void partiallyOverflowingCacheWithSizeCacheBigTest() {
-        PartiallyOverflowingCacheWithSizeCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheWithSizeCache<>(dataSize);
-        process(doubleStorageCache);
     }
+  }
 
-    @Benchmark
-    public void partiallyOverflowingCacheWithSizeAtomicCacheBigTest() {
-        PartiallyOverflowingCacheWithSizeAtomicCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheWithSizeAtomicCache<>(dataSize);
-        process(doubleStorageCache);
+  @TearDown
+  public void stop() {
+    executorService.shutdownNow();
+  }
+
+  private List<Class<?>> createClassData() {
+    Reflections reflectionsRu = new Reflections("ru", new SubTypesScanner(false));
+    final Set<String> allTypes = reflectionsRu.getAllTypes();
+    return allTypes.stream()
+        .map(PartiallyOverflowingCachePerformanceTest::toClass)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private static Class<?> toClass(String s) {
+    try {
+      return Class.forName(s);
+    } catch (Throwable e) {
+      return null;
     }
+  }
 
-
-    @Benchmark
-    public void partiallyOverflowingCacheTest() {
-        PartiallyOverflowingCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCache<>(strongCollectionSize);
-        process(doubleStorageCache);
+  private Object computeNewObject() {
+    try {
+      Thread.sleep(2);
+    } catch (InterruptedException e) {
+      return new Object();
     }
-
-    @Benchmark
-    public void partiallyOverflowingCacheOptionalTest() {
-        PartiallyOverflowingCacheOptional<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheOptional<>(strongCollectionSize);
-        process(doubleStorageCache);
-    }
-
-    @Benchmark
-    public void partiallyOverflowingCacheWithSizeCacheTest() {
-        PartiallyOverflowingCacheWithSizeCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheWithSizeCache<>(strongCollectionSize);
-        process(doubleStorageCache);
-    }
-
-    @Benchmark
-    public void partiallyOverflowingCacheWithSizeAtomicCacheTest() {
-        PartiallyOverflowingCacheWithSizeAtomicCache<Class<?>, Object> doubleStorageCache =
-            new PartiallyOverflowingCacheWithSizeAtomicCache<>(strongCollectionSize);
-        process(doubleStorageCache);
-    }
-
-    @Benchmark
-    public void concurrentHashMapTest() {
-        ConcurrentHashMap<Class<?>, Object> concurrentHashMap = new ConcurrentHashMap<>();
-        process(concurrentHashMap);
-    }
-
-    private void process(GenericCache<Class<?>, Object> data) {
-        List<Callable<Object>> tasks = new ArrayList<>();
-        for (int i = 0; i < dataSetLoopSize; i++) {
-            for (Class<?> key : dataMap) {
-                tasks.add(() -> data.computeIfAbsent(key, k -> computeNewObject()));
-            }
-        }
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-
-        }
-    }
-
-    private void process(ConcurrentHashMap<Class<?>, Object> data) {
-        List<Callable<Object>> tasks = new ArrayList<>();
-        for (int i = 0; i < dataSetLoopSize; i++) {
-            for (Class<?> key : dataMap) {
-                tasks.add(() -> data.computeIfAbsent(key, k -> computeNewObject()));
-            }
-        }
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-
-        }
-    }
-
-    @TearDown
-    public void stop() {
-        executorService.shutdownNow();
-    }
-
-    private List<Class<?>> createClassData() {
-        Reflections reflectionsRu = new Reflections("ru", new SubTypesScanner(false));
-        final Set<String> allTypes = reflectionsRu.getAllTypes();
-        return allTypes.stream()
-            .map(PartiallyOverflowingCachePerformanceTest::toClass)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
-
-    private static Class<?> toClass(String s) {
-        try {
-            return Class.forName(s);
-        } catch (Throwable e) {
-            return null;
-        }
-    }
-
-    private Object computeNewObject() {
-        try {
-            Thread.sleep(2);
-        } catch (InterruptedException e) {
-            return new Object();
-        }
-        return new Object();
-    }
+    return new Object();
+  }
 }

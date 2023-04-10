@@ -22,8 +22,8 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   public Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
     List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
     var serviceUnavailableTypeException = throwableList.stream()
-      .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
-      .findAny();
+        .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
+        .findAny();
 
     if (serviceUnavailableTypeException.isPresent()) {
       status = SERVICE_UNAVAILABLE;

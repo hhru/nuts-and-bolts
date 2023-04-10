@@ -22,6 +22,18 @@ public class SkippableFilterTest {
   @NabTestServer(overrideApplication = FilterApplicationOverride.class)
   ResourceHelper resourceHelper;
 
+  @Test
+  public void testSkippableFilterExclusions() {
+    Response response = resourceHelper.executeGet("/status");
+    assertNull(response.getHeaderString("x-passed-filter"));
+  }
+
+  @Test
+  public void testSkippableFilterNoExclusions() {
+    Response response = resourceHelper.executeGet("/status-not");
+    assertEquals("true", response.getHeaderString("x-passed-filter"));
+  }
+
   public static class AddHeaderSkippableFilter extends SkippableFilter {
     public AddHeaderSkippableFilter() {
     }
@@ -39,17 +51,5 @@ public class SkippableFilterTest {
     public NabApplication getNabApplication() {
       return NabApplication.builder().addFilter(AddHeaderSkippableFilter.class).addInitParameter("exclusionsString", "/status").bindToRoot().build();
     }
-  }
-
-  @Test
-  public void testSkippableFilterExclusions() {
-    Response response = resourceHelper.executeGet("/status");
-    assertNull(response.getHeaderString("x-passed-filter"));
-  }
-
-  @Test
-  public void testSkippableFilterNoExclusions() {
-    Response response = resourceHelper.executeGet("/status-not");
-    assertEquals("true", response.getHeaderString("x-passed-filter"));
   }
 }

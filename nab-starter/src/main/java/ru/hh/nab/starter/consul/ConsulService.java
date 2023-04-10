@@ -71,10 +71,14 @@ public class ConsulService {
   private final AtomicReference<Integer> weight = new AtomicReference<>(null);
   private volatile KVCache kvCache;
 
-  public ConsulService(AgentClient agentClient, KeyValueClient kvClient,
-                       FileSettings fileSettings, AppMetadata appMetadata,
-                       String nodeName,
-                       @Nullable LogLevelOverrideExtension logLevelOverrideExtension) {
+  public ConsulService(
+      AgentClient agentClient,
+      KeyValueClient kvClient,
+      FileSettings fileSettings,
+      AppMetadata appMetadata,
+      String nodeName,
+      @Nullable LogLevelOverrideExtension logLevelOverrideExtension
+  ) {
     int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
     this.hostName = nodeName;
     this.serviceName = fileSettings.getNotEmptyOrThrow(SERVICE_NAME);
@@ -83,13 +87,13 @@ public class ConsulService {
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", this.hostName);
     String resultingConsistencyMode = fileSettings.getString(
-      CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
-      fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
+        CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
+        fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
     );
     this.consistencyMode = Stream.of(ConsistencyMode.values())
-      .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
-      .findAny()
-      .orElse(ConsistencyMode.DEFAULT);
+        .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
+        .findAny()
+        .orElse(ConsistencyMode.DEFAULT);
     this.watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
     this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
     Optional<String> address = resolveAddress(fileSettings);
@@ -102,24 +106,24 @@ public class ConsulService {
     this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean(CONSUL_ENABLED_PROPERTY, true));
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck.builder()
-        .http("http://" + applicationHost + ":" + applicationPort + "/status")
-        .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
-        .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
-        .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
-        .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))
-        .successBeforePassing(fileSettings.getInteger(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 1))
-        .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
-        .build();
+          .http("http://" + applicationHost + ":" + applicationPort + "/status")
+          .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
+          .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
+          .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
+          .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))
+          .successBeforePassing(fileSettings.getInteger(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 1))
+          .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
+          .build();
 
       this.serviceTemplate = ImmutableRegistration.builder()
-        .id(serviceId)
-        .name(fileSettings.getString(SERVICE_NAME))
-        .port(applicationPort)
-        .address(address)
-        .check(regCheck)
-        .tags(tags)
-        .meta(Map.of("serviceVersion", appMetadata.getVersion()))
-        .build();
+          .id(serviceId)
+          .name(fileSettings.getString(SERVICE_NAME))
+          .port(applicationPort)
+          .address(address)
+          .check(regCheck)
+          .tags(tags)
+          .meta(Map.of("serviceVersion", appMetadata.getVersion()))
+          .build();
     } else {
       this.serviceTemplate = null;
     }
@@ -135,7 +139,7 @@ public class ConsulService {
       Optional<Map.Entry<BigInteger, Optional<String>>> currentIndexAndWeight = getCurrentWeight();
       this.weight.set(getWeightOrDefault(currentIndexAndWeight.flatMap(Map.Entry::getValue)));
       this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds, currentIndexAndWeight.map(Map.Entry::getKey).orElse(null),
-        ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
+          ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
       );
       LOGGER.trace("Got current weight for service: {}", weight.get());
       var registration = registerWithWeight(weight.get());
@@ -154,7 +158,7 @@ public class ConsulService {
     return registration;
   }
 
-  private Integer getWeightOrDefault(Optional<String> maybeWeight){
+  private Integer getWeightOrDefault(Optional<String> maybeWeight) {
     return maybeWeight.map(Integer::valueOf).orElseGet(() -> {
       LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
       return DEFAULT_WEIGHT;
@@ -163,7 +167,7 @@ public class ConsulService {
 
   private Optional<Map.Entry<BigInteger, Optional<String>>> getCurrentWeight() {
     return kvClient.getConsulResponseWithValue(weightPath, ImmutableQueryOptions.builder().caller(serviceName).build())
-      .map(response -> Map.entry(response.getIndex(), response.getResponse().getValueAsString()));
+        .map(response -> Map.entry(response.getIndex(), response.getResponse().getValueAsString()));
   }
 
   private void startCache() {
@@ -234,9 +238,9 @@ public class ConsulService {
   @Override
   public String toString() {
     return "ConsulService{" +
-      "client=" + agentClient +
-      ", service=" + serviceTemplate +
-      ", serviceId='" + serviceId + '\'' +
-      '}';
+        "client=" + agentClient +
+        ", service=" + serviceTemplate +
+        ", serviceId='" + serviceId + '\'' +
+        '}';
   }
 }

@@ -1,3 +1,20 @@
+-   name: 4.38.0
+    date: '2023-04-10T14:13:09.722122+03:00'
+    description: "* new nab-telemetry-jdbc module has been added which provides ability\
+        \ to add OpenTelemetry spans to JDBC connection and statement operations\r\
+        \n* add addNamedDataSource method for RoutingDataSource\r\n* change DataSourceFactory\
+        \ constructor signature\r\n* up public-pom to 1.53.1\r\n* up Java to 17"
+    instructions: "* update Java to 17 or higher if not already updated\r\n* if DataSourceFactory\
+        \ manual creation used via 'new' (e.g. for tests) - update constructor parameters\
+        \ by providing OpenTelemetryJdbcExtension (usually null for unit tests)\r\n\
+        * if RoutingDataSource used and datasource's for routing created via DataSourceFactory\
+        \ - replace addDataSource method with addNamedDataSource (there is no more\
+        \ need to specify DataSource name twice)\r\n* if any kind of DataSource used\
+        \ in project:\r\n    * add nab-telemetry-jdbc maven dependency\r\n    * add\
+        \ NabTelemetryJdbcProdConfig to Spring Prod config\r\n    * if DataSource\
+        \ created manually (NOT via DataSourceFactory) wrap it with NabTelemetryDataSourceFactory#wrap"
+    compatible: false
+
 -   name: 4.37.4
     date: '2023-03-31T16:08:18.063400+03:00'
     description: Add `LoggingLevel.WARN_WITH_STACK_TRACE` option for `NabExceptionMapper`.

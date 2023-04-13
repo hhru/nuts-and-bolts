@@ -1,3 +1,9 @@
+-   name: 4.38.1
+    date: '2023-04-13T16:35:48.462838+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 4.38.0
     date: '2023-04-10T14:13:09.722122+03:00'
     description: "* new nab-telemetry-jdbc module has been added which provides ability\

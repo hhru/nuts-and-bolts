@@ -78,7 +78,8 @@ public class TelemetryListenerImpl implements RequestDebug {
       return response;
     }
 
-    span.setStatus(TelemetryPropagator.getStatus(response.getStatusCode(), false));
+    StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode(), false);
+    span.setStatus(otelStatus, StatusCode.ERROR == otelStatus ? response.getStatusText() : "");
     span.setAttribute(HTTP_STATUS_CODE, response.getStatusCode());
     span.end();
 

@@ -11,4 +11,10 @@ public class TestResource {
   public String simple() {
     return "Hello, world!";
   }
+
+  @GET
+  @Path("/error")
+  public String error() {
+    throw new RuntimeException("Error description!");
+  }
 }

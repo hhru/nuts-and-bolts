@@ -32,6 +32,7 @@ import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
+import ru.hh.jclient.common.ResultWithStatus;
 import ru.hh.jclient.common.Uri;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
@@ -94,6 +95,19 @@ public class TelemetryListenerTest {
     assertEquals("GET " + TelemetryListenerImpl.getNetloc(Uri.create(url)), span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
     assertEquals(url, attributes.get(SemanticAttributes.HTTP_URL));
+  }
+
+  @Test
+  public void testErrorRequest() throws ExecutionException, InterruptedException {
+    String url = resourceHelper.baseUrl() + "/error";
+    ResultWithStatus<String> result = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).expectPlainText().resultWithStatus().get();
+    assertEquals(500, result.getStatusCode());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    // StatusData раскладывается потом в otel.status_code и otel.status_description
+    assertEquals("Internal Server Error", span.getStatus().getDescription());
   }
 
   @Test

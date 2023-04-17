@@ -1,3 +1,9 @@
+-   name: 4.38.3
+    date: '2023-04-17T17:56:24.843590+03:00'
+    description: OpenTelemetry spans "SET STATEMENT_TIMEOUT" are filtred now
+    instructions: ''
+    compatible: true
+
 -   name: 4.38.2
     date: '2023-04-17T13:15:41.080178+03:00'
     description: add field otel.status_description for openelemetry

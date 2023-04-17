@@ -11,10 +11,14 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbInfo;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 
 public class NabTelemetryStatement<S extends Statement> implements Statement {
+
+  private static final List<String> SKIP_SPAN_STATEMENTS = List.of("SET STATEMENT_TIMEOUT");
 
   protected final S delegate;
   protected final NabDbInfo nabDbInfo;
@@ -257,6 +261,10 @@ public class NabTelemetryStatement<S extends Statement> implements Statement {
   }
 
   protected <T, E extends Exception> T wrapCall(String sql, ThrowingSupplier<T, E> callable) throws E {
+    if (skipSpan(sql)) {
+      return callable.call();
+    }
+
     Context parentContext = Context.current();
     NabDbRequest request = new NabDbRequest()
         .setDbRequest(DbRequest.create(nabDbInfo.getDbInfo(), sql))
@@ -289,6 +297,15 @@ public class NabTelemetryStatement<S extends Statement> implements Statement {
     }
 
     return sqlBuilder.toString();
+  }
+
+  private boolean skipSpan(String sql) {
+    for (String skipStatement : SKIP_SPAN_STATEMENTS) {
+      if (StringUtils.startsWithIgnoreCase(sql, skipStatement)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

@@ -1,3 +1,9 @@
+-   name: 4.38.4
+    date: '2023-04-19T16:44:56.694562+03:00'
+    description: Add "opentelemetry.jdbc.enabled" property (disabled by default)
+    instructions: ''
+    compatible: true
+
 -   name: 4.38.3
     date: '2023-04-17T17:56:24.843590+03:00'
     description: OpenTelemetry spans "SET STATEMENT_TIMEOUT" are filtred now
@@ -12,7 +18,7 @@
 
 -   name: 4.38.1
     date: '2023-04-13T16:35:48.462838+03:00'
-    description: 'jclient 3.10.1'
+    description: jclient 3.10.1
     instructions: ''
     compatible: true
 

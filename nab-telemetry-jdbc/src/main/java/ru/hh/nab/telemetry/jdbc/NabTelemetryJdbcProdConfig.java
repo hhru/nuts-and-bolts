@@ -11,6 +11,7 @@ import io.opentelemetry.instrumentation.api.internal.ConfigPropertiesUtil;
 import java.util.function.Function;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.ConnectionSpanNameExtractor;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.NabDataSourceInfoExtractor;
@@ -37,10 +38,11 @@ public class NabTelemetryJdbcProdConfig {
 
   @Bean
   public NabTelemetryDataSourceFactory nabTelemetryDataSourceFactory(
+      FileSettings fileSettings,
       @Connection Instrumenter<NabDataSourceInfo, Void> connectionInstrumenter,
       @Statement Instrumenter<NabDbRequest, Void> statementInstrumenter
   ) {
-    return new NabTelemetryDataSourceFactory(connectionInstrumenter, statementInstrumenter);
+    return new NabTelemetryDataSourceFactory(fileSettings, connectionInstrumenter, statementInstrumenter);
   }
 
   @Bean

@@ -68,6 +68,7 @@ public class TelemetryTest {
     assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_TARGET));
     assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
+    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
     assertEquals("127.0.0.1", attributes.get(SemanticAttributes.NET_HOST_NAME));
   }
   @Test
@@ -89,6 +90,7 @@ public class TelemetryTest {
     assertEquals(500, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("Error description!", span.getStatus().getDescription());
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
+    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
     assertEquals("127.0.0.1", attributes.get(SemanticAttributes.NET_HOST_NAME));
   }
 

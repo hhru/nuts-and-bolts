@@ -57,6 +57,7 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           .setSpanKind(SpanKind.SERVER)
           .setAttribute(SemanticAttributes.HTTP_METHOD, httpServletRequest.getMethod())
           .setAttribute(SemanticAttributes.NET_HOST_NAME, url.getHost())
+          .setAttribute(SemanticAttributes.HTTP_HOST, url.getHost())
           .setAttribute(SemanticAttributes.HTTP_TARGET, url.getFile())
           .setAttribute(SemanticAttributes.HTTP_SCHEME, url.getProtocol())
           .setAttribute(SemanticAttributes.HTTP_CLIENT_IP, request.getRemoteAddr())
@@ -71,8 +72,8 @@ public class TelemetryFilter implements Filter, NabServletFilter {
         String otelDescription = "";
         if (StatusCode.ERROR == otelStatus) {
           otelDescription = new String(responseCacheWrapper.getContentAsByteArray(), responseCacheWrapper.getCharacterEncoding());
-          responseCacheWrapper.copyBodyToResponse();
         }
+        responseCacheWrapper.copyBodyToResponse();
 
         String controller = (String) httpServletRequest.getAttribute(CONTROLLER_MDC_KEY);
         if (controller != null) {

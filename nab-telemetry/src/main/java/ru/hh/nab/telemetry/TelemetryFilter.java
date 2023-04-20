@@ -2,6 +2,7 @@ package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 import ru.hh.nab.common.component.NabServletFilter;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 
@@ -54,7 +56,7 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           .setParent(telemetryContext)
           .setSpanKind(SpanKind.SERVER)
           .setAttribute(SemanticAttributes.HTTP_METHOD, httpServletRequest.getMethod())
-          .setAttribute(SemanticAttributes.HTTP_HOST, url.getHost())
+          .setAttribute(SemanticAttributes.NET_HOST_NAME, url.getHost())
           .setAttribute(SemanticAttributes.HTTP_TARGET, url.getFile())
           .setAttribute(SemanticAttributes.HTTP_SCHEME, url.getProtocol())
           .setAttribute(SemanticAttributes.HTTP_CLIENT_IP, request.getRemoteAddr())
@@ -62,14 +64,23 @@ public class TelemetryFilter implements Filter, NabServletFilter {
       LOGGER.trace("span started:{}", span);
 
       try (Scope ignored = span.makeCurrent()) {
-        chain.doFilter(request, response);
+        ContentCachingResponseWrapper responseCacheWrapper = new ContentCachingResponseWrapper((HttpServletResponse) response);
+        chain.doFilter(request, responseCacheWrapper);
+
+        StatusCode otelStatus = TelemetryPropagator.getStatus(responseCacheWrapper.getStatus(), true);
+        String otelDescription = "";
+        if (StatusCode.ERROR == otelStatus) {
+          otelDescription = new String(responseCacheWrapper.getContentAsByteArray(), responseCacheWrapper.getCharacterEncoding());
+          responseCacheWrapper.copyBodyToResponse();
+        }
+
         String controller = (String) httpServletRequest.getAttribute(CONTROLLER_MDC_KEY);
         if (controller != null) {
           span.updateName(controller);
         }
-        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
-        span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));
+
+        span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, responseCacheWrapper.getStatus());
+        span.setStatus(otelStatus, otelDescription);
       } finally {
         span.end();
       }

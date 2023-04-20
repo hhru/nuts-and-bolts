@@ -68,7 +68,28 @@ public class TelemetryTest {
     assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_TARGET));
     assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
-    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
+    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.NET_HOST_NAME));
+  }
+  @Test
+  public void testErrorRequest() {
+    Response response = resourceHelper.target("/error")
+        .request()
+        .get();
+
+    assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    assertEquals("Error description!", response.readEntity(String.class));
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(SpanKind.SERVER, span.getKind());
+    assertEquals("TestResource#error", span.getName());
+    assertEquals("0000000000000000", span.getParentSpanId());
+    assertEquals("/error", attributes.get(SemanticAttributes.HTTP_TARGET));
+    assertEquals(500, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
+    assertEquals("Error description!", span.getStatus().getDescription());
+    assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
+    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.NET_HOST_NAME));
   }
 
   @Test

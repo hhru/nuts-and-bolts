@@ -17,6 +17,7 @@ public final class JettySettingsConstants {
   public final static String CONNECTION_IDLE_TIMEOUT_MS = "connectionIdleTimeoutMs";
   public final static String ACCEPT_QUEUE_SIZE = "acceptQueueSize";
   public final static String STOP_TIMEOUT_SIZE = "stopTimeoutMs";
+  public final static String BLOCKING_TIMEOUT = "blockingTimeoutMs";
   public final static String SECURE_PORT = "securePort";
   public final static String OUTPUT_BUFFER_SIZE = "outputBufferSize";
   public final static String REQUEST_HEADER_SIZE = "requestHeaderSize";

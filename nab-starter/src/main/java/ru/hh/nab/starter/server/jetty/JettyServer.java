@@ -18,6 +18,7 @@ import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPTORS;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.ACCEPT_QUEUE_SIZE;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.BLOCKING_TIMEOUT;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.CONNECTION_IDLE_TIMEOUT_MS;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.HOST;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.OUTPUT_BUFFER_SIZE;
@@ -135,7 +136,7 @@ public final class JettyServer {
     // я не понимаю как таймаут можно заменить на темп.
     // org.eclipse.jetty.server.HttpConfiguration.setMinResponseDataRate будет отрывать соединение не через 5 секунд, а уже после первой передачи,
     // если темп в пересчете на секунду окажется меньше, чем указано. какое-то говно
-    httpConfiguration.setBlockingTimeout(5000);
+    httpConfiguration.setBlockingTimeout(jettySettings.getInteger(BLOCKING_TIMEOUT, 5000));
     return new HttpConnectionFactory(httpConfiguration);
   }
 

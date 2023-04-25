@@ -7,6 +7,7 @@ import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import javax.annotation.Nullable;
 import javax.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,8 +65,9 @@ public class NabJClientConfig {
   }
 
   @Bean
-  HttpClientContextThreadLocalSupplier httpClientContextStorage(Optional<HttpClientContext> defaultContext) {
-    return defaultContext.map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
+  HttpClientContextThreadLocalSupplier httpClientContextStorage(@Nullable HttpClientContext defaultContext) {
+    return Optional.ofNullable(defaultContext)
+        .map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
         .orElseGet(HttpClientContextThreadLocalSupplier::new)
         .register(new MDCStorage());
   }

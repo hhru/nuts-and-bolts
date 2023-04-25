@@ -3,11 +3,12 @@ package ru.hh.nab.hibernate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
@@ -64,15 +65,15 @@ public class NabHibernateCommonConfig {
       @Hibernate Properties hibernateProperties,
       BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
       List<MappingConfig> mappingConfigs,
-      Optional<Collection<NabSessionFactoryBean.ServiceSupplier<?>>> serviceSuppliers,
-      Optional<Collection<NabSessionFactoryBean.SessionFactoryCreationHandler>> sessionFactoryCreationHandlers
+      @Nullable Collection<NabSessionFactoryBean.ServiceSupplier<?>> serviceSuppliers,
+      @Nullable Collection<NabSessionFactoryBean.SessionFactoryCreationHandler> sessionFactoryCreationHandlers
   ) {
     NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(
         dataSource,
         hibernateProperties,
         bootstrapServiceRegistryBuilder,
-        serviceSuppliers.orElseGet(ArrayList::new),
-        sessionFactoryCreationHandlers.orElseGet(ArrayList::new)
+        Objects.requireNonNullElseGet(serviceSuppliers, ArrayList::new),
+        Objects.requireNonNullElseGet(sessionFactoryCreationHandlers, ArrayList::new)
     );
     sessionFactoryBean.setDataSource(dataSource);
 
@@ -86,9 +87,11 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder(Optional<Collection<Integrator>> integratorsOptional) {
+  BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder(@Nullable Collection<Integrator> integrators) {
     BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
-    integratorsOptional.ifPresent(integrators -> integrators.forEach(bootstrapServiceRegistryBuilder::applyIntegrator));
+    if (integrators != null) {
+      integrators.forEach(bootstrapServiceRegistryBuilder::applyIntegrator);
+    }
     return bootstrapServiceRegistryBuilder;
   }
 

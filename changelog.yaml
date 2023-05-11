@@ -1,3 +1,15 @@
+-   name: 4.39.0
+    date: '2023-05-11T13:46:07.099900+03:00'
+    description: "* Обновление public-pom до 1.54.0\r\n* Обновление JClient до 3.11.0"
+    instructions: "Транзитивные изменения как следствие обновления JClient.\r\n* В\
+        \ методах и конструкторах публичного API где раньше передавался Optional теперь\
+        \ нужно передавать значение без обёртки или null. Например, классы ResultWithStatus,\
+        \ ResultOrErrorWithStatus, ResultOrErrorwithResponse,EmptyOrErrorWithStatus,\
+        \ RequestDebug.\r\n* При имплементации TypeConverter.getSupportedContentTypes\
+        \ в возвращаемом типе теперь ожидается Collection вместо Optional<Collection>.\
+        \ НЕ! передавайте null! Вместо этого используйте любую пустую коллекцию."
+    compatible: false
+
 -   name: 4.38.4
     date: '2023-04-19T16:44:56.694562+03:00'
     description: Add "opentelemetry.jdbc.enabled" property (disabled by default)

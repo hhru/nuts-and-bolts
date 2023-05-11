@@ -3,10 +3,11 @@ package ru.hh.nab.starter;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 import java.io.IOException;
+import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
-import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import javax.inject.Named;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
@@ -80,13 +81,13 @@ public class NabProdConfig {
   }
 
   @Bean
-  AgentClient agentClient(Optional<Consul> consul) {
-    return consul.map(Consul::agentClient).orElse(null);
+  AgentClient agentClient(@Nullable Consul consul) {
+    return consul != null ? consul.agentClient() : null;
   }
 
   @Bean
-  KeyValueClient keyValueClient(Optional<Consul> consul) {
-    return consul.map(Consul::keyValueClient).orElse(null);
+  KeyValueClient keyValueClient(@Nullable Consul consul) {
+    return consul != null ? consul.keyValueClient() : null;
   }
 
   @Bean
@@ -94,21 +95,21 @@ public class NabProdConfig {
   ConsulService consulService(
       FileSettings fileSettings,
       AppMetadata appMetadata,
-      Optional<AgentClient> agentClient,
-      Optional<KeyValueClient> keyValueClient,
+      @Nullable AgentClient agentClient,
+      @Nullable KeyValueClient keyValueClient,
       @Named(NODE_NAME) String nodeName,
-      Optional<LogLevelOverrideExtension> logLevelOverrideExtensionOptional
+      @Nullable LogLevelOverrideExtension logLevelOverrideExtension
   ) {
     if (isConsulDisabled(fileSettings)) {
       return null;
     }
     return new ConsulService(
-        agentClient.orElseThrow(),
-        keyValueClient.orElseThrow(),
+        Objects.requireNonNull(agentClient),
+        Objects.requireNonNull(keyValueClient),
         fileSettings,
         appMetadata,
         nodeName,
-        logLevelOverrideExtensionOptional.orElse(null)
+        logLevelOverrideExtension
     );
   }
 
@@ -117,7 +118,7 @@ public class NabProdConfig {
   }
 
   @Bean
-  JettyEventListener jettyEventListener(Optional<ConsulService> consulService) {
-    return new JettyEventListener(consulService.orElse(null));
+  JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
+    return new JettyEventListener(consulService);
   }
 }

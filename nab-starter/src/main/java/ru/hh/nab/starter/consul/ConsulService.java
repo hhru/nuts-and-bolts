@@ -137,7 +137,7 @@ public class ConsulService {
     try {
       LOGGER.debug("Starting registration");
       Optional<Map.Entry<BigInteger, Optional<String>>> currentIndexAndWeight = getCurrentWeight();
-      this.weight.set(getWeightOrDefault(currentIndexAndWeight.flatMap(Map.Entry::getValue)));
+      this.weight.set(getWeightOrDefault(currentIndexAndWeight.flatMap(Map.Entry::getValue).orElse(null)));
       this.kvCache = KVCache.newCache(this.kvClient, weightPath, watchSeconds, currentIndexAndWeight.map(Map.Entry::getKey).orElse(null),
           ImmutableQueryOptions.builder().consistencyMode(consistencyMode).caller(serviceName).build()
       );
@@ -158,11 +158,12 @@ public class ConsulService {
     return registration;
   }
 
-  private Integer getWeightOrDefault(Optional<String> maybeWeight) {
-    return maybeWeight.map(Integer::valueOf).orElseGet(() -> {
+  private Integer getWeightOrDefault(@Nullable String maybeWeight) {
+    if (maybeWeight == null) {
       LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
       return DEFAULT_WEIGHT;
-    });
+    }
+    return Integer.valueOf(maybeWeight);
   }
 
   private Optional<Map.Entry<BigInteger, Optional<String>>> getCurrentWeight() {
@@ -172,7 +173,7 @@ public class ConsulService {
 
   private void startCache() {
     kvCache.addListener(newValues -> {
-      var newWeight = getWeightOrDefault(newValues.values().stream().findAny().flatMap(Value::getValueAsString));
+      var newWeight = getWeightOrDefault(newValues.values().stream().findAny().flatMap(Value::getValueAsString).orElse(null));
       var oldWeight = weight.get();
       if (!Objects.equals(oldWeight, newWeight) && weight.compareAndSet(oldWeight, newWeight)) {
         var registration = registerWithWeight(newWeight);

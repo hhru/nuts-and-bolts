@@ -10,7 +10,7 @@ import io.opentelemetry.context.Scope;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_METHOD;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_STATUS_CODE;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
-import java.util.Optional;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.Request;
@@ -32,12 +32,12 @@ public class TelemetryListenerImpl implements RequestDebug {
   }
 
   @Override
-  public void onRequest(Request request, Optional<?> requestBodyEntity, RequestContext context) {
+  public void onRequest(Request request, @Nullable Object requestBodyEntity, RequestContext context) {
     processRequest(request, context);
   }
 
   @Override
-  public void onRetry(Request request, Optional<?> requestBodyEntity, int retryCount, RequestContext context) {
+  public void onRetry(Request request, @Nullable Object requestBodyEntity, int retryCount, RequestContext context) {
     processRequest(request, context);
   }
 
@@ -104,20 +104,15 @@ public class TelemetryListenerImpl implements RequestDebug {
     return uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
   }
 
-
   @Override
-  public void onResponseConverted(Optional<?> result) {
-
+  public void onResponseConverted(@Nullable Object result) {
   }
-
 
   @Override
   public void onConverterProblem(ResponseConverterException e) {
-
   }
 
   @Override
   public void onProcessingFinished() {
-
   }
 }

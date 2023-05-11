@@ -159,11 +159,11 @@ public class ConsulService {
   }
 
   private Integer getWeightOrDefault(@Nullable String maybeWeight) {
-    if (maybeWeight != null) {
-      return Integer.valueOf(maybeWeight);
+    if (maybeWeight == null) {
+      LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
+      return DEFAULT_WEIGHT;
     }
-    LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
-    return DEFAULT_WEIGHT;
+    return Integer.valueOf(maybeWeight);
   }
 
   private Optional<Map.Entry<BigInteger, Optional<String>>> getCurrentWeight() {

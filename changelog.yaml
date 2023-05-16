@@ -1,3 +1,9 @@
+-   name: 4.39.1
+    date: '2023-05-16T17:48:01.260252+03:00'
+    description: 'конфигурация для окметра: хост /порт'
+    instructions: ''
+    compatible: true
+
 -   name: 4.39.0
     date: '2023-05-11T13:46:07.099900+03:00'
     description: "* Обновление public-pom до 1.54.0\r\n* Обновление JClient до 3.11.0"

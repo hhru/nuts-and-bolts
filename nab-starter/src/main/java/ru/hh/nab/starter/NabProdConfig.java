@@ -41,8 +41,11 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
   public static final String OKMETER_HOST_PROPERTY = "okmeter.host";
+  public static final String OKMETER_HOST_ENV = "OKMETER_HOST";
   public static final String OKMETER_PORT_PROPERTY = "okmeter.port";
+  public static final String OKMETER_PORT_ENV = "OKMETER_PORT";
   public static final String OKMETER_QUEUE_SIZE_PROPERTY = "okmeter.queue.size";
+  public static final String OKMETER_QUEUE_SIZE_ENV = "OKMETER_QUEUE_SIZE";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -57,16 +60,16 @@ public class NabProdConfig {
   StatsDClient statsDClient(FileSettings fileSettings) {
 
     String host = ofNullable(fileSettings.getString(OKMETER_HOST_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_HOST_PROPERTY)))
+        .or(() -> ofNullable(System.getProperty(OKMETER_HOST_ENV)))
         .orElse("localhost");
 
     int port = ofNullable(fileSettings.getString(OKMETER_PORT_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_PORT_PROPERTY)))
+        .or(() -> ofNullable(System.getProperty(OKMETER_PORT_ENV)))
         .map(Integer::parseInt)
         .orElse(8125);
 
     int queueSize = ofNullable(fileSettings.getString(OKMETER_QUEUE_SIZE_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_QUEUE_SIZE_PROPERTY)))
+        .or(() -> ofNullable(System.getProperty(OKMETER_QUEUE_SIZE_ENV)))
         .map(Integer::parseInt)
         .orElse(10_000);
 

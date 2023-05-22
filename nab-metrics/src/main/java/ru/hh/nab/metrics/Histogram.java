@@ -1,6 +1,5 @@
 package ru.hh.nab.metrics;
 
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +45,7 @@ public abstract class Histogram {
     }
     counter.incrementAndGet();
   }
+  protected abstract int calculateValue(int value);
 
   public Map<Integer, Integer> getValueToCountAndReset() {
     Map<Integer, Integer> valueToCount = new HashMap<>(valueToCounter.size());

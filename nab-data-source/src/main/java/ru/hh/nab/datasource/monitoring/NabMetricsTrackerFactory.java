@@ -28,6 +28,7 @@ import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
 import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.Histogram;
+import ru.hh.nab.metrics.SimpleHistogram;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
@@ -74,9 +75,9 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
       this.appTag = new Tag(APP_TAG_NAME, serviceName);
       Tag[] jdbcTags = new Tag[]{datasourceTag, appTag};
 
-      creationHistogram = new Histogram(2000);
-      acquisitionHistogram = new Histogram(2000);
-      usageHistogram = new Histogram(2000);
+      creationHistogram = new SimpleHistogram(2000);
+      acquisitionHistogram = new SimpleHistogram(2000);
+      usageHistogram = new SimpleHistogram(2000);
       usageCounters = new Counters(500);
       timeoutCounters = new Counters(500);
 

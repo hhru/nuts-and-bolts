@@ -15,6 +15,7 @@ public class Histograms {
   private final int maxHistogramSize;
   private final Map<Tags, Histogram> tagsToHistogram = new ConcurrentHashMap<>();
   private final int maxNumOfHistograms;
+  private final HistogramType histogramType;
 
   /**
    * @param maxHistogramSize an upper limit on the number of different metric values. See {@link Histogram#Histogram(int)}.
@@ -24,8 +25,13 @@ public class Histograms {
    * To prevent this, when maxNumOfHistograms is reached a message will be logged to Slf4J and a new histogram will be thrown away.
    */
   public Histograms(int maxHistogramSize, int maxNumOfHistograms) {
+    this(maxHistogramSize, maxNumOfHistograms, HistogramType.SIMPLE);
+  }
+
+  public Histograms(int maxHistogramSize, int maxNumOfHistograms, HistogramType histogramType) {
     this.maxHistogramSize = maxHistogramSize;
     this.maxNumOfHistograms = maxNumOfHistograms;
+    this.histogramType = histogramType;
   }
 
   public void save(int value, Tag tag) {
@@ -43,7 +49,7 @@ public class Histograms {
         LOGGER.error("Max number of histograms, dropping observation");
         return;
       }
-      histogram = new Histogram(maxHistogramSize);
+      histogram = histogramType == HistogramType.SIMPLE ? new SimpleHistogram(maxHistogramSize) : new RangedHistogram(maxHistogramSize);
       Histogram currentHistogram = tagsToHistogram.putIfAbsent(tags, histogram);
       if (currentHistogram != null) {
         histogram = currentHistogram;
@@ -69,5 +75,10 @@ public class Histograms {
 
   protected int getMaxNumOfHistograms() {
     return maxNumOfHistograms;
+  }
+
+  enum HistogramType {
+    SIMPLE,
+    RANGE
   }
 }

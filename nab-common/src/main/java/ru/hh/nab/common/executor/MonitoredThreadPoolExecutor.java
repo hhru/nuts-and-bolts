@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
+import ru.hh.nab.metrics.SimpleHistogram;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
@@ -29,7 +30,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
-  private final Histogram taskDurationMetric = new Histogram(500);
+  private final Histogram taskDurationMetric = new SimpleHistogram(500);
   private final ThreadLocal<Long> taskStart = new ThreadLocal<>();
   private final String threadPoolName;
   private final Integer longTaskDurationMs;

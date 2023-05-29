@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 public class HistogramTest {
 
-  private final Histogram histogram = new Histogram(100);
+  private final Histogram histogram = new SimpleHistogram(100);
 
   @Test
   public void oneThread() {
@@ -89,7 +89,7 @@ public class HistogramTest {
 
   @Test
   public void overflow() {
-    Histogram histogram = new Histogram(1);
+    Histogram histogram = new SimpleHistogram(1);
     histogram.save(7);
     histogram.save(13);
 

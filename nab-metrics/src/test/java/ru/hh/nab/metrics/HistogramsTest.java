@@ -116,4 +116,22 @@ public class HistogramsTest {
     assertEquals(1, tagsToHistogram.size());
     assertEquals(1, tagsToHistogram.get(new Tag("label", "first")).get(7).intValue());
   }
+  @Test
+  public void testRanged() {
+    Histograms histograms = new Histograms(100, 1, Histograms.HistogramType.RANGE);
+    Tag tag = new Tag("label", "first");
+    //попадут в одно значение ->8
+    histograms.save(7, tag);
+    histograms.save(4, tag);
+
+    //100->128
+    histograms.save(100, tag);
+
+    Map<Tags, Map<Integer, Integer>> tagsToHistogram = histograms.getTagsToHistogramAndReset();
+
+    assertEquals(1, tagsToHistogram.size());
+    Map<Integer, Integer> values = tagsToHistogram.get(tag);
+    assertEquals(values.get(8), 2);
+    assertEquals(values.get(128), 1);
+  }
 }

@@ -10,8 +10,9 @@ import org.slf4j.LoggerFactory;
 /**
  * An aggregator that accumulates a stream of values as a histogram to compute percentiles.<br/>
  * For example, response times.
+ * Implementation moved to {@link SimpleHistogram} and {@link RangedHistogram}
  */
-public class Histogram {
+public abstract class Histogram {
   private static final Logger logger = LoggerFactory.getLogger(Histogram.class);
 
   private final int maxHistogramSize;
@@ -29,6 +30,7 @@ public class Histogram {
   }
 
   public void save(int value) {
+    value = calculateValue(value);
     AtomicInteger counter = valueToCounter.get(value);
     if (counter == null) {
       if (valueToCounter.size() >= maxHistogramSize) {
@@ -43,6 +45,7 @@ public class Histogram {
     }
     counter.incrementAndGet();
   }
+  protected abstract int calculateValue(int value);
 
   public Map<Integer, Integer> getValueToCountAndReset() {
     Map<Integer, Integer> valueToCount = new HashMap<>(valueToCounter.size());

@@ -1,3 +1,9 @@
+-   name: 4.39.3
+    date: '2023-05-30T16:05:30.089079+03:00'
+    description: fix for histograms
+    instructions: ''
+    compatible: true
+
 -   name: 4.39.2
     date: '2023-05-29T14:41:30.721405+03:00'
     description: add ranged metrics for histrograms

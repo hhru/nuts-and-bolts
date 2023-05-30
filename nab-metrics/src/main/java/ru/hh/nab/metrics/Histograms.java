@@ -77,7 +77,7 @@ public class Histograms {
     return maxNumOfHistograms;
   }
 
-  enum HistogramType {
+  public enum HistogramType {
     SIMPLE,
     RANGE
   }

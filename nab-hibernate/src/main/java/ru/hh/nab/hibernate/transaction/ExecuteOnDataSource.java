@@ -8,7 +8,7 @@ import ru.hh.nab.datasource.DataSourceType;
 
 /**
  * Warning: unlike {@link org.springframework.transaction.annotation.Transactional}
- * or {@link javax.transaction.Transactional},
+ * or {@link jakarta.transaction.Transactional},
  * transactions created by this annotation will rollback on any exception.
  */
 @Retention(RetentionPolicy.RUNTIME)

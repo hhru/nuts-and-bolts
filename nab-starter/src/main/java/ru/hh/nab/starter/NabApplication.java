@@ -1,6 +1,7 @@
 package ru.hh.nab.starter;
 
 import io.sentry.Sentry;
+import jakarta.servlet.ServletContextEvent;
 import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import javax.servlet.ServletContextEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -70,7 +70,7 @@ public final class NabApplication {
   /**
    *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
-   * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
+   * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, jakarta.servlet.ServletContext)}
    */
   public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
     try {
@@ -101,7 +101,7 @@ public final class NabApplication {
     return createJettyServer(
         baseContext,
         directlyUseAsWebAppRoot,
-        webAppContext -> webAppContext.getServer().addLifeCycleListener(new JettyLifeCycleListener(baseContext))
+        webAppContext -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(baseContext))
     );
   }
 

@@ -1,6 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;

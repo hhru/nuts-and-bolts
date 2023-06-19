@@ -1,13 +1,13 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.core.Response;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import jakarta.ws.rs.ext.Provider;
 import java.sql.SQLTransientConnectionException;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
-import javax.annotation.Priority;
-import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
-import javax.ws.rs.ext.Provider;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 

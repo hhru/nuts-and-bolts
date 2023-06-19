@@ -1,13 +1,13 @@
 package ru.hh.nab.starter.filters;
 
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import javax.ws.rs.ext.Provider;
 import org.glassfish.jersey.message.internal.AcceptableMediaType;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.slf4j.Logger;

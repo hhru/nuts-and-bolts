@@ -2,13 +2,13 @@ package ru.hh.nab.starter;
 
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
+import jakarta.annotation.Nullable;
+import jakarta.inject.Named;
 import java.io.IOException;
 import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
-import javax.annotation.Nullable;
-import javax.inject.Named;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,12 +1,12 @@
 package ru.hh.nab.starter;
 
 import com.timgroup.statsd.StatsDClient;
+import jakarta.inject.Named;
 import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
-import javax.inject.Named;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

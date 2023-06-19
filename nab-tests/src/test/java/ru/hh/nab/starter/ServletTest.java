@@ -1,12 +1,12 @@
 package ru.hh.nab.starter;
 
+import jakarta.servlet.GenericServlet;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Properties;
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.ws.rs.core.Response;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;

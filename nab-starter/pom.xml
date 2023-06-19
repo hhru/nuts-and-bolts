@@ -5,7 +5,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.41.1-SNAPSHOT</version>
+        <version>4.40.3.jakarta-rc1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -30,12 +30,12 @@
 
         <!-- Jersey -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.ext</groupId>
-            <artifactId>jersey-spring5</artifactId>
+            <artifactId>jersey-spring6</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -111,6 +111,10 @@
         <!-- Jetty -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
         </dependency>
         <dependency>
@@ -146,16 +150,23 @@
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <exclusions>
+                <!-- Jackson databind registers modules via classpath scan. All modules incompatible with jakarta must be removed. -->
+                <exclusion>
+                        <groupId>com.fasterxml.jackson.module</groupId>
+                        <artifactId>jackson-module-jaxb-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
         </dependency>
 
         <!--JAXB-->
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>

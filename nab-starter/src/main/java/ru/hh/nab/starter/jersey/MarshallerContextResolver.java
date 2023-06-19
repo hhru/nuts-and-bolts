@@ -1,12 +1,12 @@
 package ru.hh.nab.starter.jersey;
 
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.util.Collections;
 import java.util.Set;
-import javax.inject.Inject;
-import javax.ws.rs.ext.ContextResolver;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import ru.hh.nab.common.cache.PartiallyOverflowingCache;
 import ru.hh.nab.common.properties.FileSettings;
@@ -48,7 +48,7 @@ public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
     try {
       Marshaller marshaller = jaxbContext.createMarshaller();
-      marshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", XmlEscapeHandler.INSTANCE);
+      marshaller.setProperty("org.glassfish.jaxb.characterEscapeHandler", XmlEscapeHandler.INSTANCE);
       return marshaller;
     } catch (JAXBException e) {
       throw new SerializationFailedException("Failed to create Marshaller", e);

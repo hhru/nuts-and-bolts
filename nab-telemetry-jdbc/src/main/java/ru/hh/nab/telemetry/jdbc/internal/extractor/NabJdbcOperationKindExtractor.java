@@ -6,7 +6,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.model.JdbcOperationKind;
 
 public class NabJdbcOperationKindExtractor<REQUEST> implements AttributesExtractor<REQUEST, Void> {

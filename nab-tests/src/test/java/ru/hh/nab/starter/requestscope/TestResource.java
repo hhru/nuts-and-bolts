@@ -1,9 +1,9 @@
 package ru.hh.nab.starter.requestscope;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 
 @Path("/")
 public class TestResource {

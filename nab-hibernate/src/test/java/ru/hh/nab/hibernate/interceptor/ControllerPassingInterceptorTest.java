@@ -20,7 +20,7 @@ public class ControllerPassingInterceptorTest {
 
     String originalSql = "select * from resume;";
 
-    String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
+    String sqlAfterPrepareStatement = controllerPassingInterceptor.inspect(originalSql);
 
     assertEquals("/* resume */" + originalSql, sqlAfterPrepareStatement);
   }
@@ -31,7 +31,7 @@ public class ControllerPassingInterceptorTest {
 
     String originalSql = "select * from resume;";
 
-    String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
+    String sqlAfterPrepareStatement = controllerPassingInterceptor.inspect(originalSql);
 
     assertEquals("/* resume_ */" + originalSql, sqlAfterPrepareStatement);
   }
@@ -42,7 +42,7 @@ public class ControllerPassingInterceptorTest {
 
     String originalSql = "select * from resume;";
 
-    String sqlAfterPrepareStatement = controllerPassingInterceptor.onPrepareStatement(originalSql);
+    String sqlAfterPrepareStatement = controllerPassingInterceptor.inspect(originalSql);
 
     assertEquals(originalSql, sqlAfterPrepareStatement);
   }

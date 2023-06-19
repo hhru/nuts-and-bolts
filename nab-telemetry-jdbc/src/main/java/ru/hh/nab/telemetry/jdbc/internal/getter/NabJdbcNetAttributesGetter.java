@@ -2,7 +2,7 @@ package ru.hh.nab.telemetry.jdbc.internal.getter;
 
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
 import io.opentelemetry.instrumentation.jdbc.internal.JdbcNetAttributesGetter;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 
 public class NabJdbcNetAttributesGetter implements NetClientAttributesGetter<NabDbRequest, Void> {

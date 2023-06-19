@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.service.Service;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,7 +66,7 @@ public class NabHibernateCommonConfig {
       @Hibernate Properties hibernateProperties,
       BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
       List<MappingConfig> mappingConfigs,
-      @Nullable Collection<NabSessionFactoryBean.ServiceSupplier<?>> serviceSuppliers,
+      @Nullable Collection<NabSessionFactoryBean.ServiceSupplier<Service>> serviceSuppliers,
       @Nullable Collection<NabSessionFactoryBean.SessionFactoryCreationHandler> sessionFactoryCreationHandlers
   ) {
     NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(

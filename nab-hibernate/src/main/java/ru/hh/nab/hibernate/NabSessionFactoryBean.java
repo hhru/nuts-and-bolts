@@ -10,6 +10,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.service.Service;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBuilder;
@@ -19,11 +20,11 @@ import ru.hh.nab.hibernate.qualifier.Hibernate;
 
 public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 
-  private final Collection<ServiceSupplier<?>> serviceSuppliers;
+  private final Collection<ServiceSupplier<Service>> serviceSuppliers;
   private final Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers;
 
   public NabSessionFactoryBean(DataSource dataSource, @Hibernate Properties hibernateProperties,
-                               BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, Collection<ServiceSupplier<?>> serviceSuppliers,
+                               BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder, Collection<ServiceSupplier<Service>> serviceSuppliers,
                                Collection<SessionFactoryCreationHandler> sessionFactoryCreationHandlers) {
     this.serviceSuppliers = new ArrayList<>(serviceSuppliers);
     this.sessionFactoryCreationHandlers = new ArrayList<>(sessionFactoryCreationHandlers);
@@ -53,12 +54,12 @@ public final class NabSessionFactoryBean extends LocalSessionFactoryBean {
 
     switch (addToQueryValue) {
       case "request_id":
-        setEntityInterceptor(new RequestIdPassingInterceptor());
+        hibernateProperties.setProperty(AvailableSettings.STATEMENT_INSPECTOR, RequestIdPassingInterceptor.class.getCanonicalName());
         break;
       // Request_id in sql query prevents reuse of prepared statements, because every sql query is different.
       // Controller does not prevent reuse of prepared statements, because same sql queries from the same controller can be reused.
       case "controller":
-        setEntityInterceptor(new ControllerPassingInterceptor());
+        hibernateProperties.setProperty(AvailableSettings.STATEMENT_INSPECTOR, ControllerPassingInterceptor.class.getCanonicalName());
         break;
       default:
         throw new RuntimeException("unknown value of hibernate 'addToQuery' property");

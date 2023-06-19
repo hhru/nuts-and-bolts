@@ -181,7 +181,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
-    containerProperties.setAuthorizationExceptionRetryInterval(
+    containerProperties.setAuthExceptionRetryInterval(
         Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS)));
     return containerProperties;
   }

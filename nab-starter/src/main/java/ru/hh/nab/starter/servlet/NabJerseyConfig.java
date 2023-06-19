@@ -1,5 +1,7 @@
 package ru.hh.nab.starter.servlet;
 
+import jakarta.servlet.Servlet;
+import jakarta.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,8 +13,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.servlet.Servlet;
-import javax.ws.rs.Path;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.util.StringUtils;
@@ -81,16 +81,16 @@ public abstract class NabJerseyConfig implements NabServletConfig {
 
   private Map.Entry<WebApplicationContext, ResourceConfig> createResourceConfig(WebApplicationContext rootCtx, Class<?>... childContexts) {
     ResourceConfig resourceConfig = new DefaultResourceConfig();
-    HierarchicalWebApplicationContext jerseyContext = new HierarchicalWebApplicationContext(rootCtx);
+    HierarchicalWebApplicationContext springContext = new HierarchicalWebApplicationContext(rootCtx);
     if (childContexts.length > 0) {
-      jerseyContext.register(childContexts);
+      springContext.register(childContexts);
     }
-    jerseyContext.setParent(rootCtx);
-    jerseyContext.refresh();
-    jerseyContext.getBeansWithAnnotation(javax.ws.rs.Path.class).values().stream()
+    springContext.setParent(rootCtx);
+    springContext.refresh();
+    springContext.getBeansWithAnnotation(jakarta.ws.rs.Path.class).values().stream()
       .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
       .forEach(resourceConfig::register);
-    return Map.entry(jerseyContext, resourceConfig);
+    return Map.entry(springContext, resourceConfig);
   }
 
   public static final class Builder {

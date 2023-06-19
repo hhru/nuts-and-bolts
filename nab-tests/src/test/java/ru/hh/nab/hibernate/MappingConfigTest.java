@@ -1,6 +1,6 @@
 package ru.hh.nab.hibernate;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.hibernate.SessionFactory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,7 +38,7 @@ public class MappingConfigTest extends HibernateTestBase {
 
   @Test
   public void hibernateShouldHaveMappedEntities() {
-    assertNotNull(sessionFactory.getTypeHelper().entity(TestEntity.class));
-    assertNotNull(sessionFactory.getTypeHelper().entity(PackageScanEntity.class));
+    assertNotNull(sessionFactory.getMetamodel().entity(TestEntity.class));
+    assertNotNull(sessionFactory.getMetamodel().entity(PackageScanEntity.class));
   }
 }

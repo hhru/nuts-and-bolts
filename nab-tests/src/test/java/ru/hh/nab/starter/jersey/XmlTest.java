@@ -1,6 +1,6 @@
 package ru.hh.nab.starter.jersey;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;

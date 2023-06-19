@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.jersey;
 
-import com.sun.xml.bind.marshaller.CharacterEscapeHandler;
 import java.io.IOException;
 import java.io.Writer;
+import org.glassfish.jaxb.core.marshaller.CharacterEscapeHandler;
 
 /**
  * Copy of {@link com.sun.xml.bind.marshaller.MinimumEscapeHandler}.

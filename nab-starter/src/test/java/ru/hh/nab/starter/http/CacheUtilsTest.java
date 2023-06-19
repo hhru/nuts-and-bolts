@@ -1,6 +1,6 @@
 package ru.hh.nab.starter.http;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.DateGenerator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

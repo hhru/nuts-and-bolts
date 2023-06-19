@@ -1,11 +1,11 @@
 package ru.hh.nab.starter.filters;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import static java.util.Optional.ofNullable;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
 import ru.hh.nab.starter.http.RequestContext;

@@ -1,6 +1,6 @@
 package ru.hh.nab.example;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;

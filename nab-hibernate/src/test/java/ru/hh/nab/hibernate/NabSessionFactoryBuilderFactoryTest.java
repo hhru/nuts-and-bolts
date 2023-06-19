@@ -1,6 +1,7 @@
 package ru.hh.nab.hibernate;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,12 +11,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.service.Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,15 +80,15 @@ public class NabSessionFactoryBuilderFactoryTest {
       transactionalScope.read(() -> {
         try {
           Session currentSession = sessionFactory.getCurrentSession();
-          ref.set(((SharedSessionContractImplementor) currentSession).connection());
-          verify(((SharedSessionContractImplementor) currentSession).connection(), times(0)).close();
+          ref.set(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection());
+          verify(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection(), times(0)).close();
           currentSession.createNativeQuery("select 1 from dual").uniqueResult();
-          verify(((SharedSessionContractImplementor) currentSession).connection(), times(1)).close();
+          verify(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection(), times(1)).close();
         } catch (SQLException e) {
           throw new RuntimeException(e);
         }
       });
-      verify(ref.get(), times(2)).close();
+      verify(ref.get(), times(1)).close();
     }
   }
 
@@ -129,7 +130,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     }
 
     @Bean
-    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, NabSessionFactoryBean.ServiceSupplier<?> supplier) throws IOException {
+    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, NabSessionFactoryBean.ServiceSupplier<Service> supplier) throws IOException {
       var props = new Properties();
       props.load(TestContext.class.getResourceAsStream("/hibernate-test.properties"));
       return new NabSessionFactoryBean(dataSource, props,

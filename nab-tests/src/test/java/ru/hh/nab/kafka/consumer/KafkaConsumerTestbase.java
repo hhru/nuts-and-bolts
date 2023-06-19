@@ -1,8 +1,8 @@
 package ru.hh.nab.kafka.consumer;
 
+import jakarta.inject.Inject;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;

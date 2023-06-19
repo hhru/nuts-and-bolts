@@ -1,6 +1,6 @@
 package ru.hh.nab.starter.http;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 public final class CacheUtils {
   public static final String CACHE_CONTROL = "Cache-Control";

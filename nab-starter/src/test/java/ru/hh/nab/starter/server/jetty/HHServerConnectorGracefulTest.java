@@ -1,28 +1,24 @@
 package ru.hh.nab.starter.server.jetty;
 
-import java.io.EOFException;
+import jakarta.servlet.GenericServlet;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.GenericServlet;
-import javax.servlet.Servlet;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
@@ -41,33 +37,6 @@ public class HHServerConnectorGracefulTest {
   @AfterAll
   public static void afterGracefulServletContextHandlerTestClass() {
     executorService.shutdown();
-  }
-
-  @Test
-  public void testOriginalServerConnectorDoesNotWaitPendingRequests() throws Exception {
-    ControlledServlet controlledServlet = new ControlledServlet(204);
-    Server server = createServer(controlledServlet);
-    server.addConnector(new ServerConnector(server));
-    server.start();
-
-    Socket requestSocket = new Socket("localhost", getPort(server));
-    Future<Integer> responseStatusFuture = httpClient.request(requestSocket);
-    controlledServlet.awaitRequest();
-
-    Future<Void> serverStoppedFuture = stop(server);
-    Thread.sleep(100);
-    controlledServlet.respond();
-    serverStoppedFuture.get(STOP_TIMEOUT_MS / 2, TimeUnit.MILLISECONDS);
-
-    assertTrue(responseStatusFuture.isDone());
-    try {
-      responseStatusFuture.get();
-      fail("original jetty ServletContextHandler did wait for request to complete");
-    } catch (ExecutionException e) {
-      assertTrue(e.getCause() instanceof EOFException);
-    }
-
-    requestSocket.close();
   }
 
   @Test

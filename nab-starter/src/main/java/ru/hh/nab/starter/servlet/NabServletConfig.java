@@ -1,9 +1,9 @@
 package ru.hh.nab.starter.servlet;
 
+import jakarta.servlet.Servlet;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
-import javax.servlet.Servlet;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;

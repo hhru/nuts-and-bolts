@@ -1,10 +1,10 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 import java.util.List;
-import javax.annotation.Priority;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
 import static ru.hh.jclient.common.HttpStatuses.BAD_GATEWAY;
 import static ru.hh.jclient.common.HttpStatuses.INTERNAL_SERVER_ERROR;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;

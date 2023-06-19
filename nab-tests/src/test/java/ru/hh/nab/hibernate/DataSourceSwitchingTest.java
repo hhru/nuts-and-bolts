@@ -3,15 +3,15 @@ package ru.hh.nab.hibernate;
 import com.codahale.metrics.health.HealthCheck;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.persistence.PersistenceException;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.PersistenceException;
 import javax.sql.DataSource;
 import org.hibernate.Session;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -126,7 +126,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         PersistenceException.class,
         () -> onDataSource("third", () -> transactionalScope.read(method))
     );
-    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+    assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, never()).getConnection();
     verify(thirdDataSourceSpy, times(1)).getConnection();

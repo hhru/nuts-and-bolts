@@ -1,5 +1,6 @@
 package ru.hh.jclient.common;
 
+import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -7,7 +8,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.LongAdder;
-import javax.inject.Inject;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Request;

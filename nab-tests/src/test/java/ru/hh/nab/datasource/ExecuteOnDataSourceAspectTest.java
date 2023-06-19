@@ -1,12 +1,12 @@
 package ru.hh.nab.datasource;
 
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.Properties;
-import javax.inject.Inject;
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

@@ -38,7 +38,7 @@ public class MappingConfigTest extends HibernateTestBase {
 
   @Test
   public void hibernateShouldHaveMappedEntities() {
-    assertNotNull(sessionFactory.getTypeHelper().entity(TestEntity.class));
-    assertNotNull(sessionFactory.getTypeHelper().entity(PackageScanEntity.class));
+    assertNotNull(sessionFactory.getMetamodel().entity(TestEntity.class));
+    assertNotNull(sessionFactory.getMetamodel().entity(PackageScanEntity.class));
   }
 }

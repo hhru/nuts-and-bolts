@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.ext.Provider;
 import java.util.concurrent.ExecutionException;
-import javax.annotation.Priority;
-import javax.ws.rs.ext.Provider;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider

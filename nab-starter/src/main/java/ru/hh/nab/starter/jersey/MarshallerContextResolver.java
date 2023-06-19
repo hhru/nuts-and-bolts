@@ -1,12 +1,12 @@
 package ru.hh.nab.starter.jersey;
 
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.util.Collections;
 import java.util.Set;
-import javax.inject.Inject;
-import javax.ws.rs.ext.ContextResolver;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import ru.hh.nab.common.cache.PartiallyOverflowingCache;
 import ru.hh.nab.common.properties.FileSettings;

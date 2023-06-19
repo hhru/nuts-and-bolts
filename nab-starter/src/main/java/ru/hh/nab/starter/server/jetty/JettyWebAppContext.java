@@ -14,20 +14,24 @@ final class JettyWebAppContext extends WebAppContext {
 
   JettyWebAppContext(List<WebAppInitializer> webAppInitializers, boolean sessionEnabled) {
     super(null, null, null, null, null, null, sessionEnabled ? SESSIONS : 0);
-    this.addLifeCycleListener(new BeforeStartListener(webAppInitializers));
+    this.addEventListener(new BeforeStartListener(webAppInitializers));
     setThrowUnavailableOnStartupException(true);
   }
 
   @Override
-  protected void loadConfigurations() throws Exception {
-    if (getConfigurations().length > 0) {
+  protected void loadConfigurations() {
+    if (getConfigurations().getConfigurations().size() > 0) {
       return;
     }
 
     String[] configurationClassStrings = getConfigurationClasses();
     Configuration[] configurations = new Configuration[configurationClassStrings.length];
     for (int i = 0; i < configurations.length; i++) {
-      configurations[i] = (Configuration)Loader.loadClass(configurationClassStrings[i]).getDeclaredConstructor().newInstance();
+      try {
+        configurations[i] = (Configuration)Loader.loadClass(configurationClassStrings[i]).getDeclaredConstructor().newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
     setConfigurations(configurations);
   }

@@ -1,5 +1,9 @@
 package ru.hh.nab.starter.server.jetty;
 
+import jakarta.servlet.GenericServlet;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.EOFException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -11,10 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import static org.awaitility.Awaitility.await;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;

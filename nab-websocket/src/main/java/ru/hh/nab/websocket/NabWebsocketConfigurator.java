@@ -1,14 +1,13 @@
 package ru.hh.nab.websocket;
 
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.server.ServerContainer;
+import jakarta.websocket.server.ServerEndpoint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.ServletException;
-import javax.websocket.DeploymentException;
-import javax.websocket.server.ServerEndpoint;
-import org.eclipse.jetty.websocket.jsr356.server.ServerContainer;
-import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import ru.hh.nab.starter.NabApplicationBuilder;
 
 public class NabWebsocketConfigurator {
@@ -19,13 +18,13 @@ public class NabWebsocketConfigurator {
 
     nabApplicationBuilder.onWebAppStarted((servletContext, springWebApplicationContext) -> {
       try {
-        new WebSocketServerContainerInitializer().onStartup(Set.of(), servletContext);
-      } catch (ServletException e) {
+        new JettyWebSocketServletContainerInitializer().onStartup(Set.of(), servletContext);
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
 
-      javax.websocket.server.ServerContainer serverContainer = (ServerContainer) servletContext.getAttribute(
-          WebSocketServerContainerInitializer.ATTR_JAVAX_SERVER_CONTAINER
+      jakarta.websocket.server.ServerContainer serverContainer = (ServerContainer) servletContext.getAttribute(
+          jakarta.websocket.server.ServerContainer.class.getName()
       );
 
       List<? extends Class<?>> endpoints = springWebApplicationContext.getBeansWithAnnotation(ServerEndpoint.class).values().stream()

@@ -2,6 +2,7 @@ package ru.hh.nab.starter.server.jetty;
 
 import java.util.List;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,9 @@ final class JettyWebAppContext extends WebAppContext {
   JettyWebAppContext(List<WebAppInitializer> webAppInitializers, boolean sessionEnabled) {
     super(null, null, null, null, null, null, sessionEnabled ? SESSIONS : 0);
     this.addEventListener(new BeforeStartListener(webAppInitializers));
+    this.setConfigurations(new Configuration[]{});
     setThrowUnavailableOnStartupException(true);
+
   }
 
   private final class BeforeStartListener implements LifeCycle.Listener {

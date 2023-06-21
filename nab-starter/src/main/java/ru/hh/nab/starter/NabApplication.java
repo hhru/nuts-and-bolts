@@ -8,11 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -25,17 +23,13 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 
@@ -76,7 +70,15 @@ public final class NabApplication {
     try {
       configureLogger(baseContext);
       configureSentry(baseContext);
-      JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
+
+      WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
+      WebAppInitializer extAppInitializer = (webAppContext) -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(baseContext));
+
+      FileSettings fileSettings = baseContext.getBean(FileSettings.class);
+      FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
+      ServletContextHandler jettyWebAppContext = createWebAppContextHandler(jettySettings, List.of(webAppInitializer, extAppInitializer));
+
+      JettyServer jettyServer = JettyServerFactory.create(baseContext, jettyWebAppContext);
       jettyServer.start();
       logStartupInfo(baseContext);
       return jettyServer;
@@ -89,90 +91,22 @@ public final class NabApplication {
     try {
       configureLogger(baseContext);
       logStartupInfo(baseContext);
+
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
+
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
+
       return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
     } catch (Exception e) {
       return logErrorAndExit(e, false);
     }
   }
 
-  JettyServer createJettyServer(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
-    return createJettyServer(
-        baseContext,
-        directlyUseAsWebAppRoot,
-        webAppContext -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(baseContext))
-    );
-  }
-
-  private JettyServer createJettyServer(WebApplicationContext baseContext,
-                                boolean directlyUseAsWebAppRoot,
-                                WebAppInitializer extwebAppInitializer){
-    FileSettings fileSettings = baseContext.getBean(FileSettings.class);
-    ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
-    StatsDSender sender = baseContext.getBean(StatsDSender.class);
-    WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
-    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
-    return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer, extwebAppInitializer));
-  }
-
   public static NabApplicationBuilder builder() {
     return new NabApplicationBuilder();
   }
 
-  public static void configureSentry(ApplicationContext context) {
-    FileSettings settings = context.getBean(FileSettings.class);
-    String dsn = settings.getString("sentry.dsn");
-    if (StringUtils.isBlank(dsn)) {
-      LOGGER.warn("Sentry DSN is empty!");
-    } else {
-      Sentry.init(options -> {
-        options.setEnableExternalConfiguration(true);
-        options.setDsn(dsn);
-      });
-    }
-  }
-
-  private static void configureLogger(ApplicationContext context) {
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
-    SLF4JBridgeHandler.install();
-
-    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension, context.getBean(FileSettings.class)));
-  }
-
-  private static void logStartupInfo(ApplicationContext context) {
-    AppMetadata appMetadata = context.getBean(AppMetadata.class);
-    LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
-  }
-
-  private static String getCurrentPid() {
-    return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-  }
-
-  private static Optional<LogLevelOverrideExtension> getLogLevelOverrideExtension(ApplicationContext context) {
-    try {
-      var extension = context.getBean(LogLevelOverrideExtension.class);
-      LOGGER.info("{} activated", LogLevelOverrideExtension.class.getSimpleName());
-      return Optional.of(extension);
-    } catch (NoSuchBeanDefinitionException e) {
-      // Extension not activated, normal behaviour
-      return Optional.empty();
-    }
-  }
-
-  private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {
-    try {
-      LOGGER.error("Failed to start, shutting down", e);
-      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), ExceptionUtils.getRootCause(e).getMessage()));
-      return null;
-    } finally {
-      if (exitOnError) {
-        System.exit(1);
-      } else {
-        throw new RuntimeException(e);
-      }
-    }
-  }
+  // Jetty Web Initialization
 
   private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig,
                                                            WebApplicationContext baseCtx,
@@ -207,6 +141,64 @@ public final class NabApplication {
       webAppRootCtx.setServletContext(baseCtx.getServletContext());
     }
     return webAppRootCtx;
+  }
+
+  // PLUGINS
+
+  public static void configureSentry(ApplicationContext context) {
+    FileSettings settings = context.getBean(FileSettings.class);
+    String dsn = settings.getString("sentry.dsn");
+    if (StringUtils.isBlank(dsn)) {
+      LOGGER.warn("Sentry DSN is empty!");
+    } else {
+      Sentry.init(options -> {
+        options.setEnableExternalConfiguration(true);
+        options.setDsn(dsn);
+      });
+    }
+  }
+
+  private static void configureLogger(ApplicationContext context) {
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
+    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension, context.getBean(FileSettings.class)));
+  }
+
+  private static Optional<LogLevelOverrideExtension> getLogLevelOverrideExtension(ApplicationContext context) {
+    try {
+      var extension = context.getBean(LogLevelOverrideExtension.class);
+      LOGGER.info("{} activated", LogLevelOverrideExtension.class.getSimpleName());
+      return Optional.of(extension);
+    } catch (NoSuchBeanDefinitionException e) {
+      // Extension not activated, normal behaviour
+      return Optional.empty();
+    }
+  }
+
+  // Utilities
+
+  private static void logStartupInfo(ApplicationContext context) {
+    AppMetadata appMetadata = context.getBean(AppMetadata.class);
+    LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
+  }
+
+  private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {
+    try {
+      LOGGER.error("Failed to start, shutting down", e);
+      System.err.println(format("[{0}] Failed to start, shutting down: {1}", LocalDateTime.now(), ExceptionUtils.getRootCause(e).getMessage()));
+      return null;
+    } finally {
+      if (exitOnError) {
+        System.exit(1);
+      } else {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private static String getCurrentPid() {
+    return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 
 }

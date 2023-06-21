@@ -16,7 +16,9 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.thread.ThreadPool;
+import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
@@ -34,14 +36,22 @@ public final class JettyServerFactory {
 
   private static final int DEFAULT_IDLE_TIMEOUT_MS = (int) Duration.ofMinutes(1).toMillis();
 
-  public static JettyServer create(
+  public static JettyServer create(WebApplicationContext baseContext,
+                                    ServletContextHandler contextHandler){
+    FileSettings fileSettings = baseContext.getBean(FileSettings.class);
+    ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
+    StatsDSender sender = baseContext.getBean(StatsDSender.class);
+    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
+    return JettyServerFactory.create(fileSettings, threadPool, appSender, contextHandler);
+  }
+
+  private static JettyServer create(
       FileSettings fileSettings,
       ThreadPool threadPool,
       TaggedSender statsDSender,
-      List<WebAppInitializer> webAppInitializer
+      ServletContextHandler contextHandler
   ) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
-    ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
     return new JettyServer(threadPool, jettySettings, statsDSender, contextHandler);
   }
 

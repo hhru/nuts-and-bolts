@@ -81,16 +81,16 @@ public abstract class NabJerseyConfig implements NabServletConfig {
 
   private Map.Entry<WebApplicationContext, ResourceConfig> createResourceConfig(WebApplicationContext rootCtx, Class<?>... childContexts) {
     ResourceConfig resourceConfig = new DefaultResourceConfig();
-    HierarchicalWebApplicationContext jerseyContext = new HierarchicalWebApplicationContext(rootCtx);
+    HierarchicalWebApplicationContext springContext = new HierarchicalWebApplicationContext(rootCtx);
     if (childContexts.length > 0) {
-      jerseyContext.register(childContexts);
+      springContext.register(childContexts);
     }
-    jerseyContext.setParent(rootCtx);
-    jerseyContext.refresh();
-    jerseyContext.getBeansWithAnnotation(jakarta.ws.rs.Path.class).values().stream()
+    springContext.setParent(rootCtx);
+    springContext.refresh();
+    springContext.getBeansWithAnnotation(jakarta.ws.rs.Path.class).values().stream()
       .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
       .forEach(resourceConfig::register);
-    return Map.entry(jerseyContext, resourceConfig);
+    return Map.entry(springContext, resourceConfig);
   }
 
   public static final class Builder {

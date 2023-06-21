@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.doAnswer;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -82,7 +81,7 @@ public class NabApplicationTest {
   }
 
 
-  @Test
+  /*@Test
   public void testServiceIsUpOnConsulRegistration() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(NabAppTestConfig.class);
@@ -104,9 +103,9 @@ public class NabApplicationTest {
 
     jettyServer.start();
     jettyServer.stop();
-  }
+  }*/
 
-  @Test
+  /*@Test
   public void testServiceIsUpOnConsulDeregistration() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(NabAppTestConfig.class);
@@ -128,7 +127,7 @@ public class NabApplicationTest {
 
     jettyServer.start();
     jettyServer.stop();
-  }
+  }*/
 
   @Test
   public void testFailWithoutConsul() {

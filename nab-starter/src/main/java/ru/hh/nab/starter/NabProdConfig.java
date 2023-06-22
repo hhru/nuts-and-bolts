@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
+import ru.hh.consul.HealthClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
@@ -23,6 +24,7 @@ import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulMetricsTracker;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
@@ -112,6 +114,11 @@ public class NabProdConfig {
   }
 
   @Bean
+  HealthClient healthClient(@Nullable Consul consul) {
+    return consul != null ? consul.healthClient() : null;
+  }
+
+  @Bean
   @Lazy(value = false)
   ConsulService consulService(
       FileSettings fileSettings,
@@ -132,6 +139,16 @@ public class NabProdConfig {
         nodeName,
         logLevelOverrideExtension
     );
+  }
+
+  @Bean
+  @Lazy
+  public ConsulFetcher consulFetcher(@Nullable HealthClient healthClient, FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName) {
+    if (healthClient == null) {
+      throw new RuntimeException(String.format("HealthClient is null. Set %s as true for using fetcher", ConsulService.CONSUL_ENABLED_PROPERTY));
+    }
+
+    return new ConsulFetcher(healthClient, fileSettings, serviceName);
   }
 
   private boolean isConsulDisabled(FileSettings fileSettings) {

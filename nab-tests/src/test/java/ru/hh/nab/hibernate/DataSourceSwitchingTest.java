@@ -125,7 +125,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         PersistenceException.class,
         () -> onDataSource("third", () -> transactionalScope.read(method))
     );
-    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+    assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
     verify(firstDataSourceSpy, never()).getConnection();
     verify(secondDataSourceSpy, never()).getConnection();
     verify(thirdDataSourceSpy, times(1)).getConnection();

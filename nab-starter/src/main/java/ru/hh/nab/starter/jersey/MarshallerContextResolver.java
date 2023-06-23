@@ -48,7 +48,7 @@ public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
     try {
       Marshaller marshaller = jaxbContext.createMarshaller();
-      marshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", XmlEscapeHandler.INSTANCE);
+      marshaller.setProperty("org.glassfish.jaxb.characterEscapeHandler", XmlEscapeHandler.INSTANCE);
       return marshaller;
     } catch (JAXBException e) {
       throw new SerializationFailedException("Failed to create Marshaller", e);

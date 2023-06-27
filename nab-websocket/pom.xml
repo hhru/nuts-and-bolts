@@ -19,19 +19,10 @@
         </dependency>
 
         <dependency>
-            <groupId>jakarta.websocket</groupId>
-            <artifactId>jakarta.websocket-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.websocket</groupId>
-            <artifactId>jakarta.websocket-client-api</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-server</artifactId>
+            <artifactId>websocket-jakarta-server</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-websocket</artifactId>

@@ -15,7 +15,7 @@ public class TestEndpoint {
   private static final String WS_RESPONSE_MESSAGE = "ws response";
 
   public static volatile String receivedMessage = null;
-  public static volatile Boolean connectionOpen = null;
+  public static volatile boolean connectionOpen = false;
 
   @OnOpen
   public void onWebSocketOpen(Session session, EndpointConfig endpointConfig) {

@@ -1,13 +1,11 @@
 package ru.hh.nab.websocket;
 
-import jakarta.websocket.DeploymentException;
-import jakarta.websocket.server.ServerContainer;
 import jakarta.websocket.server.ServerEndpoint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
+import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
+import org.eclipse.jetty.websocket.jakarta.server.internal.JakartaWebSocketServerContainer;
 import ru.hh.nab.starter.NabApplicationBuilder;
 
 public class NabWebsocketConfigurator {
@@ -18,29 +16,27 @@ public class NabWebsocketConfigurator {
 
     nabApplicationBuilder.onWebAppStarted((servletContext, springWebApplicationContext) -> {
       try {
-        new JettyWebSocketServletContainerInitializer().onStartup(Set.of(), servletContext);
+        new JakartaWebSocketServletContainerInitializer().onStartup(Set.of(), servletContext);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
 
-      jakarta.websocket.server.ServerContainer serverContainer = (ServerContainer) servletContext.getAttribute(
-          jakarta.websocket.server.ServerContainer.class.getName()
-      );
+      JakartaWebSocketServerContainer serverContainer = JakartaWebSocketServerContainer.getContainer(servletContext);
 
-      List<? extends Class<?>> endpoints = springWebApplicationContext.getBeansWithAnnotation(ServerEndpoint.class).values().stream()
+      List<? extends Class<?>> beans = springWebApplicationContext.getBeansWithAnnotation(ServerEndpoint.class).values().stream()
           .map(Object::getClass)
           .filter(clazz -> allowedEndpointsPackages.stream().anyMatch(allowedPackage -> clazz.getName().startsWith(allowedPackage)))
-          .collect(Collectors.toList());
+          .toList();
 
-      if (endpoints.isEmpty()) {
+      if (beans.isEmpty()) {
         throw new IllegalStateException(String.format("Can not configure websocket - no %s classes found", ServerEndpoint.class.getName()));
       }
 
       try {
-        for (Class<?> endpoint : endpoints) {
-          serverContainer.addEndpoint(endpoint);
+        for (Class<?> bean : beans) {
+          serverContainer.addEndpoint(bean);
         }
-      } catch (DeploymentException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
 

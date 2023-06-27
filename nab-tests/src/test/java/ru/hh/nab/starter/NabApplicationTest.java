@@ -9,14 +9,17 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Properties;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.doAnswer;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +37,13 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.qualifier.Service;
+import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
+import ru.hh.nab.starter.server.jetty.JettyServerFactory;
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
+import ru.hh.nab.starter.servlet.WebAppInitializer;
 import ru.hh.nab.testbase.NabTestConfig;
 
 public class NabApplicationTest {
@@ -81,14 +89,21 @@ public class NabApplicationTest {
   }
 
 
-  /*@Test
+  @Test
   public void testServiceIsUpOnConsulRegistration() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(NabAppTestConfig.class);
     aggregateCtx.refresh();
 
-    NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
-    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx, false);
+    NabServletContextConfig servletContextConfig = new NabServletContextConfig();
+    WebAppInitializer webAppInitializer = NabApplication.createWebAppInitializer(servletContextConfig, aggregateCtx, false);
+    WebAppInitializer extAppInitializer = (webAppContext) -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(aggregateCtx));
+
+    FileSettings fileSettings = aggregateCtx.getBean(FileSettings.class);
+    FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
+    ServletContextHandler jettyWebAppContext = createWebAppContextHandler(jettySettings, List.of(webAppInitializer, extAppInitializer));
+
+    JettyServer jettyServer = JettyServerFactory.create(aggregateCtx, jettyWebAppContext);
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
@@ -103,16 +118,23 @@ public class NabApplicationTest {
 
     jettyServer.start();
     jettyServer.stop();
-  }*/
+  }
 
-  /*@Test
+  @Test
   public void testServiceIsUpOnConsulDeregistration() {
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     aggregateCtx.register(NabAppTestConfig.class);
     aggregateCtx.refresh();
 
-    NabApplication nabApplication = new NabApplication(new NabServletContextConfig());
-    JettyServer jettyServer = nabApplication.createJettyServer(aggregateCtx, false);
+    NabServletContextConfig servletContextConfig = new NabServletContextConfig();
+    WebAppInitializer webAppInitializer = NabApplication.createWebAppInitializer(servletContextConfig, aggregateCtx, false);
+    WebAppInitializer extAppInitializer = (webAppContext) -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(aggregateCtx));
+
+    FileSettings fileSettings = aggregateCtx.getBean(FileSettings.class);
+    FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
+    ServletContextHandler jettyWebAppContext = createWebAppContextHandler(jettySettings, List.of(webAppInitializer, extAppInitializer));
+
+    JettyServer jettyServer = JettyServerFactory.create(aggregateCtx, jettyWebAppContext);
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
@@ -127,7 +149,7 @@ public class NabApplicationTest {
 
     jettyServer.start();
     jettyServer.stop();
-  }*/
+  }
 
   @Test
   public void testFailWithoutConsul() {

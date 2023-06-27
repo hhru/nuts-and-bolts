@@ -1,6 +1,6 @@
 package ru.hh.nab.hibernate.datasource;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 import javax.sql.DataSource;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;

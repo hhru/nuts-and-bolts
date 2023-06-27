@@ -19,6 +19,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>nab-common</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>
             <artifactId>jclient-common</artifactId>

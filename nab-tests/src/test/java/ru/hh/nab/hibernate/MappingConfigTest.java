@@ -1,6 +1,6 @@
 package ru.hh.nab.hibernate;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.hibernate.SessionFactory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

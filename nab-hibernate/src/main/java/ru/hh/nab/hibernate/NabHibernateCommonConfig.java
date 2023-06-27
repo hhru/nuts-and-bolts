@@ -1,5 +1,6 @@
 package ru.hh.nab.hibernate;
 
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -8,7 +9,6 @@ import java.util.Properties;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;

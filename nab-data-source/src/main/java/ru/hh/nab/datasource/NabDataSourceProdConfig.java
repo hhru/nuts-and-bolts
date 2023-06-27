@@ -1,7 +1,7 @@
 package ru.hh.nab.datasource;
 
-import javax.annotation.Nullable;
-import javax.inject.Named;
+import jakarta.annotation.Nullable;
+import jakarta.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;

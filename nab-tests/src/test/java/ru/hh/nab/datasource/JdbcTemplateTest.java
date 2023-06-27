@@ -1,9 +1,9 @@
 package ru.hh.nab.datasource;
 
+import jakarta.inject.Inject;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,7 @@
 package ru.hh.nab.hibernate;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,7 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

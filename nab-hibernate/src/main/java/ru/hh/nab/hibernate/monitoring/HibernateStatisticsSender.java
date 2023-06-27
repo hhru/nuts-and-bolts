@@ -1,9 +1,9 @@
 package ru.hh.nab.hibernate.monitoring;
 
+import jakarta.inject.Named;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import javax.inject.Named;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;

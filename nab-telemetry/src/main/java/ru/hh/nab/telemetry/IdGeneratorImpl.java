@@ -2,10 +2,10 @@ package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.sdk.trace.IdGenerator;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.HttpClientContext;

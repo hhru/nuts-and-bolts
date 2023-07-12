@@ -2,9 +2,11 @@ package ru.hh.nab.kafka.consumer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import static java.util.Collections.synchronizedList;
 import static java.util.Collections.synchronizedSet;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -209,33 +211,46 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   public void testAckLastMessageOfLastBatchPartition() throws Exception {
     putMessagesIntoKafka(150);
 
-    AtomicLong totalAckedMessagesCount = new AtomicLong(0);
     AtomicBoolean atLeastOneBatchHasSeveralPartitions = new AtomicBoolean(false);
+    var partitionToUnAckedMessagesCountMapReference = new AtomicReference<Map<Integer, Long>>(Map.of());
     startConsumer((messages, ack) -> {
       var lastMessage = messages.get(messages.size() - 1);
+      int lastMessagePartition = lastMessage.partition();
       messages.forEach(m -> {
-        processedMessages.add(m.value());
-        if (m == lastMessage) {
-          ack.acknowledge(m);
-        } else {
+        if (m != lastMessage) {
           ack.seek(m);
+          processedMessages.add(m.value());
         }
       });
-      int lastMessagePartition = lastMessage.partition();
-      long messagesCountForAckedPartition = messages.stream().filter(m -> m.partition() == lastMessagePartition).count();
 
-      Set<Integer> batchPartitions = messages.stream().map(ConsumerRecord::partition).collect(toSet());
-      if (batchPartitions.size() > 1) {
+      Map<Integer, Long> localPartitionToUnAckedMessagesCountMap = messages
+          .stream()
+          .filter(m -> m.partition() != lastMessagePartition)
+          .collect(Collectors.groupingBy(ConsumerRecord::partition, Collectors.counting()));
+
+      if (!localPartitionToUnAckedMessagesCountMap.isEmpty()) {
         atLeastOneBatchHasSeveralPartitions.set(true);
       }
-      totalAckedMessagesCount.addAndGet(messagesCountForAckedPartition);
+      boolean successCAS = false;
+      while (!successCAS) {
+        Map<Integer, Long> previousMap = partitionToUnAckedMessagesCountMapReference.get();
+        Map<Integer, Long> mutableMap = new HashMap<>(previousMap);
+        mutableMap.remove(lastMessagePartition);
+        localPartitionToUnAckedMessagesCountMap.forEach(
+            (partition, countDelta) -> mutableMap.put(partition, mutableMap.getOrDefault(partition, 0L) + countDelta)
+        );
+        Map<Integer, Long> newMap = Collections.unmodifiableMap(mutableMap);
+        successCAS = partitionToUnAckedMessagesCountMapReference.compareAndSet(previousMap, newMap);
+      }
 
+      ack.acknowledge(lastMessage);
+      processedMessages.add(lastMessage.value());
     });
     assertProcessedMessagesCount(150);
     assertTrue(atLeastOneBatchHasSeveralPartitions.get());
 
     consumeAllRemainingMessages();
-    assertProcessedMessagesCount(150 + 150 - totalAckedMessagesCount.intValue());
+    assertProcessedMessagesCount(150 + (int) partitionToUnAckedMessagesCountMapReference.get().values().stream().mapToLong(v -> v).sum());
   }
 
   @Test
@@ -286,10 +301,12 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
   }
 
   private void consumeAllRemainingMessages() {
-    startConsumer((messages, ack) -> {
-      messages.forEach(m -> processedMessages.add(m.value()));
-      ack.acknowledge();
-    });
+    startConsumer(
+        (messages, ack) -> {
+          messages.forEach(m -> processedMessages.add(m.value()));
+          ack.acknowledge();
+        }
+    );
   }
 
   protected void startConsumer(ConsumeStrategy<String> consumerStrategy) {

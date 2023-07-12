@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
@@ -150,7 +151,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   @Configuration
   static class DataSourceSwitchingTestConfig {
     static final String TEST_PACKAGE = "ru.hh.nab.hibernate.model.test";
-    static final String SERVICE_NAME = "test-service";
+    static final String SERVICE_NAME_VALUE = "test-service";
 
     @Bean
     StatsDSender statsDSender() {
@@ -160,8 +161,8 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     @Bean
     DataSourceFactory dataSourceFactory(StatsDSender statsDSender) {
       return new EmbeddedPostgresDataSourceFactory(
-          new NabMetricsTrackerFactoryProvider(SERVICE_NAME, statsDSender),
-          new HealthCheckHikariDataSourceFactory(SERVICE_NAME, statsDSender) {
+          new NabMetricsTrackerFactoryProvider(SERVICE_NAME_VALUE, statsDSender),
+          new HealthCheckHikariDataSourceFactory(SERVICE_NAME_VALUE, statsDSender) {
             @Override
             public HikariDataSource create(HikariConfig hikariConfig) {
               return spy(super.create(hikariConfig));
@@ -252,6 +253,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         // empty
       }
       return dataSource;
+    }
+
+    @Named(SERVICE_NAME)
+    @Bean(SERVICE_NAME)
+    String serviceName() {
+      return SERVICE_NAME_VALUE;
     }
   }
 

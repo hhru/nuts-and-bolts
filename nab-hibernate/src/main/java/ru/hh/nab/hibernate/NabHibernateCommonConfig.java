@@ -17,9 +17,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
 import ru.hh.nab.hibernate.qualifier.Hibernate;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
@@ -29,6 +31,9 @@ import ru.hh.nab.hibernate.transaction.TransactionalScope;
 
 
 @Configuration
+@Import({
+    RoutingDataSourceFactory.class,
+})
 @EnableTransactionManagement(order = 0)
 @EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {

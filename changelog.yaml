@@ -1,3 +1,10 @@
+-   name: 4.40.1
+    date: '2023-07-12T11:52:59.147292+03:00'
+    description: "* RoutingDataSourceFactory can be used in tests now.\r\n* Fix ConsumerRecoveryAfterFailTest.\r\
+        \n* Up public-pom to 1.54.1."
+    instructions: ''
+    compatible: true
+
 -   name: 4.40.0
     date: '2023-06-22T15:41:46.582718+03:00'
     description: Добавлена возможность получать адреса для stateful-сервсов из consul.

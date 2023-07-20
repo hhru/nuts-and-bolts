@@ -1,11 +1,14 @@
 package ru.hh.nab.starter;
 
-import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.sentry.logback.SentryAppender;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import java.util.stream.Stream;
 import org.slf4j.event.Level;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import ru.hh.nab.logging.HhMultiAppender;
@@ -18,6 +21,14 @@ import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
+
+  private static final Map<String, ch.qos.logback.classic.Level> SUPPORTED_SENTRY_LEVELS = Stream.of(
+      ch.qos.logback.classic.Level.ERROR,
+      ch.qos.logback.classic.Level.WARN,
+      ch.qos.logback.classic.Level.INFO,
+      ch.qos.logback.classic.Level.DEBUG,
+      ch.qos.logback.classic.Level.TRACE
+  ).collect(toMap(level -> level.levelStr, identity()));
 
   @Override
   protected Properties createLoggingProperties() {
@@ -42,10 +53,13 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
   public final void configure(LoggingContextWrapper context) {
     SentryAppender sentry = createAppender(context, "sentry", () -> {
       var sentryAppender = new SentryAppender();
-      var filter = new ThresholdFilter();
-      filter.setLevel(context.getProperty("sentry.level", Level.ERROR.toString()));
-      filter.start();
-      sentryAppender.addFilter(filter);
+
+      var eventLevel = getSentryLevel("sentry.level", context);
+      sentryAppender.setMinimumEventLevel(eventLevel);
+
+      var breadcrumbLevel = getSentryLevel("sentry.breadcrumb.level", context);
+      sentryAppender.setMinimumBreadcrumbLevel(breadcrumbLevel);
+
       return sentryAppender;
     });
 
@@ -94,6 +108,20 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     rootLogger.setLevel(context.getProperty("log.root.level", Level.WARN, level -> Level.valueOf(level.toUpperCase())));
     rootLogger.addAppenders(service, sentry);
     configure(context, service, libraries, sentry);
+  }
+
+  private static ch.qos.logback.classic.Level getSentryLevel(String levelKey, LoggingContextWrapper context) {
+    var levelString = context.getProperty(levelKey, ch.qos.logback.classic.Level.ERROR.levelStr);
+    var level = SUPPORTED_SENTRY_LEVELS.get(levelString.toUpperCase());
+    if (level == null) {
+      throw new IllegalArgumentException("Got unsupported level '%s' from property '%s'; try from %s (case doesn't matter)".formatted(
+          levelString,
+          levelKey,
+          SUPPORTED_SENTRY_LEVELS.keySet()
+      ));
+    }
+
+    return level;
   }
 
   public abstract void configure(LoggingContextWrapper context, HhMultiAppender service, HhMultiAppender libraries, SentryAppender sentryAppender);

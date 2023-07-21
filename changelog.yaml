@@ -1,3 +1,14 @@
+-   name: 4.40.2
+    date: '2023-07-21T18:54:02.560474+03:00'
+    description: "1. Исправлена работа настройки sentry.level: теперь она действительно\
+        \ устанавливает уровень логирования  в sentry\r\n2. Добавлена отдельная настройка\
+        \ sentry.breadcrumb.level для уровня логирования breadcrumbs в sentry. Значение\
+        \ по умолчанию: ERROR\r\n\r\nNB: Значения в sentry.level и sentry.breadcrumb.level\
+        \ валидируются при старте и приложение не поднимится при невалидных настройках!\
+        \ Доступные значения TRACE, ERROR, INFO, DEBUG, WARN (без учета регистра)"
+    instructions: ''
+    compatible: true
+
 -   name: 4.40.1
     date: '2023-07-12T11:52:59.147292+03:00'
     description: "* RoutingDataSourceFactory can be used in tests now.\r\n* Fix ConsumerRecoveryAfterFailTest.\r\

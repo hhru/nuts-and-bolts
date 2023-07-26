@@ -29,6 +29,8 @@ public class NabCommonConfig {
   private static final String STATSD_DEFAULT_PERIODIC_SEND_INTERVAL = "statsd.defaultPeriodicSendIntervalSec";
   private static final String NODE_NAME_ENV = "NODE_NAME";
 
+  public static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";
+
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
   String serviceName(FileSettings fileSettings) {

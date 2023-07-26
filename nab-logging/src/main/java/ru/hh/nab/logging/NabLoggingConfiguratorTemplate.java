@@ -25,7 +25,6 @@ import org.slf4j.event.Level;
 
 @SuppressWarnings("rawtypes")
 public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
-
   private Map<String, Appender> appenders = new HashMap<>();
 
   @Override

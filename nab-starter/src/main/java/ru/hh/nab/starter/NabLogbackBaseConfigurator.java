@@ -32,6 +32,10 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
   @Override
   protected Properties createLoggingProperties() {
+    if (isTestProfile()) {
+      return new Properties();
+    }
+
     Properties properties = createProperties();
     setPropertyIfNotSet(properties, "log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
     setPropertyIfNotSet(properties, "log.dir", "logs");
@@ -51,6 +55,10 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
   @Override
   public final void configure(LoggingContextWrapper context) {
+    if (isTestProfile()) {
+      return;
+    }
+
     SentryAppender sentry = createAppender(context, "sentry", () -> {
       var sentryAppender = new SentryAppender();
 
@@ -122,6 +130,10 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     }
 
     return level;
+  }
+
+  private boolean isTestProfile() {
+    return NabLogbackBaseConfigurator.class.getClassLoader().resources(NabCommonConfig.TEST_PROPERTIES_FILE_NAME).findAny().isPresent();
   }
 
   public abstract void configure(LoggingContextWrapper context, HhMultiAppender service, HhMultiAppender libraries, SentryAppender sentryAppender);

@@ -20,6 +20,7 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import ru.hh.nab.starter.NabCommonConfig;
 import ru.hh.nab.starter.qualifier.Service;
 
 @Configuration
@@ -34,7 +35,7 @@ public class KafkaTestConfig {
   @Service
   Properties serviceProperties(TestKafka testKafka) throws IOException {
     PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-    propertiesFactoryBean.setLocation(new ClassPathResource("service-test.properties"));
+    propertiesFactoryBean.setLocation(new ClassPathResource(NabCommonConfig.TEST_PROPERTIES_FILE_NAME));
     propertiesFactoryBean.afterPropertiesSet();
     Properties properties = propertiesFactoryBean.getObject();
     properties.setProperty("kafka.common.bootstrap.servers", testKafka.getBootstrapServers());

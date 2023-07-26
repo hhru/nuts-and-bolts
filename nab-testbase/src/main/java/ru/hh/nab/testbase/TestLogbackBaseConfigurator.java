@@ -14,7 +14,7 @@ import java.util.Set;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
-import static ru.hh.nab.testbase.NabTestConfig.TEST_PROPERTIES_FILE_NAME;
+import ru.hh.nab.starter.NabCommonConfig;
 
 public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 
@@ -65,7 +65,7 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
   protected Properties createProperties() {
     try {
       Properties properties = new Properties();
-      properties.load(this.getClass().getResourceAsStream("/" + TEST_PROPERTIES_FILE_NAME));
+      properties.load(this.getClass().getResourceAsStream("/" + NabCommonConfig.TEST_PROPERTIES_FILE_NAME));
       return properties;
     } catch (NullPointerException e) {
       return new Properties();

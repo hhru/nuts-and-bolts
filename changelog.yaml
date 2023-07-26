@@ -1,3 +1,10 @@
+-   name: 4.40.3
+    date: '2023-07-26T15:13:45.637037+03:00'
+    description: '* production logger ( aka NabLogbackBaseConfigurator ) более не
+        конфигурируется при наличии service-test.properties в classpath'
+    instructions: ''
+    compatible: true
+
 -   name: 4.40.2
     date: '2023-07-21T18:54:02.560474+03:00'
     description: "1. Исправлена работа настройки sentry.level: теперь она действительно\

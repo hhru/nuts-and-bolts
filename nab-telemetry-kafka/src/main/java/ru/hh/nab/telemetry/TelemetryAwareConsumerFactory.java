@@ -19,9 +19,9 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
       StatsDSender statsDSender,
       Logger logger,
       OpenTelemetry telemetry,
-      Supplier<String> bootstrapSupplier
+      Supplier<String> bootstrapServersSupplier
   ) {
-    super(configProvider, deserializerSupplier, statsDSender, logger, bootstrapSupplier);
+    super(configProvider, deserializerSupplier, statsDSender, logger, bootstrapServersSupplier);
 
     this.telemetry = telemetry;
   }
@@ -31,9 +31,32 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
       DeserializerSupplier deserializerSupplier,
       StatsDSender statsDSender,
       OpenTelemetry telemetry,
-      Supplier<String> bootstrapSupplier
+      Supplier<String> bootstrapServersSupplier
   ) {
-    super(configProvider, deserializerSupplier, statsDSender, bootstrapSupplier);
+    super(configProvider, deserializerSupplier, statsDSender, bootstrapServersSupplier);
+
+    this.telemetry = telemetry;
+  }
+
+  public TelemetryAwareConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      Logger logger,
+      OpenTelemetry telemetry
+  ) {
+    super(configProvider, deserializerSupplier, statsDSender, logger);
+
+    this.telemetry = telemetry;
+  }
+
+  public TelemetryAwareConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      OpenTelemetry telemetry
+  ) {
+    super(configProvider, deserializerSupplier, statsDSender);
 
     this.telemetry = telemetry;
   }

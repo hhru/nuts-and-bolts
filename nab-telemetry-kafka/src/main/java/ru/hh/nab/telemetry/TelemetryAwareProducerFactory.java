@@ -15,9 +15,15 @@ public class TelemetryAwareProducerFactory extends KafkaProducerFactory {
       ConfigProvider configProvider,
       SerializerSupplier serializerSupplier,
       OpenTelemetry telemetry,
-      Supplier<String> bootstrapSupplier
+      Supplier<String> bootstrapServersSupplier
   ) {
-    super(configProvider, serializerSupplier, bootstrapSupplier);
+    super(configProvider, serializerSupplier, bootstrapServersSupplier);
+
+    this.telemetry = telemetry;
+  }
+
+  public TelemetryAwareProducerFactory(ConfigProvider configProvider, SerializerSupplier serializerSupplier, OpenTelemetry telemetry) {
+    super(configProvider, serializerSupplier);
 
     this.telemetry = telemetry;
   }

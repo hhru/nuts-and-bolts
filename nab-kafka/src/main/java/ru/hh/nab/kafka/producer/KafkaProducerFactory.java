@@ -5,6 +5,7 @@ import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.lang.Nullable;
 import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
@@ -13,7 +14,7 @@ public class KafkaProducerFactory {
 
   protected final ConfigProvider configProvider;
   private final SerializerSupplier serializerSupplier;
-  private Supplier<String> bootstrapSupplier;
+  private Supplier<String> bootstrapServersSupplier;
 
   public KafkaProducerFactory(
       ConfigProvider configProvider,
@@ -26,10 +27,10 @@ public class KafkaProducerFactory {
   public KafkaProducerFactory(
       ConfigProvider configProvider,
       SerializerSupplier serializerSupplier,
-      Supplier<String> bootstrapSupplier
+      @Nullable Supplier<String> bootstrapServersSupplier
   ) {
     this(configProvider, serializerSupplier);
-    this.bootstrapSupplier = bootstrapSupplier;
+    this.bootstrapServersSupplier = bootstrapServersSupplier;
 
   }
 
@@ -47,7 +48,7 @@ public class KafkaProducerFactory {
         serializerSupplier.supply()
     );
 
-    producerFactory.setBootstrapServersSupplier(this.bootstrapSupplier);
+    producerFactory.setBootstrapServersSupplier(this.bootstrapServersSupplier);
 
     return prepare(new KafkaTemplate<>(producerFactory));
   }

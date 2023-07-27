@@ -26,10 +26,10 @@ class FailFastDefaultKafkaConsumerFactory<K, V> extends DefaultKafkaConsumerFact
       Map<String, Object> configs,
       Deserializer<K> keyDeserializer,
       Deserializer<V> valueDeserializer,
-      Supplier<String> bootstrapSupplier
+      Supplier<String> bootstrapServersSupplier
   ) {
     this(topicName, configs, keyDeserializer, valueDeserializer);
-    this.setBootstrapServersSupplier(bootstrapSupplier);
+    this.setBootstrapServersSupplier(bootstrapServersSupplier);
   }
 
   @Override

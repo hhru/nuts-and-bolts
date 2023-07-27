@@ -15,6 +15,7 @@ import org.springframework.kafka.listener.BatchErrorHandler;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
+import org.springframework.lang.Nullable;
 import org.springframework.util.backoff.ExponentialBackOff;
 import ru.hh.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.common.properties.FileSettings;
@@ -38,21 +39,25 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private final DeserializerSupplier deserializerSupplier;
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
-  private Supplier<String> bootstrapSupplier;
+  private Supplier<String> bootstrapServersSupplier;
 
-  public DefaultConsumerFactory(ConfigProvider configProvider,
-                                DeserializerSupplier deserializerSupplier,
-                                StatsDSender statsDSender,
-                                Logger logger) {
+  public DefaultConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      Logger logger
+  ) {
     this.configProvider = configProvider;
     this.deserializerSupplier = deserializerSupplier;
     this.statsDSender = statsDSender;
     this.factoryLogger = logger;
   }
 
-  public DefaultConsumerFactory(ConfigProvider configProvider,
-                                DeserializerSupplier deserializerSupplier,
-                                StatsDSender statsDSender) {
+  public DefaultConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender
+  ) {
     this(
         configProvider,
         deserializerSupplier,
@@ -65,14 +70,14 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
       StatsDSender statsDSender,
-      Supplier<String> bootstrapSupplier
+      @Nullable Supplier<String> bootstrapServersSupplier
   ) {
     this(
         configProvider,
         deserializerSupplier,
         statsDSender,
         LoggerFactory.getLogger(DefaultConsumerFactory.class),
-        bootstrapSupplier
+        bootstrapServersSupplier
     );
   }
 
@@ -81,27 +86,31 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       DeserializerSupplier deserializerSupplier,
       StatsDSender statsDSender,
       Logger logger,
-      Supplier<String> bootstrapSupplier
+      @Nullable Supplier<String> bootstrapServersSupplier
   ) {
     this(configProvider, deserializerSupplier, statsDSender, logger);
-    this.bootstrapSupplier = bootstrapSupplier;
+    this.bootstrapServersSupplier = bootstrapServersSupplier;
 
   }
 
   @Override
-  public <T> KafkaConsumer<T> subscribe(String topicName,
-                                        String operationName,
-                                        Class<T> messageClass,
-                                        ConsumeStrategy<T> consumeStrategy) {
+  public <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy
+  ) {
     return subscribe(topicName, operationName, messageClass, consumeStrategy, this.factoryLogger);
   }
 
   @Override
-  public <T> KafkaConsumer<T> subscribe(String topicName,
-                                        String operationName,
-                                        Class<T> messageClass,
-                                        ConsumeStrategy<T> consumeStrategy,
-                                        Logger logger) {
+  public <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger
+  ) {
     ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, messageClass);
     ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
 
@@ -121,15 +130,17 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     return kafkaConsumer;
   }
 
-  protected  <T> ConsumeStrategy<T> prepare(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+  protected <T> ConsumeStrategy<T> prepare(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
   }
 
-  public static <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(ConsumerFactory<String, T> consumerFactory,
-                                                                                                    ContainerProperties containerProperties,
-                                                                                                    BatchErrorHandler errorHandler,
-                                                                                                    ConfigProvider configProvider,
-                                                                                                    String topicName) {
+  public static <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(
+      ConsumerFactory<String, T> consumerFactory,
+      ContainerProperties containerProperties,
+      BatchErrorHandler errorHandler,
+      ConfigProvider configProvider,
+      String topicName
+  ) {
     var container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setBatchErrorHandler(errorHandler);
     container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
@@ -155,13 +166,15 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
         consumerConfig,
         new StringDeserializer(),
         deserializerSupplier.supplyFor(messageClass),
-        bootstrapSupplier
+        bootstrapServersSupplier
     );
   }
 
-  private ContainerProperties getSpringConsumerContainerProperties(ConsumerGroupId consumerGroupId,
-                                                                   GenericMessageListener<?> messageListener,
-                                                                   String topicName) {
+  private ContainerProperties getSpringConsumerContainerProperties(
+      ConsumerGroupId consumerGroupId,
+      GenericMessageListener<?> messageListener,
+      String topicName
+  ) {
     FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
     containerProperties.setGroupId(consumerGroupId.toString());

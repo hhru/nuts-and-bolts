@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private final DeserializerSupplier deserializerSupplier;
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
+  private Supplier<String> bootstrapSupplier;
 
   public DefaultConsumerFactory(ConfigProvider configProvider,
                                 DeserializerSupplier deserializerSupplier,
@@ -57,6 +59,33 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
         statsDSender,
         LoggerFactory.getLogger(DefaultConsumerFactory.class)
     );
+  }
+
+  public DefaultConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      Supplier<String> bootstrapSupplier
+  ) {
+    this(
+        configProvider,
+        deserializerSupplier,
+        statsDSender,
+        LoggerFactory.getLogger(DefaultConsumerFactory.class),
+        bootstrapSupplier
+    );
+  }
+
+  public DefaultConsumerFactory(
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      Logger logger,
+      Supplier<String> bootstrapSupplier
+  ) {
+    this(configProvider, deserializerSupplier, statsDSender, logger);
+    this.bootstrapSupplier = bootstrapSupplier;
+
   }
 
   @Override
@@ -125,7 +154,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
         topicName,
         consumerConfig,
         new StringDeserializer(),
-        deserializerSupplier.supplyFor(messageClass)
+        deserializerSupplier.supplyFor(messageClass),
+        bootstrapSupplier
     );
   }
 

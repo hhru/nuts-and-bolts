@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -18,6 +19,17 @@ class FailFastDefaultKafkaConsumerFactory<K, V> extends DefaultKafkaConsumerFact
                                              Deserializer<V> valueDeserializer) {
     super(configs, keyDeserializer, valueDeserializer);
     this.topicName = topicName;
+  }
+
+  public FailFastDefaultKafkaConsumerFactory(
+      String topicName,
+      Map<String, Object> configs,
+      Deserializer<K> keyDeserializer,
+      Deserializer<V> valueDeserializer,
+      Supplier<String> bootstrapSupplier
+  ) {
+    this(topicName, configs, keyDeserializer, valueDeserializer);
+    this.setBootstrapServersSupplier(bootstrapSupplier);
   }
 
   @Override

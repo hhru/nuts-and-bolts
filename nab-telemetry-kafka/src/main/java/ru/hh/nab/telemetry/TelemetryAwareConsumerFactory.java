@@ -1,6 +1,7 @@
 package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerGroupId;
@@ -13,15 +14,26 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   private final OpenTelemetry telemetry;
 
   public TelemetryAwareConsumerFactory(
-      ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, StatsDSender statsDSender, Logger logger, OpenTelemetry telemetry) {
-    super(configProvider, deserializerSupplier, statsDSender, logger);
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      Logger logger,
+      OpenTelemetry telemetry,
+      Supplier<String> bootstrapSupplier
+  ) {
+    super(configProvider, deserializerSupplier, statsDSender, logger, bootstrapSupplier);
 
     this.telemetry = telemetry;
   }
 
   public TelemetryAwareConsumerFactory(
-      ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, StatsDSender statsDSender, OpenTelemetry telemetry) {
-    super(configProvider, deserializerSupplier, statsDSender);
+      ConfigProvider configProvider,
+      DeserializerSupplier deserializerSupplier,
+      StatsDSender statsDSender,
+      OpenTelemetry telemetry,
+      Supplier<String> bootstrapSupplier
+  ) {
+    super(configProvider, deserializerSupplier, statsDSender, bootstrapSupplier);
 
     this.telemetry = telemetry;
   }

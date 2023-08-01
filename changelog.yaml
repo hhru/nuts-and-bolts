@@ -1,3 +1,10 @@
+-   name: 4.41.0
+    date: '2023-08-01T15:22:27.707513+03:00'
+    description: Добавлена возможность передавать кастомный supplier для получения
+        списка хостов kafka кластера
+    instructions: ''
+    compatible: true
+
 -   name: 4.40.3
     date: '2023-07-26T15:13:45.637037+03:00'
     description: '* production logger ( aka NabLogbackBaseConfigurator ) более не

@@ -1,6 +1,5 @@
 package ru.hh.nab.datasource;
 
-import com.zaxxer.hikari.HikariConfig;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -17,10 +16,6 @@ public final class DataSourceType {
 
   static void registerPropertiesFor(String dataSourceName, DataSourceProperties dataSourceProperties) {
     PROPERTIES_STORAGE.putIfAbsent(dataSourceName, dataSourceProperties);
-  }
-
-  static void registerPropertiesFor(HikariConfig hikariConfig, boolean isReadonly) {
-    PROPERTIES_STORAGE.putIfAbsent(hikariConfig.getPoolName(), new DataSourceProperties(!isReadonly));
   }
 
   static void clear() {

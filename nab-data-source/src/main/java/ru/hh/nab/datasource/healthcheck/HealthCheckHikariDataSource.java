@@ -1,6 +1,5 @@
 package ru.hh.nab.datasource.healthcheck;
 
-import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -15,7 +14,7 @@ import ru.hh.nab.common.executor.ScheduledExecutor;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_DELAY;
 import ru.hh.nab.metrics.TaggedSender;
 
-public class HealthCheckHikariDataSource extends HikariDataSource {
+public class HealthCheckHikariDataSource extends HikariDataSource implements HealthCheckDataSource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckHikariDataSource.class);
   private static final long DEFAULT_HEALTHCHECK_DELAY = 5000L;
@@ -34,7 +33,13 @@ public class HealthCheckHikariDataSource extends HikariDataSource {
     this.healthCheck = new AsyncHealthCheckDecorator((HealthCheckRegistry) hikariConfig.getHealthCheckRegistry(), metricsSender, healthCheckDelayMs);
   }
 
-  public AsyncHealthCheckDecorator getHealthCheck() {
+  @Override
+  public String getDataSourceName() {
+    return dataSourceName;
+  }
+
+  @Override
+  public HealthCheck getHealthCheck() {
     return healthCheck;
   }
 

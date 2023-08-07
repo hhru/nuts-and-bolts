@@ -1,6 +1,8 @@
 package ru.hh.nab.datasource;
 
 public final class DataSourceSettings {
+  public static final String DATASOURCE_NAME_FORMAT = "%s.%s";
+
   // validationTimeout = connectionTimeout * DEFAULT_VALIDATION_TIMEOUT_RATIO
   public static final double DEFAULT_VALIDATION_TIMEOUT_RATIO = 0.8;
 

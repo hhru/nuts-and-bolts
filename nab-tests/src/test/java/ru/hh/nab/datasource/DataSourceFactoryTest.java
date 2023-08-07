@@ -52,7 +52,7 @@ public class DataSourceFactoryTest {
 
   @BeforeEach
   public void clearDataSourcePropertiesStorage() {
-    DataSourceType.clear();
+    DataSourcePropertiesStorage.clear();
   }
 
   @Test
@@ -80,7 +80,7 @@ public class DataSourceFactoryTest {
     Properties properties = createTestProperties();
     properties.setProperty(getProperty(HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED), "true");
     assertSuccessfulUnwrap(createTestDataSource(properties), HealthCheckHikariDataSource.class);
-    assertTrue(DataSourceType.getPropertiesFor(TEST_DATA_SOURCE_TYPE).getSecondaryDataSource().isEmpty());
+    assertTrue(DataSourcePropertiesStorage.getSecondaryDataSourceName(TEST_DATA_SOURCE_TYPE).isEmpty());
   }
 
   @Test
@@ -90,7 +90,7 @@ public class DataSourceFactoryTest {
     properties.setProperty(getProperty(ROUTING_SECONDARY_DATASOURCE), DataSourceType.READONLY);
     createTestDataSource(properties);
 
-    Optional<String> secondaryDataSource = DataSourceType.getPropertiesFor(TEST_DATA_SOURCE_TYPE).getSecondaryDataSource();
+    Optional<String> secondaryDataSource = DataSourcePropertiesStorage.getSecondaryDataSourceName(TEST_DATA_SOURCE_TYPE);
     assertTrue(secondaryDataSource.isPresent());
     assertEquals(DataSourceType.READONLY, secondaryDataSource.get());
   }
@@ -104,7 +104,7 @@ public class DataSourceFactoryTest {
         "healthcheck should be enabled. To prevent misconfiguration application startup will be aborted.";
     String actualMessage = exception.getMessage();
     assertEquals(expectedMessage, actualMessage);
-    assertTrue(DataSourceType.getPropertiesFor(TEST_DATA_SOURCE_TYPE).getSecondaryDataSource().isEmpty());
+    assertTrue(DataSourcePropertiesStorage.getSecondaryDataSourceName(TEST_DATA_SOURCE_TYPE).isEmpty());
   }
 
   @Test

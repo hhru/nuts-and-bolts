@@ -1,24 +1,20 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import org.springframework.test.context.ContextConfiguration;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.clearMDC;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeInScope;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeOn;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.setDefaultMDC;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
-import ru.hh.nab.hibernate.HibernateTestConfig;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.clearMDC;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeInScope;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeOn;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.setDefaultMDC;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class})
-public class DataSourceContextUnsafeTest extends HibernateTestBase {
+public class DataSourceContextUnsafeTest {
 
   @BeforeEach
   public void setUp() {
@@ -27,25 +23,25 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
 
   @Test
   public void testExecuteOn() {
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     executeOn(SLOW, false, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, false, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
@@ -60,18 +56,18 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
 
   @Test
   public void testRequestScopeSetOverrideDisabled() {
-    DataSourceContextUnsafe.setRequestScopeDataSourceKey("test");
+    DataSourceContextUnsafe.setRequestScopeDataSourceType("test");
     executeInScope("test", () -> executeOn(SLOW, false, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, false, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     }));
@@ -81,16 +77,16 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
   public void testRequestScopeSetOverrideEnabled() {
     var testKey = "test";
     executeInScope(testKey, () -> executeOn(SLOW, true, () -> {
-      assertEquals(testKey, getDataSourceKey());
+      assertEquals(testKey, getDataSourceName());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, true, () -> {
-        assertEquals(testKey, getDataSourceKey());
+        assertEquals(testKey, getDataSourceName());
         assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(testKey, getDataSourceKey());
+      assertEquals(testKey, getDataSourceName());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     }));
@@ -99,16 +95,16 @@ public class DataSourceContextUnsafeTest extends HibernateTestBase {
   @Test
   public void testRequestScopeUnsetOverrideEnabled() {
     executeOn(SLOW, true, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, true, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });

@@ -9,6 +9,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {
@@ -24,9 +25,8 @@ public class ExecuteOnDataSourceAspect {
 
   @Around(value = "@annotation(executeOnDataSource)", argNames = "pjp,executeOnDataSource")
   public Object executeOnSpecialDataSource(final ProceedingJoinPoint pjp, final ExecuteOnDataSource executeOnDataSource) throws Throwable {
-    String dataSourceName = executeOnDataSource.dataSourceType();
-    if (DataSourceContextUnsafe.getDataSourceKey().equals(dataSourceName)
-        && TransactionSynchronizationManager.isSynchronizationActive()) {
+    String dataSourceType = executeOnDataSource.dataSourceType();
+    if (DataSourceContextUnsafe.isCurrentDataSource(dataSourceType) && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();
     }
     String txManagerQualifier = executeOnDataSource.txManager();
@@ -40,7 +40,7 @@ public class ExecuteOnDataSourceAspect {
     transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
     try {
-      return DataSourceContextUnsafe.executeOn(dataSourceName, executeOnDataSource.overrideByRequestScope(),
+      return DataSourceContextUnsafe.executeOn(dataSourceType, executeOnDataSource.overrideByRequestScope(),
           () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(
               pjp, transactionManager.getSessionFactory(), executeOnDataSource
           )));

@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate.datasource;
 
-import com.zaxxer.hikari.HikariConfig;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -18,7 +17,8 @@ import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.NamedDataSource;
-import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
+import ru.hh.nab.datasource.healthcheck.HealthCheck;
+import ru.hh.nab.datasource.healthcheck.HealthCheckDataSource;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
@@ -33,7 +33,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private static final String SECONDARY_DATASOURCE_TAG_NAME = "secondary_datasource";
 
   private final Map<String, DataSource> targetDataSources = new HashMap<>();
-  private final Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = new HashMap<>();
+  private final Map<String, HealthCheck> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
   private final Counters successfulSwitchingCounters, failedSwitchingCounters;
   private DataSourceProxyFactory proxyFactory;
@@ -96,12 +96,12 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
 
   @Override
   public void afterPropertiesSet() {
-    Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = targetDataSources
+    Map<String, HealthCheck> dataSourceHealthChecks = targetDataSources
         .values()
         .stream()
-        .filter(this::isWrapperForHealthCheckHikariDataSource)
-        .map(this::unwrapHealthCheckHikariDataSource)
-        .collect(Collectors.toMap(HikariConfig::getPoolName, HealthCheckHikariDataSource::getHealthCheck));
+        .filter(this::isWrapperForHealthCheckDataSource)
+        .map(this::unwrapHealthCheckDataSource)
+        .collect(Collectors.toMap(HealthCheckDataSource::getDataSourceName, HealthCheckDataSource::getHealthCheck));
 
     Map<String, DataSource> secondaryDataSources = dataSourceHealthChecks
         .keySet()
@@ -152,17 +152,17 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     this.proxyFactory = proxyFactory;
   }
 
-  private boolean isWrapperForHealthCheckHikariDataSource(DataSource wrapper) {
+  private boolean isWrapperForHealthCheckDataSource(DataSource wrapper) {
     try {
-      return wrapper.isWrapperFor(HealthCheckHikariDataSource.class);
+      return wrapper.isWrapperFor(HealthCheckDataSource.class);
     } catch (SQLException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
   }
 
-  private HealthCheckHikariDataSource unwrapHealthCheckHikariDataSource(DataSource wrapper) {
+  private HealthCheckDataSource unwrapHealthCheckDataSource(DataSource wrapper) {
     try {
-      return wrapper.unwrap(HealthCheckHikariDataSource.class);
+      return wrapper.unwrap(HealthCheckDataSource.class);
     } catch (SQLException e) {
       throw new RuntimeException(e.getMessage(), e);
     }

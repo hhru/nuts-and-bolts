@@ -9,7 +9,7 @@ import io.opentelemetry.instrumentation.jdbc.internal.ThrowingSupplier;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DelegatingDataSource;
 import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDataSourceInfo;
@@ -34,7 +34,7 @@ public class NabTelemetryDataSource extends DelegatingDataSource implements Auto
     this.nabDataSourceInfo = new NabDataSourceInfo()
         .setDataSource(delegate)
         .setDataSourceName(dataSourceName)
-        .setWritableDataSource(dataSourceName == null ? null : DataSourceType.getPropertiesFor(dataSourceName).isWritable());
+        .setWritableDataSource(dataSourceName == null ? null : DataSourcePropertiesStorage.isWritableDataSource(dataSourceName));
   }
 
   @Override

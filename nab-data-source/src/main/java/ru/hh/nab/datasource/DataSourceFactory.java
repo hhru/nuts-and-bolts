@@ -96,7 +96,10 @@ public class DataSourceFactory {
     }
 
     checkDataSource(hikariDataSource, dataSourceName);
-    DataSourceType.registerPropertiesFor(hikariConfig.getPoolName(), new DataSourceType.DataSourceProperties(!isReadonly, secondaryDataSource));
+    DataSourcePropertiesStorage.registerPropertiesFor(
+        hikariConfig.getPoolName(),
+        new DataSourcePropertiesStorage.DataSourceProperties(!isReadonly, secondaryDataSource)
+    );
 
     return hikariDataSource;
   }

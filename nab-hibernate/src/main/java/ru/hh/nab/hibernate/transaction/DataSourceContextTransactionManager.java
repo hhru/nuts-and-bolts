@@ -11,6 +11,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
@@ -37,7 +38,7 @@ public class DataSourceContextTransactionManager implements PlatformTransactionM
   }
 
   private static TransactionDefinition fixTransactionDefinition(TransactionDefinition definition) {
-    if (DataSourceContextUnsafe.isCurrentDataSourceWritable()) {
+    if (DataSourcePropertiesStorage.isWritableDataSource(DataSourceContextUnsafe.getDataSourceKey())) {
       if (definition.isReadOnly()) {
         return getReadOnlyTransactionDefinition(definition, PROPAGATION_SUPPORTS);
       }

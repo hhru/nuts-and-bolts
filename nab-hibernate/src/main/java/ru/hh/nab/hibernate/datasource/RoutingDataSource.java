@@ -15,6 +15,7 @@ import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
@@ -69,7 +70,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
         .map(healthCheck -> healthCheck.check().isHealthy())
         .orElse(true);
     return dataSourceIsHealthy ? primaryDataSourceName :
-        DataSourceContextUnsafe.getSecondaryDataSourceName(primaryDataSourceName)
+        DataSourcePropertiesStorage.getSecondaryDataSourceName(primaryDataSourceName)
             .map(secondaryDataSourceName -> String.format(SECONDARY_DATASOURCE_NAME_FORMAT, primaryDataSourceName, secondaryDataSourceName))
             .orElse(primaryDataSourceName);
   }
@@ -90,7 +91,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
             .collect(Collectors.toMap(HikariConfig::getPoolName, HealthCheckHikariDataSource::getHealthCheck));
 
     Map<String, DataSource> secondaryDataSources = dataSourceHealthChecks.keySet().stream()
-        .map(primaryDataSourceName -> Map.entry(primaryDataSourceName, DataSourceContextUnsafe.getSecondaryDataSourceName(primaryDataSourceName)))
+        .map(primaryDataSourceName -> Map.entry(primaryDataSourceName, DataSourcePropertiesStorage.getSecondaryDataSourceName(primaryDataSourceName)))
         .filter(entry -> entry.getValue().isPresent())
         .collect(Collectors.toMap(
             entry -> String.format(SECONDARY_DATASOURCE_NAME_FORMAT, entry.getKey(), entry.getValue().get()),

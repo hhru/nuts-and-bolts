@@ -27,7 +27,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   @BeforeEach
   public void setUpTestBaseClass() {
-    DataSourceType.clear();
+    DataSourcePropertiesStorage.clear();
     try (Session session = sessionFactory.openSession()) {
       session.getTransaction().begin();
       TestEntity testEntity = createTestEntity(session);
@@ -132,7 +132,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   private void testDataSource(String dataSourceName, boolean readOnly) {
     assertHibernateIsNotInitialized();
-    DataSourceType.registerPropertiesFor(dataSourceName, new DataSourceType.DataSourceProperties(!readOnly));
+    DataSourcePropertiesStorage.registerPropertiesFor(dataSourceName, new DataSourcePropertiesStorage.DataSourceProperties(!readOnly));
     DataSourceContextUnsafe.executeOn(dataSourceName, false, () -> {
       TransactionStatus transactionStatus = createTransaction(false);
 

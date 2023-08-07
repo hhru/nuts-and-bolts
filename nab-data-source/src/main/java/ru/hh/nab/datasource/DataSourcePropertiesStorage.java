@@ -12,7 +12,7 @@ public class DataSourcePropertiesStorage {
     PROPERTIES_STORAGE.putIfAbsent(dataSourceName, dataSourceProperties);
   }
 
-  static void clear() {
+  public static void clear() {
     PROPERTIES_STORAGE.clear();
   }
 

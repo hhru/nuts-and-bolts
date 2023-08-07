@@ -8,7 +8,7 @@ import org.slf4j.MDC;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.clearMDC;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeInScope;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeOn;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceKey;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.setDefaultMDC;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
@@ -23,25 +23,25 @@ public class DataSourceContextUnsafeTest {
 
   @Test
   public void testExecuteOn() {
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     executeOn(SLOW, false, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, false, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
 
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
@@ -56,18 +56,18 @@ public class DataSourceContextUnsafeTest {
 
   @Test
   public void testRequestScopeSetOverrideDisabled() {
-    DataSourceContextUnsafe.setRequestScopeDataSourceKey("test");
+    DataSourceContextUnsafe.setRequestScopeDataSourceType("test");
     executeInScope("test", () -> executeOn(SLOW, false, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, false, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     }));
@@ -77,16 +77,16 @@ public class DataSourceContextUnsafeTest {
   public void testRequestScopeSetOverrideEnabled() {
     var testKey = "test";
     executeInScope(testKey, () -> executeOn(SLOW, true, () -> {
-      assertEquals(testKey, getDataSourceKey());
+      assertEquals(testKey, getDataSourceName());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, true, () -> {
-        assertEquals(testKey, getDataSourceKey());
+        assertEquals(testKey, getDataSourceName());
         assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(testKey, getDataSourceKey());
+      assertEquals(testKey, getDataSourceName());
       assertEquals(testKey, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     }));
@@ -95,16 +95,16 @@ public class DataSourceContextUnsafeTest {
   @Test
   public void testRequestScopeUnsetOverrideEnabled() {
     executeOn(SLOW, true, () -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
       executeOn(READONLY, true, () -> {
-        assertEquals(READONLY, getDataSourceKey());
+        assertEquals(READONLY, getDataSourceName());
         assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
         return null;
       });
 
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });

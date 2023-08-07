@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceKey;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
@@ -55,14 +55,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   @Test
   public void testReadOnly() throws Throwable {
     startTransaction();
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     masterSession = getCurrentSession();
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(masterSession, getCurrentSession());
     rollBackTransaction();
   }
@@ -108,7 +108,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   }
 
   private Object readonlyOuter() throws Throwable {
-    assertEquals(DataSourceType.READONLY, getDataSourceKey());
+    assertEquals(DataSourceType.READONLY, getDataSourceName());
     outerReadonlySession = getCurrentSession();
     assertNotEquals(masterSession, outerReadonlySession);
 
@@ -116,14 +116,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
-    assertEquals(DataSourceType.READONLY, getDataSourceKey());
+    assertEquals(DataSourceType.READONLY, getDataSourceName());
     assertEquals(outerReadonlySession, getCurrentSession());
 
     return null;
   }
 
   private Object readonlyInner() {
-    assertEquals(DataSourceType.READONLY, getDataSourceKey());
+    assertEquals(DataSourceType.READONLY, getDataSourceName());
     assertEquals(outerReadonlySession, getCurrentSession());
     return null;
   }
@@ -174,7 +174,7 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     @Transactional
     @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE, writableTx = true)
     public void customWrite() {
-      assertEquals(WRITABLE_DATASOURCE, getDataSourceKey());
+      assertEquals(WRITABLE_DATASOURCE, getDataSourceName());
       assertNotNull(sessionFactory.getCurrentSession());
       assertTrue(isSynchronizationActive());
       assertTrue(isActualTransactionActive());

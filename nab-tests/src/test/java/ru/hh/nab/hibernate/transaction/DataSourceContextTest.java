@@ -9,7 +9,7 @@ import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceKey;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
@@ -35,7 +35,7 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onReplica(() -> {
-      assertEquals(READONLY, getDataSourceKey());
+      assertEquals(READONLY, getDataSourceName());
       assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
@@ -48,7 +48,7 @@ public class DataSourceContextTest extends HibernateTestBase {
     assertIsCurrentDataSourceMaster();
 
     onSlowReplica(() -> {
-      assertEquals(SLOW, getDataSourceKey());
+      assertEquals(SLOW, getDataSourceName());
       assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
       return null;
     });
@@ -57,7 +57,7 @@ public class DataSourceContextTest extends HibernateTestBase {
   }
 
   private static void assertIsCurrentDataSourceMaster() {
-    assertEquals(MASTER, getDataSourceKey());
+    assertEquals(MASTER, getDataSourceName());
     assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
@@ -75,13 +75,13 @@ public class DataSourceContextTest extends HibernateTestBase {
 
   @Test
   public void testDsManageInsideTxScope() {
-    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceKey());
+    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
     transactionalScope.read(() -> DataSourceContext.onDataSource(DataSourceType.SLOW, dataSourceCheck));
   }
 
   @Test
   public void testTxScopeDoesntChangeDs() {
-    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceKey());
+    Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
     DataSourceContext.onDataSource(DataSourceType.SLOW, () -> transactionalScope.read(dataSourceCheck));
   }
 }

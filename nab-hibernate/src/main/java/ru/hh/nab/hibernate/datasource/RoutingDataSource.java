@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.util.Optional.ofNullable;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
@@ -32,26 +32,39 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private static final String FAILED_SWITCHING_METRIC_NAME = "nab.db.switching.failure";
   private static final String PRIMARY_DATASOURCE_TAG_NAME = "primary_datasource";
   private static final String SECONDARY_DATASOURCE_TAG_NAME = "secondary_datasource";
-  private static final String SECONDARY_DATASOURCE_NAME_FORMAT = "%s.%s";
 
-  private final LazyConnectionDataSource targetDataSource;
-  private final Map<String, DataSource> replicas = new HashMap<>();
+  private final Map<String, LazyConnectionDataSource> targetDataSources = new HashMap<>();
   private final Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
   private final Counters successfulSwitchingCounters, failedSwitchingCounters;
   private DataSourceProxyFactory proxyFactory;
 
   /**
-   * @deprecated Use {@link RoutingDataSourceFactory#create(DataSource)}
+   * @deprecated Use {@link RoutingDataSource#RoutingDataSource(DataSource, String, StatsDSender)}
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public RoutingDataSource(DataSource targetDataSource) {
     this(targetDataSource, null, null);
   }
 
+  /**
+   * It's not allowed to use this constructor if application needs to work with multiple databases.
+   * In this case you should use {@link RoutingDataSource#RoutingDataSource(String, StatsDSender)} and inject all dataSources via
+   * - {@link RoutingDataSource#addNamedDataSource(DataSource)} - the most preferred way
+   * - {@link RoutingDataSource#addDataSource(String, DataSource)}
+   * - {@link RoutingDataSource#addDataSource(String, String, DataSource)}
+   */
   public RoutingDataSource(DataSource targetDataSource, String serviceName, StatsDSender statsDSender) {
-    // create lazy proxy. defaultAutoCommit and defaultTransactionIsolation will be determine via connection
-    this.targetDataSource = new LazyConnectionDataSource(targetDataSource);
+    this(serviceName, statsDSender);
+    if (DataSourceContextUnsafe.getDatabaseSwitcher().isEmpty()) {
+      addDataSource(DataSourceType.MASTER, targetDataSource);
+    } else {
+      throw new IllegalStateException("If your application needs to work with multiple databases " +
+          "you should inject all dataSources into routingDataSource via addDataSource / addNamedDataSource methods");
+    }
+  }
+
+  public RoutingDataSource(String serviceName, StatsDSender statsDSender) {
     this.serviceName = serviceName;
     this.successfulSwitchingCounters = new Counters(50);
     this.failedSwitchingCounters = new Counters(50);
@@ -65,13 +78,13 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
 
   @Override
   protected String determineCurrentLookupKey() {
-    String primaryDataSourceName = DataSourceContextUnsafe.getDataSourceKey();
+    String primaryDataSourceName = DataSourceContextUnsafe.getDataSourceName();
     boolean dataSourceIsHealthy = ofNullable(dataSourceHealthChecks.get(primaryDataSourceName))
         .map(healthCheck -> healthCheck.check().isHealthy())
         .orElse(true);
     return dataSourceIsHealthy ? primaryDataSourceName :
         DataSourcePropertiesStorage.getSecondaryDataSourceName(primaryDataSourceName)
-            .map(secondaryDataSourceName -> String.format(SECONDARY_DATASOURCE_NAME_FORMAT, primaryDataSourceName, secondaryDataSourceName))
+            .map(secondaryDataSourceName -> String.format(DATASOURCE_NAME_FORMAT, primaryDataSourceName, secondaryDataSourceName))
             .orElse(primaryDataSourceName);
   }
 
@@ -84,44 +97,52 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
 
   @Override
   public void afterPropertiesSet() {
-    Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks =
-        Stream.concat(Stream.of(targetDataSource), replicas.values().stream())
-            .filter(this::isWrapperForHealthCheckHikariDataSource)
-            .map(this::unwrapHealthCheckHikariDataSource)
-            .collect(Collectors.toMap(HikariConfig::getPoolName, HealthCheckHikariDataSource::getHealthCheck));
+    Map<String, HealthCheckHikariDataSource.AsyncHealthCheckDecorator> dataSourceHealthChecks = targetDataSources
+        .values()
+        .stream()
+        .filter(this::isWrapperForHealthCheckHikariDataSource)
+        .map(this::unwrapHealthCheckHikariDataSource)
+        .collect(Collectors.toMap(HikariConfig::getPoolName, HealthCheckHikariDataSource::getHealthCheck));
 
-    Map<String, DataSource> secondaryDataSources = dataSourceHealthChecks.keySet().stream()
+    Map<String, LazyConnectionDataSource> secondaryDataSources = dataSourceHealthChecks
+        .keySet()
+        .stream()
         .map(primaryDataSourceName -> Map.entry(primaryDataSourceName, DataSourcePropertiesStorage.getSecondaryDataSourceName(primaryDataSourceName)))
         .filter(entry -> entry.getValue().isPresent())
         .collect(Collectors.toMap(
-            entry -> String.format(SECONDARY_DATASOURCE_NAME_FORMAT, entry.getKey(), entry.getValue().get()),
+            entry -> String.format(DATASOURCE_NAME_FORMAT, entry.getKey(), entry.getValue().get()),
             entry -> {
               String primaryDataSourceName = entry.getKey();
               String secondaryDataSourceName = entry.getValue().get();
-              return ofNullable(replicas.get(secondaryDataSourceName))
+              return ofNullable(targetDataSources.get(secondaryDataSourceName))
                   .map(dataSource -> this.createSecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName))
-                  .orElseGet(() -> this.createSecondaryDataSourceProxy(targetDataSource, primaryDataSourceName, secondaryDataSourceName));
+                  .orElseThrow(() -> new IllegalStateException("Secondary datasource %s is not configured".formatted(secondaryDataSourceName)));
             }
         ));
 
     this.dataSourceHealthChecks.putAll(dataSourceHealthChecks);
-    this.replicas.putAll(secondaryDataSources);
-    HashMap<Object, Object> targetDataSources = new HashMap<>(replicas);
-    targetDataSources.put(DataSourceType.MASTER, targetDataSource);
-    setTargetDataSources(targetDataSources);
+    this.targetDataSources.putAll(secondaryDataSources);
+    setTargetDataSources(new HashMap<>(this.targetDataSources));
     super.afterPropertiesSet();
   }
 
   public void addDataSource(String dataSourceName, DataSource dataSource) {
-    replicas.put(dataSourceName, dataSource);
+    // create lazy proxy for dataSource. defaultAutoCommit and defaultTransactionIsolation will be determine via connection
+    targetDataSources.put(dataSourceName, new LazyConnectionDataSource(dataSource));
+  }
+
+  public void addDataSource(String databaseName, String dataSourceType, DataSource dataSource) {
+    addDataSource(DATASOURCE_NAME_FORMAT.formatted(databaseName, dataSourceType), dataSource);
   }
 
   /**
    * Original DataSource must be wrapped with {@link ru.hh.nab.datasource.NamedDataSource} otherwise IllegalArgumentException will be thrown.
-   * If DataSource doesn't wrapped with {@link ru.hh.nab.datasource.NamedDataSource} prefer to use {@link #addDataSource(String, DataSource)}.
+   * If DataSource doesn't wrapped with {@link ru.hh.nab.datasource.NamedDataSource} prefer to use
+   * - {@link #addDataSource(String, DataSource)}
+   * - {@link #addDataSource(String, String, DataSource)}
    */
   public void addNamedDataSource(DataSource dataSource) {
-    replicas.put(
+    addDataSource(
         NamedDataSource
             .getName(dataSource)
             .orElseThrow(() -> new IllegalArgumentException("Original DataSource doesn't wrapped with NamedDataSource")),
@@ -149,16 +170,12 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     }
   }
 
-  private DataSource createSecondaryDataSourceProxy(DataSource dataSource, String primaryDataSourceName, String secondaryDataSourceName) {
-    return new SecondaryDataSourceProxy(dataSource, primaryDataSourceName, secondaryDataSourceName);
-  }
-
-  private DataSource createSecondaryDataSourceProxy(
+  private LazyConnectionDataSource createSecondaryDataSourceProxy(
       LazyConnectionDataSource defaultDataSource,
       String primaryDataSourceName,
       String secondaryDataSourceName
   ) {
-    DataSource secondaryDataSource = this.createSecondaryDataSourceProxy(
+    DataSource secondaryDataSource = new SecondaryDataSourceProxy(
         defaultDataSource.getTargetDataSource(),
         primaryDataSourceName,
         secondaryDataSourceName

@@ -1,72 +1,91 @@
 package ru.hh.nab.datasource;
 
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import ru.hh.nab.common.mdc.MDC;
 
 public final class DataSourceContextUnsafe {
   public static final String MDC_KEY = "db";
-  private static final ThreadLocal<String> currentDataSourceKey = new ThreadLocal<>();
-  private static final ThreadLocal<String> requestScopeDataSourceKey = new ThreadLocal<>();
+  private static final ThreadLocal<String> currentDataSourceName = new ThreadLocal<>();
+  private static final ThreadLocal<String> requestScopeDataSourceType = new ThreadLocal<>();
+  private static DatabaseSwitcher databaseSwitcher = null;
 
-  public static <T> T executeOn(String dataSourceKey, boolean overrideByRequestScope, Supplier<T> supplier) {
-    var requestDataSourceKey = getRequestDataSourceKey();
-    if (requestDataSourceKey != null && overrideByRequestScope && !dataSourceKey.equals(requestDataSourceKey)) {
-      dataSourceKey = requestDataSourceKey;
+  public static <T> T executeOn(String dataSourceType, boolean overrideByRequestScope, Supplier<T> supplier) {
+    var requestDataSourceType = getRequestDataSourceType();
+    if (requestDataSourceType != null && overrideByRequestScope && !dataSourceType.equals(requestDataSourceType)) {
+      dataSourceType = requestDataSourceType;
     }
-    var previousDataSourceKey = currentDataSourceKey.get();
-    if (dataSourceKey.equals(previousDataSourceKey)) {
+    String dataSourceName = createDataSourceName(dataSourceType);
+    var previousDataSourceName = currentDataSourceName.get();
+    if (dataSourceName.equals(previousDataSourceName)) {
       return supplier.get();
     }
-    currentDataSourceKey.set(dataSourceKey);
+    currentDataSourceName.set(dataSourceName);
     try {
-      updateMDC(dataSourceKey);
+      updateMDC(dataSourceName);
       return supplier.get();
     } finally {
-      if (previousDataSourceKey == null) {
-        currentDataSourceKey.remove();
+      if (previousDataSourceName == null) {
+        currentDataSourceName.remove();
       } else {
-        currentDataSourceKey.set(previousDataSourceKey);
+        currentDataSourceName.set(previousDataSourceName);
       }
-      updateMDC(previousDataSourceKey);
+      updateMDC(previousDataSourceName);
     }
   }
 
-  public static void executeInScope(String dataSourceKey, Runnable action) {
+  public static void executeInScope(String dataSourceType, Runnable action) {
     try {
-      setRequestScopeDataSourceKey(dataSourceKey);
+      setRequestScopeDataSourceType(dataSourceType);
       action.run();
     } finally {
-      clearRequestScopeDataSourceKey();
+      clearRequestScopeDataSourceType();
     }
   }
 
-  public static String getDataSourceKey() {
-    return ofNullable(currentDataSourceKey.get()).orElse(DataSourceType.MASTER);
+  public static void setDatabaseSwitcher(DatabaseSwitcher databaseSwitcher) {
+    DataSourceContextUnsafe.databaseSwitcher = databaseSwitcher;
+  }
+
+  public static Optional<DatabaseSwitcher> getDatabaseSwitcher() {
+    return ofNullable(databaseSwitcher);
+  }
+
+  public static String getDataSourceName() {
+    return ofNullable(currentDataSourceName.get()).orElseGet(() -> createDataSourceName(DataSourceType.MASTER));
+  }
+
+  public static boolean isCurrentDataSource(String dataSourceType) {
+    return getDataSourceName().equals(createDataSourceName(dataSourceType));
   }
 
   public static void setDefaultMDC() {
-    updateMDC(DataSourceType.MASTER);
+    updateMDC(createDataSourceName(DataSourceType.MASTER));
   }
 
   public static void clearMDC() {
     MDC.deleteKey(MDC_KEY);
   }
 
-  private static void updateMDC(String dataSourceKey) {
-    MDC.setKey(MDC_KEY, ofNullable(dataSourceKey).orElse(DataSourceType.MASTER));
+  private static void updateMDC(String dataSourceName) {
+    MDC.setKey(MDC_KEY, ofNullable(dataSourceName).orElseGet(() -> createDataSourceName(DataSourceType.MASTER)));
   }
 
-  public static void setRequestScopeDataSourceKey(String dataSourceKey) {
-    requestScopeDataSourceKey.set(dataSourceKey);
+  public static void setRequestScopeDataSourceType(String dataSourceType) {
+    requestScopeDataSourceType.set(dataSourceType);
   }
 
-  public static void clearRequestScopeDataSourceKey() {
-    requestScopeDataSourceKey.remove();
+  public static void clearRequestScopeDataSourceType() {
+    requestScopeDataSourceType.remove();
   }
 
-  public static String getRequestDataSourceKey() {
-    return requestScopeDataSourceKey.get();
+  public static String getRequestDataSourceType() {
+    return requestScopeDataSourceType.get();
+  }
+
+  public static String createDataSourceName(String dataSourceType) {
+    return databaseSwitcher == null ? dataSourceType : databaseSwitcher.getDataSourceName(dataSourceType);
   }
 
   private DataSourceContextUnsafe() {

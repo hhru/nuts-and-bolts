@@ -12,6 +12,7 @@ import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
+import ru.hh.nab.datasource.DatabaseSwitcher;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 
@@ -32,7 +33,15 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
       NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
       HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory
   ) {
-    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, null);
+    this(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, null);
+  }
+
+  public EmbeddedPostgresDataSourceFactory(
+      NabMetricsTrackerFactoryProvider nabMetricsTrackerFactoryProvider,
+      HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory,
+      DatabaseSwitcher databaseSwitcher
+  ) {
+    super(nabMetricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, null, databaseSwitcher);
   }
 
   @Override

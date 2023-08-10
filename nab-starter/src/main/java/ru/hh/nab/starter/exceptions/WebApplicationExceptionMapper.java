@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.exceptions;
 
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -11,6 +12,7 @@ import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider
 @Priority(LOW_PRIORITY)
+@ApplicationScoped
 public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplicationException> {
 
   private static final List<Integer> ALWAYS_LOGGABLE_ERRORS = List.of(INTERNAL_SERVER_ERROR, BAD_GATEWAY);

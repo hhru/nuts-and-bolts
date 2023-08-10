@@ -1,7 +1,9 @@
 package ru.hh.nab.starter.jersey;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -15,6 +17,8 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
 
+@Provider
+@ApplicationScoped
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
   private final int maxCollectionSize;
   private static final int defaultMaxCollectionSize = 256;

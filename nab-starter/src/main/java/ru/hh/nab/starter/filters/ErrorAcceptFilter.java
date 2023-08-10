@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.filters;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import static ru.hh.jclient.common.HttpHeaderNames.X_HH_ACCEPT_ERRORS;
 
 @Provider
+@ApplicationScoped
 public class ErrorAcceptFilter implements ContainerResponseFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(ErrorAcceptFilter.class);
 

@@ -1,15 +1,19 @@
 package ru.hh.nab.starter.filters;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.ext.Provider;
 import org.springframework.util.ClassUtils;
 import ru.hh.nab.common.mdc.MDC;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 
+@Provider
+@ApplicationScoped
 public class ResourceNameLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
   @Inject

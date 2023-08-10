@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.exceptions;
 
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
@@ -13,6 +14,7 @@ import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider
 @Priority(LOW_PRIORITY)
+@ApplicationScoped
 public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   public AnyExceptionMapper() {
     super(INTERNAL_SERVER_ERROR, LoggingLevel.ERROR_WITH_STACK_TRACE);

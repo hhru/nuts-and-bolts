@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.40.3.jakarta-rc2-SNAPSHOT</version>
+    <version>4.40.3.jakarta-quarkus-rc1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -121,6 +121,18 @@
                 <groupId>org.jetbrains</groupId>
                 <artifactId>syslog4j</artifactId>
                 <version>0.9.46</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>3.1.0</version>
             </dependency>
 
         </dependencies>

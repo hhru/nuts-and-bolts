@@ -8,8 +8,8 @@ import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static ru.hh.nab.common.qualifier.NamedQualifier.COMMON_SCHEDULED_EXECUTOR;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.COMMON_SCHEDULED_EXECUTOR;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 @ApplicationScoped

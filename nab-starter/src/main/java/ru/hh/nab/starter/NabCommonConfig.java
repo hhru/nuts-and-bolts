@@ -68,6 +68,7 @@ public class NabCommonConfig {
   }
 
   @Bean
+  @Named(COMMON_SCHEDULED_EXECUTOR)
   ScheduledExecutorService scheduledExecutorService() {
     return new ScheduledExecutor();
   }

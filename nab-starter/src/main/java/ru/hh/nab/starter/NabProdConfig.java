@@ -3,17 +3,17 @@ package ru.hh.nab.starter;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 import jakarta.annotation.Nullable;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.io.IOException;
-import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.HealthClient;
@@ -27,13 +27,11 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulMetricsTracker;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
-@Configuration
-@Import({NabCommonConfig.class})
+@ApplicationScoped
 public class NabProdConfig {
 
   public static final String CONSUL_PORT_PROPERTY = "consul.http.port";
@@ -52,13 +50,15 @@ public class NabProdConfig {
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
 
-  @Bean
+  @Produces
   @Service
+  @Singleton
   Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 
-  @Bean
+  @Produces
+  @Singleton
   StatsDClient statsDClient(FileSettings fileSettings) {
 
     String host = ofNullable(fileSettings.getString(OKMETER_HOST_PROPERTY))
@@ -78,12 +78,14 @@ public class NabProdConfig {
     return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).build();
   }
 
-  @Bean
-  FilterHolder cacheFilter(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
+  @Produces
+  @Singleton
+  FilterHolder cacheFilter(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
     return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
   }
 
-  @Bean
+  @Produces
+  @Singleton
   Consul consul(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
     if (isConsulDisabled(fileSettings)) {
       return null;
@@ -103,46 +105,49 @@ public class NabProdConfig {
     return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
   }
 
-  @Bean
+  @Produces
+  @Singleton
   AgentClient agentClient(@Nullable Consul consul) {
     return consul != null ? consul.agentClient() : null;
   }
 
-  @Bean
+  @Produces
+  @Singleton
   KeyValueClient keyValueClient(@Nullable Consul consul) {
     return consul != null ? consul.keyValueClient() : null;
   }
 
-  @Bean
+  @Produces
+  @Singleton
   HealthClient healthClient(@Nullable Consul consul) {
     return consul != null ? consul.healthClient() : null;
   }
 
-  @Bean
-  @Lazy(value = false)
+  @Produces
+  @Singleton
   ConsulService consulService(
       FileSettings fileSettings,
       AppMetadata appMetadata,
-      @Nullable AgentClient agentClient,
-      @Nullable KeyValueClient keyValueClient,
+      Provider<AgentClient> agentClient,
+      Provider<KeyValueClient> keyValueClient,
       @Named(NODE_NAME) String nodeName,
-      @Nullable LogLevelOverrideExtension logLevelOverrideExtension
+      Instance<LogLevelOverrideExtension> logLevelOverrideExtension
   ) {
     if (isConsulDisabled(fileSettings)) {
       return null;
     }
     return new ConsulService(
-        Objects.requireNonNull(agentClient),
-        Objects.requireNonNull(keyValueClient),
+        agentClient.get(),
+        keyValueClient.get(),
         fileSettings,
         appMetadata,
         nodeName,
-        logLevelOverrideExtension
+        logLevelOverrideExtension.isResolvable() ? logLevelOverrideExtension.get() : null
     );
   }
 
-  @Bean
-  @Lazy
+  @Produces
+  @Singleton
   public ConsulFetcher consulFetcher(@Nullable HealthClient healthClient, FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName) {
     if (healthClient == null) {
       throw new RuntimeException(String.format("HealthClient is null. Set %s as true for using fetcher", ConsulService.CONSUL_ENABLED_PROPERTY));
@@ -153,10 +158,5 @@ public class NabProdConfig {
 
   private boolean isConsulDisabled(FileSettings fileSettings) {
     return !fileSettings.getBoolean(ConsulService.CONSUL_ENABLED_PROPERTY, true);
-  }
-
-  @Bean
-  JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
-    return new JettyEventListener(consulService);
   }
 }

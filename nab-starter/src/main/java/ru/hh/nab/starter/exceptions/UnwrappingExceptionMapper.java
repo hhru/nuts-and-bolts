@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -10,13 +11,13 @@ import org.glassfish.jersey.spi.ExceptionMappers;
 public abstract class UnwrappingExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
 
   @Inject
-  private ExceptionMappers mappers;
+  private Instance<ExceptionMappers> mappers;
 
   @Override
   public Response toResponse(T exception) {
     Throwable cause = exception.getCause();
     if (cause != null) {
-      ExceptionMapper<Throwable> mapper = mappers.findMapping(cause);
+      ExceptionMapper<Throwable> mapper = mappers.isResolvable() ? mappers.get().findMapping(cause) : null;
       if (mapper != null) {
         return mapper.toResponse(cause);
       }

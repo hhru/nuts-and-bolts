@@ -1,35 +1,37 @@
 package ru.hh.nab.jclient;
 
-import jakarta.annotation.Nullable;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.HttpClientFactoryBuilder;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
+import static ru.hh.nab.common.qualifier.NamedQualifier.COMMON_SCHEDULED_EXECUTOR;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 
-@Configuration
+@ApplicationScoped
 public class NabJClientConfig {
-  @Bean
+  @Produces
+  @Singleton
   HttpClientFactoryBuilder httpClientFactoryBuilder(
       @Named(SERVICE_NAME) String serviceName,
       HttpClientContextThreadLocalSupplier contextSupplier,
-      ScheduledExecutorService scheduledExecutorService,
-      List<HttpClientEventListener> eventListeners,
+      @Named(COMMON_SCHEDULED_EXECUTOR) ScheduledExecutorService scheduledExecutorService,
+      Instance<HttpClientEventListener> eventListeners,
       FileSettings fileSettings
   ) {
     var subSettings = fileSettings.getSubSettings("jclient.listener.timeout-check");
@@ -38,7 +40,7 @@ public class NabJClientConfig {
     int minCompactionLength = ofNullable(subSettings.getInteger("min.compaction.length")).orElse(4);
     int minHashLength = ofNullable(subSettings.getInteger("min.hash.length")).orElse(16);
     long sendIntervalMinutes = ofNullable(subSettings.getInteger("send.interval.minutes")).orElse(1);
-    return new HttpClientFactoryBuilder(contextSupplier, eventListeners)
+    return new HttpClientFactoryBuilder(contextSupplier, eventListeners.stream().toList())
         .addEventListener(
             new GlobalTimeoutCheck(
                 Duration.ofMillis(thresholdMs),
@@ -49,8 +51,9 @@ public class NabJClientConfig {
         ).withUserAgent(serviceName);
   }
 
-  @Bean
-  TransactionalCheck transactionalCheck(ScheduledExecutorService executorService, FileSettings fileSettings) {
+  @Produces
+  @Singleton
+  TransactionalCheck transactionalCheck(@Named(COMMON_SCHEDULED_EXECUTOR) ScheduledExecutorService executorService, FileSettings fileSettings) {
     var subSettings = fileSettings.getSubSettings("jclient.listener.transactional-check");
     long sendIntervalMinutes = ofNullable(subSettings.getInteger("send.interval.minutes")).orElse(1);
     boolean failOnCheck = ofNullable(subSettings.getBoolean("fail.on.check")).orElse(Boolean.FALSE);
@@ -64,15 +67,17 @@ public class NabJClientConfig {
     );
   }
 
-  @Bean
-  HttpClientContextThreadLocalSupplier httpClientContextStorage(@Nullable HttpClientContext defaultContext) {
-    return Optional.ofNullable(defaultContext)
+  @Produces
+  @Singleton
+  HttpClientContextThreadLocalSupplier httpClientContextStorage(Instance<HttpClientContext> defaultContext) {
+    return Optional.ofNullable(defaultContext.isResolvable() ? defaultContext.get() : null)
         .map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
         .orElseGet(HttpClientContextThreadLocalSupplier::new)
         .register(new MDCStorage());
   }
 
-  @Bean
+  @Produces
+  @Singleton
   JClientContextProviderFilter jClientContextProviderFilter(HttpClientContextThreadLocalSupplier contextSupplier) {
     return new JClientContextProviderFilter(contextSupplier);
   }

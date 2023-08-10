@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +12,6 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 /**
  * This exception mapper solves several tasks:
@@ -32,7 +32,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
   @Context
   protected HttpServletResponse response;
   @Inject
-  protected ApplicationContext applicationContext;
+  protected Instance<ExceptionSerializer> exceptionSerializers;
 
   protected enum LoggingLevel {
     NOTHING,
@@ -95,7 +95,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
   }
 
   protected Response serializeException(Response.StatusType statusCode, T exception) {
-    return applicationContext.getBeansOfType(ExceptionSerializer.class).values().stream()
+    return exceptionSerializers.stream()
       .filter(s -> s.isCompatible(request, response))
       .findFirst()
       .map(s -> s.serializeException(statusCode, exception))

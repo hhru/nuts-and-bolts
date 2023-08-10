@@ -18,7 +18,6 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})

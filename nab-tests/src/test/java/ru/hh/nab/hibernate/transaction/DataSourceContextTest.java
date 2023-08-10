@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceKey;
 import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
@@ -15,7 +17,6 @@ import static ru.hh.nab.datasource.DataSourceType.SLOW;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})

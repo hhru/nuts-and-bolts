@@ -1,12 +1,11 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource;
 
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.datasource.DataSourceType;
 
 public final class DataSourceContextUnsafe {
-  static final String MDC_KEY = "db";
+  public static final String MDC_KEY = "db";
   private static final ThreadLocal<String> currentDataSourceKey = new ThreadLocal<>();
   private static final ThreadLocal<String> requestScopeDataSourceKey = new ThreadLocal<>();
 

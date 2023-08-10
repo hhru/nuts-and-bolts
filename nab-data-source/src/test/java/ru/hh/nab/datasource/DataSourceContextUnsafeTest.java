@@ -1,24 +1,20 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import org.springframework.test.context.ContextConfiguration;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.clearMDC;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeInScope;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeOn;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceKey;
+import static ru.hh.nab.datasource.DataSourceContextUnsafe.setDefaultMDC;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
-import ru.hh.nab.hibernate.HibernateTestConfig;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.clearMDC;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeInScope;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.executeOn;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.getDataSourceKey;
-import static ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe.setDefaultMDC;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class})
-public class DataSourceContextUnsafeTest extends HibernateTestBase {
+public class DataSourceContextUnsafeTest {
 
   @BeforeEach
   public void setUp() {

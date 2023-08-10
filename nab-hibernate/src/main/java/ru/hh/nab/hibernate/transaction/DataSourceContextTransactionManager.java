@@ -11,6 +11,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {

@@ -14,22 +14,27 @@ import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 
-@Configuration
+@ApplicationScoped
 public class NabTelemetryConfig {
 
-  @Bean
-  public OpenTelemetry telemetry(FileSettings fileSettings, SdkTracerProvider tracerProvider) {
+  @Produces
+  @Singleton
+  public OpenTelemetry telemetry(
+      FileSettings fileSettings,
+      SdkTracerProvider tracerProvider
+  ) {
     OpenTelemetrySdkBuilder openTelemetrySdkBuilder = OpenTelemetrySdk.builder();
     openTelemetrySdkBuilder.setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()));
 
@@ -39,15 +44,22 @@ public class NabTelemetryConfig {
     return openTelemetrySdkBuilder.buildAndRegisterGlobal();
   }
 
-  @Bean
+  @Produces
+  @Singleton
   IdGenerator idGenerator(HttpClientContextThreadLocalSupplier httpClientContextSupplier) {
     return new IdGeneratorImpl(httpClientContextSupplier);
   }
 
-  @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, IdGenerator idGenerator,
-                                             @Named(SERVICE_NAME) String serviceName, @Named(NODE_NAME) String nodeName,
-                                             @Named(DATACENTER) String datacenter, Properties projectProperties) {
+  @Produces
+  @Singleton
+  public SdkTracerProvider sdkTracerProvider(
+      FileSettings fileSettings,
+      IdGenerator idGenerator,
+      @Named(SERVICE_NAME) String serviceName,
+      @Named(NODE_NAME) String nodeName,
+      @Named(DATACENTER) String datacenter,
+      Properties projectProperties
+  ) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();
@@ -94,22 +106,33 @@ public class NabTelemetryConfig {
     }
   }
 
-  @Bean
+  @Produces
+  @Singleton
   TelemetryPropagator telemetryPropagator(OpenTelemetry openTelemetry) {
     return new TelemetryPropagator(openTelemetry);
   }
 
-  @Bean
-  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
+  @Produces
+  @Singleton
+  TelemetryFilter telemetryFilter(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      FileSettings fileSettings
+  ) {
     return new TelemetryFilter(
         openTelemetry.getTracer("nab"),
         telemetryPropagator,
         fileSettings.getBoolean("opentelemetry.enabled", false));
   }
 
-  @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator,
-                                                      HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
+  @Produces
+  @Singleton
+  TelemetryProcessorFactory telemetryProcessorFactory(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      HttpClientContextThreadLocalSupplier contextSupplier,
+      FileSettings fileSettings
+  ) {
     TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
         telemetryPropagator);
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {

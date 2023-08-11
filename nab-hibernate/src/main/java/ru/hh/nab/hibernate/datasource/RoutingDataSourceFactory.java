@@ -15,7 +15,18 @@ public class RoutingDataSourceFactory {
     this.statsDSender = statsDSender;
   }
 
+  /**
+   * It's not allowed to use this factory method if application needs to work with multiple databases.
+   * In this case you should use {@link RoutingDataSourceFactory#create()} and inject all dataSources via
+   * - {@link RoutingDataSource#addNamedDataSource(DataSource)} - the most preferred way
+   * - {@link RoutingDataSource#addDataSource(String, DataSource)}
+   * - {@link RoutingDataSource#addDataSource(String, String, DataSource)}
+   */
   public RoutingDataSource create(DataSource defaultDataSource) {
     return new RoutingDataSource(defaultDataSource, serviceName, statsDSender);
+  }
+
+  public RoutingDataSource create() {
+    return new RoutingDataSource(serviceName, statsDSender);
   }
 }

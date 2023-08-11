@@ -16,11 +16,14 @@ public class NabDataSourceProdConfig {
   DataSourceFactory dataSourceFactory(
       @Named(SERVICE_NAME) String serviceName,
       StatsDSender statsDSender,
-      @Nullable OpenTelemetryJdbcExtension openTelemetryJdbcExtension) {
+      @Nullable OpenTelemetryJdbcExtension openTelemetryJdbcExtension,
+      @Nullable DatabaseSwitcher databaseSwitcher
+  ) {
     return new DataSourceFactory(
         new NabMetricsTrackerFactoryProvider(serviceName, statsDSender),
         new HealthCheckHikariDataSourceFactory(serviceName, statsDSender),
-        openTelemetryJdbcExtension
+        openTelemetryJdbcExtension,
+        databaseSwitcher
     );
   }
 }

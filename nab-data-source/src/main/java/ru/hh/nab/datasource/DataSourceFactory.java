@@ -41,15 +41,36 @@ public class DataSourceFactory {
   private final HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory;
   @Nullable
   private final OpenTelemetryJdbcExtension openTelemetryJdbcExtension;
+  @Nullable
+  private final DatabaseSwitcher databaseSwitcher;
 
   public DataSourceFactory(
       MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider,
       @Nullable HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory,
       @Nullable OpenTelemetryJdbcExtension openTelemetryJdbcExtension
   ) {
+    this(metricsTrackerFactoryProvider, healthCheckHikariDataSourceFactory, openTelemetryJdbcExtension, null);
+  }
+
+  public DataSourceFactory(
+      MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider,
+      @Nullable HealthCheckHikariDataSourceFactory healthCheckHikariDataSourceFactory,
+      @Nullable OpenTelemetryJdbcExtension openTelemetryJdbcExtension,
+      @Nullable DatabaseSwitcher databaseSwitcher
+  ) {
     this.metricsTrackerFactoryProvider = metricsTrackerFactoryProvider;
     this.healthCheckHikariDataSourceFactory = healthCheckHikariDataSourceFactory;
     this.openTelemetryJdbcExtension = openTelemetryJdbcExtension;
+    this.databaseSwitcher = databaseSwitcher;
+  }
+
+  public DataSource create(String databaseName, String dataSourceType, boolean isReadonly, FileSettings settings) {
+    if (databaseSwitcher == null) {
+      throw new IllegalStateException("If your application needs to work with multiple databases, you should create DatabaseSwitcher bean");
+    } else {
+      String dataSourceName = databaseSwitcher.createDataSourceName(databaseName, dataSourceType);
+      return create(dataSourceName, isReadonly, settings);
+    }
   }
 
   public DataSource create(String dataSourceName, boolean isReadonly, FileSettings settings) {
@@ -96,7 +117,10 @@ public class DataSourceFactory {
     }
 
     checkDataSource(hikariDataSource, dataSourceName);
-    DataSourceType.registerPropertiesFor(hikariConfig.getPoolName(), new DataSourceType.DataSourceProperties(!isReadonly, secondaryDataSource));
+    DataSourcePropertiesStorage.registerPropertiesFor(
+        hikariConfig.getPoolName(),
+        new DataSourcePropertiesStorage.DataSourceProperties(!isReadonly, secondaryDataSource)
+    );
 
     return hikariDataSource;
   }

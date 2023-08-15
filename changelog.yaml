@@ -1,3 +1,10 @@
+-   name: 4.42.1
+    date: '2023-08-15T12:41:45.591153+03:00'
+    description: Инжект бина DatabaseSwitcher в DataSourceContextUnsafe вынесен в
+        @PostConstruct метод
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.0
     date: '2023-08-11T17:52:59.327095+03:00'
     description: "Добавлена возможность работы с несколькими базами данных и динамического\

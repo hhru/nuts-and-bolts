@@ -4,23 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 
 /**
- * Данный класс будет работать корректно только в том случае, если есть гарантия того, что все вызовы
- * метода {@link DatabaseSwitcher#getDataSourceName(String)} будут выполняться только после всех вызовов
- * метода {@link DatabaseSwitcher#createDataSourceName(String, String)}
- * (то есть если операции чтения выполняются только после всех операций записи).
- * <p>
  * Для того, чтобы приложение работало с несколькими базами данных, необходимо в service.properties добавить конфиги для всех датасорсов, используя
- * при этом имя базы данных в качестве префикса пропертей. В коде сервиса необходимо создать бин DatabaseSwitcher, заинжектив в него
- * databaseNameSupplier (в сапплаере можно, например, доставать значение какой-либо динамической настройки) + при создании датасорсов с помощью
- * фабричного метода {@link DataSourceFactory#create(String, String, boolean, FileSettings)} нужно передавать имя базы отдельным аргументом
- * (оно должно совпадать с префиксом в конфиге)
+ * при этом имя базы данных в качестве префикса пропертей. В коде сервиса необходимо создать бин DatabaseSwitcher с помощью конструктора
+ * {@link DatabaseSwitcher#DatabaseSwitcher(Supplier)} (в сапплаере можно, например, доставать значение какой-либо динамической настройки) + при
+ * создании датасорсов с помощью фабричного метода {@link DataSourceFactory#create(String, String, boolean, FileSettings)} нужно передавать имя базы
+ * отдельным аргументом (оно должно совпадать с префиксом в конфиге)
  * <p>
  * Пример конфига:
+ * <pre>{@code
  * testDB.master.jdbcUrl=jdbc:postgresql://postgres:5432/testDB
  * testDB.master.pool.maximumPoolSize=10
  * testDB.readonly.jdbcUrl=jdbc:postgresql://postgres:5432/testDB
@@ -30,8 +26,10 @@ import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
  * prodDB.master.pool.maximumPoolSize=10
  * prodDB.readonly.jdbcUrl=jdbc:postgresql://postgres:5432/prodDB
  * prodDB.readonly.pool.maximumPoolSize=10
+ * }</pre>
  * <p>
  * Пример кода:
+ * <pre>{@code
  * private static final String TARGET_DATABASE_SETTING = "target_database";
  * private static final String TEST_DB = "testDB";
  * private static final String PROD_DB = "prodDB";
@@ -57,42 +55,30 @@ import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
  *           .orElseThrow(() -> new IllegalStateException("Setting %s is not configured".formatted(TARGET_DATABASE_SETTING)))
  *   );
  * }
+ * }</pre>
  * </p>
  */
 public class DatabaseSwitcher {
 
   private final Supplier<String> databaseNameSupplier;
-  private Map<String, Map<String, String>> dataSourceNamesForWrite = Map.of();
-  private Map<String, Map<String, String>> dataSourceNamesForRead;
+  private final Map<String, Map<String, String>> dataSourceNames = new HashMap<>();
 
   public DatabaseSwitcher(Supplier<String> databaseNameSupplier) {
     this.databaseNameSupplier = databaseNameSupplier;
+  }
+
+  @PostConstruct
+  public void configureDataSourceContextUnsafe() {
     DataSourceContextUnsafe.setDatabaseSwitcher(this);
   }
 
-  public synchronized String createDataSourceName(String databaseName, String dataSourceType) {
+  public String createDataSourceName(String databaseName, String dataSourceType) {
     String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(databaseName, dataSourceType);
-
-    // convert immutable maps to mutable
-    Map<String, Map<String, String>> dataSourceNames = dataSourceNamesForWrite
-        .entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, entry -> new HashMap<>(entry.getValue()), (dsn1, dsn2) -> dsn1, HashMap::new));
-
-    // put values to mutable maps
-    dataSourceNames.computeIfAbsent(databaseName, i -> new HashMap<>()).put(dataSourceType, dataSourceName);
-
-    // convert mutable maps to immutable
-    dataSourceNamesForWrite = dataSourceNames
-        .entrySet()
-        .stream()
-        .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> Map.copyOf(entry.getValue())));
-
+    dataSourceNames.computeIfAbsent(databaseName, k -> new HashMap<>()).put(dataSourceType, dataSourceName);
     return dataSourceName;
   }
 
   public String getDataSourceName(String dataSourceType) {
-    Map<String, Map<String, String>> dataSourceNames = getDataSourceNames();
     String databaseName = databaseNameSupplier.get();
     return Optional.ofNullable(dataSourceNames.get(databaseName))
         .map(dataSourceTypeToName -> dataSourceTypeToName.get(dataSourceType))
@@ -100,14 +86,5 @@ public class DatabaseSwitcher {
           String errorMessage = "DataSource with databaseName=%s, dataSourceType=%s is not found".formatted(databaseName, dataSourceType);
           return new IllegalArgumentException(errorMessage);
         });
-  }
-
-  private Map<String, Map<String, String>> getDataSourceNames() {
-    if (dataSourceNamesForRead == null) {
-      synchronized (this) {
-        dataSourceNamesForRead = dataSourceNamesForWrite;
-      }
-    }
-    return dataSourceNamesForRead;
   }
 }

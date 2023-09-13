@@ -11,6 +11,8 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationConfigurationException;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
 
 public class ExecuteOnDataSourceBeanPostProcessor implements BeanPostProcessor {
@@ -40,7 +42,7 @@ public class ExecuteOnDataSourceBeanPostProcessor implements BeanPostProcessor {
 
     Set<String> unconfiguredDataSources = this.affectedBeans.values().stream()
         .flatMap(Collection::stream)
-        .filter(item -> !DataSourceType.isConfigured(item))
+        .filter(dataSourceType -> !DataSourcePropertiesStorage.isConfigured(DataSourceContextUnsafe.createDataSourceName(dataSourceType)))
         .collect(Collectors.toSet());
     if (dataSourcesAreReady && !unconfiguredDataSources.isEmpty()) {
       String beansString = affectedBeans.entrySet().stream()

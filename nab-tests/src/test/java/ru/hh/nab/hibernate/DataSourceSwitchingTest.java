@@ -14,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.hibernate.Session;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +35,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
+import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.DatabaseSwitcher;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
@@ -58,27 +65,65 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
     }
 )
 public class DataSourceSwitchingTest extends HibernateTestBase {
+
+  private static final String DB1 = "db1";
+  private static final String DB2 = "db2";
+  private static final String CRON_MASTER = "cronMaster";
+
   @Inject
   private TransactionalScope transactionalScope;
   @Inject
-  @Named("firstDataSourceSpy")
-  private DataSource firstDataSourceSpy;
+  private DataSourceFactory dataSourceFactory;
   @Inject
-  @Named("secondDataSourceSpy")
-  private DataSource secondDataSourceSpy;
+  private RoutingDataSourceFactory routingDataSourceFactory;
   @Inject
-  @Named("thirdDataSourceSpy")
-  private DataSource thirdDataSourceSpy;
+  private DatabaseNameHolder databaseNameHolder;
+
   @Inject
-  @Named("fourthDataSourceSpy")
-  private DataSource fourthDataSourceSpy;
+  @Named("db1MasterDataSource")
+  private DataSource db1MasterDataSource;
+  @Inject
+  @Named("db1ReadOnlyDataSource")
+  private DataSource db1ReadOnlyDataSource;
+  @Inject
+  @Named("db1SlowDataSource")
+  private DataSource db1SlowDataSource;
+  @Inject
+  @Named("db1CronMasterDataSource")
+  private DataSource db1CronMasterDataSource;
+
+  @Inject
+  @Named("db2MasterDataSource")
+  private DataSource db2MasterDataSource;
+  @Inject
+  @Named("db2ReadOnlyDataSource")
+  private DataSource db2ReadOnlyDataSource;
+  @Inject
+  @Named("db2SlowDataSource")
+  private DataSource db2SlowDataSource;
+  @Inject
+  @Named("db2CronMasterDataSource")
+  private DataSource db2CronMasterDataSource;
 
   @BeforeEach
   public void setUp() {
-    reset(firstDataSourceSpy);
-    reset(secondDataSourceSpy);
-    reset(thirdDataSourceSpy);
-    reset(fourthDataSourceSpy);
+    reset(db1MasterDataSource);
+    reset(db1ReadOnlyDataSource);
+    reset(db1SlowDataSource);
+    reset(db1CronMasterDataSource);
+
+    reset(db2MasterDataSource);
+    reset(db2ReadOnlyDataSource);
+    reset(db2SlowDataSource);
+    reset(db2CronMasterDataSource);
+
+    databaseNameHolder.reset();
+  }
+
+  @AfterAll
+  public static void tearDown() {
+    DataSourceContextUnsafe.setDatabaseSwitcher(null);
+    DataSourcePropertiesStorage.clear();
   }
 
   @Test
@@ -89,63 +134,171 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
         Session currentSession = sessionFactory.getCurrentSession();
         return currentSession.find(TestEntity.class, 1);
       };
-      TargetMethod<TestEntity> method = () -> onDataSource("second", supplier);
+      TargetMethod<TestEntity> method = () -> onDataSource(DataSourceType.READONLY, supplier);
       return transactionalScope.read(method);
     }, executor).get();
-    verify(firstDataSourceSpy, never()).getConnection();
-    verify(secondDataSourceSpy, times(1)).getConnection();
-    verify(thirdDataSourceSpy, never()).getConnection();
-    verify(fourthDataSourceSpy, never()).getConnection();
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, times(1)).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
   }
 
   @Test
   public void testTxScopeDoesntChangeDs() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
-    CompletableFuture.supplyAsync(() -> {
-      TargetMethod<TestEntity> method = () -> {
-        Session currentSession = sessionFactory.getCurrentSession();
-        return currentSession.find(TestEntity.class, 1);
-      };
-      Supplier<TestEntity> supplier = () -> transactionalScope.read(method);
-      return onDataSource("second", supplier);
-    }, executor).get();
-    verify(firstDataSourceSpy, never()).getConnection();
-    verify(secondDataSourceSpy, times(1)).getConnection();
-    verify(thirdDataSourceSpy, never()).getConnection();
-    verify(fourthDataSourceSpy, never()).getConnection();
+    CompletableFuture.supplyAsync(() -> invokeMethodOnDataSource(DataSourceType.READONLY), executor).get();
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, times(1)).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
   }
 
   @Test
-  public void testSwitchingIfSecondaryDataSourceIsNotPresent() throws Exception {
-    doThrow(UnhealthyDataSourceException.class).when(thirdDataSourceSpy).getConnection();
+  public void testRoutingToDb1() throws SQLException {
+    databaseNameHolder.setDatabaseName(DB1);
+    invokeMethodOnDataSource(DataSourceType.MASTER);
+
+    verify(db1MasterDataSource, times(1)).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testRoutingToDb2() throws SQLException {
+    databaseNameHolder.setDatabaseName(DB2);
+    invokeMethodOnDataSource(DataSourceType.MASTER);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, times(1)).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testSwitchingIfSecondaryDataSourceIsNotPresentOnDb1() throws Exception {
+    doThrow(UnhealthyDataSourceException.class).when(db1SlowDataSource).getConnection();
+    Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
+    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, times(1)).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testSwitchingIfSecondaryDataSourceIsNotPresentOnDb2() throws Exception {
+    databaseNameHolder.setDatabaseName(DB2);
+
+    doThrow(UnhealthyDataSourceException.class).when(db2SlowDataSource).getConnection();
+    Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
+    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, times(1)).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testSwitchingIfSecondaryDataSourceIsPresentOnDb1() throws Exception {
+    doThrow(UnhealthyDataSourceException.class).when(db1CronMasterDataSource).getConnection();
+    invokeMethodOnDataSource(CRON_MASTER);
+
+    verify(db1MasterDataSource, times(1)).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testSwitchingIfSecondaryDataSourceIsPresentOnDb2() throws Exception {
+    databaseNameHolder.setDatabaseName(DB2);
+
+    doThrow(UnhealthyDataSourceException.class).when(db2CronMasterDataSource).getConnection();
+    invokeMethodOnDataSource(CRON_MASTER);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, times(1)).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testSecondaryDataSourceIsNotConfiguredValidation() {
+    String dataSourceName = CRON_MASTER;
+    Properties properties = DataSourceSwitchingTestConfig.createProperties(dataSourceName);
+    properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
+    properties.setProperty(dataSourceName + "." + ROUTING_SECONDARY_DATASOURCE, DataSourceType.MASTER);
+    DataSource dataSource = dataSourceFactory.create(CRON_MASTER, false, new FileSettings(properties));
+
+    RoutingDataSource routingDataSource = routingDataSourceFactory.create();
+    routingDataSource.addNamedDataSource(dataSource);
+    IllegalStateException ex = assertThrows(IllegalStateException.class, routingDataSource::afterPropertiesSet);
+    assertEquals("Secondary datasource master is not configured", ex.getMessage());
+  }
+
+  private TestEntity invokeMethodOnDataSource(String dataSource) {
+    TargetMethod<TestEntity> method = () -> {
+      Session currentSession = sessionFactory.getCurrentSession();
+      return currentSession.find(TestEntity.class, 1);
+    };
+    return onDataSource(dataSource, () -> transactionalScope.read(method));
+  }
+
+  private Exception invokeMethodOnDataSourceWithException(String dataSource) {
     TargetMethod<TestEntity> method = () -> {
       Session currentSession = sessionFactory.getCurrentSession();
       return currentSession.find(TestEntity.class, 1);
     };
     PersistenceException ex = assertThrows(
         PersistenceException.class,
-        () -> onDataSource("third", () -> transactionalScope.read(method))
+        () -> onDataSource(dataSource, () -> transactionalScope.read(method))
     );
-    assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
-    verify(firstDataSourceSpy, never()).getConnection();
-    verify(secondDataSourceSpy, never()).getConnection();
-    verify(thirdDataSourceSpy, times(1)).getConnection();
-    verify(fourthDataSourceSpy, never()).getConnection();
-  }
-
-  @Test
-  public void testSwitchingIfSecondaryDataSourceIsPresent() throws Exception {
-    doThrow(UnhealthyDataSourceException.class).when(fourthDataSourceSpy).getConnection();
-    TargetMethod<TestEntity> method = () -> {
-      Session currentSession = sessionFactory.getCurrentSession();
-      return currentSession.find(TestEntity.class, 1);
-    };
-    onDataSource("fourth", () -> transactionalScope.read(method));
-
-    verify(firstDataSourceSpy, never()).getConnection();
-    verify(secondDataSourceSpy, times(1)).getConnection();
-    verify(thirdDataSourceSpy, never()).getConnection();
-    verify(fourthDataSourceSpy, never()).getConnection();
+    return ex;
   }
 
   @Configuration
@@ -159,7 +312,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     }
 
     @Bean
-    DataSourceFactory dataSourceFactory(StatsDSender statsDSender) {
+    DataSourceFactory dataSourceFactory(StatsDSender statsDSender, DatabaseSwitcher databaseSwitcher) {
       return new EmbeddedPostgresDataSourceFactory(
           new NabMetricsTrackerFactoryProvider(SERVICE_NAME_VALUE, statsDSender),
           new HealthCheckHikariDataSourceFactory(SERVICE_NAME_VALUE, statsDSender) {
@@ -167,7 +320,8 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
             public HikariDataSource create(HikariConfig hikariConfig) {
               return spy(super.create(hikariConfig));
             }
-          }
+          },
+          databaseSwitcher
       );
     }
 
@@ -177,51 +331,98 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     }
 
     @Bean
-    DataSource firstDataSourceSpy(DataSourceFactory dataSourceFactory) {
-      String dataSourceName = "first";
+    DataSource db1MasterDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.MASTER);
       Properties properties = createProperties(dataSourceName);
-      return createDsSpy(dataSourceFactory, dataSourceName, properties);
+      return createDsSpy(dataSourceFactory, DB1, DataSourceType.MASTER, properties);
     }
 
     @Bean
-    DataSource secondDataSourceSpy(DataSourceFactory dataSourceFactory) {
-      String dataSourceName = "second";
+    DataSource db1ReadOnlyDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.READONLY);
       Properties properties = createProperties(dataSourceName);
-      properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
-      return createDsSpy(dataSourceFactory, dataSourceName, properties);
+      return createDsSpy(dataSourceFactory, DB1, DataSourceType.READONLY, properties);
     }
 
     @Bean
-    DataSource thirdDataSourceSpy(DataSourceFactory dataSourceFactory) {
-      String dataSourceName = "third";
+    DataSource db1SlowDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.SLOW);
       Properties properties = createProperties(dataSourceName);
       properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
-      return createDsSpy(dataSourceFactory, dataSourceName, properties);
+      return createDsSpy(dataSourceFactory, DB1, DataSourceType.SLOW, properties);
     }
 
     @Bean
-    DataSource fourthDataSourceSpy(DataSourceFactory dataSourceFactory) {
-      String dataSourceName = "fourth";
+    DataSource db1CronMasterDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, CRON_MASTER);
       Properties properties = createProperties(dataSourceName);
       properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
-      properties.setProperty(dataSourceName + "." + ROUTING_SECONDARY_DATASOURCE, "second");
-      return createDsSpy(dataSourceFactory, dataSourceName, properties);
+      properties.setProperty(dataSourceName + "." + ROUTING_SECONDARY_DATASOURCE, DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.MASTER));
+      return createDsSpy(dataSourceFactory, DB1, CRON_MASTER, properties);
+    }
+
+    @Bean
+    DataSource db2MasterDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.MASTER);
+      Properties properties = createProperties(dataSourceName);
+      return createDsSpy(dataSourceFactory, DB2, DataSourceType.MASTER, properties);
+    }
+
+    @Bean
+    DataSource db2ReadOnlyDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.READONLY);
+      Properties properties = createProperties(dataSourceName);
+      return createDsSpy(dataSourceFactory, DB2, DataSourceType.READONLY, properties);
+    }
+
+    @Bean
+    DataSource db2SlowDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.SLOW);
+      Properties properties = createProperties(dataSourceName);
+      properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
+      return createDsSpy(dataSourceFactory, DB2, DataSourceType.SLOW, properties);
+    }
+
+    @Bean
+    DataSource db2CronMasterDataSource(DataSourceFactory dataSourceFactory) {
+      String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, CRON_MASTER);
+      Properties properties = createProperties(dataSourceName);
+      properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
+      properties.setProperty(dataSourceName + "." + ROUTING_SECONDARY_DATASOURCE, DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.MASTER));
+      return createDsSpy(dataSourceFactory, DB2, CRON_MASTER, properties);
     }
 
     @Primary
     @Bean
     RoutingDataSource dataSource(
         RoutingDataSourceFactory routingDataSourceFactory,
-        DataSource firstDataSourceSpy,
-        DataSource secondDataSourceSpy,
-        DataSource thirdDataSourceSpy,
-        DataSource fourthDataSourceSpy
+
+        DataSource db1MasterDataSource,
+        DataSource db1ReadOnlyDataSource,
+        DataSource db1SlowDataSource,
+        DataSource db1CronMasterDataSource,
+
+        DataSource db2MasterDataSource,
+        DataSource db2ReadOnlyDataSource,
+        DataSource db2SlowDataSource,
+        DataSource db2CronMasterDataSource
     ) {
-      RoutingDataSource routingDataSource = routingDataSourceFactory.create(firstDataSourceSpy);
-      routingDataSource.addDataSource("second", secondDataSourceSpy);
-      routingDataSource.addDataSource("third", thirdDataSourceSpy);
-      routingDataSource.addDataSource("fourth", fourthDataSourceSpy);
+      RoutingDataSource routingDataSource = routingDataSourceFactory.create();
+      routingDataSource.addNamedDataSource(db1MasterDataSource);
+      routingDataSource.addNamedDataSource(db1ReadOnlyDataSource);
+      routingDataSource.addNamedDataSource(db1SlowDataSource);
+      routingDataSource.addNamedDataSource(db1CronMasterDataSource);
+
+      routingDataSource.addNamedDataSource(db2MasterDataSource);
+      routingDataSource.addNamedDataSource(db2ReadOnlyDataSource);
+      routingDataSource.addNamedDataSource(db2SlowDataSource);
+      routingDataSource.addNamedDataSource(db2CronMasterDataSource);
       return routingDataSource;
+    }
+
+    @Bean
+    DatabaseSwitcher databaseSwitcher(DatabaseNameHolder databaseNameHolder) {
+      return new DatabaseSwitcher(databaseNameHolder::getDatabaseName);
     }
 
     @Bean
@@ -236,14 +437,19 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
       return new TransactionalScope();
     }
 
+    @Bean
+    DatabaseNameHolder databaseNameHolder() {
+      return new DatabaseNameHolder();
+    }
+
     private static Properties createProperties(String dataSourceName) {
       Properties properties = new Properties();
       properties.setProperty(dataSourceName + ".pool.maximumPoolSize", "2");
       return properties;
     }
 
-    private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String dataSourceName, Properties properties) {
-      DataSource dataSource = spy(dataSourceFactory.create(dataSourceName, false, new FileSettings(properties)));
+    private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String databaseName, String dataSourceType, Properties properties) {
+      DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, new FileSettings(properties)));
       try {
         var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
         HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
@@ -277,6 +483,23 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     @Transactional
     public <T> T write(TargetMethod<T> method) {
       return method.invoke();
+    }
+  }
+
+  static class DatabaseNameHolder {
+
+    private String databaseName = DB1;
+
+    public void reset() {
+      databaseName = DB1;
+    }
+
+    public String getDatabaseName() {
+      return databaseName;
+    }
+
+    public void setDatabaseName(String databaseName) {
+      this.databaseName = databaseName;
     }
   }
 }

@@ -2,6 +2,7 @@ package ru.hh.nab.hibernate.transaction;
 
 import java.util.function.Supplier;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourceType;
 
 public class DataSourceContext {
@@ -19,40 +20,40 @@ public class DataSourceContext {
    * @deprecated Use {@link DataSourceContext#onDataSource(String, Supplier) instead}
    */
   @Deprecated
-  public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
-    return onDataSource(dataSourceName, supplier);
+  public static <T> T executeOn(String dataSourceType, Supplier<T> supplier) {
+    return onDataSource(dataSourceType, supplier);
   }
 
   /**
    * @deprecated Use {@link DataSourceContext#onDataSource(String, boolean, Supplier) instead}
    */
   @Deprecated
-  public static <T> T executeOn(String dataSourceName, boolean overrideByRequestScope, Supplier<T> supplier) {
-    return onDataSource(dataSourceName, overrideByRequestScope, supplier);
+  public static <T> T executeOn(String dataSourceType, boolean overrideByRequestScope, Supplier<T> supplier) {
+    return onDataSource(dataSourceType, overrideByRequestScope, supplier);
   }
 
-  public static void onDataSource(String dataSourceName, Runnable runnable) {
-    onDataSource(dataSourceName, false, runnable);
+  public static void onDataSource(String dataSourceType, Runnable runnable) {
+    onDataSource(dataSourceType, false, runnable);
   }
 
-  public static void onDataSource(String dataSourceName, boolean overrideByRequestScope, Runnable runnable) {
-    onDataSource(dataSourceName, overrideByRequestScope, () -> {
+  public static void onDataSource(String dataSourceType, boolean overrideByRequestScope, Runnable runnable) {
+    onDataSource(dataSourceType, overrideByRequestScope, () -> {
       runnable.run();
       return null;
     });
   }
 
-  public static <T> T onDataSource(String dataSourceName, Supplier<T> supplier) {
-    return onDataSource(dataSourceName, false, supplier);
+  public static <T> T onDataSource(String dataSourceType, Supplier<T> supplier) {
+    return onDataSource(dataSourceType, false, supplier);
   }
 
-  public static <T> T onDataSource(String dataSourceName, boolean overrideByRequestScope, Supplier<T> supplier) {
-    checkSameDataSourceInTransaction(dataSourceName);
-    return DataSourceContextUnsafe.executeOn(dataSourceName, overrideByRequestScope, supplier);
+  public static <T> T onDataSource(String dataSourceType, boolean overrideByRequestScope, Supplier<T> supplier) {
+    checkSameDataSourceInTransaction(dataSourceType);
+    return DataSourceContextUnsafe.executeOn(dataSourceType, overrideByRequestScope, supplier);
   }
 
-  private static void checkSameDataSourceInTransaction(String dataSourceName) {
-    if (!DataSourceContextUnsafe.getDataSourceKey().equals(dataSourceName)
+  private static void checkSameDataSourceInTransaction(String dataSourceType) {
+    if (!DataSourceContextUnsafe.isCurrentDataSource(dataSourceType)
         && checkTransaction
         && TransactionSynchronizationManager.isActualTransactionActive()) {
       throw new IllegalStateException("Attempt to change data source in transaction");

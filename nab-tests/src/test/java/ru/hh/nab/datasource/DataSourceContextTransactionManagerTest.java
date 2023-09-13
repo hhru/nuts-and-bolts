@@ -18,7 +18,6 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.hibernate.transaction.DataSourceContextUnsafe;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
@@ -27,7 +26,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   @BeforeEach
   public void setUpTestBaseClass() {
-    DataSourceType.clear();
+    DataSourcePropertiesStorage.clear();
     try (Session session = sessionFactory.openSession()) {
       session.getTransaction().begin();
       TestEntity testEntity = createTestEntity(session);
@@ -132,7 +131,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
   private void testDataSource(String dataSourceName, boolean readOnly) {
     assertHibernateIsNotInitialized();
-    DataSourceType.registerPropertiesFor(dataSourceName, new DataSourceType.DataSourceProperties(!readOnly));
+    DataSourcePropertiesStorage.registerPropertiesFor(dataSourceName, new DataSourcePropertiesStorage.DataSourceProperties(!readOnly));
     DataSourceContextUnsafe.executeOn(dataSourceName, false, () -> {
       TransactionStatus transactionStatus = createTransaction(false);
 

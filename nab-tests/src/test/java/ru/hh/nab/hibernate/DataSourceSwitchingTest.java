@@ -201,7 +201,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   public void testSwitchingIfSecondaryDataSourceIsNotPresentOnDb1() throws Exception {
     doThrow(UnhealthyDataSourceException.class).when(db1SlowDataSource).getConnection();
     Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
-    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+    assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
 
     verify(db1MasterDataSource, never()).getConnection();
     verify(db1ReadOnlyDataSource, never()).getConnection();
@@ -220,7 +220,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
 
     doThrow(UnhealthyDataSourceException.class).when(db2SlowDataSource).getConnection();
     Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
-    assertTrue(ex.getCause().getCause() instanceof UnhealthyDataSourceException);
+    assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
 
     verify(db1MasterDataSource, never()).getConnection();
     verify(db1ReadOnlyDataSource, never()).getConnection();

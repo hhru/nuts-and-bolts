@@ -1,3 +1,9 @@
+-   name: 4.42.2
+    date: '2023-09-21T11:39:36.876123+03:00'
+    description: support default http client context supplier
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.1
     date: '2023-08-15T12:41:45.591153+03:00'
     description: Инжект бина DatabaseSwitcher в DataSourceContextUnsafe вынесен в

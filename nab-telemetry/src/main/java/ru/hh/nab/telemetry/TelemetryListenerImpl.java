@@ -10,6 +10,7 @@ import io.opentelemetry.context.Scope;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_METHOD;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_STATUS_CODE;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
+import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,8 @@ public class TelemetryListenerImpl implements RequestDebug {
         .setSpanKind(SpanKind.CLIENT)
         .setAttribute(HTTP_URL, request.getUrl())
         .setAttribute(HTTP_METHOD, request.getMethod())
-        .setAttribute("http.request.timeout", request.getRequestTimeout());
+        .setAttribute("http.request.timeout", request.getRequestTimeout())
+        .setAttribute(PEER_SERVICE, host);
 
     if (context.datacenter != null) {
       builder.setAttribute("http.request.cloud.region", context.datacenter);

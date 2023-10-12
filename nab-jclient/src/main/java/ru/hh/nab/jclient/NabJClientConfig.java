@@ -4,11 +4,11 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Named;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import java.util.function.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -18,6 +18,7 @@ import ru.hh.jclient.common.HttpClientFactoryBuilder;
 import ru.hh.jclient.common.check.GlobalTimeoutCheck;
 import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DEFAULT_HTTP_CLIENT_CONTEXT_SUPPLIER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
@@ -65,11 +66,21 @@ public class NabJClientConfig {
   }
 
   @Bean
-  HttpClientContextThreadLocalSupplier httpClientContextStorage(@Nullable HttpClientContext defaultContext) {
-    return Optional.ofNullable(defaultContext)
-        .map(ctx -> new HttpClientContextThreadLocalSupplier(() -> ctx))
-        .orElseGet(HttpClientContextThreadLocalSupplier::new)
-        .register(new MDCStorage());
+  HttpClientContextThreadLocalSupplier httpClientContextStorage(
+      @Nullable HttpClientContext defaultContext,
+      @Nullable @Named(DEFAULT_HTTP_CLIENT_CONTEXT_SUPPLIER) Supplier<HttpClientContext> defaultContextSupplier
+  ) {
+    HttpClientContextThreadLocalSupplier contextSupplier;
+
+    if (defaultContextSupplier != null) {
+      contextSupplier = new HttpClientContextThreadLocalSupplier(defaultContextSupplier, false);
+    } else if (defaultContext != null) {
+      contextSupplier = new HttpClientContextThreadLocalSupplier(() -> defaultContext);
+    } else {
+      contextSupplier = new HttpClientContextThreadLocalSupplier();
+    }
+
+    return contextSupplier.register(new MDCStorage());
   }
 
   @Bean

@@ -33,7 +33,7 @@
     </modules>
 
     <properties>
-        <jclient.version>3.11.0.jakarta-rc2</jclient.version>
+        <jclient.version>3.11.2.jakarta-rc1</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>1.2.12</consul.client.version>
     </properties>

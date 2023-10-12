@@ -1,3 +1,9 @@
+-   name: 4.42.4
+    date: '2023-10-12T10:10:52.805989+03:00'
+    description: Обновление jclient до 3.11.2
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.3
     date: '2023-10-04T16:29:16.367997+03:00'
     description: В спаны проставляется тег peer.service

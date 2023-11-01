@@ -1,3 +1,9 @@
+-   name: 4.42.5
+    date: '2023-11-01T20:45:41.644368+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.4
     date: '2023-10-12T10:10:52.805989+03:00'
     description: Обновление jclient до 3.11.2

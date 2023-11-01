@@ -127,6 +127,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(prepare(consumerGroupId, consumeStrategy), springContainerProvider);
 
     kafkaConsumer.start();
+    logger.info("Subscribed for {}, consumer group id {}", topicName, consumerGroupId);
     return kafkaConsumer;
   }
 

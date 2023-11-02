@@ -1,6 +1,6 @@
 -   name: 4.42.5
     date: '2023-11-01T20:45:41.644368+03:00'
-    description: ''
+    description: 'Добавлена удобняшка SimpleKafkaConsumer, описана в nab-kafka/README.md'
     instructions: ''
     compatible: true
 

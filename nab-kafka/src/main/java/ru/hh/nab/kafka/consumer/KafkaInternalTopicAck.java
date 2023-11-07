@@ -28,42 +28,13 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
   }
 
   @Override
-  public void acknowledge(ConsumerRecord<String, T> message) {
-    TopicPartition partition = getMessagePartition(message);
-    OffsetAndMetadata offsetOfNextMessageInPartition = getOffsetOfNextMessage(message);
-    consumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
-    seek(partition, offsetOfNextMessageInPartition);
+  public void seek(Collection<ConsumerRecord<String, T>> messages) {
+    seek(getLatestOffsetForEachPartition(messages));
   }
 
   @Override
-  public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
-    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = getLatestOffsetForEachPartition(messages);
-    consumer.commitSync(latestOffsetsForEachPartition);
-    seek(latestOffsetsForEachPartition);
-  }
-
-  @Override
-  public void commitOnly(Collection<ConsumerRecord<String, T>> messages) {
+  public void commit(Collection<ConsumerRecord<String, T>> messages) {
     consumer.commitSync(getLatestOffsetForEachPartition(messages));
-  }
-
-  @Override
-  public void seek(ConsumerRecord<String, T> message) {
-    TopicPartition partition = getMessagePartition(message);
-    OffsetAndMetadata offsetOfNextMessageInPartition = getOffsetOfNextMessage(message);
-    seek(partition, offsetOfNextMessageInPartition);
-  }
-
-  private OffsetAndMetadata getOffsetOfNextMessage(ConsumerRecord<String, T> message) {
-    return new OffsetAndMetadata(message.offset() + 1);
-  }
-
-  private TopicPartition getMessagePartition(ConsumerRecord<String, T> message) {
-    return new TopicPartition(message.topic(), message.partition());
-  }
-
-  private void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
-    kafkaConsumer.getSeekedOffsets().put(topicPartition, offsetAndMetadata);
   }
 
   private void seek(Map<TopicPartition, OffsetAndMetadata> offsets) {
@@ -78,5 +49,13 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
                     BinaryOperator.maxBy(Comparator.comparingLong(OffsetAndMetadata::offset))
             )
     );
+  }
+
+  private TopicPartition getMessagePartition(ConsumerRecord<String, T> message) {
+    return new TopicPartition(message.topic(), message.partition());
+  }
+
+  private OffsetAndMetadata getOffsetOfNextMessage(ConsumerRecord<String, T> message) {
+    return new OffsetAndMetadata(message.offset() + 1);
   }
 }

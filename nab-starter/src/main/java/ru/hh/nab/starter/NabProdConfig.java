@@ -75,7 +75,7 @@ public class NabProdConfig {
         .map(Integer::parseInt)
         .orElse(10_000);
 
-    return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).build();
+    return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).enableTelemetry(false).build();
   }
 
   @Bean

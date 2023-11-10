@@ -1,5 +1,6 @@
 package ru.hh.nab.starter;
 
+import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 import java.io.IOException;
@@ -48,6 +49,8 @@ public class NabProdConfig {
   public static final String OKMETER_PORT_ENV = "OKMETER_PORT";
   public static final String OKMETER_QUEUE_SIZE_PROPERTY = "okmeter.queue.size";
   public static final String OKMETER_QUEUE_SIZE_ENV = "OKMETER_QUEUE_SIZE";
+  public static final String OKMETER_MAX_PACKET_SIZE_BYTES_PROPERTY = "okmeter.maxPacketSizeBytes";
+  public static final String OKMETER_MAX_PACKET_SIZE_BYTES_ENV = "OKMETER_MAX_PACKET_SIZE_BYTES";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -75,7 +78,12 @@ public class NabProdConfig {
         .map(Integer::parseInt)
         .orElse(10_000);
 
-    return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).build();
+    int maxPacketSizeBytes = ofNullable(fileSettings.getString(OKMETER_MAX_PACKET_SIZE_BYTES_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(OKMETER_MAX_PACKET_SIZE_BYTES_ENV)))
+        .map(Integer::parseInt)
+        .orElse(NonBlockingStatsDClient.DEFAULT_MAX_PACKET_SIZE_BYTES);
+
+    return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).maxPacketSizeBytes(maxPacketSizeBytes).build();
   }
 
   @Bean

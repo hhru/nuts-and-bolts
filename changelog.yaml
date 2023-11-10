@@ -1,3 +1,13 @@
+-   name: 4.42.7
+    date: '2023-11-10T17:38:10.654044+03:00'
+    description: 'Добавлена возможность задавать размер пакета для отправки в StatsD
+        с помощью конфига statsd.maxPacketSizeBytes. ВАЖНО. Если используется loopback,
+        значение параметра не должно превышать 65000 байт. Если StatsD-сервер находится
+        на отдельном хосте, то параметр не должен превышать 1400 байт. Подробнее здесь:
+        https://github.com/DataDog/java-dogstatsd-client/pull/17'
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.6
     date: '2023-11-08T15:01:24.202477+03:00'
     description: up JClient to 3.12.0

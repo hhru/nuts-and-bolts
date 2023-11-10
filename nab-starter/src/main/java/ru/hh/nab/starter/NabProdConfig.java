@@ -43,14 +43,14 @@ public class NabProdConfig {
   public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
   public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
-  public static final String OKMETER_HOST_PROPERTY = "okmeter.host";
-  public static final String OKMETER_HOST_ENV = "OKMETER_HOST";
-  public static final String OKMETER_PORT_PROPERTY = "okmeter.port";
-  public static final String OKMETER_PORT_ENV = "OKMETER_PORT";
-  public static final String OKMETER_QUEUE_SIZE_PROPERTY = "okmeter.queue.size";
-  public static final String OKMETER_QUEUE_SIZE_ENV = "OKMETER_QUEUE_SIZE";
-  public static final String OKMETER_MAX_PACKET_SIZE_BYTES_PROPERTY = "okmeter.maxPacketSizeBytes";
-  public static final String OKMETER_MAX_PACKET_SIZE_BYTES_ENV = "OKMETER_MAX_PACKET_SIZE_BYTES";
+  public static final String STATSD_HOST_PROPERTY = "statsd.host";
+  public static final String STATSD_HOST_ENV = "STATSD_HOST";
+  public static final String STATSD_PORT_PROPERTY = "statsd.port";
+  public static final String STATSD_PORT_ENV = "STATSD_PORT";
+  public static final String STATSD_QUEUE_SIZE_PROPERTY = "statsd.queue.size";
+  public static final String STATSD_QUEUE_SIZE_ENV = "STATSD_QUEUE_SIZE";
+  public static final String STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY = "statsd.maxPacketSizeBytes";
+  public static final String STATSD_MAX_PACKET_SIZE_BYTES_ENV = "STATSD_MAX_PACKET_SIZE_BYTES";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -64,22 +64,22 @@ public class NabProdConfig {
   @Bean
   StatsDClient statsDClient(FileSettings fileSettings) {
 
-    String host = ofNullable(fileSettings.getString(OKMETER_HOST_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_HOST_ENV)))
+    String host = ofNullable(fileSettings.getString(STATSD_HOST_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(STATSD_HOST_ENV)))
         .orElse("localhost");
 
-    int port = ofNullable(fileSettings.getString(OKMETER_PORT_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_PORT_ENV)))
+    int port = ofNullable(fileSettings.getString(STATSD_PORT_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(STATSD_PORT_ENV)))
         .map(Integer::parseInt)
         .orElse(8125);
 
-    int queueSize = ofNullable(fileSettings.getString(OKMETER_QUEUE_SIZE_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_QUEUE_SIZE_ENV)))
+    int queueSize = ofNullable(fileSettings.getString(STATSD_QUEUE_SIZE_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(STATSD_QUEUE_SIZE_ENV)))
         .map(Integer::parseInt)
         .orElse(10_000);
 
-    int maxPacketSizeBytes = ofNullable(fileSettings.getString(OKMETER_MAX_PACKET_SIZE_BYTES_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(OKMETER_MAX_PACKET_SIZE_BYTES_ENV)))
+    int maxPacketSizeBytes = ofNullable(fileSettings.getString(STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(STATSD_MAX_PACKET_SIZE_BYTES_ENV)))
         .map(Integer::parseInt)
         .orElse(NonBlockingStatsDClient.DEFAULT_MAX_PACKET_SIZE_BYTES);
 

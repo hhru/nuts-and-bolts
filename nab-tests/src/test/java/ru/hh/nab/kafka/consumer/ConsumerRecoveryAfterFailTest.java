@@ -172,7 +172,8 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     waitUntil(() -> assertUniqueProcessedMessagesCount(117 + 17));
     Map<String, Long> messageProcessedCount = getProcessedMessagesCount();
 
-    processedMessages.stream()
+    processedMessages
+        .stream()
         .filter(Predicate.not(duplicatedMessages::contains))
         .forEach(m -> assertEquals(1L, messageProcessedCount.get(m).longValue()));
     duplicatedMessages.forEach(m -> assertNotEquals(1L, messageProcessedCount.get(m).longValue()));
@@ -202,7 +203,8 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     waitUntil(() -> assertUniqueProcessedMessagesCount(117 + 17));
     Map<String, Long> messageProcessedCount = getProcessedMessagesCount();
 
-    processedMessages.stream()
+    processedMessages
+        .stream()
         .filter(Predicate.not(brokenMessages::contains))
         .forEach(m -> assertEquals(1L, messageProcessedCount.get(m).longValue()));
   }
@@ -258,11 +260,14 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     putMessagesIntoKafka(150);
 
     startConsumer((messages, ack) -> {
-      Collection<ConsumerRecord<String, String>> recordsWithMaxOffsetsInPartition = messages.stream().collect(Collectors.toMap(
-          ConsumerRecord::partition,
-          Function.identity(),
-          BinaryOperator.maxBy(Comparator.comparingLong(ConsumerRecord::offset)))
-      ).values();
+      Collection<ConsumerRecord<String, String>> recordsWithMaxOffsetsInPartition = messages
+          .stream()
+          .collect(Collectors.toMap(
+              ConsumerRecord::partition,
+              Function.identity(),
+              BinaryOperator.maxBy(Comparator.comparingLong(ConsumerRecord::offset))
+          ))
+          .values();
 
       messages.forEach(m -> processedMessages.add(m.value()));
       ack.acknowledge(recordsWithMaxOffsetsInPartition);

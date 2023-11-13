@@ -54,11 +54,13 @@ public class TelemetryListenerTest {
 
   @BeforeAll
   public static void init() {
-    SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+    SdkTracerProvider tracerProvider = SdkTracerProvider
+        .builder()
         .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
         .build();
 
-    telemetry = OpenTelemetrySdk.builder()
+    telemetry = OpenTelemetrySdk
+        .builder()
         .setTracerProvider(tracerProvider)
         .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
         .build();
@@ -114,13 +116,18 @@ public class TelemetryListenerTest {
   public void testNestedRequestWithParent() throws ExecutionException, InterruptedException {
     String url = resourceHelper.baseUrl() + "/simple";
 
-    Span parentSpan = telemetry.getTracer("test").spanBuilder("parent")
+    Span parentSpan = telemetry
+        .getTracer("test")
+        .spanBuilder("parent")
         .setParent(Context.current())
         .setSpanKind(SpanKind.SERVER)
         .startSpan();
 
     try (Scope ignored = parentSpan.makeCurrent()) {
-      String result = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).expectPlainText().result()
+      String result = httpClientFactory
+          .with(new RequestBuilder().setUrl(url).build())
+          .expectPlainText()
+          .result()
           .thenCompose(s -> httpClientFactory.with(new RequestBuilder().setUrl(url + "?a=1").build()).expectPlainText().result())
           .get();
       assertEquals("Hello, world!", result);
@@ -141,8 +148,10 @@ public class TelemetryListenerTest {
   public static class SpringCtxForJersey implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder()
-          .configureJersey(SpringCtxForJersey.class).bindToRoot()
+      return NabApplication
+          .builder()
+          .configureJersey(SpringCtxForJersey.class)
+          .bindToRoot()
           .build();
     }
   }

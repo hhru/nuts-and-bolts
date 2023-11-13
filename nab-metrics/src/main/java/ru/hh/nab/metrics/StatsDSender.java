@@ -158,7 +158,8 @@ public class StatsDSender {
         LOGGER.warn("Null tag value for tag name: {}, for metric: {}", tag.name, metricName);
       }
 
-      stringBuilder.append('.')
+      stringBuilder
+          .append('.')
           .append(tag.name.replace('.', '-'))
           .append("_is_")
           .append(Optional.ofNullable(tag.value).map(value -> value.replace('.', '-')).orElse("null"));

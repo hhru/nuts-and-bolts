@@ -14,13 +14,16 @@ public final class SqlRequestIdCommenter {
   private SqlRequestIdCommenter() {}
 
   public static String addRequestIdComment(final String sql) {
-    return MDC.getRequestId().map(requestId -> {
-      // check for sql injections and reasonable length
-      if (requestId.length() > 100 || !SQL_REQUEST_ID_IS_VALID.test(requestId)) {
-        LOGGER.warn("Errant request id, not including it to SQL query: {}", requestId);
-        return sql;
-      }
-      return "/* " + requestId + " */ " + sql;
-    }).orElse(sql);
+    return MDC
+        .getRequestId()
+        .map(requestId -> {
+          // check for sql injections and reasonable length
+          if (requestId.length() > 100 || !SQL_REQUEST_ID_IS_VALID.test(requestId)) {
+            LOGGER.warn("Errant request id, not including it to SQL query: {}", requestId);
+            return sql;
+          }
+          return "/* " + requestId + " */ " + sql;
+        })
+        .orElse(sql);
   }
 }

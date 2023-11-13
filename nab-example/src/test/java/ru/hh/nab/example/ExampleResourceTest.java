@@ -20,7 +20,8 @@ public class ExampleResourceTest {
   @Test
   public void hello() {
     final String name = "test";
-    Response response = resourceHelper.target("/hello")
+    Response response = resourceHelper
+        .target("/hello")
         .queryParam("name", name)
         .request()
         .get();

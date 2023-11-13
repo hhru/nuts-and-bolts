@@ -129,14 +129,19 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   @Test
   public void testDsManageInsideTxScope() throws Exception {
     Executor executor = Executors.newFixedThreadPool(1);
-    CompletableFuture.supplyAsync(() -> {
-      Supplier<TestEntity> supplier = () -> {
-        Session currentSession = sessionFactory.getCurrentSession();
-        return currentSession.find(TestEntity.class, 1);
-      };
-      TargetMethod<TestEntity> method = () -> onDataSource(DataSourceType.READONLY, supplier);
-      return transactionalScope.read(method);
-    }, executor).get();
+    CompletableFuture
+        .supplyAsync(
+            () -> {
+              Supplier<TestEntity> supplier = () -> {
+                Session currentSession = sessionFactory.getCurrentSession();
+                return currentSession.find(TestEntity.class, 1);
+              };
+              TargetMethod<TestEntity> method = () -> onDataSource(DataSourceType.READONLY, supplier);
+              return transactionalScope.read(method);
+            },
+            executor
+        )
+        .get();
 
     verify(db1MasterDataSource, never()).getConnection();
     verify(db1ReadOnlyDataSource, times(1)).getConnection();

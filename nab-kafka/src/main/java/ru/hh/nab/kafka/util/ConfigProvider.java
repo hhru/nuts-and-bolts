@@ -104,7 +104,8 @@ public class ConfigProvider {
   }
 
   private static void checkNames(Map<String, ?> nonNabSettings, Set<String> supportedNames, String type) {
-    SortedSet<String> invalidNames = nonNabSettings.keySet()
+    SortedSet<String> invalidNames = nonNabSettings
+        .keySet()
         .stream()
         .filter(key -> !supportedNames.contains(key))
         .collect(Collectors.toCollection(TreeSet::new));
@@ -141,7 +142,9 @@ public class ConfigProvider {
 
   private Optional<String> findAnyMatchedKey(String pattern) {
     Pattern compiledPattern = Pattern.compile(pattern);
-    return fileSettings.getProperties().stringPropertyNames()
+    return fileSettings
+        .getProperties()
+        .stringPropertyNames()
         .stream()
         .filter(key -> compiledPattern.matcher(key).matches())
         .findAny();

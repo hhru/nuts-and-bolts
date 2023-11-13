@@ -42,7 +42,8 @@ public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
 
   @Override
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
-    SpanBuilder builder = tracer.spanBuilder(consumerGroupId.getTopic() + " process")
+    SpanBuilder builder = tracer
+        .spanBuilder(consumerGroupId.getTopic() + " process")
         .setParent(Context.current())
         .setSpanKind(SpanKind.CONSUMER)
         .setAttribute(SERVICE_NAME, clusterName)

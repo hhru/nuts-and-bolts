@@ -95,10 +95,13 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
   }
 
   protected Response serializeException(Response.StatusType statusCode, T exception) {
-    return applicationContext.getBeansOfType(ExceptionSerializer.class).values().stream()
-      .filter(s -> s.isCompatible(request, response))
-      .findFirst()
-      .map(s -> s.serializeException(statusCode, exception))
-      .orElseGet(() -> Response.status(statusCode).entity(ofNullable(exception.getMessage()).orElse("")).type(TEXT_PLAIN).build());
+    return applicationContext
+        .getBeansOfType(ExceptionSerializer.class)
+        .values()
+        .stream()
+        .filter(s -> s.isCompatible(request, response))
+        .findFirst()
+        .map(s -> s.serializeException(statusCode, exception))
+        .orElseGet(() -> Response.status(statusCode).entity(ofNullable(exception.getMessage()).orElse("")).type(TEXT_PLAIN).build());
   }
 }

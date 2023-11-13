@@ -20,7 +20,8 @@ class CachedResponse implements Serializable {
   private static final long serialVersionUID = 4535812629333313638L;
 
   private static final Set<String> EXCLUDE_HEADERS =
-      Stream.of("Date", "Connection", "Keep-Alive", "Public", "Upgrade", "Transfer-Encoding", "Proxy-Authenticate", "X-Request-Id")
+      Stream
+          .of("Date", "Connection", "Keep-Alive", "Public", "Upgrade", "Transfer-Encoding", "Proxy-Authenticate", "X-Request-Id")
           .map(String::toLowerCase)
           .collect(Collectors.toSet());
 

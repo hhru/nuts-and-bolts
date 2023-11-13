@@ -48,8 +48,12 @@ public class NabApplicationTest {
     AppMetadata appMetadata = webApplicationContext.getBean(AppMetadata.class);
     long upTimeSeconds = appMetadata.getUpTimeSeconds();
     assertEquals(NabTestConfig.TEST_SERVICE_NAME, webApplicationContext.getBean("serviceName"));
-    Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost").port(server.getPort()).build())
-        .path("status").request();
+    Invocation.Builder statusReq = ClientBuilder
+        .newBuilder()
+        .build()
+        .target(UriBuilder.fromUri("http://localhost").port(server.getPort()).build())
+        .path("status")
+        .request();
     try (Response response = statusReq.get()) {
       assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       Project project = response.readEntity(Project.class);
@@ -64,8 +68,12 @@ public class NabApplicationTest {
 
     JettyServer server = NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class);
     WebApplicationContext webApplicationContext = getWebApplicationContext(server.getServletContext());
-    Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost").port(server.getPort()).build())
-        .path("status").request();
+    Invocation.Builder statusReq = ClientBuilder
+        .newBuilder()
+        .build()
+        .target(UriBuilder.fromUri("http://localhost").port(server.getPort()).build())
+        .path("status")
+        .request();
 
     assertEquals(NabTestConfig.TEST_SERVICE_NAME, webApplicationContext.getBean("serviceName"));
     assertEquals(NabTestConfig.TEST_SERVICE_NAME, webApplicationContext.getParent().getBean("serviceName"));
@@ -93,14 +101,19 @@ public class NabApplicationTest {
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
-      Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
-              .port(jettyServer.getPort()).build())
-          .path("status").request();
+      Invocation.Builder statusReq = ClientBuilder
+          .newBuilder()
+          .build()
+          .target(UriBuilder.fromUri("http://localhost").port(jettyServer.getPort()).build())
+          .path("status")
+          .request();
       try (Response response = statusReq.get()) {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       }
       return null;
-    }).when(consulService).register();
+    })
+        .when(consulService)
+        .register();
 
     jettyServer.start();
     jettyServer.stop();
@@ -117,14 +130,19 @@ public class NabApplicationTest {
 
     ConsulService consulService = aggregateCtx.getBean(ConsulService.class);
     doAnswer(invocation -> {
-      Invocation.Builder statusReq = ClientBuilder.newBuilder().build().target(UriBuilder.fromUri("http://localhost")
-              .port(jettyServer.getPort()).build())
-          .path("status").request();
+      Invocation.Builder statusReq = ClientBuilder
+          .newBuilder()
+          .build()
+          .target(UriBuilder.fromUri("http://localhost").port(jettyServer.getPort()).build())
+          .path("status")
+          .request();
       try (Response response = statusReq.get()) {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       }
       return null;
-    }).when(consulService).deregister();
+    })
+        .when(consulService)
+        .deregister();
 
     jettyServer.start();
     jettyServer.stop();
@@ -141,9 +159,13 @@ public class NabApplicationTest {
   @Test
   @ExpectSystemExitWithStatus(1)
   public void runShouldFailOnServletMappingConflict() {
-    NabApplication.builder()
-        .addServlet(ctx -> new DefaultServlet()).setServletName("conflictingServlet").bindTo("/status")
-        .build().run(NabTestConfig.class);
+    NabApplication
+        .builder()
+        .addServlet(ctx -> new DefaultServlet())
+        .setServletName("conflictingServlet")
+        .bindTo("/status")
+        .build()
+        .run(NabTestConfig.class);
   }
 
   @Test

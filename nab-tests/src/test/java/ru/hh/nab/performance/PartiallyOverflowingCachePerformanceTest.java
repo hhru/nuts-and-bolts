@@ -151,7 +151,8 @@ public class PartiallyOverflowingCachePerformanceTest {
   private List<Class<?>> createClassData() {
     Reflections reflectionsRu = new Reflections("ru", new SubTypesScanner(false));
     final Set<String> allTypes = reflectionsRu.getAllTypes();
-    return allTypes.stream()
+    return allTypes
+        .stream()
         .map(PartiallyOverflowingCachePerformanceTest::toClass)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

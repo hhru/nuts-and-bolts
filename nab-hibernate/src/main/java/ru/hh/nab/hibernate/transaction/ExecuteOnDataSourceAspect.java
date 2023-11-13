@@ -30,10 +30,12 @@ public class ExecuteOnDataSourceAspect {
       return pjp.proceed();
     }
     String txManagerQualifier = executeOnDataSource.txManager();
-    DataSourceContextTransactionManager transactionManager = Optional.of(txManagerQualifier)
+    DataSourceContextTransactionManager transactionManager = Optional
+        .of(txManagerQualifier)
         .filter(String::isEmpty)
         .map(ignored -> defaultTxManager)
-        .orElseGet(() -> Optional.ofNullable(txManagers.get(txManagerQualifier))
+        .orElseGet(() -> Optional
+            .ofNullable(txManagers.get(txManagerQualifier))
             .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"))
         );
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);

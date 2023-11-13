@@ -16,7 +16,9 @@ public class Percentiles {
       totalObservations += count;
     }
 
-    Iterator<Map.Entry<Integer, Integer>> increasingValueToCountIterator = valueToCount.entrySet().stream()
+    Iterator<Map.Entry<Integer, Integer>> increasingValueToCountIterator = valueToCount
+        .entrySet()
+        .stream()
         .sorted(Map.Entry.comparingByKey())
         .iterator();
     int currentObservations = 0;

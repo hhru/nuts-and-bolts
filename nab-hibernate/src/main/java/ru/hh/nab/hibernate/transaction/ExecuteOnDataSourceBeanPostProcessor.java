@@ -40,12 +40,16 @@ public class ExecuteOnDataSourceBeanPostProcessor implements BeanPostProcessor {
       }
     }
 
-    Set<String> unconfiguredDataSources = this.affectedBeans.values().stream()
+    Set<String> unconfiguredDataSources = this.affectedBeans
+        .values()
+        .stream()
         .flatMap(Collection::stream)
         .filter(dataSourceType -> !DataSourcePropertiesStorage.isConfigured(DataSourceContextUnsafe.createDataSourceName(dataSourceType)))
         .collect(Collectors.toSet());
     if (dataSourcesAreReady && !unconfiguredDataSources.isEmpty()) {
-      String beansString = affectedBeans.entrySet().stream()
+      String beansString = affectedBeans
+          .entrySet()
+          .stream()
           .filter(item -> item.getValue().stream().anyMatch(unconfiguredDataSources::contains))
           .map(Map.Entry::getKey)
           .collect(Collectors.joining(","));

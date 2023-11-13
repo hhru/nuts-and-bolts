@@ -82,7 +82,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
         .map(healthCheck -> healthCheck.check().isHealthy())
         .orElse(true);
     return dataSourceIsHealthy ? primaryDataSourceName :
-        DataSourcePropertiesStorage.getSecondaryDataSourceName(primaryDataSourceName)
+        DataSourcePropertiesStorage
+            .getSecondaryDataSourceName(primaryDataSourceName)
             .map(secondaryDataSourceName -> String.format(DATASOURCE_NAME_FORMAT, primaryDataSourceName, secondaryDataSourceName))
             .orElse(primaryDataSourceName);
   }

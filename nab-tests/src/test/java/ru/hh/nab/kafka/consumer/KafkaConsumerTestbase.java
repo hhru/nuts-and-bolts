@@ -35,7 +35,8 @@ public abstract class KafkaConsumerTestbase {
 
   protected <T> KafkaConsumer<T> startMessagesConsumer(Class<T> messageClass, String operation, ConsumeStrategy<T> consumerMock) {
     KafkaConsumer<T> consumer = consumerFactory.subscribe(topicName, "testOperation", messageClass, consumerMock);
-    await().atMost(10, TimeUnit.SECONDS)
+    await()
+        .atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertEquals(5, consumer.getAssignedPartitions().size()));
     return consumer;
   }

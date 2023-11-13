@@ -31,8 +31,7 @@ public class NabTestServerExtension implements BeforeEachCallback, ParameterReso
 
   @Override
   public void beforeEach(ExtensionContext context) {
-    context.getRequiredTestInstances().getAllInstances()
-        .forEach(instance -> injectInstanceFields(context, instance));
+    context.getRequiredTestInstances().getAllInstances().forEach(instance -> injectInstanceFields(context, instance));
   }
 
   @Override

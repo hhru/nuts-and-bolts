@@ -28,7 +28,10 @@ public class NabWebsocketConfigurator {
           WebSocketServerContainerInitializer.ATTR_JAVAX_SERVER_CONTAINER
       );
 
-      List<? extends Class<?>> endpoints = springWebApplicationContext.getBeansWithAnnotation(ServerEndpoint.class).values().stream()
+      List<? extends Class<?>> endpoints = springWebApplicationContext
+          .getBeansWithAnnotation(ServerEndpoint.class)
+          .values()
+          .stream()
           .map(Object::getClass)
           .filter(clazz -> allowedEndpointsPackages.stream().anyMatch(allowedPackage -> clazz.getName().startsWith(allowedPackage)))
           .collect(Collectors.toList());

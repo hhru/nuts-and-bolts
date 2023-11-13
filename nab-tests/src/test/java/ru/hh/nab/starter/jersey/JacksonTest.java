@@ -40,9 +40,12 @@ public class JacksonTest {
   public static class SpringCtxForJersey implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder().configureJersey(SpringCtxForJersey.class)
+      return NabApplication
+          .builder()
+          .configureJersey(SpringCtxForJersey.class)
           .registerResources(ObjectMapperContextResolver.class)
-          .bindToRoot().build();
+          .bindToRoot()
+          .build();
     }
   }
 }

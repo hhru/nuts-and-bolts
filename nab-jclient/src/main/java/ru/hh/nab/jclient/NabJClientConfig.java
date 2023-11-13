@@ -47,7 +47,8 @@ public class NabJClientConfig {
                 uri -> compactUri(uri, minCompactionLength, minHashLength),
                 MINUTES.toMillis(sendIntervalMinutes)
             )
-        ).withUserAgent(serviceName);
+        )
+        .withUserAgent(serviceName);
   }
 
   @Bean

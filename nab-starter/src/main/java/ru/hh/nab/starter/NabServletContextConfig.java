@@ -75,7 +75,10 @@ public class NabServletContextConfig {
         registerFilter(webAppContext.getServletHandler(), cacheFilter, EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
       }
     }
-    rootCtx.getBeansOfType(NabServletFilter.class).entrySet().stream()
+    rootCtx
+        .getBeansOfType(NabServletFilter.class)
+        .entrySet()
+        .stream()
         .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
         .forEach(entry -> registerFilter(webAppContext.getServletContext(), entry.getKey(), entry.getValue(),
             EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING
@@ -120,7 +123,8 @@ public class NabServletContextConfig {
   protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
 
   private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
-    servletConfigs.stream()
+    servletConfigs
+        .stream()
         .filter(servletConfig -> !servletConfig.isDisabled())
         .forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
   }

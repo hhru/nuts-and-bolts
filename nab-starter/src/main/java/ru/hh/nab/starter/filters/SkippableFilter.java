@@ -40,7 +40,9 @@ public abstract class SkippableFilter extends OncePerRequestFilter {
       return Stream.empty();
     }
 
-    return Pattern.compile(",").splitAsStream(exclusionsString.replace("\n", ""))
+    return Pattern
+        .compile(",")
+        .splitAsStream(exclusionsString.replace("\n", ""))
         .filter(StringUtils::isNotBlank)
         .map(String::trim);
   }

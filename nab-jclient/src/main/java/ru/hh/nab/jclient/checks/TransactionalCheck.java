@@ -87,11 +87,17 @@ public class TransactionalCheck implements HttpClientEventListener {
       if (publisher == null) {
         LOGGER.warn("logging executeRequest in transaction", new TransactionalCheckException());
       } else {
-        var targetStackTrace = STACK_WALKER.walk(stackStream -> stackStream
-            .filter(frame -> packagesToSkip.stream().noneMatch(packageToSkip -> frame.getDeclaringClass().getPackageName().startsWith(packageToSkip)))
-            .limit(stackTraceDepthLimit)
-            .map(StackWalker.StackFrame::toStackTraceElement)
-            .map(StackTraceElement::toString).collect(joining(System.lineSeparator())));
+        var targetStackTrace = STACK_WALKER.walk(
+            stackStream -> stackStream
+                .filter(frame -> packagesToSkip
+                    .stream()
+                    .noneMatch(packageToSkip -> frame.getDeclaringClass().getPackageName().startsWith(packageToSkip))
+                )
+                .limit(stackTraceDepthLimit)
+                .map(StackWalker.StackFrame::toStackTraceElement)
+                .map(StackTraceElement::toString)
+                .collect(joining(System.lineSeparator()))
+        );
         callInTxStatistics.computeIfAbsent(targetStackTrace, data -> new LongAdder()).increment();
       }
     }

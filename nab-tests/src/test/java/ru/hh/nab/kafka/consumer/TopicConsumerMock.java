@@ -12,7 +12,8 @@ public class TopicConsumerMock<T> implements ConsumeStrategy<T> {
 
   @Override
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) {
-    receivedBatch = messages.stream()
+    receivedBatch = messages
+        .stream()
         .map(ConsumerRecord::value)
         .collect(Collectors.toList());
 

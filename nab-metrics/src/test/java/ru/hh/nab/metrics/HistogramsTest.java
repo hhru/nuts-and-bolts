@@ -43,13 +43,17 @@ public class HistogramsTest {
     tagsToHistogram = histograms.getTagsToHistogramAndReset();
     assertEquals(
         2,
-        tagsToHistogram.get(tagsOf(new Tag("label1", "first"), new Tag("label2", "second")))
-            .get(7).intValue()
+        tagsToHistogram
+            .get(tagsOf(new Tag("label1", "first"), new Tag("label2", "second")))
+            .get(7)
+            .intValue()
     );
     assertEquals(
         1,
-        tagsToHistogram.get(tagsOf(new Tag("label1", "second"), new Tag("label2", "first")))
-            .get(7).intValue()
+        tagsToHistogram
+            .get(tagsOf(new Tag("label1", "second"), new Tag("label2", "first")))
+            .get(7)
+            .intValue()
     );
   }
 

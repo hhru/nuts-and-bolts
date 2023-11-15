@@ -67,7 +67,8 @@ public class WebsocketTest {
   public static class WebsocketCtx implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder()
+      return NabApplication
+          .builder()
           .apply(builder -> NabWebsocketConfigurator.configureWebsocket(builder, Set.of("ru.hh")))
           .build();
     }

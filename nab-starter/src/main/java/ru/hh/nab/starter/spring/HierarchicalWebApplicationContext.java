@@ -38,7 +38,8 @@ public class HierarchicalWebApplicationContext extends AnnotationConfigWebApplic
 
   @Override
   public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) throws BeansException {
-    return Arrays.stream(BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors(getBeanFactory(), annotationType))
-      .collect(toMap(Function.identity(), this::getBean));
+    return Arrays
+        .stream(BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors(getBeanFactory(), annotationType))
+        .collect(toMap(Function.identity(), this::getBean));
   }
 }

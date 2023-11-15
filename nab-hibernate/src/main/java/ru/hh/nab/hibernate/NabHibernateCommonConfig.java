@@ -59,8 +59,8 @@ public class NabHibernateCommonConfig {
 
   @Bean
   ExecuteOnDataSourceAspect executeOnDataSourceAspect(ApplicationContext applicationContext) {
-    var txManagers
-        = Stream.of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
+    var txManagers = Stream
+        .of(applicationContext.getBeanNamesForType(DataSourceContextTransactionManager.class))
         .collect(toMap(Function.identity(), beanName -> applicationContext.getBean(beanName, DataSourceContextTransactionManager.class)));
     return new ExecuteOnDataSourceAspect(applicationContext.getBean(DataSourceContextTransactionManager.class), txManagers);
   }

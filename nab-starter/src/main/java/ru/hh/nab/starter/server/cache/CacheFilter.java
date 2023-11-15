@@ -40,7 +40,8 @@ public class CacheFilter implements Filter {
 
   public CacheFilter(String serviceName, int size, StatsDSender statsDSender) {
     Serializer serializer = new Serializer();
-    ohCache = OHCacheBuilder.<byte[], byte[]>newBuilder()
+    ohCache = OHCacheBuilder
+        .<byte[], byte[]>newBuilder()
         .capacity(size * 1024L * 1024L)
         .timeouts(true)
         .keySerializer(serializer)

@@ -47,7 +47,8 @@ public class IdGeneratorImpl implements IdGenerator {
 
   @Nullable
   private List<String> getRequestIdHolder() {
-    return Optional.ofNullable(contextSupplier.get())
+    return Optional
+        .ofNullable(contextSupplier.get())
         .map(context -> context.getHeaders().get(HttpHeaderNames.X_REQUEST_ID))
         .orElse(null);
   }

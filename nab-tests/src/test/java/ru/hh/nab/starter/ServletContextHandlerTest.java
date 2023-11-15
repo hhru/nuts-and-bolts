@@ -36,7 +36,8 @@ public class ServletContextHandlerTest {
   public static class ServletContextApplication implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder()
+      return NabApplication
+          .builder()
           .addListenerBean(ctx -> listener)
           .setContextPath("test")
           .setClassLoader(cl)

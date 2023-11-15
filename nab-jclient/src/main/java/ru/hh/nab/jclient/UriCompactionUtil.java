@@ -11,8 +11,7 @@ public final class UriCompactionUtil {
 
   private static final char SLASH = '/';
   private static final String SLASH_STR = String.valueOf(SLASH);
-  private static final Collection<Integer> NON_HEX_LETTERS = IntStream.rangeClosed('g', 'z').boxed()
-      .collect(Collectors.toUnmodifiableSet());
+  private static final Collection<Integer> NON_HEX_LETTERS = IntStream.rangeClosed('g', 'z').boxed().collect(Collectors.toUnmodifiableSet());
   private static final String REPLACEMENT = "[id-or-hash]";
   private static final String EMAIL_REPLACEMENT = "[email]";
   private static final String EMAIL_MARKER = "@";
@@ -44,7 +43,8 @@ public final class UriCompactionUtil {
             startIndex = endIndex + 1;
           } while (startIndex > 0 && startIndex < path.length());
           return joiner.toString();
-        }).orElse(null);
+        })
+        .orElse(null);
   }
 
   private static String compactPathPart(String pathPart, int minCompactingLength, int minPossibleHashLength, String replacement) {

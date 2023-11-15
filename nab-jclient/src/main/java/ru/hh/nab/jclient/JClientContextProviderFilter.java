@@ -46,8 +46,9 @@ public class JClientContextProviderFilter implements Filter, NabServletFilter {
 
   private static Map<String, List<String>> getRequestHeadersMap(ServletRequest req) {
     HttpServletRequest request = (HttpServletRequest) req;
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(request.getHeaderNames().asIterator(), DISTINCT | NONNULL), false)
-      .collect(toMap(identity(), h -> List.of(request.getHeader(h))));
+    return StreamSupport
+        .stream(Spliterators.spliteratorUnknownSize(request.getHeaderNames().asIterator(), DISTINCT | NONNULL), false)
+        .collect(toMap(identity(), h -> List.of(request.getHeader(h))));
   }
 
   private static Map<String, List<String>> getQueryParamsMap(ServletRequest req) {

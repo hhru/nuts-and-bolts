@@ -84,7 +84,10 @@ public class HealthCheckHikariDataSource extends HikariDataSource implements Hea
 
     @Override
     public void run() {
-      result = healthCheckRegistry.runHealthChecks().values().stream()
+      result = healthCheckRegistry
+          .runHealthChecks()
+          .values()
+          .stream()
           .filter(result -> !result.isHealthy())
           .findAny()
           .orElseGet(Result::healthy);

@@ -161,13 +161,15 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     }
 
     private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder) {
-      return ofNullable(optionsHolder.pattern).or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
+      return ofNullable(optionsHolder.pattern)
+          .or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
           .map(pattern -> {
             var layout = new PatternLayout();
             layout.setPattern(pattern);
             return layout;
             //need to throw Error because logback logs and ignores any Exception type
-          }).orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
+          })
+          .orElseThrow(() -> new AssertionError("Pattern must be set via " + LOG_PATTERN_PROPERTY_KEY + " or via 'pattern' appender property"));
     }
   }
 }

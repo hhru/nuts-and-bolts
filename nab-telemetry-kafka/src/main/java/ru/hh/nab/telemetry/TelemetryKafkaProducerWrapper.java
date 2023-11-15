@@ -37,7 +37,8 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
 
   @Override
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
-    SpanBuilder builder = tracer.spanBuilder(record.topic() + " send")
+    SpanBuilder builder = tracer
+        .spanBuilder(record.topic() + " send")
         .setParent(Context.current())
         .setSpanKind(SpanKind.PRODUCER)
         .setAttribute(PEER_SERVICE, clusterName)
@@ -56,7 +57,8 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
       propagator.propagate(record.headers());
     }
 
-    return producer.sendMessage(record, executor)
+    return producer
+        .sendMessage(record, executor)
         .whenComplete((kafkaSendResult, throwable) -> {
           if (throwable != null) {
             span.setStatus(StatusCode.ERROR, throwable.getMessage());

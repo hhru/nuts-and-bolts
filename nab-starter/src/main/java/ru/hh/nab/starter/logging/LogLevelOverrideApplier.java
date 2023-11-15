@@ -96,7 +96,9 @@ public class LogLevelOverrideApplier {
   }
 
   private Map<String, String> filterOnlyChangedOverrides(Map<String, String> currentOverrides) {
-    return currentOverrides.entrySet().stream()
+    return currentOverrides
+        .entrySet()
+        .stream()
         .filter(entry -> !entry.getValue().equals(previousOverrides.get(entry.getKey())))
         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }

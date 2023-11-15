@@ -1,4 +1,4 @@
-version: 4.42.6
+version: 4.42.8
 build_image: registry.pyn.ru/openjdk17-building:2022.12.14
 type: library
 build_method: mvn_build

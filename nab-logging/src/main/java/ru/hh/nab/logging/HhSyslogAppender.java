@@ -43,13 +43,16 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
     udpNetSyslogConfig.setTruncateMessage(true);
     udpNetSyslogConfig.setSendLocalName(false);
     udpNetSyslogConfig.setSendLocalTimestamp(false);
-    int maxMessageLength = Optional.ofNullable(context.getProperty(SYSLOG_MAX_MSG_LENGTH_PROPERTY_KEY)).map(length -> {
-      try {
-        return Integer.valueOf(length);
-      } catch (NumberFormatException e) {
-        return null;
-      }
-    }).orElse(DEFAULT_MSG_LENGTH);
+    int maxMessageLength = Optional
+        .ofNullable(context.getProperty(SYSLOG_MAX_MSG_LENGTH_PROPERTY_KEY))
+        .map(length -> {
+          try {
+            return Integer.valueOf(length);
+          } catch (NumberFormatException e) {
+            return null;
+          }
+        })
+        .orElse(DEFAULT_MSG_LENGTH);
     udpNetSyslogConfig.setMaxMessageLength(maxMessageLength);
     setSyslogConfig(udpNetSyslogConfig);
     super.start();

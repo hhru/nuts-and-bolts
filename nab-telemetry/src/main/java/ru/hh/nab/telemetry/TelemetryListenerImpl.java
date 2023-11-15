@@ -49,7 +49,8 @@ public class TelemetryListenerImpl implements RequestDebug {
     }
 
     String host = context.upstreamName == null ? getNetloc(request.getUri()) : context.upstreamName;
-    SpanBuilder builder = tracer.spanBuilder(request.getMethod() + " " + host)
+    SpanBuilder builder = tracer
+        .spanBuilder(request.getMethod() + " " + host)
         .setParent(Context.current())
         .setSpanKind(SpanKind.CLIENT)
         .setAttribute(HTTP_URL, request.getUrl())

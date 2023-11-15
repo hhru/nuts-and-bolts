@@ -54,8 +54,11 @@ public class CustomExceptionMappersTest {
   public static class CustomExceptionMapperConfig implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      return NabApplication.builder()
-          .configureJersey(SpringCtxForJersey.class).registerResources(CustomExceptionMapper.class).bindToRoot()
+      return NabApplication
+          .builder()
+          .configureJersey(SpringCtxForJersey.class)
+          .registerResources(CustomExceptionMapper.class)
+          .bindToRoot()
           .build();
     }
   }

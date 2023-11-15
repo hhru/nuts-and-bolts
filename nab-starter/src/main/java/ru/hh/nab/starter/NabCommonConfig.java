@@ -34,14 +34,16 @@ public class NabCommonConfig {
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
   String serviceName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(SERVICE_NAME)).filter(Predicate.not(String::isEmpty))
+    return ofNullable(fileSettings.getString(SERVICE_NAME))
+        .filter(Predicate.not(String::isEmpty))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
   }
 
   @Named(DATACENTER)
   @Bean(DATACENTER)
   String datacenter(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(DATACENTER)).filter(Predicate.not(String::isEmpty))
+    return ofNullable(fileSettings.getString(DATACENTER))
+        .filter(Predicate.not(String::isEmpty))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
   }
 
@@ -49,8 +51,11 @@ public class NabCommonConfig {
   @Bean(NODE_NAME)
   String nodeName(FileSettings fileSettings) {
     return ofNullable(System.getenv(NODE_NAME_ENV))
-        .orElseGet(() -> ofNullable(fileSettings.getString(NODE_NAME)).filter(Predicate.not(String::isEmpty))
-            .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME))));
+        .orElseGet(
+            () -> ofNullable(fileSettings.getString(NODE_NAME))
+                .filter(Predicate.not(String::isEmpty))
+                .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)))
+        );
   }
 
   @Bean
@@ -79,7 +84,8 @@ public class NabCommonConfig {
       @Named(SERVICE_NAME) String serviceNameValue,
       FileSettings fileSettings
   ) {
-    StatsDSender statsDSender = Optional.ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
+    StatsDSender statsDSender = Optional
+        .ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
         .map(defaultPeriodicSendInterval -> new StatsDSender(statsDClient, scheduledExecutorService, defaultPeriodicSendInterval))
         .orElseGet(() -> new StatsDSender(statsDClient, scheduledExecutorService));
     if (Boolean.TRUE.equals(fileSettings.getBoolean("metrics.jvm.enabled"))) {

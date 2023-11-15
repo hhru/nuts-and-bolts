@@ -64,27 +64,33 @@ public class NabTelemetryConfig {
         throw new IllegalStateException("'opentelemetry.collector.url' property can't be empty");
       }
 
-      Resource serviceNameResource = Resource.create(Attributes.builder()
-          .put(ResourceAttributes.SERVICE_NAME, serviceName)
-          .put(ResourceAttributes.SERVICE_VERSION, projectProperties.getProperty("project.version", "unknown"))
-          .put(ResourceAttributes.HOST_NAME, nodeName)
-          .put(ResourceAttributes.CLOUD_REGION, datacenter)
-          .build());
-      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter.builder()
+      Resource serviceNameResource = Resource.create(
+          Attributes
+              .builder()
+              .put(ResourceAttributes.SERVICE_NAME, serviceName)
+              .put(ResourceAttributes.SERVICE_VERSION, projectProperties.getProperty("project.version", "unknown"))
+              .put(ResourceAttributes.HOST_NAME, nodeName)
+              .put(ResourceAttributes.CLOUD_REGION, datacenter)
+              .build()
+      );
+      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter
+          .builder()
           .setEndpoint(url)
           .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
-      BatchSpanProcessor spanProcessor = BatchSpanProcessor.builder(jaegerExporter)
+      BatchSpanProcessor spanProcessor = BatchSpanProcessor
+          .builder(jaegerExporter)
           .setExporterTimeout(batchTimeout, TimeUnit.MILLISECONDS)
           .setScheduleDelay(batchDelay, TimeUnit.MILLISECONDS)
           .setMaxExportBatchSize(batchMaxSize)
           .setMaxQueueSize(queueSize)
           .build();
 
-      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
-              .addSpanProcessor(spanProcessor)
-              .setResource(Resource.getDefault().merge(serviceNameResource))
-              .setIdGenerator(idGenerator);
+      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
+          .builder()
+          .addSpanProcessor(spanProcessor)
+          .setResource(Resource.getDefault().merge(serviceNameResource))
+          .setIdGenerator(idGenerator);
 
       if (samplerRatio != null) {
         tracerProviderBuilder.setSampler(Sampler.parentBased(Sampler.traceIdRatioBased(samplerRatio)));

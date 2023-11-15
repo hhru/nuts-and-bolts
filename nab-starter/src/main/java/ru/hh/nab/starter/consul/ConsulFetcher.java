@@ -26,14 +26,18 @@ public class ConsulFetcher implements HostsFetcher {
 
   @Override
   public Set<HostPort> fetchHostsByName(String serviceName) {
-
-    return Optional.ofNullable(settings.getProperties().getProperty(DATACENTERS))
+    return Optional
+        .ofNullable(settings.getProperties().getProperty(DATACENTERS))
         .filter(Predicate.not(String::isBlank))
         .map(separatedDcList -> List.of(separatedDcList.split("[,\\s]+")))
         .orElseGet(List::of)
         .stream()
-        .flatMap(dc -> healthClient.getHealthyServiceInstances(serviceName, buildQueryOptions(dc)).getResponse().stream()
-            .map(hs -> new HostPort(getAddress(hs), hs.getService().getPort())))
+        .flatMap(dc -> healthClient
+            .getHealthyServiceInstances(serviceName, buildQueryOptions(dc))
+            .getResponse()
+            .stream()
+            .map(hs -> new HostPort(getAddress(hs), hs.getService().getPort()))
+        )
         .collect(Collectors.toSet());
   }
 

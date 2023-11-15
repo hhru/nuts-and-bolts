@@ -41,7 +41,8 @@ public class TelemetryTest {
 
   @Test
   public void testStatusIgnored() {
-    Response response = resourceHelper.target("/status")
+    Response response = resourceHelper
+        .target("/status")
         .request()
         .get();
 
@@ -52,7 +53,8 @@ public class TelemetryTest {
 
   @Test
   public void testSimpleRequest() {
-    Response response = resourceHelper.target("/simple")
+    Response response = resourceHelper
+        .target("/simple")
         .request()
         .get();
 
@@ -73,7 +75,8 @@ public class TelemetryTest {
 
   @Test
   public void testRequestWithParentSpan() {
-    Response response = resourceHelper.target("/simple")
+    Response response = resourceHelper
+        .target("/simple")
         .request()
         .header("Traceparent", "00-1641597707000dfd4c0f1f07ea6cc943-fcf9c5cc0345247a-01")
         .get();
@@ -92,7 +95,8 @@ public class TelemetryTest {
   public static class SpringCtxForJersey implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
-      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()
+      SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
+          .builder()
           .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
           .setResource(Resource.getDefault());
 
@@ -106,9 +110,12 @@ public class TelemetryTest {
           new TelemetryPropagator(openTelemetry),
           true);
 
-      return NabApplication.builder()
-          .addFilter(telemetryFilter).bindToRoot()
-          .configureJersey(SpringCtxForJersey.class).bindToRoot()
+      return NabApplication
+          .builder()
+          .addFilter(telemetryFilter)
+          .bindToRoot()
+          .configureJersey(SpringCtxForJersey.class)
+          .bindToRoot()
           .build();
     }
   }

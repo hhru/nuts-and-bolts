@@ -20,7 +20,8 @@ public class RequestIdLoggingFilterTest {
   public void testRequestId() {
     final String testRequestId = "123";
 
-    Response response = resourceHelper.createRequest("/status")
+    Response response = resourceHelper
+        .createRequest("/status")
         .header(RequestHeaders.REQUEST_ID, testRequestId)
         .get();
 

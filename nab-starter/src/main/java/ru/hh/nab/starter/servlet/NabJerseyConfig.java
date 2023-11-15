@@ -87,9 +87,12 @@ public abstract class NabJerseyConfig implements NabServletConfig {
     }
     jerseyContext.setParent(rootCtx);
     jerseyContext.refresh();
-    jerseyContext.getBeansWithAnnotation(javax.ws.rs.Path.class).values().stream()
-      .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
-      .forEach(resourceConfig::register);
+    jerseyContext
+        .getBeansWithAnnotation(javax.ws.rs.Path.class)
+        .values()
+        .stream()
+        .filter(bean -> getAllowedPackages().stream().anyMatch(allowedPackage -> bean.getClass().getName().startsWith(allowedPackage)))
+        .forEach(resourceConfig::register);
     return Map.entry(jerseyContext, resourceConfig);
   }
 

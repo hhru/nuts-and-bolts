@@ -28,15 +28,18 @@ class ConsulFetcherTest {
     ConsulFetcher consulFetcher = new ConsulFetcher(healthClient, fileSettings, "service");
 
     List<ServiceHealth> response = List.of(
-        ImmutableServiceHealth.builder()
+        ImmutableServiceHealth
+            .builder()
             .node(ImmutableNode.builder().node("node").address("127.0.0.1").datacenter("dc1").build())
             .service(ImmutableService.builder().service("scylla").address("11.11.11.11").id("1").port(1488).build())
             .build(),
-        ImmutableServiceHealth.builder()
+        ImmutableServiceHealth
+            .builder()
             .node(ImmutableNode.builder().node("node").address("127.0.0.1").datacenter("dc2").build())
             .service(ImmutableService.builder().service("scylla").address("22.22.22.22").id("2").port(1488).build())
             .build(),
-        ImmutableServiceHealth.builder()
+        ImmutableServiceHealth
+            .builder()
             .node(ImmutableNode.builder().node("node").address("127.0.0.1").datacenter("dc3").build())
             .service(ImmutableService.builder().service("scylla").address("33.33.33.33").id("3").port(1488).build())
             .build()

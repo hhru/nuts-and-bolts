@@ -18,7 +18,8 @@ public class DefaultKafkaProducer extends KafkaProducer {
   @Override
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
-    return CompletableFuture.supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
+    return CompletableFuture
+        .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
         .thenCompose(ListenableFuture::completable)
         .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
   }

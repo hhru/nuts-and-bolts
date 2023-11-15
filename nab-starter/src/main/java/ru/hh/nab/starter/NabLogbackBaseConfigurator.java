@@ -22,13 +22,15 @@ import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 
-  private static final Map<String, ch.qos.logback.classic.Level> SUPPORTED_SENTRY_LEVELS = Stream.of(
-      ch.qos.logback.classic.Level.ERROR,
-      ch.qos.logback.classic.Level.WARN,
-      ch.qos.logback.classic.Level.INFO,
-      ch.qos.logback.classic.Level.DEBUG,
-      ch.qos.logback.classic.Level.TRACE
-  ).collect(toMap(level -> level.levelStr, identity()));
+  private static final Map<String, ch.qos.logback.classic.Level> SUPPORTED_SENTRY_LEVELS = Stream
+      .of(
+          ch.qos.logback.classic.Level.ERROR,
+          ch.qos.logback.classic.Level.WARN,
+          ch.qos.logback.classic.Level.INFO,
+          ch.qos.logback.classic.Level.DEBUG,
+          ch.qos.logback.classic.Level.TRACE
+      )
+      .collect(toMap(level -> level.levelStr, identity()));
 
   @Override
   protected Properties createLoggingProperties() {

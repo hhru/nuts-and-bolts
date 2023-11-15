@@ -21,7 +21,8 @@ public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
   @Override
   public Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
     List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
-    var serviceUnavailableTypeException = throwableList.stream()
+    var serviceUnavailableTypeException = throwableList
+        .stream()
         .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
         .findAny();
 

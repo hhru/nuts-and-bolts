@@ -80,7 +80,8 @@ public class DatabaseSwitcher {
 
   public String getDataSourceName(String dataSourceType) {
     String databaseName = databaseNameSupplier.get();
-    return Optional.ofNullable(dataSourceNames.get(databaseName))
+    return Optional
+        .ofNullable(dataSourceNames.get(databaseName))
         .map(dataSourceTypeToName -> dataSourceTypeToName.get(dataSourceType))
         .orElseThrow(() -> {
           String errorMessage = "DataSource with databaseName=%s, dataSourceType=%s is not found".formatted(databaseName, dataSourceType);

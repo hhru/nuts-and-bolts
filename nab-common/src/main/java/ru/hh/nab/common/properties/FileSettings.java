@@ -61,7 +61,9 @@ public class FileSettings {
   public Properties getSubProperties(String prefix) {
     hasLength(prefix, "prefix should not be null or empty");
     final Properties subProperties = new Properties();
-    properties.stringPropertyNames().stream()
+    properties
+        .stringPropertyNames()
+        .stream()
         .filter(key -> key.startsWith(prefix + "."))
         .forEach(key -> {
           String newKey = prefix.isEmpty() ? key : key.substring(prefix.length() + 1);
@@ -89,7 +91,9 @@ public class FileSettings {
   }
 
   public Map<String, ? extends String> getAsMap() {
-    return properties.stringPropertyNames().stream()
+    return properties
+        .stringPropertyNames()
+        .stream()
         .collect(Collectors.toUnmodifiableMap(identity(), properties::getProperty));
   }
 

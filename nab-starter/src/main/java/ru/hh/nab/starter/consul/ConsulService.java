@@ -90,7 +90,8 @@ public class ConsulService {
         CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
         fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
     );
-    this.consistencyMode = Stream.of(ConsistencyMode.values())
+    this.consistencyMode = Stream
+        .of(ConsistencyMode.values())
         .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
         .findAny()
         .orElse(ConsistencyMode.DEFAULT);
@@ -105,7 +106,8 @@ public class ConsulService {
     }
     this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean(CONSUL_ENABLED_PROPERTY, true));
     if (registrationEnabled) {
-      Registration.RegCheck regCheck = ImmutableRegCheck.builder()
+      Registration.RegCheck regCheck = ImmutableRegCheck
+          .builder()
           .http("http://" + applicationHost + ":" + applicationPort + "/status")
           .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
           .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
@@ -115,7 +117,8 @@ public class ConsulService {
           .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
           .build();
 
-      this.serviceTemplate = ImmutableRegistration.builder()
+      this.serviceTemplate = ImmutableRegistration
+          .builder()
           .id(serviceId)
           .name(fileSettings.getString(SERVICE_NAME))
           .port(applicationPort)
@@ -167,7 +170,8 @@ public class ConsulService {
   }
 
   private Optional<Map.Entry<BigInteger, Optional<String>>> getCurrentWeight() {
-    return kvClient.getConsulResponseWithValue(weightPath, ImmutableQueryOptions.builder().caller(serviceName).build())
+    return kvClient
+        .getConsulResponseWithValue(weightPath, ImmutableQueryOptions.builder().caller(serviceName).build())
         .map(response -> Map.entry(response.getIndex(), response.getResponse().getValueAsString()));
   }
 

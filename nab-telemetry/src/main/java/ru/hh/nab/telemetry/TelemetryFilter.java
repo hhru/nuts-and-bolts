@@ -50,7 +50,8 @@ public class TelemetryFilter implements Filter, NabServletFilter {
       Map<String, String> requestHeadersMap = getRequestHeadersMap(request);
       Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
 
-      Span span = tracer.spanBuilder("unknown controller")
+      Span span = tracer
+          .spanBuilder("unknown controller")
           .setParent(telemetryContext)
           .setSpanKind(SpanKind.SERVER)
           .setAttribute(SemanticAttributes.HTTP_METHOD, httpServletRequest.getMethod())

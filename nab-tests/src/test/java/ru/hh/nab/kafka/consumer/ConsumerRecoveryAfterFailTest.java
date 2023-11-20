@@ -278,29 +278,6 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     assertProcessedMessagesCount(150);
   }
 
-  @Test
-  public void testSeekWithAckInSameThreadWithDelay() throws InterruptedException {
-    int originalNumberOfPublishedMessages = 117;
-    int batchSize = 100;
-    putMessagesIntoKafka(originalNumberOfPublishedMessages);
-    final List<ConsumerRecord<String, String>> consumedRecords = Collections.synchronizedList(new ArrayList<>());
-    startConsumer((messages, ack) -> {
-      messages.forEach(m -> {
-        consumedRecords.add(m);
-        processedMessages.add(m.value());
-        ack.seek(m);
-      });
-      if (consumedRecords.size() >= batchSize) {
-        ack.commit(consumedRecords.stream().limit(batchSize).toList());
-      }
-    });
-    assertProcessedMessagesCount(117);
-
-    consumeAllRemainingMessages();
-    //assert only 17 new messages consumed, because they were not committed
-    assertProcessedMessagesCount(117 + 17);
-  }
-
   private List<String> putMessagesIntoKafka(int count) {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {

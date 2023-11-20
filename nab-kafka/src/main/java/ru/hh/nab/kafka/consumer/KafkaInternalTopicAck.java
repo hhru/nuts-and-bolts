@@ -37,14 +37,15 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
 
   @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
-    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = getLatestOffsetForEachPartition(messages);
+    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = messages.stream().collect(
+        Collectors.toMap(
+            this::getMessagePartition,
+            this::getOffsetOfNextMessage,
+            BinaryOperator.maxBy(Comparator.comparingLong(OffsetAndMetadata::offset))
+        )
+    );
     consumer.commitSync(latestOffsetsForEachPartition);
     seek(latestOffsetsForEachPartition);
-  }
-
-  @Override
-  public void commit(Collection<ConsumerRecord<String, T>> messages) {
-    consumer.commitSync(getLatestOffsetForEachPartition(messages));
   }
 
   @Override
@@ -68,15 +69,5 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
 
   private void seek(Map<TopicPartition, OffsetAndMetadata> offsets) {
     kafkaConsumer.getSeekedOffsets().putAll(offsets);
-  }
-
-  private Map<TopicPartition, OffsetAndMetadata> getLatestOffsetForEachPartition(Collection<ConsumerRecord<String, T>> messages) {
-    return messages.stream().collect(
-            Collectors.toMap(
-                    this::getMessagePartition,
-                    this::getOffsetOfNextMessage,
-                    BinaryOperator.maxBy(Comparator.comparingLong(OffsetAndMetadata::offset))
-            )
-    );
   }
 }

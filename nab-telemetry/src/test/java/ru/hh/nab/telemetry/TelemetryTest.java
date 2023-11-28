@@ -71,6 +71,8 @@ public class TelemetryTest {
     assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
     assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
+    assertEquals("simple", attributes.get(SemanticAttributes.CODE_FUNCTION));
+    assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
   }
 
   @Test

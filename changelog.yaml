@@ -1,3 +1,17 @@
+-   name: 4.42.10
+    date: '2023-11-28T16:09:50.239701+03:00'
+    description: "В телеметрийные спаны добавлены новые атрибуты: code.function и\
+        \ code.namespace.\r\ncode.function - наименование вызываемого метода\r\ncode.namespace\
+        \ - полный путь к классу, метод которого вызывается"
+    instructions: ''
+    compatible: true
+
+-   name: 4.42.9
+    date: '2023-11-20T18:15:55.498236+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 4.42.8
     date: '2023-11-15T10:55:18.796480+03:00'
     description: Обновление public-pom до 1.55.0, jlcient до 3.12.1

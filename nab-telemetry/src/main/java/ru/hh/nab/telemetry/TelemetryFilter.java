@@ -23,6 +23,8 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.component.NabServletFilter;
+import static ru.hh.nab.common.mdc.MDC.CODE_FUNCTION_MDC_KEY;
+import static ru.hh.nab.common.mdc.MDC.CODE_NAMESPACE_MDC_KEY;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 
 public class TelemetryFilter implements Filter, NabServletFilter {
@@ -67,6 +69,12 @@ public class TelemetryFilter implements Filter, NabServletFilter {
         String controller = (String) httpServletRequest.getAttribute(CONTROLLER_MDC_KEY);
         if (controller != null) {
           span.updateName(controller);
+        }
+        String codeFunction = (String) httpServletRequest.getAttribute(CODE_FUNCTION_MDC_KEY);
+        String codeNamespace = (String) httpServletRequest.getAttribute(CODE_NAMESPACE_MDC_KEY);
+        if (codeFunction != null && codeNamespace != null) {
+          span.setAttribute(SemanticAttributes.CODE_FUNCTION, codeFunction);
+          span.setAttribute(SemanticAttributes.CODE_NAMESPACE, codeNamespace);
         }
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());

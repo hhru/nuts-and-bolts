@@ -8,6 +8,8 @@ import ru.hh.nab.common.util.ExceptionUtils;
 public class MDC {
   public static final String REQUEST_ID_MDC_KEY = "rid";
   public static final String CONTROLLER_MDC_KEY = "controller";
+  public static final String CODE_FUNCTION_MDC_KEY = "codeFunction";
+  public static final String CODE_NAMESPACE_MDC_KEY = "codeNamespace";
 
   private static final Random random = new Random();
 

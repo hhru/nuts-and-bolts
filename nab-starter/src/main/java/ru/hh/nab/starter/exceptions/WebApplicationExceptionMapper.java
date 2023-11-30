@@ -3,14 +3,44 @@ package ru.hh.nab.starter.exceptions;
 import java.util.List;
 import javax.annotation.Priority;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import ru.hh.errors.common.Errors;
 import static ru.hh.jclient.common.HttpStatuses.BAD_GATEWAY;
 import static ru.hh.jclient.common.HttpStatuses.INTERNAL_SERVER_ERROR;
 import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
 
 @Provider
 @Priority(LOW_PRIORITY)
+@APIResponses(
+    {
+        @APIResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(
+                    implementation = Errors.class
+                )
+            )
+        ),
+        @APIResponse(
+            responseCode = "502",
+            description = "Bad Gateway",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(
+                    implementation = Errors.class
+                )
+            )
+        )
+    }
+)
 public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplicationException> {
 
   private static final List<Integer> ALWAYS_LOGGABLE_ERRORS = List.of(INTERNAL_SERVER_ERROR, BAD_GATEWAY);

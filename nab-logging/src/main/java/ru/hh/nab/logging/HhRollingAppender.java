@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
  * Is a combo of {@link RollingFileAppender}, {@link FixedWindowRollingPolicy},
  * {@link DefaultTimeBasedFileNamingAndTriggeringPolicy}, {@link TimeBasedRollingPolicy}.
  * <p/>
- * <p>Main file is set to {@code $log.dir/appendername.log}. Rolled file is set to {@code $log.dir/appendername.%i.gz}.
+ * <p>Main file is set to {@code $log.dir/appendername.rlog}. Rolled file is set to {@code $log.dir/appendername.%i.gz}.
  * Layout pattern is set to {@code $log.pattern}.
  * <p/>
  * <p>Other properties, same value for all appenders, but can be overriden by appender attribute (see setter methods).
@@ -221,7 +221,7 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
         throw new IllegalArgumentException(
             String.format("appender name cannot have filesystem path elements: %s", getName()));
       }
-      setFile(String.format("%s/%s.log", propLogdir, getName()));
+      setFile(String.format("%s/%s.rlog", propLogdir, getName()));
     }
 
     if (getRollingPolicy() == null) {

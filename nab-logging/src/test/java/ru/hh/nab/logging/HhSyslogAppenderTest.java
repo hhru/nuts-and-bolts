@@ -33,7 +33,7 @@ public class HhSyslogAppenderTest {
     testLogging(
         hhSyslogAppenderFunction,
         "test",
-        "<11>test/test.log/: ["
+        "<11>test/test.rlog/: ["
             + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
             + "] ERROR logger:1 mdc={} - message",
         "message"
@@ -69,7 +69,7 @@ public class HhSyslogAppenderTest {
     testLogging(
         hhSyslogAppenderFunction,
         "test",
-        "<11>test/test.log/: ["
+        "<11>test/test.rlog/: ["
             + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
             + "] ERROR logger:1 mdc={} - сообщение", "сообщение"
     );
@@ -87,7 +87,7 @@ public class HhSyslogAppenderTest {
       patternLayout.start();
       return appender;
     };
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: message", "message");
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.rlog/: message", "message");
   }
 
   protected void testLogging(

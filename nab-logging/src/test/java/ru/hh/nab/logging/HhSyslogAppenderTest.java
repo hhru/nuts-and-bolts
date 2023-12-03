@@ -3,6 +3,7 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
@@ -91,7 +92,7 @@ public class HhSyslogAppenderTest {
   }
 
   protected void testLogging(
-      Function<Context, ? extends AppenderBase> appenderCreateFunction,
+      Function<Context, ? extends AppenderBase<ILoggingEvent>> appenderCreateFunction,
       String pid,
       String expected,
       String message

@@ -51,6 +51,8 @@ public class NabProdConfig {
   public static final String STATSD_QUEUE_SIZE_ENV = "STATSD_QUEUE_SIZE";
   public static final String STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY = "statsd.maxPacketSizeBytes";
   public static final String STATSD_MAX_PACKET_SIZE_BYTES_ENV = "STATSD_MAX_PACKET_SIZE_BYTES";
+  public static final String STATSD_BUFFER_POOL_SIZE_PROPERTY = "statsd.buffer.pool.size";
+  public static final String STATSD_BUFFER_POOL_SIZE_ENV = "STATSD_BUFFER_POOL_SIZE_BYTES";
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
@@ -83,7 +85,18 @@ public class NabProdConfig {
         .map(Integer::parseInt)
         .orElse(NonBlockingStatsDClient.DEFAULT_MAX_PACKET_SIZE_BYTES);
 
-    return new NonBlockingStatsDClientBuilder().hostname(host).queueSize(queueSize).port(port).maxPacketSizeBytes(maxPacketSizeBytes).build();
+    int bufferPoolSize = ofNullable(fileSettings.getString(STATSD_BUFFER_POOL_SIZE_PROPERTY))
+        .or(() -> ofNullable(System.getProperty(STATSD_BUFFER_POOL_SIZE_ENV)))
+        .map(Integer::parseInt)
+        .orElse(NonBlockingStatsDClient.DEFAULT_POOL_SIZE);
+
+    return new NonBlockingStatsDClientBuilder()
+        .hostname(host)
+        .queueSize(queueSize)
+        .port(port)
+        .maxPacketSizeBytes(maxPacketSizeBytes)
+        .bufferPoolSize(bufferPoolSize)
+        .build();
   }
 
   @Bean

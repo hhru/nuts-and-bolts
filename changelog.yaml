@@ -1,3 +1,10 @@
+-   name: 4.43.1
+    date: '2023-12-05T16:33:19.213756+03:00'
+    description: '* добавлена возможность конфигурации bufferPoolSize у StatsD клиента
+        через настройку "statsd.buffer.pool.size" или env переменную "STATSD_BUFFER_POOL_SIZE"'
+    instructions: ''
+    compatible: true
+
 -   name: 4.43.0
     date: '2023-11-30T14:49:24.836845+03:00'
     description: Поменял расширение неструктурированных логов

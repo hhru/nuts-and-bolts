@@ -35,7 +35,7 @@ public class WebsocketTest {
   public void testWebsocketConnection() throws ExecutionException, InterruptedException, IOException {
     assertNull(TestEndpoint.connectionOpen);
 
-    List<String> receivedMessages = new CopyOnWriteArrayList();
+    List<String> receivedMessages = new CopyOnWriteArrayList<>();
     var testMessageHandler = new TextWebSocketHandler() {
       @Override
       protected void handleTextMessage(WebSocketSession session, TextMessage message) {

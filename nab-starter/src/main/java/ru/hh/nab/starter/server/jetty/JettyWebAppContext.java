@@ -27,7 +27,7 @@ final class JettyWebAppContext extends WebAppContext {
     String[] configurationClassStrings = getConfigurationClasses();
     Configuration[] configurations = new Configuration[configurationClassStrings.length];
     for (int i = 0; i < configurations.length; i++) {
-      configurations[i] = (Configuration)Loader.loadClass(configurationClassStrings[i]).getDeclaredConstructor().newInstance();
+      configurations[i] = (Configuration) ((Class<?>) Loader.loadClass(configurationClassStrings[i])).getDeclaredConstructor().newInstance();
     }
     setConfigurations(configurations);
   }

@@ -1,3 +1,13 @@
+-   name: 4.44.0
+    date: '2023-12-06T12:22:22.299299+03:00'
+    description: "1. Исправлен хост jenkins.\r\n2. Более надёжная остановка unit-тестов\
+        \ при ошибке старта спринг-контекста."
+    instructions: Если в коде использовался класс `SpringContextStatusCheckExtension`,
+        надо заменить на `SpringExtensionWithFailFast`. И если `SpringContextStatusCheckExtension`
+        использовался совместно с `SpringExtension`, то последний надо убрать, т.к.
+        `SpringExtensionWithFailFast` теперь наследуется от него.
+    compatible: false
+
 -   name: 4.43.1
     date: '2023-12-05T16:33:19.213756+03:00'
     description: '* добавлена возможность конфигурации bufferPoolSize у StatsD клиента

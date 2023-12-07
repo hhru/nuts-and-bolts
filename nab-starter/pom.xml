@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.42.10.jakarta-rc2-SNAPSHOT</version>
+        <version>4.44.0.jakarta-rc2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -14,6 +14,11 @@
     <name>nuts'n'bolts application starter</name>
 
     <dependencies>
+        <dependency>
+            <groupId>ru.hh.errors</groupId>
+            <artifactId>errors-common</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
@@ -83,6 +88,12 @@
                     <artifactId>jackson-module-jaxb-annotations</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- Microprofile -->
+        <dependency>
+            <groupId>org.eclipse.microprofile.openapi</groupId>
+            <artifactId>microprofile-openapi-api</artifactId>
         </dependency>
 
         <!--Spring-->
@@ -210,7 +221,6 @@
             <artifactId>jclient-common-api</artifactId>
             <version>${jclient.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>

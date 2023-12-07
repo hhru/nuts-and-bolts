@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.42.10.jakarta-rc2-SNAPSHOT</version>
+    <version>4.44.0.jakarta-rc2-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -121,6 +121,18 @@
                 <groupId>org.jetbrains</groupId>
                 <artifactId>syslog4j</artifactId>
                 <version>0.9.46</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.hh.errors</groupId>
+                <artifactId>errors-common</artifactId>
+                <version>0.0.8.jakarta-rc1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.microprofile.openapi</groupId>
+                <artifactId>microprofile-openapi-api</artifactId>
+                <version>3.1.1</version>
             </dependency>
 
         </dependencies>

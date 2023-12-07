@@ -10,11 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 //mostly copy of SpringJUnitWebConfig
-@ExtendWith({SpringContextStatusCheckExtension.class, NabTestServerExtension.class, SpringExtension.class})
+@ExtendWith({SpringExtensionWithFailFast.class, NabTestServerExtension.class})
 @ContextConfiguration
 @WebAppConfiguration
 @Documented

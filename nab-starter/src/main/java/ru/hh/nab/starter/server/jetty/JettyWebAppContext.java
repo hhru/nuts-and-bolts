@@ -16,7 +16,6 @@ final class JettyWebAppContext extends WebAppContext {
     this.addEventListener(new BeforeStartListener(webAppInitializers));
     this.setConfigurations(new Configuration[]{});
     setThrowUnavailableOnStartupException(true);
-
   }
 
   private final class BeforeStartListener implements LifeCycle.Listener {

@@ -199,7 +199,7 @@ public class TestExecutorListener implements TestExecutionListener {
 
   private String getDbUrl() {
     return String.format("jdbc:postgresql://%s:%s/%s",
-        getEnvOrDefault("TEST_DB_HOST", "10.208.30.79"),
+        getEnvOrDefault("TEST_DB_HOST", "jenkins.pyn.ru"),
         getEnvOrDefault("TEST_DB_PORT", "5432"),
         getEnvOrDefault("TEST_DB_NAME", "at_stats")
     );

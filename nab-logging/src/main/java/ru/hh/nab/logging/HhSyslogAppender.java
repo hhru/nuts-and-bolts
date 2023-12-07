@@ -59,7 +59,7 @@ public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
   }
 
   private String generateIdent(String tag) {
-    return (StringUtils.isNotEmpty(tag) ? tag + SYSLOG_DELIMITER : "") + getName() + (json ? ".slog" : ".log") + SYSLOG_DELIMITER;
+    return (StringUtils.isNotEmpty(tag) ? tag + SYSLOG_DELIMITER : "") + getName() + (json ? ".slog" : ".rlog") + SYSLOG_DELIMITER;
   }
 
   protected Layout<ILoggingEvent> buildDefaultLayout() {

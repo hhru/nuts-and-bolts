@@ -171,7 +171,7 @@ public abstract class NabJerseyConfig implements NabServletConfig {
 
         @Override
         public String getName() {
-          if (StringUtils.isEmpty(servletName)) {
+          if (!StringUtils.hasLength(servletName)) {
             return super.getName();
           }
           return servletName;

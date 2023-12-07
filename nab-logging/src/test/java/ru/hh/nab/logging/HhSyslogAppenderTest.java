@@ -3,6 +3,7 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
@@ -33,7 +34,7 @@ public class HhSyslogAppenderTest {
     testLogging(
         hhSyslogAppenderFunction,
         "test",
-        "<11>test/test.log/: ["
+        "<11>test/test.rlog/: ["
             + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
             + "] ERROR logger:1 mdc={} - message",
         "message"
@@ -69,7 +70,7 @@ public class HhSyslogAppenderTest {
     testLogging(
         hhSyslogAppenderFunction,
         "test",
-        "<11>test/test.log/: ["
+        "<11>test/test.rlog/: ["
             + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
             + "] ERROR logger:1 mdc={} - сообщение", "сообщение"
     );
@@ -87,11 +88,11 @@ public class HhSyslogAppenderTest {
       patternLayout.start();
       return appender;
     };
-    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.log/: message", "message");
+    testLogging(hhSyslogAppenderFunction, "test", "<11>test/test.rlog/: message", "message");
   }
 
   protected void testLogging(
-      Function<Context, ? extends AppenderBase> appenderCreateFunction,
+      Function<Context, ? extends AppenderBase<ILoggingEvent>> appenderCreateFunction,
       String pid,
       String expected,
       String message

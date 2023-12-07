@@ -50,6 +50,7 @@ public abstract class DelegatingDataSource implements DataSource {
     return delegate.getParentLogger();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <T> T unwrap(Class<T> iface) throws SQLException {
     if (iface.isInstance(this)) {

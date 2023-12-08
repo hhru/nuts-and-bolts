@@ -24,11 +24,6 @@
             <artifactId>opentelemetry-semconv</artifactId>
             <version>${opentelemetry.version}-alpha</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
 </project>

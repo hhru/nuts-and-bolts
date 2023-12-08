@@ -1,10 +1,12 @@
 package ru.hh.nab.kafka.consumer;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,11 +109,43 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   public <T> KafkaConsumer<T> subscribe(
       String topicName,
       String operationName,
+      TypeReference<T> typeReference,
+      ConsumeStrategy<T> consumeStrategy
+  ) {
+    return subscribe(topicName, operationName, typeReference, consumeStrategy, this.factoryLogger);
+  }
+
+  @Override
+  public <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      TypeReference<T> typeReference,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger
+  ) {
+    ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, typeReference);
+    return subscribe(topicName, operationName, consumeStrategy, logger, consumerFactory);
+  }
+
+  @Override
+  public <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
       Class<T> messageClass,
       ConsumeStrategy<T> consumeStrategy,
       Logger logger
   ) {
     ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, messageClass);
+    return subscribe(topicName, operationName, consumeStrategy, logger, consumerFactory);
+  }
+
+  private  <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger,
+      ConsumerFactory<String, T> consumerFactory
+  ) {
     ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
 
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (kafkaConsumer) -> {
@@ -159,6 +193,14 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   private <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {
+    return getSpringConsumerFactory(topicName, deserializerSupplier.supplyFor(messageClass));
+  }
+
+  private <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, TypeReference<T> typeReference) {
+    return getSpringConsumerFactory(topicName, deserializerSupplier.supplyFor(typeReference));
+  }
+
+  private <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Deserializer<T> deserializer) {
     Map<String, Object> consumerConfig = configProvider.getConsumerConfig(topicName);
     consumerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
@@ -166,7 +208,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
         topicName,
         consumerConfig,
         new StringDeserializer(),
-        deserializerSupplier.supplyFor(messageClass),
+        deserializer,
         bootstrapServersSupplier
     );
   }

@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
@@ -20,8 +18,9 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import ru.hh.nab.starter.NabCommonConfig;
+import static ru.hh.nab.starter.NabCommonConfig.TEST_PROPERTIES_FILE_NAME;
 import ru.hh.nab.starter.qualifier.Service;
+import static ru.hh.nab.testbase.NabTestConfig.createProperties;
 
 @Configuration
 public class KafkaTestConfig {
@@ -33,13 +32,8 @@ public class KafkaTestConfig {
 
   @Bean
   @Service
-  Properties serviceProperties(TestKafka testKafka) throws IOException {
-    PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-    propertiesFactoryBean.setLocation(new ClassPathResource(NabCommonConfig.TEST_PROPERTIES_FILE_NAME));
-    propertiesFactoryBean.afterPropertiesSet();
-    Properties properties = propertiesFactoryBean.getObject();
-    properties.setProperty("kafka.common.bootstrap.servers", testKafka.getBootstrapServers());
-    return properties;
+  Properties serviceProperties() throws IOException {
+    return createProperties(TEST_PROPERTIES_FILE_NAME);
   }
 
   @Bean
@@ -53,8 +47,8 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier) {
-    return new DefaultConsumerFactory(configProvider, deserializerSupplier, null);
+  KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, TestKafka testKafka) {
+    return new DefaultConsumerFactory(configProvider, deserializerSupplier, null, testKafka::getBootstrapServers);
   }
 
   @Bean
@@ -63,7 +57,7 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  KafkaProducerFactory kafkaProducer(ConfigProvider configProvider, SerializerSupplier serializerSupplier) {
-    return new KafkaProducerFactory(configProvider, serializerSupplier);
+  KafkaProducerFactory kafkaProducer(ConfigProvider configProvider, SerializerSupplier serializerSupplier, TestKafka testKafka) {
+    return new KafkaProducerFactory(configProvider, serializerSupplier, testKafka::getBootstrapServers);
   }
 }

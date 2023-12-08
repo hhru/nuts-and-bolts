@@ -1,5 +1,7 @@
 package ru.hh.nab.kafka.producer;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -14,14 +16,13 @@ public class KafkaProducerFactory {
 
   protected final ConfigProvider configProvider;
   private final SerializerSupplier serializerSupplier;
-  private Supplier<String> bootstrapServersSupplier;
+  private final Supplier<String> bootstrapServersSupplier;
 
   public KafkaProducerFactory(
       ConfigProvider configProvider,
       SerializerSupplier serializerSupplier
   ) {
-    this.configProvider = configProvider;
-    this.serializerSupplier = serializerSupplier;
+    this(configProvider, serializerSupplier, null);
   }
 
   public KafkaProducerFactory(
@@ -29,9 +30,31 @@ public class KafkaProducerFactory {
       SerializerSupplier serializerSupplier,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
-    this(configProvider, serializerSupplier);
+    validateConfig(configProvider, bootstrapServersSupplier, serializerSupplier);
+    this.configProvider = configProvider;
+    this.serializerSupplier = serializerSupplier;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
 
+  }
+
+  private static void validateConfig(
+      ConfigProvider configProvider,
+      Supplier<String> bootstrapServersSupplier,
+      SerializerSupplier serializerSupplier
+  ) {
+    Map<String, Object> producerConfig = configProvider.getProducerConfig(DEFAULT_PRODUCER_NAME);
+    if ((bootstrapServersSupplier == null) == isNullOrBlankString(producerConfig, CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG)) {
+      throw new IllegalArgumentException("Either specify 'bootstrap.servers' in config or provide bootstrapServersSupplier to this factory");
+    }
+    if (isNullOrBlankString(producerConfig, CommonClientConfigs.SECURITY_PROTOCOL_CONFIG)) {
+      throw new IllegalArgumentException("Required config '" + CommonClientConfigs.SECURITY_PROTOCOL_CONFIG + "' is missing");
+    }
+    Objects.requireNonNull(serializerSupplier);
+  }
+
+  private static boolean isNullOrBlankString(Map<String, Object> config, String key) {
+    Object value = config.get(key);
+    return !(value instanceof String) || ((String) value).isBlank();
   }
 
   public KafkaProducer createDefaultProducer() {

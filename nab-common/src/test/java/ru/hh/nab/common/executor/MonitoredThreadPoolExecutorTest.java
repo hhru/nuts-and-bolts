@@ -1,20 +1,23 @@
 package ru.hh.nab.common.executor;
 
-import java.util.Properties;
-import java.util.concurrent.*;
-import java.util.stream.IntStream;
-
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
@@ -31,7 +34,12 @@ public class MonitoredThreadPoolExecutorTest {
     properties.setProperty("minSize", "4");
     properties.setProperty("maxSize", "4");
 
-    var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
+    var tpe = MonitoredThreadPoolExecutor.create(
+        new FileSettings(properties),
+        "test",
+        mock(StatsDSender.class),
+        "test"
+    );
 
     tpe.execute(TASK);
     tpe.execute(TASK);
@@ -68,36 +76,46 @@ public class MonitoredThreadPoolExecutorTest {
 
   @Test
   public void testLongTaskLogging() throws InterruptedException, ExecutionException {
-    var sleepMs = 100L;
+    long sleepMs = 100L;
     var properties = new Properties();
     properties.setProperty("minSize", "1");
     properties.setProperty("maxSize", "1");
     properties.setProperty("longTaskDurationMs", String.valueOf(sleepMs));
 
-    var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
+    var tpe = MonitoredThreadPoolExecutor.create(
+        new FileSettings(properties),
+        "test",
+        mock(StatsDSender.class),
+        "test"
+    );
     var f = executeSleepTaskOnExecutor(sleepMs, tpe);
     f.get();
     // 1 thread executor will start second task iff first task is fully done including afterExecute
     f = executeSleepTaskOnExecutor(1, tpe);
     f.get();
-    assertTrue(memoryAppender.list.stream().anyMatch(iLoggingEvent -> iLoggingEvent.getMessage().contains("thread pool task execution took too long")));
+    assertTrue(memoryAppender.list.stream().anyMatch(event -> event.getMessage().contains("thread pool task execution took too long")));
   }
 
   @Test
   public void testShortTaskLogging() throws InterruptedException, ExecutionException {
-    var sleepMs = 100L;
+    long sleepMs = 100L;
     var properties = new Properties();
     properties.setProperty("minSize", "1");
     properties.setProperty("maxSize", "1");
     properties.setProperty("longTaskDurationMs", String.valueOf(sleepMs));
 
-    var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
+    var tpe = MonitoredThreadPoolExecutor.create(
+        new FileSettings(properties),
+        "test",
+        mock(StatsDSender.class),
+        "test"
+    );
     var f = executeSleepTaskOnExecutor(1, tpe);
     f.get();
     // 1 thread executor will start second task iff first task is fully done including afterExecute
     f = executeSleepTaskOnExecutor(1, tpe);
     f.get();
-    assertFalse(memoryAppender.list.stream().anyMatch(iLoggingEvent -> iLoggingEvent.getMessage().contains("thread pool task execution took too long")));
+    assertFalse(memoryAppender.list.stream().anyMatch(event -> event.getMessage().contains("thread pool task execution took too long")));
   }
 
   private static CompletableFuture<Object> executeSleepTaskOnExecutor(long sleepMs, ThreadPoolExecutor tpe) {

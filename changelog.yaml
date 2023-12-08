@@ -1,3 +1,9 @@
+-   name: 4.44.2
+    date: '2023-12-08T16:29:15.059111+03:00'
+    description: пофикшено логирование долгих задач в MonitoredThreadPoolExecutor
+    instructions: ''
+    compatible: true
+
 -   name: 4.44.1
     date: '2023-12-07T16:45:34.082323+03:00'
     description: Добавлена новая метрика для пула тредов threadPool.taskExecutionStartLag,

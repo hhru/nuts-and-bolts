@@ -1,3 +1,9 @@
+-   name: 4.44.4
+    date: '2023-12-15T11:20:42.988754+03:00'
+    description: Исправлена ошибка при одновременном использовании jdebug и `X-HH-AcceptErrors`.
+    instructions: ''
+    compatible: true
+
 -   name: 4.44.3
     date: '2023-12-08T16:34:42.428965+03:00'
     description: Добавлена валидация параметров конструктора KafkaProducerFactory.

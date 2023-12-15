@@ -7,6 +7,7 @@ import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import org.glassfish.jersey.message.internal.AcceptableMediaType;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
@@ -26,16 +27,12 @@ public class ErrorAcceptFilter implements ContainerResponseFilter {
         try {
           List<AcceptableMediaType> acceptableMediaTypes = HttpHeaderReader.readAcceptMediaType(acceptErrors);
           if (!acceptableMediaTypes.isEmpty()) {
-            responseContext.getHeaders().replace(CONTENT_TYPE, List.of(acceptableMediaTypes.get(0).toString()));
+            responseContext.getHeaders().replace(CONTENT_TYPE, new ArrayList<>(List.of(acceptableMediaTypes.get(0).toString())));
           } else {
-            LOGGER.warn(
-                "No valid AcceptableMediaType for errors found in {} header: {}",
-                X_HH_ACCEPT_ERRORS,
-                acceptErrors
-            );
+            LOGGER.warn("No valid AcceptableMediaType for errors found in {} header: {}", X_HH_ACCEPT_ERRORS, acceptErrors);
           }
         } catch (ParseException e) {
-          LOGGER.warn("Error while parcing {} header.", X_HH_ACCEPT_ERRORS, e);
+          LOGGER.warn("Error while parsing {} header.", X_HH_ACCEPT_ERRORS, e);
         }
       }
     }

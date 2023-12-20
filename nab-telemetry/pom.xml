@@ -43,7 +43,6 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-semconv</artifactId>
-            <version>${opentelemetry.version}-alpha</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>

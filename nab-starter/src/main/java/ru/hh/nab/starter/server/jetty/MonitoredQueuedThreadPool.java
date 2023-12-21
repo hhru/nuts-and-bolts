@@ -18,6 +18,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   public MonitoredQueuedThreadPool(int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue,
                                    String poolName, StatsDSender statsDSender) {
     super(maxThreads, minThreads, idleTimeout, -1, queue, null);
+    setName("qtp_" + poolName + "_" + hashCode());
 
     String queueSizeMetricName = "queueSize";
     String busyThreadsMetricName = "busyThreads";

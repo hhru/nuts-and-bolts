@@ -1,3 +1,9 @@
+-   name: 4.44.5
+    date: '2023-12-27T18:31:51.014373+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 4.44.4
     date: '2023-12-15T11:20:42.988754+03:00'
     description: Исправлена ошибка при одновременном использовании jdebug и `X-HH-AcceptErrors`.
@@ -7,10 +13,14 @@
 -   name: 4.44.3
     date: '2023-12-08T16:34:42.428965+03:00'
     description: Добавлена валидация параметров конструктора KafkaProducerFactory.
-        Если в файловом конфиге нет конфигурации от слова совсем, а в спринг контексте
-        создается фактори, приложение не стартует
-    instructions: ''
-    compatible: true
+        Если в файловом конфиге совсем нет конфигурации для этой фактори, а в спринг
+        контексте она создается, приложение не стартует
+    instructions: К сожалению, ломается старт приложений, у которых в файловом конфиге
+        указан явно ключ bootstrap.servers. Приложение не стартует с ошибкой Either
+        specify 'bootstrap.servers' in config or provide bootstrapServersSupplier
+        to this factory. В этом случае надо в файловом конфиге убрать ключ bootstrap.servers
+        или поменять код, используя конструктор KafkaProducerFactory без bootstrapServersSupplier
+    compatible: false
 
 -   name: 4.44.2
     date: '2023-12-08T16:29:15.059111+03:00'

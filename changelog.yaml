@@ -1,6 +1,6 @@
 -   name: 4.44.5
     date: '2023-12-27T18:31:51.014373+03:00'
-    description: ''
+    description: 'Треды в тредпуле jetty теперь в своём названии имеют название самого тредпула'
     instructions: ''
     compatible: true
 

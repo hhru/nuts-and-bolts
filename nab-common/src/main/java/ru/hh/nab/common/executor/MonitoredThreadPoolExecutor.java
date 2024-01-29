@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.SimpleHistogram;
@@ -32,7 +33,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
-  private final Histogram taskDurationMetric = new SimpleHistogram(500);
+  private final Histogram taskDurationMetric = new CompactHistogram(512, 32);
   private final Histogram taskExecutionStartLagMetric = new SimpleHistogram(500);
   private final ThreadLocal<Long> taskStart = new ThreadLocal<>();
   private final String threadPoolName;

@@ -1,3 +1,9 @@
+-   name: 4.44.6
+    date: '2024-01-29T16:23:25.576330+03:00'
+    description: Обновление sentry sdk до 7.2.0, public-pom до 1.57.0
+    instructions: ''
+    compatible: true
+
 -   name: 4.44.5
     date: '2023-12-27T18:31:51.014373+03:00'
     description: ''

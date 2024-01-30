@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.44.5.jakarta-rc3-SNAPSHOT</version>
+        <version>4.44.6.jakarta-rc1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -188,6 +188,12 @@
             <groupId>org.caffinitas.ohc</groupId>
             <artifactId>ohc-core</artifactId>
             <version>0.7.4</version>
+        </dependency>
+
+        <!--sentry-->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry</artifactId>
         </dependency>
 
         <!--Testing-->

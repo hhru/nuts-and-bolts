@@ -41,6 +41,7 @@ import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
+  private static final String SENTRY_RELEASE_ENV = "SENTRY_RELEASE";
 
   private final NabServletContextConfig servletContextConfig;
 
@@ -129,6 +130,7 @@ public final class NabApplication {
       Sentry.init(options -> {
         options.setEnableExternalConfiguration(true);
         options.setDsn(dsn);
+        options.setRelease(System.getProperty(SENTRY_RELEASE_ENV));
       });
     }
   }

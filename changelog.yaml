@@ -1,3 +1,10 @@
+-   name: 4.45.0
+    date: '2024-01-30T13:50:51.286974+03:00'
+    description: В сентри клиенте переменная release теперь берется из env=SENTRY_RELEASE
+    instructions: "В сервисах необходимо удалить оверрайд release из sentry.properties\r\
+        \nПример того что надо удалить - https://github.com/hhru/hh.ru/blob/1225a83817be31180c827ac71f1673bd43fc1698/hh-xmlback/src/main/resources/sentry.properties#L1"
+    compatible: false
+
 -   name: 4.44.6
     date: '2024-01-29T16:23:25.576330+03:00'
     description: Обновление sentry sdk до 7.2.0, public-pom до 1.57.0

@@ -32,7 +32,7 @@ import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
-import ru.hh.jclient.common.ResultWithStatus;
+import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
@@ -86,8 +86,8 @@ public class TelemetryListenerTest {
   @Test
   public void testSimpleRequest() throws ExecutionException, InterruptedException {
     String url = resourceHelper.baseUrl() + "/simple";
-    String result = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).expectPlainText().result().get();
-    assertEquals("Hello, world!", result);
+    Response response = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).unconverted().get();
+    assertEquals("Hello, world!", response.getResponseBody());
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -102,8 +102,8 @@ public class TelemetryListenerTest {
   @Test
   public void testErrorRequest() throws ExecutionException, InterruptedException {
     String url = resourceHelper.baseUrl() + "/error";
-    ResultWithStatus<String> result = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).expectPlainText().resultWithStatus().get();
-    assertEquals(500, result.getStatusCode());
+    Response response = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).unconverted().get();
+    assertEquals(500, response.getStatusCode());
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -124,13 +124,12 @@ public class TelemetryListenerTest {
         .startSpan();
 
     try (Scope ignored = parentSpan.makeCurrent()) {
-      String result = httpClientFactory
+      Response response = httpClientFactory
           .with(new RequestBuilder().setUrl(url).build())
-          .expectPlainText()
-          .result()
-          .thenCompose(s -> httpClientFactory.with(new RequestBuilder().setUrl(url + "?a=1").build()).expectPlainText().result())
+          .unconverted()
+          .thenCompose(s -> httpClientFactory.with(new RequestBuilder().setUrl(url + "?a=1").build()).unconverted())
           .get();
-      assertEquals("Hello, world!", result);
+      assertEquals("Hello, world!", response.getResponseBody());
     }
 
     parentSpan.end();

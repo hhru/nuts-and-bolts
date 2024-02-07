@@ -12,7 +12,7 @@ import ru.hh.nab.starter.exceptions.NotFoundExceptionMapper;
 import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
 import ru.hh.nab.starter.filters.ErrorAcceptFilter;
-import ru.hh.nab.starter.filters.ResourceNameLoggingFilter;
+import ru.hh.nab.starter.filters.ResourceInformationLoggingFilter;
 
 public final class DefaultResourceConfig extends ResourceConfig {
 
@@ -32,6 +32,6 @@ public final class DefaultResourceConfig extends ResourceConfig {
 
     register(ErrorAcceptFilter.class);
 
-    register(ResourceNameLoggingFilter.class);
+    register(ResourceInformationLoggingFilter.class);
   }
 }

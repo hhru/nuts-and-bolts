@@ -15,7 +15,10 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.Response;
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +66,8 @@ public class TelemetryTest {
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     assertEquals("Hello, world!", response.readEntity(String.class));
+    awaitAtLeastOneSpan();
+
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
@@ -89,6 +94,7 @@ public class TelemetryTest {
         .get();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -106,6 +112,7 @@ public class TelemetryTest {
         .get();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -123,6 +130,7 @@ public class TelemetryTest {
         .get();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -140,6 +148,7 @@ public class TelemetryTest {
         .get();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -157,6 +166,7 @@ public class TelemetryTest {
         .head();
 
     assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -174,6 +184,7 @@ public class TelemetryTest {
         .head();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
@@ -192,11 +203,17 @@ public class TelemetryTest {
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     assertEquals("Hello, world!", response.readEntity(String.class));
+    awaitAtLeastOneSpan();
+
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     assertEquals(SpanKind.SERVER, span.getKind());
     assertEquals("fcf9c5cc0345247a", span.getParentSpanId());
+  }
+
+  private void awaitAtLeastOneSpan() {
+    await().atMost(1000, TimeUnit.MILLISECONDS).untilAsserted(() -> assertFalse(SPAN_EXPORTER.getFinishedSpanItems().isEmpty()));
   }
 
   @Configuration

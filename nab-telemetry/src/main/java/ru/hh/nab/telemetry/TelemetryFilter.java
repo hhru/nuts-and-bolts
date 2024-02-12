@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Map;
+import static java.util.Optional.ofNullable;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import ru.hh.nab.common.component.NabServletFilter;
 import static ru.hh.nab.common.mdc.MDC.CODE_FUNCTION_MDC_KEY;
 import static ru.hh.nab.common.mdc.MDC.CODE_NAMESPACE_MDC_KEY;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
+import static ru.hh.nab.common.mdc.MDC.HTTP_ROUTE_MDC_KEY;
 
 public class TelemetryFilter implements Filter, NabServletFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
@@ -61,6 +63,8 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           .setAttribute(SemanticAttributes.HTTP_TARGET, url.getFile())
           .setAttribute(SemanticAttributes.HTTP_SCHEME, url.getProtocol())
           .setAttribute(SemanticAttributes.HTTP_CLIENT_IP, request.getRemoteAddr())
+          //FIXME use SemanticAttributes.USER_AGENT_ORIGINAL after update opentelemetry semconv
+          .setAttribute("user_agent.original", ofNullable(httpServletRequest.getHeader("User-Agent")).orElse("noUserAgent"))
           .startSpan();
       LOGGER.trace("span started:{}", span);
 
@@ -76,6 +80,11 @@ public class TelemetryFilter implements Filter, NabServletFilter {
           span.setAttribute(SemanticAttributes.CODE_FUNCTION, codeFunction);
           span.setAttribute(SemanticAttributes.CODE_NAMESPACE, codeNamespace);
         }
+        String httpRoute = (String) httpServletRequest.getAttribute(HTTP_ROUTE_MDC_KEY);
+        if (httpRoute != null) {
+          span.setAttribute(SemanticAttributes.HTTP_ROUTE, httpRoute);
+        }
+
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
         span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));

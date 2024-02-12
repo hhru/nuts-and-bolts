@@ -1,5 +1,6 @@
 package ru.hh.nab.telemetry;
 
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -53,9 +54,11 @@ public class TelemetryTest {
 
   @Test
   public void testSimpleRequest() {
+    String userAgent = "my-test-service";
     Response response = resourceHelper
         .target("/simple")
         .request()
+        .header("User-Agent", userAgent)
         .get();
 
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
@@ -68,11 +71,115 @@ public class TelemetryTest {
     assertEquals("TestResource#simple", span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
     assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_TARGET));
+    assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_ROUTE));
     assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
     assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
     assertEquals("simple", attributes.get(SemanticAttributes.CODE_FUNCTION));
     assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
+    assertEquals(userAgent, attributes.get(AttributeKey.stringKey("user_agent.original")));
+  }
+
+  @Test
+  public void testRouteCalculation() {
+    String template = "/simple/{name}/greeting";
+    Response response = resourceHelper
+        .target(resourceHelper.jerseyUrl(template, "telemetry"))
+        .request()
+        .get();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+  }
+
+  @Test
+  public void testRouteCalculationForParentThatHasSubresource() {
+    String template = "/resource/simple/{name}/greeting";
+    Response response = resourceHelper
+        .target(resourceHelper.jerseyUrl(template, "telemetry"))
+        .request()
+        .get();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+  }
+
+  @Test
+  public void testRouteCalculationForSubresource() {
+    String template = "/resource/sub/simple/{name}/greeting";
+    Response response = resourceHelper
+        .target(resourceHelper.jerseyUrl(template, "telemetry"))
+        .request()
+        .get();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+  }
+
+  @Test
+  public void testRouteCalculationWithBasePath() {
+    String template = "/app/resource/sub/simple/{name}/greeting";
+    Response response = resourceHelper
+        .target(resourceHelper.jerseyUrl(template, "telemetry"))
+        .request()
+        .get();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+  }
+
+  @Test
+  public void testRouteWithDuplicatedPath() {
+    String template = "/resource/sub/simple";
+    Response response = resourceHelper
+        .target(template)
+        .request()
+        .head();
+
+    assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+  }
+
+  @Test
+  public void testRouteCalculatedForRoot() {
+    String template = "/";
+    Response response = resourceHelper
+        .target(template)
+        .request()
+        .head();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    Attributes attributes = span.getAttributes();
+    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -93,7 +200,11 @@ public class TelemetryTest {
   }
 
   @Configuration
-  @Import(TestResource.class)
+  @Import({
+      TestResource.class,
+      TestResourceWithSubResource.class,
+      TestResourceWithSubResource.SubResource.class,
+  })
   public static class SpringCtxForJersey implements OverrideNabApplication {
     @Override
     public NabApplication getNabApplication() {
@@ -117,7 +228,7 @@ public class TelemetryTest {
           .addFilter(telemetryFilter)
           .bindToRoot()
           .configureJersey(SpringCtxForJersey.class)
-          .bindToRoot()
+          .bindTo("/*", "/app/*")
           .build();
     }
   }

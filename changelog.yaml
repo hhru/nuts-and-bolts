@@ -1,3 +1,14 @@
+-   name: 4.47.0
+    date: '2024-02-20T18:06:14.048295+03:00'
+    description: if there are no any implementations of ru.hh.nab.starter.exceptions.ExceptionSerializer
+        than exception will be mapped in NabExceptionMapper to response in common
+        errors format
+    instructions: if you don't use any implementations of ru.hh.nab.starter.exceptions.ExceptionSerializer
+        in your service and consumers of your service's api work with body of response
+        that was generated in NabExceptionMapper by default serializer, you have to
+        fix code on consumers' side
+    compatible: false
+
 -   name: 4.46.1
     date: '2024-02-13T15:38:25.219470+03:00'
     description: Повышение стабильности юнит-тестов

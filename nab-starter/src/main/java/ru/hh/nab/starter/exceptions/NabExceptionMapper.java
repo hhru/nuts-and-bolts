@@ -6,12 +6,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.core.Context;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import ru.hh.errors.common.Errors;
 
 /**
  * This exception mapper solves several tasks:
@@ -102,6 +102,13 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
         .filter(s -> s.isCompatible(request, response))
         .findFirst()
         .map(s -> s.serializeException(statusCode, exception))
-        .orElseGet(() -> Response.status(statusCode).entity(ofNullable(exception.getMessage()).orElse("")).type(TEXT_PLAIN).build());
+        .orElseGet(() -> {
+          Errors errors = new Errors(
+              statusCode.getStatusCode(),
+              exception.getClass().getCanonicalName(),
+              ofNullable(exception.getMessage()).orElse("")
+          );
+          return Response.status(statusCode).entity(errors).build();
+        });
   }
 }

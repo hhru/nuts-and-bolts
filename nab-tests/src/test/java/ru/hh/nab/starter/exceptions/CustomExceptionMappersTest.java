@@ -8,10 +8,13 @@ import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import ru.hh.errors.common.Errors;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
@@ -25,11 +28,13 @@ import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 })
 public class CustomExceptionMappersTest {
 
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
   @NabTestServer(overrideApplication = CustomExceptionMapperConfig.class)
   ResourceHelper resourceHelper;
 
   @Test
-  public void testCustomExceptionMappers() {
+  public void testCustomExceptionMappers() throws IOException {
     Response response = resourceHelper.executeGet("/iae");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
@@ -39,14 +44,17 @@ public class CustomExceptionMappersTest {
     response = resourceHelper.executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
-    assertEquals("Any exception", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals("Any exception", getErrorDescription(response));
 
     response = resourceHelper.executeGet("/any?customSerializer=true");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("{\"reason\":\"Any exception\"}", response.readEntity(String.class));
     assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+  }
+
+  private String getErrorDescription(Response response) throws IOException {
+    return MAPPER.readValue(response.readEntity(String.class), Errors.class).getErrors().get(0).description;
   }
 
   @Configuration

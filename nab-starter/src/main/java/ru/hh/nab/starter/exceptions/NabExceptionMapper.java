@@ -5,13 +5,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.core.Context;
-import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import ru.hh.errors.common.Errors;
 
 /**
  * This exception mapper solves several tasks:
@@ -102,6 +102,13 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
         .filter(s -> s.isCompatible(request, response))
         .findFirst()
         .map(s -> s.serializeException(statusCode, exception))
-        .orElseGet(() -> Response.status(statusCode).entity(ofNullable(exception.getMessage()).orElse("")).type(TEXT_PLAIN).build());
+        .orElseGet(() -> {
+          Errors errors = new Errors(
+              statusCode.getStatusCode(),
+              exception.getClass().getCanonicalName(),
+              ofNullable(exception.getMessage()).orElse("")
+          );
+          return Response.status(statusCode).entity(errors).build();
+        });
   }
 }

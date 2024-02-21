@@ -4,7 +4,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import static jakarta.ws.rs.core.MediaType.TEXT_HTML_TYPE;
-import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
@@ -13,6 +12,7 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
 import java.util.Properties;
@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import ru.hh.errors.common.Errors;
 import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
@@ -37,28 +39,27 @@ import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 @NabJunitWebConfig(NabTestConfig.class)
 public class NabExceptionMappersTest {
 
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
   @NabTestServer(overrideApplication = SpringCtxForJersey.class)
   ResourceHelper resourceHelper;
 
   @Test
-  public void testNabExceptionMappers() {
+  public void testNabExceptionMappers() throws IOException {
     Response response = resourceHelper.executeGet("/iae");
 
     assertEquals(BAD_REQUEST.getStatusCode(), response.getStatus());
-    assertEquals("IAE", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals("IAE", getErrorDescription(response));
 
     response = resourceHelper.executeGet("/ise");
 
     assertEquals(CONFLICT.getStatusCode(), response.getStatus());
-    assertEquals("ISE", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals("ISE", getErrorDescription(response));
 
     response = resourceHelper.executeGet("/se");
 
     assertEquals(FORBIDDEN.getStatusCode(), response.getStatus());
-    assertEquals("SE", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals("SE", getErrorDescription(response));
 
     response = resourceHelper.executeGet("/wae");
 
@@ -80,8 +81,7 @@ public class NabExceptionMappersTest {
     response = resourceHelper.executeGet("/any");
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
-    assertEquals("Any exception", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals("Any exception", getErrorDescription(response));
 
     response = resourceHelper.executeGet("/notFound");
 
@@ -91,6 +91,10 @@ public class NabExceptionMappersTest {
     response = resourceHelper.executeGet("/rejectedExecution");
 
     assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+  }
+
+  private String getErrorDescription(Response response) throws IOException {
+    return MAPPER.readValue(response.readEntity(String.class), Errors.class).getErrors().get(0).description;
   }
 
   @Path("/")

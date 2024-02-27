@@ -125,8 +125,9 @@ public class HistogramsTest {
     Histograms histograms = new Histograms(100, 1, Histograms.HistogramType.RANGE);
     Tag tag = new Tag("label", "first");
     //попадут в одно значение ->8
+    histograms.save(5, tag);
     histograms.save(7, tag);
-    histograms.save(4, tag);
+    histograms.save(8, tag);
 
     //100->128
     histograms.save(100, tag);
@@ -135,7 +136,7 @@ public class HistogramsTest {
 
     assertEquals(1, tagsToHistogram.size());
     Map<Integer, Integer> values = tagsToHistogram.get(tag);
-    assertEquals(values.get(8), 2);
+    assertEquals(values.get(8), 3);
     assertEquals(values.get(128), 1);
   }
 }

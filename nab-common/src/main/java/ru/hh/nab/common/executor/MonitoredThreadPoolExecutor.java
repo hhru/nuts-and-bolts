@@ -33,19 +33,29 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
-  private final Histogram taskDurationMetric = new CompactHistogram(512, 32);
+  private final Histogram taskDurationMetric;
   private final Histogram taskExecutionStartLagMetric = new SimpleHistogram(500);
   private final ThreadLocal<Long> taskStart = new ThreadLocal<>();
   private final String threadPoolName;
   private final Integer longTaskDurationMs;
 
-  private MonitoredThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue,
-                                      ThreadFactory threadFactory, RejectedExecutionHandler handler,
-                                      String threadPoolName, Integer longTaskDurationMs) {
+  private MonitoredThreadPoolExecutor(
+      int corePoolSize,
+      int maximumPoolSize,
+      long keepAliveTime,
+      TimeUnit unit,
+      BlockingQueue<Runnable> workQueue,
+      ThreadFactory threadFactory,
+      RejectedExecutionHandler handler,
+      String threadPoolName,
+      Integer longTaskDurationMs,
+      int taskDurationHistogramCompactionRatio
+  ) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 
     this.longTaskDurationMs = longTaskDurationMs;
     this.threadPoolName = threadPoolName;
+    this.taskDurationMetric = new CompactHistogram(512, taskDurationHistogramCompactionRatio);
   }
 
   public String getThreadPoolName() {
@@ -84,19 +94,31 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
   public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName) {
     return create(threadPoolSettings, threadPoolName, statsDSender, serviceName, (r, executor) -> {
-      LOGGER.warn("{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
-          threadPoolName, executor.getPoolSize(), executor.getActiveCount(), executor.getQueue().size());
+      LOGGER.warn(
+          "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
+          threadPoolName,
+          executor.getPoolSize(),
+          executor.getActiveCount(),
+          executor.getQueue().size()
+      );
       throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
     });
   }
 
-  public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName,
-                                          RejectedExecutionHandler rejectedExecutionHandler) {
+  public static ThreadPoolExecutor create(
+      FileSettings threadPoolSettings,
+      String threadPoolName,
+      StatsDSender statsDSender,
+      String serviceName,
+      RejectedExecutionHandler rejectedExecutionHandler
+  ) {
     int coreThreads = ofNullable(threadPoolSettings.getInteger("minSize")).orElse(4);
     int maxThreads = ofNullable(threadPoolSettings.getInteger("maxSize")).orElse(16);
     int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(maxThreads);
     int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger("keepAliveTimeSec")).orElse(60);
-    Integer longTaskDurationMs = ofNullable(threadPoolSettings.getInteger("longTaskDurationMs")).orElse(null);
+    Integer longTaskDurationMs = threadPoolSettings.getInteger("longTaskDurationMs");
+    int taskDurationHistogramCompactionRatio =
+        ofNullable(threadPoolSettings.getInteger("monitoring.taskDuration.histogramCompactionRatio")).orElse(1);
 
     var count = new AtomicLong(0);
     ThreadFactory threadFactory = r -> {
@@ -106,8 +128,17 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       return thread;
     };
 
-    var threadPoolExecutor = new MonitoredThreadPoolExecutor(coreThreads, maxThreads, keepAliveTimeSec, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(queueSize), threadFactory, rejectedExecutionHandler, threadPoolName, longTaskDurationMs
+    var threadPoolExecutor = new MonitoredThreadPoolExecutor(
+        coreThreads,
+        maxThreads,
+        keepAliveTimeSec,
+        TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(queueSize),
+        threadFactory,
+        rejectedExecutionHandler,
+        threadPoolName,
+        longTaskDurationMs,
+        taskDurationHistogramCompactionRatio
     );
 
     String maxPoolSizeMetricName = "threadPool.maxSize";

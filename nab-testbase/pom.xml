@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.48.1-SNAPSHOT</version>
+        <version>4.49.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

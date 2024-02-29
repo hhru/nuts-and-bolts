@@ -1,3 +1,9 @@
+-   name: 4.49.1
+    date: '2024-02-29T16:03:19.838074+03:00'
+    description: Замена депрекейтнотуго BatchErrorHandler на CommonErrorHandler
+    instructions: ''
+    compatible: true
+
 -   name: 4.49.0
     date: '2024-02-27T17:49:36.044909+03:00'
     description: 'MonitoredThreadPoolExecutor: добавлена возможность конфигурировать

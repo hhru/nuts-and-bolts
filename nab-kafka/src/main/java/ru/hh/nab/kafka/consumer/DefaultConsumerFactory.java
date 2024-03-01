@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchConsumerAwareMessageListener;
-import org.springframework.kafka.listener.BatchErrorHandler;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
@@ -120,7 +120,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
           (BatchConsumerAwareMessageListener<String, T>) kafkaConsumer::onMessagesBatch,
           topicName
       );
-      SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = getBatchErrorHandler(topicName, kafkaConsumer, logger);
+      SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = getCommonErrorHandler(topicName, kafkaConsumer, logger);
       return getSpringMessageListenerContainer(consumerFactory, containerProperties, errorHandler, configProvider, topicName);
     };
 
@@ -135,20 +135,20 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
   }
 
-  public static <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(
+  public <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(
       ConsumerFactory<String, T> consumerFactory,
       ContainerProperties containerProperties,
-      BatchErrorHandler errorHandler,
+      CommonErrorHandler errorHandler,
       ConfigProvider configProvider,
       String topicName
   ) {
     var container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
-    container.setBatchErrorHandler(errorHandler);
+    container.setCommonErrorHandler(errorHandler);
     container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
     return container;
   }
 
-  private <T> SeekToFirstNotAckedMessageErrorHandler<T> getBatchErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
+  private <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
     FileSettings settings = configProvider.getNabConsumerSettings(topicName);
     ExponentialBackOff backOff = new ExponentialBackOff(
         settings.getLong(BACKOFF_INITIAL_INTERVAL_NAME, DEFAULT_BACKOFF_INITIAL_INTERVAL),

@@ -1,3 +1,31 @@
+-   name: 4.49.2
+    date: '2024-03-01T16:23:25.444186+03:00'
+    description: Выпиливание хардкода настроек Counters / Histogram
+    instructions: ''
+    compatible: true
+
+-   name: 4.49.1
+    date: '2024-02-29T16:03:19.838074+03:00'
+    description: Замена депрекейтнотуго BatchErrorHandler на CommonErrorHandler
+    instructions: ''
+    compatible: true
+
+-   name: 4.49.0
+    date: '2024-02-27T17:49:36.044909+03:00'
+    description: 'MonitoredThreadPoolExecutor: добавлена возможность конфигурировать
+        compactionRatio для гистограммы taskDuration. В Histograms добавлен новый
+        конструктор, старый помечен как deprecated'
+    instructions: ''
+    compatible: true
+
+-   name: 4.48.0
+    date: '2024-02-27T13:30:31.698170+03:00'
+    description: "* Добавлен новый API для сбора метрик CompactHistogram\r\n* Исправлена\
+        \ ошибка потеря метрик в MonitoredThreadPoolExecutor при большом количестве\
+        \ уникальных значений"
+    instructions: ''
+    compatible: true
+
 -   name: 4.47.0
     date: '2024-02-20T18:06:14.048295+03:00'
     description: if there are no any implementations of ru.hh.nab.starter.exceptions.ExceptionSerializer

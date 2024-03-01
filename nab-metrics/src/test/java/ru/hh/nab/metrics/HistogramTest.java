@@ -4,6 +4,7 @@ import static java.lang.System.currentTimeMillis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -97,5 +98,17 @@ public class HistogramTest {
 
     assertEquals(1, valueToCount.size());
     assertEquals(1, valueToCount.get(7).intValue());
+  }
+
+  @Test
+  public void testCompactHistogram() {
+    int histogramSize = 512;
+    int compactionRatio = 32;
+    CompactHistogram compactHistogram = new CompactHistogram(histogramSize, compactionRatio);
+    IntStream.range(0, 10000).forEach(compactHistogram::save);
+
+    Map<Integer, Integer> values = compactHistogram.getValueToCountAndReset();
+    assertTrue(values.size() <= histogramSize);
+    assertTrue(values.get(compactionRatio) > 1);
   }
 }

@@ -11,7 +11,7 @@ public class RangedHistogram extends Histogram {
 
   @Override
   protected int calculateValue(int value) {
-    return Integer.highestOneBit(value) << 1;
+    return Integer.highestOneBit(value - 1) << 1;
   }
 
 }

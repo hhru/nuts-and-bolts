@@ -4,12 +4,12 @@ import java.util.Optional;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.slf4j.Logger;
-import org.springframework.kafka.listener.ContainerAwareBatchErrorHandler;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
 
-class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchErrorHandler {
+class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
 
   private final ThreadLocal<BackOffExecution> backOffs = new ThreadLocal<>();
 
@@ -26,8 +26,13 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements ContainerAwareBatchEr
   }
 
   @Override
-  public void handle(Exception thrownException, ConsumerRecords<?, ?> data, Consumer<?, ?> consumer,
-                     MessageListenerContainer container) {
+  public void handleBatch(
+      Exception thrownException,
+      ConsumerRecords<?, ?> data,
+      Consumer<?, ?> consumer,
+      MessageListenerContainer container,
+      Runnable invokeListener
+  ) {
     // Since spring-kafka wraps our "business" exception by org.springframework.kafka.listener.ListenerExecutionFailedException
     var exceptionToLog = Optional.of(thrownException).map(Throwable::getCause).orElse(thrownException);
     logger.error("exception during kafka processing", exceptionToLog);

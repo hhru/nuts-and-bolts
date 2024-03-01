@@ -19,7 +19,6 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
-import ru.hh.nab.metrics.SimpleHistogram;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
@@ -34,7 +33,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
   private final Histogram taskDurationMetric;
-  private final Histogram taskExecutionStartLagMetric = new SimpleHistogram(500);
+  private final Histogram taskExecutionStartLagMetric;
   private final ThreadLocal<Long> taskStart = new ThreadLocal<>();
   private final String threadPoolName;
   private final Integer longTaskDurationMs;
@@ -49,13 +48,17 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       RejectedExecutionHandler handler,
       String threadPoolName,
       Integer longTaskDurationMs,
-      int taskDurationHistogramCompactionRatio
+      int taskDurationHistogramSize,
+      int taskDurationHistogramCompactionRatio,
+      int taskExecutionStartLagHistogramSize,
+      int taskExecutionStartLagHistogramCompactionRatio
   ) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 
     this.longTaskDurationMs = longTaskDurationMs;
     this.threadPoolName = threadPoolName;
-    this.taskDurationMetric = new CompactHistogram(512, taskDurationHistogramCompactionRatio);
+    this.taskDurationMetric = new CompactHistogram(taskDurationHistogramSize, taskDurationHistogramCompactionRatio);
+    this.taskExecutionStartLagMetric = new CompactHistogram(taskExecutionStartLagHistogramSize, taskExecutionStartLagHistogramCompactionRatio);
   }
 
   public String getThreadPoolName() {
@@ -117,8 +120,12 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(maxThreads);
     int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger("keepAliveTimeSec")).orElse(60);
     Integer longTaskDurationMs = threadPoolSettings.getInteger("longTaskDurationMs");
+    int taskDurationHistogramSize = ofNullable(threadPoolSettings.getInteger("monitoring.taskDuration.histogramSize")).orElse(512);
     int taskDurationHistogramCompactionRatio =
         ofNullable(threadPoolSettings.getInteger("monitoring.taskDuration.histogramCompactionRatio")).orElse(1);
+    int taskExecutionStartLagHistogramSize = ofNullable(threadPoolSettings.getInteger("monitoring.taskExecutionStartLag.histogramSize")).orElse(512);
+    int taskExecutionStartLagHistogramCompactionRatio =
+        ofNullable(threadPoolSettings.getInteger("monitoring.taskExecutionStartLag.histogramCompactionRatio")).orElse(1);
 
     var count = new AtomicLong(0);
     ThreadFactory threadFactory = r -> {
@@ -138,7 +145,10 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
         rejectedExecutionHandler,
         threadPoolName,
         longTaskDurationMs,
-        taskDurationHistogramCompactionRatio
+        taskDurationHistogramSize,
+        taskDurationHistogramCompactionRatio,
+        taskExecutionStartLagHistogramSize,
+        taskExecutionStartLagHistogramCompactionRatio
     );
 
     String maxPoolSizeMetricName = "threadPool.maxSize";

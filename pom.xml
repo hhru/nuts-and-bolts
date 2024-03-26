@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.49.2.jakarta-rc4-SNAPSHOT</version>
+    <version>4.49.3.jakarta-rc1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -33,7 +33,7 @@
     </modules>
 
     <properties>
-        <jclient.version>3.12.8.jakarta-rc2</jclient.version>
+        <jclient.version>3.12.12.jakarta-rc2</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>1.2.12</consul.client.version>
     </properties>
@@ -229,6 +229,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>4.44.5.jakarta-rc2</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>

@@ -1,3 +1,9 @@
+-   name: 4.49.3
+    date: '2024-03-26T17:14:40.299738+03:00'
+    description: up JClient to 3.12.12
+    instructions: ''
+    compatible: true
+
 -   name: 4.49.2
     date: '2024-03-01T16:23:25.444186+03:00'
     description: Выпиливание хардкода настроек Counters / Histogram

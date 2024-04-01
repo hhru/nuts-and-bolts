@@ -1,3 +1,9 @@
+-   name: 4.49.4
+    date: '2024-04-01T13:02:49.894224+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 4.49.3
     date: '2024-03-26T17:14:40.299738+03:00'
     description: up JClient to 3.12.12

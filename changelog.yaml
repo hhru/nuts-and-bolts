@@ -1,6 +1,6 @@
--   name: 4.49.4
+-   name: 4.50.0
     date: '2024-04-01T13:02:49.894224+03:00'
-    description: ''
+    description: Extended DefaultConsumerFactory API to allow assigning of client.id
     instructions: ''
     compatible: true
 

@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -178,6 +179,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   ) {
     FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
+    containerProperties.setClientId(UUID.randomUUID().toString());
     containerProperties.setGroupId(consumerGroupId.toString());
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);

@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -111,11 +112,24 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       ConsumeStrategy<T> consumeStrategy,
       Logger logger
   ) {
+    return subscribe(UUID.randomUUID().toString(), topicName, operationName, messageClass, consumeStrategy, this.factoryLogger);
+  }
+
+  @Override
+  public <T> KafkaConsumer<T> subscribe(
+      String clientId,
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger
+  ) {
     ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, messageClass);
     ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
 
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (kafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerProperties(
+          clientId,
           consumerGroupId,
           (BatchConsumerAwareMessageListener<String, T>) kafkaConsumer::onMessagesBatch,
           topicName
@@ -172,12 +186,14 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   private ContainerProperties getSpringConsumerContainerProperties(
+      String clientId,
       ConsumerGroupId consumerGroupId,
       GenericMessageListener<?> messageListener,
       String topicName
   ) {
     FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
+    containerProperties.setClientId(clientId);
     containerProperties.setGroupId(consumerGroupId.toString());
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);

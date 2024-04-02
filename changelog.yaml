@@ -1,3 +1,10 @@
+-   name: 4.50.1
+    date: '2024-04-02T10:25:33.631390+03:00'
+    description: "* Kafka tests are now compatible with ARM\r\n* Upgraded kafka-test-utils\
+        \ to 0.0.15 version"
+    instructions: ''
+    compatible: true
+
 -   name: 4.50.0
     date: '2024-04-01T13:02:49.894224+03:00'
     description: Extended DefaultConsumerFactory API to allow assigning of client.id

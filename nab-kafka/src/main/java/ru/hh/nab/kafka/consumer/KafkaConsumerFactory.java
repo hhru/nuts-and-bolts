@@ -15,4 +15,11 @@ public interface KafkaConsumerFactory {
                                  ConsumeStrategy<T> messageConsumer,
                                  Logger logger);
 
+  <T> KafkaConsumer<T> subscribe(String clientId,
+                                 String topicName,
+                                 String operationName,
+                                 Class<T> messageClass,
+                                 ConsumeStrategy<T> messageConsumer,
+                                 Logger logger);
+
 }

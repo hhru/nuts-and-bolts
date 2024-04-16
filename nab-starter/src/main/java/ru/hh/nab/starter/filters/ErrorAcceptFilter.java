@@ -8,14 +8,12 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import javax.ws.rs.ext.Provider;
 import org.glassfish.jersey.message.internal.AcceptableMediaType;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ru.hh.jclient.common.HttpHeaderNames.X_HH_ACCEPT_ERRORS;
 
-@Provider
 public class ErrorAcceptFilter implements ContainerResponseFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(ErrorAcceptFilter.class);
 

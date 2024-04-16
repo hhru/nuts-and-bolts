@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
@@ -26,7 +27,7 @@ import ru.hh.nab.testbase.extensions.NabTestServer;
 import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
 @NabJunitWebConfig(NabTestConfig.class)
-public class ResourceInformationLoggingFilterTest {
+public class ResourceInformationFilterTest {
 
   @NabTestServer(overrideApplication = SpringCtxForJersey.class)
   ResourceHelper resourceHelper;
@@ -53,9 +54,9 @@ public class ResourceInformationLoggingFilterTest {
     assertEquals(OK.getStatusCode(), response.getStatus());
 
     Map<String, String> responseMap = response.readEntity(Map.class);
-    assertEquals("testContext", responseMap.get(MDC.CODE_FUNCTION_MDC_KEY));
-    assertEquals("ru.hh.nab.starter.filters.ResourceInformationLoggingFilterTest.TestResource", responseMap.get(MDC.CODE_NAMESPACE_MDC_KEY));
-    assertEquals(route, responseMap.get(MDC.HTTP_ROUTE_MDC_KEY));
+    assertEquals("testContext", responseMap.get(RequestAttributes.CODE_FUNCTION));
+    assertEquals("ru.hh.nab.starter.filters.ResourceInformationFilterTest.TestResource", responseMap.get(RequestAttributes.CODE_NAMESPACE));
+    assertEquals(route, responseMap.get(RequestAttributes.HTTP_ROUTE));
   }
 
   @Path("/test")
@@ -70,9 +71,9 @@ public class ResourceInformationLoggingFilterTest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response testContext(@Context HttpServletRequest request, @PathParam("name") String name) {
       Map<String, Object> result = new HashMap<>();
-      result.put(MDC.CODE_FUNCTION_MDC_KEY, request.getAttribute(MDC.CODE_FUNCTION_MDC_KEY));
-      result.put(MDC.CODE_NAMESPACE_MDC_KEY, request.getAttribute(MDC.CODE_NAMESPACE_MDC_KEY));
-      result.put(MDC.HTTP_ROUTE_MDC_KEY, request.getAttribute(MDC.HTTP_ROUTE_MDC_KEY));
+      result.put(RequestAttributes.CODE_FUNCTION, request.getAttribute(RequestAttributes.CODE_FUNCTION));
+      result.put(RequestAttributes.CODE_NAMESPACE, request.getAttribute(RequestAttributes.CODE_NAMESPACE));
+      result.put(RequestAttributes.HTTP_ROUTE, request.getAttribute(RequestAttributes.HTTP_ROUTE));
       return Response.ok().entity(result).build();
     }
   }

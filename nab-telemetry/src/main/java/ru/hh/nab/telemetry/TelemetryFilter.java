@@ -24,10 +24,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.component.NabServletFilter;
-import static ru.hh.nab.common.mdc.MDC.CODE_FUNCTION_MDC_KEY;
-import static ru.hh.nab.common.mdc.MDC.CODE_NAMESPACE_MDC_KEY;
+import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
+import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
+import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
-import static ru.hh.nab.common.mdc.MDC.HTTP_ROUTE_MDC_KEY;
 
 public class TelemetryFilter implements Filter, NabServletFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
@@ -74,13 +74,13 @@ public class TelemetryFilter implements Filter, NabServletFilter {
         if (controller != null) {
           span.updateName(controller);
         }
-        String codeFunction = (String) httpServletRequest.getAttribute(CODE_FUNCTION_MDC_KEY);
-        String codeNamespace = (String) httpServletRequest.getAttribute(CODE_NAMESPACE_MDC_KEY);
+        String codeFunction = (String) httpServletRequest.getAttribute(CODE_FUNCTION);
+        String codeNamespace = (String) httpServletRequest.getAttribute(CODE_NAMESPACE);
         if (codeFunction != null && codeNamespace != null) {
           span.setAttribute(SemanticAttributes.CODE_FUNCTION, codeFunction);
           span.setAttribute(SemanticAttributes.CODE_NAMESPACE, codeNamespace);
         }
-        String httpRoute = (String) httpServletRequest.getAttribute(HTTP_ROUTE_MDC_KEY);
+        String httpRoute = (String) httpServletRequest.getAttribute(HTTP_ROUTE);
         if (httpRoute != null) {
           span.setAttribute(SemanticAttributes.HTTP_ROUTE, httpRoute);
         }

@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Optional;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -16,13 +17,15 @@ import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.server.ExtendedUriInfo;
 import org.glassfish.jersey.uri.UriTemplate;
 import org.springframework.util.ClassUtils;
+import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
+import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
+import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import ru.hh.nab.common.mdc.MDC;
-import static ru.hh.nab.common.mdc.MDC.CODE_FUNCTION_MDC_KEY;
-import static ru.hh.nab.common.mdc.MDC.CODE_NAMESPACE_MDC_KEY;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
-import static ru.hh.nab.common.mdc.MDC.HTTP_ROUTE_MDC_KEY;
+import ru.hh.nab.starter.jersey.NabPriorities;
 
-public class ResourceInformationLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
+@Priority(NabPriorities.OBSERVABILITY)
+public class ResourceInformationFilter implements ContainerRequestFilter, ContainerResponseFilter {
   private static final String SLASH = "/";
   @Inject
   private ResourceInfo resourceInfo;
@@ -34,9 +37,9 @@ public class ResourceInformationLoggingFilter implements ContainerRequestFilter,
     String controller = controllerClass.getSimpleName() + '#' + resourceMethodName;
 
     requestContext.setProperty(CONTROLLER_MDC_KEY, controller);
-    requestContext.setProperty(CODE_FUNCTION_MDC_KEY, resourceMethodName);
-    requestContext.setProperty(CODE_NAMESPACE_MDC_KEY, controllerClass.getCanonicalName());
-    getHttpRoute(requestContext.getUriInfo()).ifPresent(route -> requestContext.setProperty(HTTP_ROUTE_MDC_KEY, route));
+    requestContext.setProperty(CODE_FUNCTION, resourceMethodName);
+    requestContext.setProperty(CODE_NAMESPACE, controllerClass.getCanonicalName());
+    getHttpRoute(requestContext.getUriInfo()).ifPresent(route -> requestContext.setProperty(HTTP_ROUTE, route));
 
     MDC.setController(controller);
   }

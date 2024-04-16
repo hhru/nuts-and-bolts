@@ -4,7 +4,6 @@ import static java.util.Optional.ofNullable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Priorities;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import ru.hh.errors.common.Errors;
+import ru.hh.nab.starter.jersey.NabPriorities;
 
 /**
  * This exception mapper solves several tasks:
@@ -20,7 +20,12 @@ import ru.hh.errors.common.Errors;
  * {@link ExceptionSerializer} beans must be present in application context.
  */
 public abstract class NabExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
-  public static final int LOW_PRIORITY = Priorities.USER + 1;
+
+  /**
+   * @deprecated Use {@link NabPriorities#LOW_PRIORITY}
+   */
+  @Deprecated(forRemoval = true)
+  public static final int LOW_PRIORITY = NabPriorities.LOW_PRIORITY;
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(NabExceptionMapper.class);
 

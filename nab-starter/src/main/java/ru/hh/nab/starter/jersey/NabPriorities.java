@@ -1,10 +1,11 @@
 package ru.hh.nab.starter.jersey;
 
-import javax.ws.rs.Priorities;
+
+import jakarta.ws.rs.Priorities;
 
 /**
  * Nab-specific priority constants
- * Extend {@link javax.ws.rs.Priorities} with custom priority levels
+ * Extend {@link jakarta.ws.rs.Priorities} with custom priority levels
  */
 public class NabPriorities  {
 

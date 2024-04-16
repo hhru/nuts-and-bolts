@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
-import jakarta.ws.rs.ext.Provider;
 import java.sql.SQLTransientConnectionException;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
@@ -14,9 +13,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import ru.hh.errors.common.Errors;
-import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
+import static ru.hh.nab.starter.jersey.NabPriorities.LOW_PRIORITY;
 
-@Provider
 @Priority(LOW_PRIORITY)
 @APIResponse(
     responseCode = "500",

@@ -4,7 +4,6 @@ import jakarta.annotation.Priority;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.Provider;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -13,9 +12,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import ru.hh.errors.common.Errors;
 import static ru.hh.jclient.common.HttpStatuses.BAD_GATEWAY;
 import static ru.hh.jclient.common.HttpStatuses.INTERNAL_SERVER_ERROR;
-import static ru.hh.nab.starter.exceptions.NabExceptionMapper.LOW_PRIORITY;
+import static ru.hh.nab.starter.jersey.NabPriorities.LOW_PRIORITY;
 
-@Provider
 @Priority(LOW_PRIORITY)
 @APIResponses(
     {

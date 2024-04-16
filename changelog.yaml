@@ -1,3 +1,12 @@
+-   name: 4.51.0
+    date: '2024-04-16T13:25:44.587427+03:00'
+    description: 'Фильтр ResourceInformationLoggingFilter переименован в ResourceInformationFilter.
+        Для ResourceInformationFilter изменен приоритет: гарантированно будет вызываться
+        раньше других Jax-Rs фильтров. Добавлен класс NabPriorities. NabExceptionMapper.LOW_PRIORITY
+        помечен deprecated'
+    instructions: NabExceptionMapper.LOW_PRIORITY помечен deprecated. Используй NabPriorities.LOW_PRIORITY
+    compatible: false
+
 -   name: 4.50.1
     date: '2024-04-02T10:25:33.631390+03:00'
     description: "* Kafka tests are now compatible with ARM\r\n* Upgraded kafka-test-utils\

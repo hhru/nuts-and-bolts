@@ -19,9 +19,11 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final AtomicLong processingId = new AtomicLong(0);
   private final ConsumerGroupId consumerGroupId;
 
-  public MonitoringConsumeStrategy(StatsDSender statsDSender,
-                                   ConsumerGroupId consumerGroupId,
-                                   ConsumeStrategy<T> consumeStrategy) {
+  public MonitoringConsumeStrategy(
+      StatsDSender statsDSender,
+      ConsumerGroupId consumerGroupId,
+      ConsumeStrategy<T> consumeStrategy
+  ) {
     this.consumerGroupId = consumerGroupId;
     this.timings = buildTimings(statsDSender, consumerGroupId);
     this.consumeStrategy = consumeStrategy;

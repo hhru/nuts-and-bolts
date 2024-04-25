@@ -15,8 +15,7 @@ public class KafkaInternalTopicAck<T> implements Ack<T> {
   private final KafkaConsumer<T> kafkaConsumer;
   private final Consumer<?, ?> consumer;
 
-  public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer,
-                               Consumer<?, ?> consumer) {
+  public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer, Consumer<?, ?> consumer) {
     this.kafkaConsumer = kafkaConsumer;
     this.consumer = consumer;
   }

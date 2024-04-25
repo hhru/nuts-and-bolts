@@ -62,8 +62,9 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   }
 
   @Override
-  protected <T> ConsumeStrategy<T> prepare(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
     return new TelemetryConsumeStrategyWrapper<>(
-        configProvider.getKafkaClusterName(), super.prepare(consumerGroupId, consumeStrategy), consumerGroupId, telemetry);
+        configProvider.getKafkaClusterName(), super.interceptConsumeStrategy(consumerGroupId, consumeStrategy), consumerGroupId, telemetry
+    );
   }
 }

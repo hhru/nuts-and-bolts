@@ -2,18 +2,12 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.AbstractMessageListenerContainer;
-import org.springframework.kafka.listener.BatchConsumerAwareMessageListener;
-import org.springframework.kafka.listener.CommonErrorHandler;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.lang.Nullable;
@@ -26,7 +20,6 @@ import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MAX_INTERVAL_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_MULTIPLIER_NAME;
-import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
@@ -40,7 +33,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private final DeserializerSupplier deserializerSupplier;
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
-  private Supplier<String> bootstrapServersSupplier;
+  private final Supplier<String> bootstrapServersSupplier;
 
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
@@ -48,10 +41,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       StatsDSender statsDSender,
       Logger logger
   ) {
-    this.configProvider = configProvider;
-    this.deserializerSupplier = deserializerSupplier;
-    this.statsDSender = statsDSender;
-    this.factoryLogger = logger;
+    this(configProvider, deserializerSupplier, statsDSender, logger, null);
   }
 
   public DefaultConsumerFactory(
@@ -59,12 +49,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       DeserializerSupplier deserializerSupplier,
       StatsDSender statsDSender
   ) {
-    this(
-        configProvider,
-        deserializerSupplier,
-        statsDSender,
-        LoggerFactory.getLogger(DefaultConsumerFactory.class)
-    );
+    this(configProvider, deserializerSupplier, statsDSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), null);
   }
 
   public DefaultConsumerFactory(
@@ -73,13 +58,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       StatsDSender statsDSender,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
-    this(
-        configProvider,
-        deserializerSupplier,
-        statsDSender,
-        LoggerFactory.getLogger(DefaultConsumerFactory.class),
-        bootstrapServersSupplier
-    );
+    this(configProvider, deserializerSupplier, statsDSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), bootstrapServersSupplier);
   }
 
   public DefaultConsumerFactory(
@@ -89,19 +68,19 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       Logger logger,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
-    this(configProvider, deserializerSupplier, statsDSender, logger);
+    this.configProvider = configProvider;
+    this.deserializerSupplier = deserializerSupplier;
+    this.statsDSender = statsDSender;
+    this.factoryLogger = logger;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
-
   }
 
   @Override
-  public <T> KafkaConsumer<T> subscribe(
-      String topicName,
-      String operationName,
-      Class<T> messageClass,
-      ConsumeStrategy<T> consumeStrategy
-  ) {
-    return subscribe(topicName, operationName, messageClass, consumeStrategy, this.factoryLogger);
+  public <T> KafkaConsumer<T> subscribe(String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy) {
+    return subscribe(topicName, messageClass)
+        .withOperationName(operationName)
+        .withConsumeStrategy(consumeStrategy)
+        .start();
   }
 
   @Override
@@ -112,57 +91,37 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       ConsumeStrategy<T> consumeStrategy,
       Logger logger
   ) {
-    return subscribe(UUID.randomUUID().toString(), topicName, operationName, messageClass, consumeStrategy, this.factoryLogger);
+    return subscribe(topicName, messageClass)
+        .withLogger(logger)
+        .withOperationName(operationName)
+        .withConsumeStrategy(consumeStrategy)
+        .start();
   }
 
   @Override
   public <T> KafkaConsumer<T> subscribe(
-      String clientId,
-      String topicName,
-      String operationName,
-      Class<T> messageClass,
-      ConsumeStrategy<T> consumeStrategy,
-      Logger logger
+      String clientId, String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy, Logger logger
   ) {
-    ConsumerFactory<String, T> consumerFactory = getSpringConsumerFactory(topicName, messageClass);
-    ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
-
-    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (kafkaConsumer) -> {
-      ContainerProperties containerProperties = getSpringConsumerContainerProperties(
-          clientId,
-          consumerGroupId,
-          (BatchConsumerAwareMessageListener<String, T>) kafkaConsumer::onMessagesBatch,
-          topicName
-      );
-      SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = getCommonErrorHandler(topicName, kafkaConsumer, logger);
-      return getSpringMessageListenerContainer(consumerFactory, containerProperties, errorHandler, configProvider, topicName);
-    };
-
-    KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(prepare(consumerGroupId, consumeStrategy), springContainerProvider);
-
-    kafkaConsumer.start();
-    logger.info("Subscribed for {}, consumer group id {}", topicName, consumerGroupId);
-    return kafkaConsumer;
+    return subscribe(topicName, messageClass)
+        .withLogger(logger)
+        .withOperationName(operationName)
+        .withConsumeStrategy(consumeStrategy)
+        .withClientId(clientId)
+        .start();
   }
 
-  protected <T> ConsumeStrategy<T> prepare(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+  @Override
+  public <T> ConsumerBuilder<T> subscribe(String topicName, Class<T> messageClass) {
+    return new DefaultConsumerBuilder<>(this, topicName, messageClass)
+        .withLogger(factoryLogger);
+  }
+
+
+  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
   }
 
-  public <T> ConcurrentMessageListenerContainer<String, T> getSpringMessageListenerContainer(
-      ConsumerFactory<String, T> consumerFactory,
-      ContainerProperties containerProperties,
-      CommonErrorHandler errorHandler,
-      ConfigProvider configProvider,
-      String topicName
-  ) {
-    var container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
-    container.setCommonErrorHandler(errorHandler);
-    container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
-    return container;
-  }
-
-  private <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
+  <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
     FileSettings settings = configProvider.getNabConsumerSettings(topicName);
     ExponentialBackOff backOff = new ExponentialBackOff(
         settings.getLong(BACKOFF_INITIAL_INTERVAL_NAME, DEFAULT_BACKOFF_INITIAL_INTERVAL),
@@ -172,7 +131,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer);
   }
 
-  private <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {
+  <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {
     Map<String, Object> consumerConfig = configProvider.getConsumerConfig(topicName);
     consumerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
 
@@ -185,7 +144,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     );
   }
 
-  private ContainerProperties getSpringConsumerContainerProperties(
+  ContainerProperties getSpringConsumerContainerProperties(
       String clientId,
       ConsumerGroupId consumerGroupId,
       GenericMessageListener<?> messageListener,
@@ -198,8 +157,13 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
-    containerProperties.setAuthorizationExceptionRetryInterval(
-        Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS)));
+    containerProperties.setAuthExceptionRetryInterval(
+        Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS))
+    );
     return containerProperties;
+  }
+
+  public ConfigProvider getConfigProvider() {
+    return configProvider;
   }
 }

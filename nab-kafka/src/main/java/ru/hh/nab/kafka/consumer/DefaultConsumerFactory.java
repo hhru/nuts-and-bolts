@@ -77,7 +77,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
 
   @Override
   public <T> KafkaConsumer<T> subscribe(String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy) {
-    return subscribe(topicName, messageClass)
+    return builder(topicName, messageClass)
         .withOperationName(operationName)
         .withConsumeStrategy(consumeStrategy)
         .start();
@@ -91,7 +91,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
       ConsumeStrategy<T> consumeStrategy,
       Logger logger
   ) {
-    return subscribe(topicName, messageClass)
+    return builder(topicName, messageClass)
         .withLogger(logger)
         .withOperationName(operationName)
         .withConsumeStrategy(consumeStrategy)
@@ -102,7 +102,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   public <T> KafkaConsumer<T> subscribe(
       String clientId, String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy, Logger logger
   ) {
-    return subscribe(topicName, messageClass)
+    return builder(topicName, messageClass)
         .withLogger(logger)
         .withOperationName(operationName)
         .withConsumeStrategy(consumeStrategy)
@@ -111,7 +111,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   @Override
-  public <T> ConsumerBuilder<T> subscribe(String topicName, Class<T> messageClass) {
+  public <T> ConsumerBuilder<T> builder(String topicName, Class<T> messageClass) {
     return new DefaultConsumerBuilder<>(this, topicName, messageClass)
         .withLogger(factoryLogger);
   }

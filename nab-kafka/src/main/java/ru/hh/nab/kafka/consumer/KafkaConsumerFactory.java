@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 public interface KafkaConsumerFactory {
 
   /**
-   * @deprecated Use {@link KafkaConsumerFactory#subscribe(String, Class) instead}
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
    */
   @Deprecated
   <T> KafkaConsumer<T> subscribe(
@@ -17,7 +17,7 @@ public interface KafkaConsumerFactory {
 
 
   /**
-   * @deprecated Use {@link KafkaConsumerFactory#subscribe(String, Class) instead}
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
    */
   @Deprecated
   <T> KafkaConsumer<T> subscribe(
@@ -29,7 +29,7 @@ public interface KafkaConsumerFactory {
   );
 
   /**
-   * @deprecated Use {@link KafkaConsumerFactory#subscribe(String, Class) instead}
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
    */
   @Deprecated
   <T> KafkaConsumer<T> subscribe(
@@ -41,6 +41,6 @@ public interface KafkaConsumerFactory {
       Logger logger
   );
 
-  <T> ConsumerBuilder<T> subscribe(String topicName, Class<T> messageClass);
+  <T> ConsumerBuilder<T> builder(String topicName, Class<T> messageClass);
 
 }

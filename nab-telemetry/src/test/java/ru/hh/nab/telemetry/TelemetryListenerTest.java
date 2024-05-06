@@ -1,7 +1,9 @@
 package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.internal.InternalAttributeKeyImpl;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -22,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +100,8 @@ public class TelemetryListenerTest {
     assertEquals("GET " + TelemetryListenerImpl.getNetloc(Uri.create(url)), span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
     assertEquals(url, attributes.get(SemanticAttributes.HTTP_URL));
+    assertNull(attributes.get(InternalAttributeKeyImpl.create("http.request.cloud.region", AttributeType.STRING)));
+    assertEquals("localhost", attributes.get(InternalAttributeKeyImpl.create("destination.address", AttributeType.STRING)));
   }
 
   @Test

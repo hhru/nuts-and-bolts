@@ -1,3 +1,9 @@
+-   name: 4.51.1
+    date: '2024-05-06T12:44:26.515971+03:00'
+    description: "- add dest host for telemetry\r\n- jclient 3.12.15"
+    instructions: ''
+    compatible: true
+
 -   name: 4.51.0
     date: '2024-04-16T13:25:44.587427+03:00'
     description: 'Фильтр ResourceInformationLoggingFilter переименован в ResourceInformationFilter.
@@ -76,11 +82,14 @@
     description: "В телеметрийные спаны добавлены новые атрибуты.\r\nhttp.route -\
         \ содержит uri template запроса, обрабатываемого сервером.\r\nuser_agent.original\
         \ - содержит значение заголовока User-Agent"
-    instructions: Если в вашем сервисе есть специфичные Jax-Rs фильтры, прерывающие
-        запрос, то для гарантированного вычисления указанных атрибутов необходимо
-        убедиться, что они вызываются после ResourceInformationLoggingFilter. Порядок
-        вызова определяется аннотацией @Priority. По умолчанию для пользовательских
-        фильтров используется Priorities.USER
+    instructions: Если в вашем сервисе есть специфичные Jax-Rs фильтры(реализуют интерфейс
+        javax.ws.rs.container.ContainerRequestFilter), прерывающие запрос, то для
+        гарантированного вычисления указанных атрибутов необходимо убедиться, что
+        они вызываются после ResourceInformationLoggingFilter. Порядок вызова определяется
+        аннотацией @Priority. Значение должно быть больше 500. По умолчанию для пользовательских
+        фильтров используется Priorities.USER=5000 Если же в вашем сервисе есть специфичные
+        servlet фильтры(реализуют интерфейс javax.servlet.Filter), прерывающие запрос
+        - их требуется переписать на Jax-Rs
     compatible: false
 
 -   name: 4.45.1

@@ -11,6 +11,8 @@ import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_STATUS_CODE;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import ru.hh.jclient.common.exception.ResponseConverterException;
 
 public class TelemetryListenerImpl implements RequestDebug {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
+  private static final String UNKNOWN = "unknown";
 
   private final Tracer tracer;
   private final TelemetryPropagator telemetryPropagator;
@@ -48,7 +51,7 @@ public class TelemetryListenerImpl implements RequestDebug {
       return;
     }
 
-    String host = context.upstreamName == null ? getNetloc(request.getUri()) : context.upstreamName;
+    String host = context.getUpstreamName() == null ? getNetloc(request.getUri()) : context.getUpstreamName();
     SpanBuilder builder = tracer
         .spanBuilder(request.getMethod() + " " + host)
         .setParent(Context.current())
@@ -58,9 +61,10 @@ public class TelemetryListenerImpl implements RequestDebug {
         .setAttribute("http.request.timeout", request.getRequestTimeout())
         .setAttribute(PEER_SERVICE, host);
 
-    if (context.datacenter != null) {
-      builder.setAttribute("http.request.cloud.region", context.datacenter);
-    }
+
+    builder.setAttribute("http.request.cloud.region", context.getDestinationDatacenter());
+    String destHost = context.getDestinationHost() == null ? getHostFromUri(request.getUri()) : context.getDestinationHost();
+    builder.setAttribute("destination.address", destHost);
 
     span = builder.startSpan();
     LOGGER.trace("span started : {}", span);
@@ -117,5 +121,17 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   @Override
   public void onProcessingFinished() {
+  }
+
+  private String getHostFromUri(Uri uri) {
+    String host = uri.getHost();
+    if (host == null || host.isBlank()) {
+      return UNKNOWN;
+    }
+    try {
+      return InetAddress.getByName(host).getHostName();
+    } catch (UnknownHostException e) {
+      return UNKNOWN;
+    }
   }
 }

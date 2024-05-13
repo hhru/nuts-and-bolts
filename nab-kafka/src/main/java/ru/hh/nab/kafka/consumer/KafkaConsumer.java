@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
@@ -20,6 +21,8 @@ public class KafkaConsumer<T> {
 
   private final AbstractMessageListenerContainer<String, T> springKafkaContainer;
 
+  private final BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
+
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
   private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> seekedOffsets = new InheritableThreadLocal<>();
   private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>() {
@@ -31,10 +34,14 @@ public class KafkaConsumer<T> {
 
   private final ConsumeStrategy<T> consumeStrategy;
 
-  public KafkaConsumer(ConsumeStrategy<T> consumeStrategy,
-                       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider) {
+  public KafkaConsumer(
+      ConsumeStrategy<T> consumeStrategy,
+      Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
+      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider
+  ) {
     this.consumeStrategy = consumeStrategy;
     this.springKafkaContainer = springContainerProvider.apply(this);
+    this.ackProvider = ackProvider;
   }
 
   public void start() {
@@ -70,7 +77,7 @@ public class KafkaConsumer<T> {
     wholeBatchCommited.set(false);
     currentBatch.set(messages);
 
-    Ack<T> ack = new KafkaInternalTopicAck<>(this, consumer);
+    Ack<T> ack = ackProvider.apply(this, consumer);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }

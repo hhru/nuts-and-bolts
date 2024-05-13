@@ -13,13 +13,6 @@ class FailFastDefaultKafkaConsumerFactory<K, V> extends DefaultKafkaConsumerFact
 
   private final String topicName;
 
-  public FailFastDefaultKafkaConsumerFactory(String topicName,
-                                             Map<String, Object> configs,
-                                             Deserializer<K> keyDeserializer,
-                                             Deserializer<V> valueDeserializer) {
-    super(configs, keyDeserializer, valueDeserializer);
-    this.topicName = topicName;
-  }
 
   public FailFastDefaultKafkaConsumerFactory(
       String topicName,
@@ -28,7 +21,8 @@ class FailFastDefaultKafkaConsumerFactory<K, V> extends DefaultKafkaConsumerFact
       Deserializer<V> valueDeserializer,
       Supplier<String> bootstrapServersSupplier
   ) {
-    this(topicName, configs, keyDeserializer, valueDeserializer);
+    super(configs, keyDeserializer, valueDeserializer);
+    this.topicName = topicName;
     this.setBootstrapServersSupplier(bootstrapServersSupplier);
   }
 

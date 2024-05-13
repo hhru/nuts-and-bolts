@@ -1,3 +1,18 @@
+-   name: 4.52.0
+    date: '2024-05-13T11:43:34.386313+03:00'
+    description: "Добавлен новый интерфейс ru.hh.nab.kafka.consumer.ConsumerBuilder\
+        \ и его реализация DefaultConsumerBuilder. Они предназначены для возможности\
+        \ гибкого конфигурирования и старта kafka-consumer внутри сервиса.\r\n\r\n\
+        В интерфейс ru.hh.nab.kafka.consumer.KafkaConsumerFactory добавлен метод builder,\
+        \ возвращающий новый интерфейс ru.hh.nab.kafka.consumer.ConsumerBuilder.\r\
+        \n\r\nМетоды ru.hh.nab.kafka.consumer.KafkaConsumerFactory#subscribe задепрекейчены\
+        \ (вместо них следует использовать метод ru.hh.nab.kafka.consumer.KafkaConsumerFactory#builder)"
+    instructions: 'При наличии в сервисе kafka-консумеров и использовании nab-kafka:
+        методы ru.hh.nab.kafka.consumer.KafkaConsumerFactory#subscribe задепрекейчены,
+        вместо них следует использовать последовательный вызов методов ru.hh.nab.kafka.consumer.KafkaConsumerFactory#builder
+        и ru.hh.nab.kafka.consumer.ConsumerBuilder#start.'
+    compatible: false
+
 -   name: 4.51.1
     date: '2024-05-06T12:44:26.515971+03:00'
     description: "- add dest host for telemetry\r\n- jclient 3.12.15"

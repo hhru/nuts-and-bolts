@@ -15,16 +15,16 @@ public abstract class SimpleKafkaConsumer<M> implements MessageProcessor<M>, Clo
   protected final KafkaConsumer<M> kafkaConsumer;
 
   protected SimpleKafkaConsumer(
-      KafkaConsumerFactory kafkaConsumerFactory, 
-      String topic, 
+      KafkaConsumerFactory kafkaConsumerFactory,
+      String topic,
       String operationName,
       Class<M> messageClass) {
     this(kafkaConsumerFactory, topic, operationName, ConsumeStrategy::atLeastOnceWithBatchAck, messageClass);
   }
 
   protected SimpleKafkaConsumer(
-      KafkaConsumerFactory kafkaConsumerFactory, 
-      String topic, 
+      KafkaConsumerFactory kafkaConsumerFactory,
+      String topic,
       String operationName,
       Function<MessageProcessor<M>, ConsumeStrategy<M>> consumeStrategyCreator,
       Class<M> messageClass) {
@@ -49,7 +49,12 @@ public abstract class SimpleKafkaConsumer<M> implements MessageProcessor<M>, Clo
     }
 
     this.logger = logger;
-    this.kafkaConsumer = consumerFactory.subscribe(topic, operationName, messageClass, consumeStrategyCreator.apply(this), this.logger);
+    this.kafkaConsumer = consumerFactory
+        .builder(topic, messageClass)
+        .withLogger(this.logger)
+        .withOperationName(operationName)
+        .withConsumeStrategy(consumeStrategyCreator.apply(this))
+        .start();
   }
 
   @Override

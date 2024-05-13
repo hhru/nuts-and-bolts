@@ -4,22 +4,43 @@ import org.slf4j.Logger;
 
 public interface KafkaConsumerFactory {
 
-  <T> KafkaConsumer<T> subscribe(String topicName,
-                                 String operationName,
-                                 Class<T> messageClass,
-                                 ConsumeStrategy<T> messageConsumer);
+  /**
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
+   */
+  @Deprecated
+  <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy
+  );
 
-  <T> KafkaConsumer<T> subscribe(String topicName,
-                                 String operationName,
-                                 Class<T> messageClass,
-                                 ConsumeStrategy<T> messageConsumer,
-                                 Logger logger);
 
-  <T> KafkaConsumer<T> subscribe(String clientId,
-                                 String topicName,
-                                 String operationName,
-                                 Class<T> messageClass,
-                                 ConsumeStrategy<T> messageConsumer,
-                                 Logger logger);
+  /**
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
+   */
+  @Deprecated
+  <T> KafkaConsumer<T> subscribe(
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger
+  );
+
+  /**
+   * @deprecated Use {@link KafkaConsumerFactory#builder(String, Class) instead}
+   */
+  @Deprecated
+  <T> KafkaConsumer<T> subscribe(
+      String clientId,
+      String topicName,
+      String operationName,
+      Class<T> messageClass,
+      ConsumeStrategy<T> consumeStrategy,
+      Logger logger
+  );
+
+  <T> ConsumerBuilder<T> builder(String topicName, Class<T> messageClass);
 
 }

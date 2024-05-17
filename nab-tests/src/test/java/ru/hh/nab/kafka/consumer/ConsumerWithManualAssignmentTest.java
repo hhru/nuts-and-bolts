@@ -1,0 +1,248 @@
+package ru.hh.nab.kafka.consumer;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.springframework.kafka.support.TopicPartitionOffset;
+
+public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
+  private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
+
+  private List<KafkaConsumer<?>> startedConsumers = new ArrayList<>();
+
+  @AfterEach()
+  void tearDown() {
+    startedConsumers.forEach(KafkaConsumer::stop);
+    startedConsumers = new ArrayList<>();
+  }
+
+  @Test
+  public void testConsumeAllMessagesFromTheBeginning() {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer);
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testConsumeAllMessagesFromEnd() throws InterruptedException {
+    List<String> processedMessages = new ArrayList<>();
+    putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.END)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer);
+    Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(35, processedMessages.size()));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testParallelProcessingByTwoConsumers() throws InterruptedException {
+    Set<String> processedMessages1 = new LinkedHashSet<>();
+    Set<String> processedMessages2 = new LinkedHashSet<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer1 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages1.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer1);
+
+    KafkaConsumer<String> consumer2 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.END)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages2.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer2);
+    Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(40 + 35, processedMessages1.size()));
+    waitUntil(() -> assertEquals(35, processedMessages2.size()));
+
+    assertThat(processedMessages1, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages1, hasItems(secondMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages2, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testHandleErrorBeforeCommit() {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer);
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testDoSeekAfterEachMessage() {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) ->
+            messages.forEach(m -> {
+              processedMessages.add(m.value());
+              ack.seek(m);
+            })
+        )
+        .start();
+    startedConsumers.add(consumer);
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testDoAcknowledgeAfterEachMessage() {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(40);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) ->
+            messages.forEach(m -> {
+              processedMessages.add(m.value());
+              ack.acknowledge(m);
+            }))
+        .start();
+    startedConsumers.add(consumer);
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(35);
+    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testDoAcknowledgeOnMessagesBatch() {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(77);
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages.add(m.value()));
+          ack.acknowledge(messages);
+        })
+        .start();
+    startedConsumers.add(consumer);
+
+    List<String> secondMessagesBatch = putMessagesIntoKafka(30);
+    waitUntil(() -> assertEquals(77 + 30, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+    assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
+  }
+
+  @Test
+  public void testReprocessingMessagesAfterError() throws InterruptedException {
+    List<String> processedMessages = new ArrayList<>();
+    List<String> firstMessagesBatch = putMessagesIntoKafka(100);
+
+    CountDownLatch errorOccuredLatch = new CountDownLatch(1);
+    int messagesToProcessBeforeError = 10;
+
+    KafkaConsumer<String> consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING)
+        .withConsumeStrategy((messages, ack) -> {
+          for (int i = 0; i < messages.size(); i++) {
+            processedMessages.add(messages.get(i).value());
+            if (i == (messagesToProcessBeforeError - 1) && errorOccuredLatch.getCount() == 1) {
+              errorOccuredLatch.countDown();
+              throw new RuntimeException("Error on processing");
+            }
+          }
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer);
+    assertTrue(errorOccuredLatch.await(3, TimeUnit.SECONDS));
+
+    waitUntil(() -> assertEquals(100 + messagesToProcessBeforeError, processedMessages.size()));
+    assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
+  }
+
+
+  private List<String> putMessagesIntoKafka(int count) {
+    List<String> messages = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      String body = "body" + ID_SEQUENCE.incrementAndGet();
+      kafkaTestUtils.sendMessage(topicName, body);
+      messages.add(body);
+    }
+    return messages;
+  }
+
+  private void waitUntil(Runnable assertion) {
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(assertion::run);
+  }
+
+}

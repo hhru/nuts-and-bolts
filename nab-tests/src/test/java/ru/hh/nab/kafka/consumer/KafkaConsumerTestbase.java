@@ -20,7 +20,7 @@ public abstract class KafkaConsumerTestbase {
   protected TestKafkaWithJsonMessages kafkaTestUtils;
 
   @Inject
-  private KafkaConsumerFactory consumerFactory;
+  protected KafkaConsumerFactory consumerFactory;
 
   protected String topicName;
 

@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.util.function.BiFunction;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.slf4j.Logger;
+import org.springframework.kafka.support.TopicPartitionOffset;
 
 public interface ConsumerBuilder<T> {
 
@@ -16,7 +17,9 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withAckProvider(BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider);
 
-  ConsumerBuilder<T> withUseConsumerGroup(boolean useConsumerGroup);
+  ConsumerBuilder<T> withConsumerGroup();
+
+  ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition);
 
   KafkaConsumer<T> start();
 }

@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -11,8 +12,15 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchConsumerAwareMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.GenericMessageListener;
+import org.springframework.kafka.support.TopicPartitionOffset;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
+import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
 
 public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
@@ -21,7 +29,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private final DefaultConsumerFactory consumerFactory;
   private String operationName;
   private String clientId;
-  private boolean useConsumerGroup = true; // FALSE value not supported now
+  private boolean useConsumerGroup;
+  private TopicPartitionOffset.SeekPosition seekPositionIfNoConsumerGroup;
+
   private ConsumeStrategy<T> consumeStrategy;
   private Logger logger;
   private BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
@@ -30,8 +40,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.topicName = topicName;
     this.messageClass = messageClass;
     this.consumerFactory = consumerFactory;
-
-    withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer));
+    withConsumerGroup();
   }
 
   @Override
@@ -59,8 +68,17 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withUseConsumerGroup(boolean useConsumerGroup) {
-    this.useConsumerGroup = useConsumerGroup;
+  public ConsumerBuilder<T> withConsumerGroup() {
+    this.useConsumerGroup = true;
+    withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer));
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition) {
+    this.useConsumerGroup = false;
+    this.seekPositionIfNoConsumerGroup = seekPosition;
+    withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new InMemorySeekOnlyAck<>(kafkaConsumer));
     return this;
   }
 
@@ -79,11 +97,13 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     ConsumerGroupId consumerGroupId = new ConsumerGroupId(configProvider.getServiceName(), topicName, operationName);
 
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (kafkaConsumer) -> {
-      ContainerProperties containerProperties = consumerFactory.getSpringConsumerContainerProperties(
+      ContainerProperties containerProperties = getContainerProperties(
+          configProvider,
           Optional.ofNullable(clientId).orElseGet(() -> UUID.randomUUID().toString()),
           consumerGroupId,
           (BatchConsumerAwareMessageListener<String, T>) kafkaConsumer::onMessagesBatch,
-          topicName
+          topicName,
+          springConsumerFactory
       );
       SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(topicName, kafkaConsumer, logger);
 
@@ -101,6 +121,83 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     kafkaConsumer.start();
     logger.info("Subscribed for {}, consumer group id {}", topicName, consumerGroupId);
     return kafkaConsumer;
+  }
+
+  private ContainerProperties getContainerProperties(
+      ConfigProvider configProvider,
+      String clientId,
+      ConsumerGroupId consumerGroupId,
+      GenericMessageListener<?> messageListener,
+      String topicName,
+      ConsumerFactory<String, T> springConsumerFactory
+  ) {
+    if (useConsumerGroup) {
+      return getSpringConsumerContainerPropertiesWithConsumerGroup(
+          configProvider,
+          clientId,
+          consumerGroupId,
+          messageListener,
+          topicName
+      );
+    }
+    return getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
+        configProvider,
+        clientId,
+        consumerGroupId,
+        messageListener,
+        topicName,
+        springConsumerFactory
+    );
+
+  }
+
+  private ContainerProperties getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
+      ConfigProvider configProvider,
+      String clientId,
+      ConsumerGroupId consumerGroupId,
+      GenericMessageListener<?> messageListener,
+      String topicName,
+      ConsumerFactory<String, T> springConsumerFactory
+  ) {
+    TopicPartitionOffset[] partitions;
+    try (Consumer<String, T> consumer = springConsumerFactory.createConsumer()) {
+      partitions = consumer
+          .partitionsFor(topicName)
+          .stream()
+          .map((partition) -> new TopicPartitionOffset(partition.topic(), partition.partition(), this.seekPositionIfNoConsumerGroup))
+          .toArray(TopicPartitionOffset[]::new);
+    }
+
+    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
+    var containerProperties = new ContainerProperties(partitions);
+    addCommonContainerProperties(clientId, messageListener, containerProperties, nabConsumerSettings);
+    return containerProperties;
+  }
+
+  private ContainerProperties getSpringConsumerContainerPropertiesWithConsumerGroup(
+      ConfigProvider configProvider,
+      String clientId,
+      ConsumerGroupId consumerGroupId,
+      GenericMessageListener<?> messageListener,
+      String topicName
+  ) {
+    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
+    var containerProperties = new ContainerProperties(consumerGroupId.getTopic());
+    containerProperties.setGroupId(consumerGroupId.toString());
+    addCommonContainerProperties(clientId, messageListener, containerProperties, nabConsumerSettings);
+    return containerProperties;
+  }
+
+  private static void addCommonContainerProperties(
+      String clientId, GenericMessageListener<?> messageListener, ContainerProperties containerProperties, FileSettings nabConsumerSettings
+  ) {
+    containerProperties.setClientId(clientId);
+    containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+    containerProperties.setMessageListener(messageListener);
+    containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
+    containerProperties.setAuthExceptionRetryInterval(
+        Duration.ofMillis(nabConsumerSettings.getLong(AUTH_EXCEPTION_RETRY_INTERVAL, DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS))
+    );
   }
 
 }

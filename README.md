@@ -42,7 +42,7 @@ update 4.17.10 -> 4.18.0 - should require some additional code
 
 ## Getting started
 [Full example](https://github.com/hhru/nuts-and-bolts/tree/master/nab-example)
-## Dependency mangement policy
+## Dependency management policy
 All crucial dependencies in any NaB module have to be managed with [parent pom dependency management](https://github.com/hhru/nuts-and-bolts/blob/master/pom.xml#L49-L55)
 to be able to provide these versions into app via pom import and guarantee version consistency with NaB required versions
 [How to release a new version](https://github.com/hhru/nuts-and-bolts/wiki/How-to-release-a-new-version)

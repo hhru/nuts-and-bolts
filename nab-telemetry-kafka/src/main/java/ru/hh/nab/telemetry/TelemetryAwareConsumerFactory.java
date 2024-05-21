@@ -4,7 +4,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
-import ru.hh.nab.kafka.consumer.ConsumerGroupId;
+import ru.hh.nab.kafka.consumer.ConsumerDescription;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
 import ru.hh.nab.kafka.consumer.DeserializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
@@ -62,9 +62,9 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   }
 
   @Override
-  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
+  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerDescription consumerDescription, ConsumeStrategy<T> consumeStrategy) {
     return new TelemetryConsumeStrategyWrapper<>(
-        configProvider.getKafkaClusterName(), super.interceptConsumeStrategy(consumerGroupId, consumeStrategy), consumerGroupId, telemetry
+        configProvider.getKafkaClusterName(), super.interceptConsumeStrategy(consumerDescription, consumeStrategy), consumerDescription, telemetry
     );
   }
 }

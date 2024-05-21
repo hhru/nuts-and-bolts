@@ -21,7 +21,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   @Override
   public void acknowledge() {
     consumer.commitSync();
-    kafkaConsumer.setWholeBatchCommited(true);
+    kafkaConsumer.getConsumingState().setWholeBatchCommited(true);
   }
 
   @Override
@@ -29,14 +29,15 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     TopicPartition partition = AckUtils.getMessagePartition(message);
     OffsetAndMetadata offsetOfNextMessageInPartition = AckUtils.getOffsetOfNextMessage(message);
     consumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
-    seek(partition, offsetOfNextMessageInPartition);
+    kafkaConsumer.getConsumingState().seekOffset(partition, offsetOfNextMessageInPartition);
   }
 
   @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
+    ConsumerConsumingState<T> consumingState = kafkaConsumer.getConsumingState();
     Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = AckUtils.getLatestOffsetForEachPartition(messages);
     consumer.commitSync(latestOffsetsForEachPartition);
-    seek(latestOffsetsForEachPartition);
+    latestOffsetsForEachPartition.forEach(consumingState::seekOffset);
   }
 
   @Override
@@ -47,15 +48,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   @Override
   public void seek(ConsumerRecord<String, T> message) {
     TopicPartition partition = AckUtils.getMessagePartition(message);
-    seek(partition, AckUtils.getOffsetOfNextMessage(message));
+    kafkaConsumer.getConsumingState().seekOffset(partition, AckUtils.getOffsetOfNextMessage(message));
   }
 
-
-  private void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
-    kafkaConsumer.getSeekedOffsets().put(topicPartition, offsetAndMetadata);
-  }
-
-  private void seek(Map<TopicPartition, OffsetAndMetadata> offsets) {
-    kafkaConsumer.getSeekedOffsets().putAll(offsets);
-  }
 }

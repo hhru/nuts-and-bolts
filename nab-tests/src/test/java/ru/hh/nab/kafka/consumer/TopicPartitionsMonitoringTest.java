@@ -1,0 +1,39 @@
+package ru.hh.nab.kafka.consumer;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.apache.kafka.common.PartitionInfo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+public class TopicPartitionsMonitoringTest extends KafkaConsumerTestbase {
+
+
+  @Test
+  public void testGetPartitionsCountByClusterMetaInfoProvider() throws InterruptedException, ExecutionException {
+    DefaultConsumerFactory defaultConsumerFactory = (DefaultConsumerFactory) consumerFactory;
+    ClusterMetaInfoProvider clusterMetaInfoProvider = new ClusterMetaInfoProvider(defaultConsumerFactory);
+    TopicPartitionsMonitoring topicPartitionsMonitoring = new TopicPartitionsMonitoring(clusterMetaInfoProvider);
+
+    List<PartitionInfo> initialPartitions = clusterMetaInfoProvider.getPartitionsInfo(topicName);
+    assertEquals(5, initialPartitions.size());
+
+    CountDownLatch latch = new CountDownLatch(1);
+    topicPartitionsMonitoring.trackPartitionsChanges(this, topicName, Duration.ofSeconds(1), initialPartitions, (prev, next) -> {
+      if (prev.size() == 5 && next.size() == 7) {
+        latch.countDown();
+      }
+    });
+    topicPartitionsMonitoring.changeSchedulingInterval(Duration.ofMillis(500));
+    topicPartitionsMonitoring.startScheduling();
+
+    addPartitions(topicName, 7);
+
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+  }
+
+}

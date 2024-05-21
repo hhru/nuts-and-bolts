@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
-public class ConsumerGroupId {
+public class ConsumerDescription {
 
   private final String serviceName;
   private final String topic;
@@ -13,7 +13,7 @@ public class ConsumerGroupId {
 
   private final List<Tag> tags;
 
-  public ConsumerGroupId(String serviceName, String topic, String operation) {
+  public ConsumerDescription(String serviceName, String topic, String operation) {
     this.serviceName = serviceName;
     this.topic = topic;
     this.operation = operation;
@@ -40,12 +40,12 @@ public class ConsumerGroupId {
     return tags;
   }
 
-  @Override
-  public String toString() {
+  public String getConsumerGroupId() {
     return new StringJoiner("__")
         .add(serviceName)
         .add(topic)
         .add(operation)
         .toString();
   }
+
 }

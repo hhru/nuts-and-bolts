@@ -27,6 +27,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
   private final Supplier<String> bootstrapServersSupplier;
+  private final ClusterMetaInfoProvider clusterMetaInfoProvider;
+  private final TopicPartitionsMonitoring topicPartitionsMonitoring;
 
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
@@ -66,6 +68,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     this.statsDSender = statsDSender;
     this.factoryLogger = logger;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
+    this.clusterMetaInfoProvider = new ClusterMetaInfoProvider(this);
+    this.topicPartitionsMonitoring = new TopicPartitionsMonitoring(this.clusterMetaInfoProvider);
   }
 
   @Override
@@ -110,8 +114,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
 
-  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerGroupId consumerGroupId, ConsumeStrategy<T> consumeStrategy) {
-    return new MonitoringConsumeStrategy<>(statsDSender, consumerGroupId, consumeStrategy);
+  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerDescription consumerDescription, ConsumeStrategy<T> consumeStrategy) {
+    return new MonitoringConsumeStrategy<>(statsDSender, consumerDescription, consumeStrategy);
   }
 
   <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
@@ -139,5 +143,13 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
 
   public ConfigProvider getConfigProvider() {
     return configProvider;
+  }
+
+  ClusterMetaInfoProvider getClusterMetaInfoProvider() {
+    return clusterMetaInfoProvider;
+  }
+
+  TopicPartitionsMonitoring getTopicPartitionsMonitoring() {
+    return topicPartitionsMonitoring;
   }
 }

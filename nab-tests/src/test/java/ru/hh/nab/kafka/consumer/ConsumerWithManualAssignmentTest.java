@@ -1,20 +1,27 @@
 package ru.hh.nab.kafka.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
+import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.hasItems;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.TopicPartitionOffset;
+import ru.hh.nab.kafka.KafkaTestConfig;
 
 public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
   private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
@@ -230,6 +237,133 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
   }
 
+  @Test
+  public void testAssignNewPartitionsForTopicProcessedFromBeginning() throws InterruptedException, ExecutionException, JsonProcessingException {
+    List<String> processedMessages1 = new ArrayList<>();
+    List<String> processedMessages2 = new ArrayList<>();
+    putMessagesIntoKafka(40);
+
+
+    KafkaConsumer<String> consumer1 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages1.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer1);
+
+    KafkaConsumer<String> consumer2 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> {
+            processedMessages2.add(m.value());
+            ack.seek(m);
+          });
+        })
+        .start();
+    startedConsumers.add(consumer2);
+
+    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofSeconds(1));
+
+    addPartitions(topicName, 7);
+    for (int i = 0; i < 7; i++) {
+      putMessagesIntoKafka(10, i);
+    }
+
+    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages1.size()));
+    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
+
+    addPartitions(topicName, 9);
+    for (int i = 0; i < 9; i++) {
+      putMessagesIntoKafka(10, i);
+    }
+
+    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size()));
+    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size()));
+  }
+
+  @Test
+  public void testAssignNewPartitionsForTopicProcessedFromEnd() throws InterruptedException, ExecutionException, JsonProcessingException {
+    List<String> processedMessages1 = new ArrayList<>();
+    List<String> processedMessages2 = new ArrayList<>();
+
+    KafkaConsumer<String> consumer1 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages1.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer1);
+
+    KafkaConsumer<String> consumer2 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> {
+            processedMessages2.add(m.value());
+            ack.seek(m);
+          });
+        })
+        .start();
+    startedConsumers.add(consumer2);
+    Thread.sleep(1000);
+    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofSeconds(1));
+
+    putMessagesIntoKafka(40);
+
+    addPartitions(topicName, 7);
+    for (int i = 0; i < 7; i++) {
+      putMessagesIntoKafka(10, i);
+    }
+
+    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages1.size()));
+    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
+
+    addPartitions(topicName, 9);
+    for (int i = 0; i < 9; i++) {
+      putMessagesIntoKafka(10, i);
+    }
+
+    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size()));
+    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size()));
+  }
+
+  @Test
+  public void testAddNewPartitionsDuringProcessing() throws InterruptedException, ExecutionException, JsonProcessingException {
+    List<String> processedMessages1 = new ArrayList<>();
+
+    KafkaConsumer<String> consumer1 = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition.BEGINNING, Duration.ofMillis(500))
+        .withConsumeStrategy((messages, ack) -> {
+          messages.forEach(m -> processedMessages1.add(m.value()));
+          ack.acknowledge();
+        })
+        .start();
+    startedConsumers.add(consumer1);
+    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofMillis(500));
+
+    Executors.newSingleThreadExecutor().submit(() -> {
+      putMessagesIntoKafka(500);
+    });
+    addPartitions(topicName, 6);
+    assertThat(processedMessages1.size(), Matchers.lessThan(500));
+
+    for (int i = 0; i < 6; i++) {
+      putMessagesIntoKafka(10, i);
+    }
+    waitUntil(() -> assertEquals(500 + (10 * 6), processedMessages1.size()));
+  }
 
   private List<String> putMessagesIntoKafka(int count) {
     List<String> messages = new ArrayList<>();
@@ -241,7 +375,18 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     return messages;
   }
 
-  private void waitUntil(Runnable assertion) {
+  private List<String> putMessagesIntoKafka(int count, int partition) throws JsonProcessingException {
+    List<String> messages = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      String body = "body" + ID_SEQUENCE.incrementAndGet();
+      kafkaTestUtils.sendMessage(new ProducerRecord<>(topicName, partition, null, KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(body)));
+      messages.add(body);
+    }
+    return messages;
+
+  }
+
+  protected void waitUntil(Runnable assertion) {
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(assertion::run);
   }
 

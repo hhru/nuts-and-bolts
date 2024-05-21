@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -22,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> {
   private final AtomicBoolean running = new AtomicBoolean(false);
+  private final Lock restartLock = new ReentrantLock();
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
 
   private final ConsumerDescription consumerDescription;
@@ -90,7 +93,8 @@ public class KafkaConsumer<T> {
           checkNewPartitionsInterval,
           this.assignedPartitions,
           (prevPartitions, actualPartitions) -> {
-            synchronized (running) {
+            restartLock.lock();
+            try {
               if (!running.get() || !currentSpringKafkaContainer.isRunning()) {
                 return;
               }
@@ -105,6 +109,8 @@ public class KafkaConsumer<T> {
                 createNewSpringContainer();
                 currentSpringKafkaContainer.start();
               });
+            } finally {
+              restartLock.unlock();
             }
           }
       );
@@ -113,18 +119,24 @@ public class KafkaConsumer<T> {
   }
 
   public void stop(Runnable callback) {
-    synchronized (running) {
+    restartLock.lock();
+    try {
       running.set(false);
       currentSpringKafkaContainer.stop(callback);
       removeAssignedCallbacks();
+    } finally {
+      restartLock.unlock();
     }
   }
 
   public void stop() {
-    synchronized (running) {
+    restartLock.lock();
+    try {
       running.set(false);
       currentSpringKafkaContainer.stop();
       removeAssignedCallbacks();
+    } finally {
+      restartLock.unlock();
     }
   }
 

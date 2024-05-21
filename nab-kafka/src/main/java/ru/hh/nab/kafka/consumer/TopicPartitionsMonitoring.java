@@ -9,12 +9,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.kafka.common.PartitionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TopicPartitionsMonitoring {
-
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopicPartitionsMonitoring.class);
 
@@ -23,6 +24,7 @@ public class TopicPartitionsMonitoring {
   private final ScheduledExecutorService executor;
   private ScheduledFuture<?> scheduledFuture;
   private Duration schedulingInterval;
+  private final Lock executionLock = new ReentrantLock();
 
   public TopicPartitionsMonitoring(ClusterMetaInfoProvider clusterMetaInfoProvider) {
     this(clusterMetaInfoProvider, Executors.newSingleThreadScheduledExecutor());
@@ -34,21 +36,25 @@ public class TopicPartitionsMonitoring {
     this.clusterMetaInfoProvider = clusterMetaInfoProvider;
     this.partitionsChangesCallbacks = new ConcurrentHashMap<>();
     this.executor = executor;
-    schedulingInterval = Duration.ofMinutes(1);
+    this.schedulingInterval = Duration.ofMinutes(1);
     this.scheduledFuture = null;
   }
 
-  public synchronized void startScheduling() {
-    if (scheduledFuture != null) {
-      return;
+  public void startScheduling() {
+    executionLock.lock();
+    try {
+      if (scheduledFuture != null) {
+        return;
+      }
+      scheduledFuture = executor.scheduleAtFixedRate(
+          this::tryRunCallbacks,
+          schedulingInterval.toMillis(),
+          schedulingInterval.toMillis(),
+          TimeUnit.MILLISECONDS
+      );
+    } finally {
+      executionLock.unlock();
     }
-
-    scheduledFuture = executor.scheduleAtFixedRate(
-        this::tryRunCallbacks,
-        schedulingInterval.toMillis(),
-        schedulingInterval.toMillis(),
-        TimeUnit.MILLISECONDS
-    );
   }
 
   public void changeSchedulingInterval(Duration period) {
@@ -60,7 +66,8 @@ public class TopicPartitionsMonitoring {
   }
 
   private void tryRunCallbacks() {
-    synchronized (this) {
+    executionLock.lock();
+    try {
       for (CallbackConfiguration callback : partitionsChangesCallbacks.values()) {
         try {
           Instant currentTime = Instant.now();
@@ -80,6 +87,8 @@ public class TopicPartitionsMonitoring {
           LOGGER.error("Error while running callbacks for topic {}", callback.topic, e);
         }
       }
+    } finally {
+      executionLock.unlock();
     }
   }
 

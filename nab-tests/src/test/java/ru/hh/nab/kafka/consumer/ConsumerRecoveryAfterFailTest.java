@@ -323,7 +323,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     assertEquals(expectedCount, new CopyOnWriteArraySet<>(processedMessages).size());
   }
 
-  private void waitUntil(Runnable assertion) throws InterruptedException {
+  protected void waitUntil(Runnable assertion) throws InterruptedException {
     await().atMost(15, TimeUnit.SECONDS).untilAsserted(assertion::run);
     stopConsumer();
   }

@@ -37,7 +37,7 @@ public interface Ack<T> {
    *
    * This method must be executed only within the consumer listener thread otherwise ConcurrentModificationException will be thrown.
    *
-   * @param message - object containing information about topic, partition and offset to use to move offsets
+   * @param messages - collection of objects containing information about topic, partition and offset to use to move offsets
    */
   void acknowledge(Collection<ConsumerRecord<String, T>> messages);
 
@@ -64,4 +64,5 @@ public interface Ack<T> {
    * @param messages - collection of objects containing information about topic, partition and offset to use to move committedOffset
    */
   void commit(Collection<ConsumerRecord<String, T>> messages);
+
 }

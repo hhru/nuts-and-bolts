@@ -1,81 +1,53 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import ru.hh.nab.kafka.util.AckUtils;
 
-public class KafkaInternalTopicAck<T> implements Ack<T> {
+class KafkaInternalTopicAck<T> implements Ack<T> {
 
-  private final KafkaConsumer<T> kafkaConsumer;
-  private final Consumer<?, ?> consumer;
+  private final ConsumerConsumingState<T> consumingState;
+  private final Consumer<?, ?> nativeKafkaConsumer;
 
-  public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer, Consumer<?, ?> consumer) {
-    this.kafkaConsumer = kafkaConsumer;
-    this.consumer = consumer;
+  public KafkaInternalTopicAck(KafkaConsumer<T> kafkaConsumer, Consumer<?, ?> nativeKafkaConsumer) {
+    this.consumingState = kafkaConsumer.getConsumingState();
+    this.nativeKafkaConsumer = nativeKafkaConsumer;
   }
 
   @Override
   public void acknowledge() {
-    consumer.commitSync();
-    kafkaConsumer.setWholeBatchCommited(true);
+    nativeKafkaConsumer.commitSync();
+    consumingState.setWholeBatchCommited(true);
   }
 
   @Override
   public void acknowledge(ConsumerRecord<String, T> message) {
-    TopicPartition partition = getMessagePartition(message);
-    OffsetAndMetadata offsetOfNextMessageInPartition = getOffsetOfNextMessage(message);
-    consumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
-    seek(partition, offsetOfNextMessageInPartition);
+    TopicPartition partition = AckUtils.getMessagePartition(message);
+    OffsetAndMetadata offsetOfNextMessageInPartition = AckUtils.getOffsetOfNextMessage(message);
+    nativeKafkaConsumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
+    consumingState.seekOffset(partition, offsetOfNextMessageInPartition);
   }
 
   @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
-    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = getLatestOffsetForEachPartition(messages);
-    consumer.commitSync(latestOffsetsForEachPartition);
-    seek(latestOffsetsForEachPartition);
+    Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = AckUtils.getLatestOffsetForEachPartition(messages);
+    nativeKafkaConsumer.commitSync(latestOffsetsForEachPartition);
+    latestOffsetsForEachPartition.forEach(consumingState::seekOffset);
   }
 
   @Override
   public void commit(Collection<ConsumerRecord<String, T>> messages) {
-    consumer.commitSync(getLatestOffsetForEachPartition(messages));
+    nativeKafkaConsumer.commitSync(AckUtils.getLatestOffsetForEachPartition(messages));
   }
 
   @Override
   public void seek(ConsumerRecord<String, T> message) {
-    TopicPartition partition = getMessagePartition(message);
-    OffsetAndMetadata offsetOfNextMessageInPartition = getOffsetOfNextMessage(message);
-    seek(partition, offsetOfNextMessageInPartition);
+    TopicPartition partition = AckUtils.getMessagePartition(message);
+    consumingState.seekOffset(partition, AckUtils.getOffsetOfNextMessage(message));
   }
 
-  private OffsetAndMetadata getOffsetOfNextMessage(ConsumerRecord<String, T> message) {
-    return new OffsetAndMetadata(message.offset() + 1);
-  }
-
-  private TopicPartition getMessagePartition(ConsumerRecord<String, T> message) {
-    return new TopicPartition(message.topic(), message.partition());
-  }
-
-  private void seek(TopicPartition topicPartition, OffsetAndMetadata offsetAndMetadata) {
-    kafkaConsumer.getSeekedOffsets().put(topicPartition, offsetAndMetadata);
-  }
-
-  private void seek(Map<TopicPartition, OffsetAndMetadata> offsets) {
-    kafkaConsumer.getSeekedOffsets().putAll(offsets);
-  }
-
-  private Map<TopicPartition, OffsetAndMetadata> getLatestOffsetForEachPartition(Collection<ConsumerRecord<String, T>> messages) {
-    return messages.stream().collect(
-            Collectors.toMap(
-                    this::getMessagePartition,
-                    this::getOffsetOfNextMessage,
-                    BinaryOperator.maxBy(Comparator.comparingLong(OffsetAndMetadata::offset))
-            )
-    );
-  }
 }

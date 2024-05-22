@@ -56,5 +56,4 @@ public class ConsumerConsumingState<T> {
     return batchSeekedOffsets.get();
   }
 
-
 }

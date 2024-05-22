@@ -9,16 +9,13 @@ import org.springframework.kafka.core.ConsumerFactory;
 
 public class ClusterMetaInfoProvider {
 
-
   private final Map<String, ConsumerFactory<String, String>> springConsumerFactoryCache = new ConcurrentHashMap<>();
-
 
   private final DefaultConsumerFactory defaultConsumerFactory;
 
   public ClusterMetaInfoProvider(DefaultConsumerFactory defaultConsumerFactory) {
     this.defaultConsumerFactory = defaultConsumerFactory;
   }
-
 
   public List<PartitionInfo> getPartitionsInfo(String topicName) {
     ConsumerFactory<String, String> springConsumerFactory = springConsumerFactoryCache.computeIfAbsent(

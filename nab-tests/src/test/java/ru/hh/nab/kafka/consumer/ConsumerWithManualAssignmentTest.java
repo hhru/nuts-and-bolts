@@ -41,7 +41,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
@@ -63,7 +63,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.END)
+        .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
@@ -86,7 +86,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer1 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
@@ -97,7 +97,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer2 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.END)
+        .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages2.add(m.value()));
           ack.acknowledge();
@@ -123,7 +123,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
@@ -145,7 +145,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
               processedMessages.add(m.value());
@@ -169,7 +169,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
               processedMessages.add(m.value());
@@ -192,7 +192,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge(messages);
@@ -217,7 +217,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING)
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           for (int i = 0; i < messages.size(); i++) {
             processedMessages.add(messages.get(i).value());
@@ -245,7 +245,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer1 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
@@ -256,7 +256,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer2 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING, Duration.ofSeconds(1))
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> {
             processedMessages2.add(m.value());
@@ -297,7 +297,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer1 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.END, Duration.ofSeconds(1))
+        .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
@@ -308,7 +308,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer2 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.END, Duration.ofSeconds(1))
+        .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> {
             processedMessages2.add(m.value());
@@ -350,7 +350,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer1 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
-        .withAllPartitionsAssigned(SeekPosition.BEGINNING, Duration.ofMillis(500))
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofMillis(500))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();

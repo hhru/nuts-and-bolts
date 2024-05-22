@@ -4,9 +4,9 @@ import org.springframework.kafka.support.TopicPartitionOffset;
 
 public enum SeekPosition {
 
-  BEGINNING(TopicPartitionOffset.SeekPosition.BEGINNING),
+  EARLIEST(TopicPartitionOffset.SeekPosition.BEGINNING),
 
-  END(TopicPartitionOffset.SeekPosition.END);
+  LATEST(TopicPartitionOffset.SeekPosition.END);
 
   private final TopicPartitionOffset.SeekPosition springKafkaSeekPosition;
 

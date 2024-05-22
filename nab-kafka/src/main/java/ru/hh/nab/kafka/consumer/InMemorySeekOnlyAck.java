@@ -9,15 +9,14 @@ import ru.hh.nab.kafka.util.AckUtils;
 
 class InMemorySeekOnlyAck<T> implements Ack<T> {
 
-  private final KafkaConsumer<T> kafkaConsumer;
+  private final ConsumerConsumingState<T> consumingState;
 
   public InMemorySeekOnlyAck(KafkaConsumer<T> kafkaConsumer) {
-    this.kafkaConsumer = kafkaConsumer;
+    this.consumingState = kafkaConsumer.getConsumingState();
   }
 
   @Override
   public void acknowledge() {
-    ConsumerConsumingState<T> consumingState = kafkaConsumer.getConsumingState();
     consumingState.setWholeBatchCommited(true);
     acknowledge(consumingState.getCurrentBatch());
   }
@@ -29,7 +28,6 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
-    ConsumerConsumingState<T> consumingState = kafkaConsumer.getConsumingState();
     Map<TopicPartition, OffsetAndMetadata> offsets = AckUtils.getLatestOffsetForEachPartition(messages);
     offsets.forEach((partition, offset) -> consumingState.seekOffset(partition, offset));
   }
@@ -41,7 +39,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   @Override
   public void seek(ConsumerRecord<String, T> message) {
-    kafkaConsumer.getConsumingState().seekOffset(AckUtils.getMessagePartition(message), AckUtils.getOffsetOfNextMessage(message));
+    consumingState.seekOffset(AckUtils.getMessagePartition(message), AckUtils.getOffsetOfNextMessage(message));
   }
 
 }

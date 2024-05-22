@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
@@ -23,7 +22,7 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> {
-  private final AtomicBoolean running = new AtomicBoolean(false);
+  private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
 
@@ -84,44 +83,58 @@ public class KafkaConsumer<T> {
   }
 
   public void start() {
-    running.set(true);
-    currentSpringKafkaContainer.start();
-    if (checkNewPartitionsInterval != null && this.assignedPartitions != null) {
-      topicPartitionsMonitoring.trackPartitionsChanges(
-          this,
-          consumerDescription.getTopic(),
-          checkNewPartitionsInterval,
-          this.assignedPartitions,
-          (prevPartitions, actualPartitions) -> {
-            restartLock.lock();
-            try {
-              if (!running.get() || !currentSpringKafkaContainer.isRunning()) {
-                return;
-              }
-              currentSpringKafkaContainer.stop(() -> {
-                LOGGER.info(
-                    "reconnection for topic {} due to partitions change, prev={}, new={}",
-                    consumerDescription.getTopic(),
-                    prevPartitions,
-                    actualPartitions
-                );
-                this.assignedPartitions = actualPartitions;
-                createNewSpringContainer();
-                currentSpringKafkaContainer.start();
-              });
-            } finally {
-              restartLock.unlock();
-            }
-          }
-      );
-      topicPartitionsMonitoring.startScheduling();
+    restartLock.lock();
+    try {
+      if (running) {
+        return;
+      }
+      running = true;
+      currentSpringKafkaContainer.start();
+      if (checkNewPartitionsInterval != null && this.assignedPartitions != null) {
+        subscribeForAssignedPartitionsChange();
+      }
+    } finally {
+      restartLock.unlock();
     }
+  }
+
+  private void subscribeForAssignedPartitionsChange() {
+    topicPartitionsMonitoring.trackPartitionsChanges(
+        this,
+        consumerDescription.getTopic(),
+        checkNewPartitionsInterval,
+        this.assignedPartitions,
+        (prevPartitions, actualPartitions) -> {
+          restartLock.lock();
+          try {
+            if (!running || !currentSpringKafkaContainer.isRunning()) {
+              return;
+            }
+            currentSpringKafkaContainer.stop(true);
+            LOGGER.info(
+                "reconnection for topic {} due to partitions change, prev={}, new={}",
+                consumerDescription.getTopic(),
+                prevPartitions,
+                actualPartitions
+            );
+            this.assignedPartitions = actualPartitions;
+            createNewSpringContainer();
+            currentSpringKafkaContainer.start();
+          } finally {
+            restartLock.unlock();
+          }
+        }
+    );
+    topicPartitionsMonitoring.startScheduling();
   }
 
   public void stop(Runnable callback) {
     restartLock.lock();
     try {
-      running.set(false);
+      if (!running) {
+        return;
+      }
+      running = false;
       currentSpringKafkaContainer.stop(callback);
       removeAssignedCallbacks();
     } finally {
@@ -132,7 +145,10 @@ public class KafkaConsumer<T> {
   public void stop() {
     restartLock.lock();
     try {
-      running.set(false);
+      if (!running) {
+        return;
+      }
+      running = false;
       currentSpringKafkaContainer.stop();
       removeAssignedCallbacks();
     } finally {
@@ -147,6 +163,9 @@ public class KafkaConsumer<T> {
   }
 
   public Collection<TopicPartition> getAssignedPartitions() {
+    if (assignedPartitions != null) {
+      return assignedPartitions.stream().map(p -> new TopicPartition(p.topic(), p.partition())).toList();
+    }
     return currentSpringKafkaContainer.getAssignedPartitions();
   }
 

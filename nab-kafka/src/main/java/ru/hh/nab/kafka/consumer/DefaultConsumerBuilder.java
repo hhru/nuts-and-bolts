@@ -33,7 +33,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private String operationName;
   private String clientId;
   private boolean useConsumerGroup;
-  private TopicPartitionOffset.SeekPosition seekPositionIfNoConsumerGroup;
+  private SeekPosition seekPositionIfNoConsumerGroup;
   private Duration checkNewPartitionsInterval;
 
   private ConsumeStrategy<T> consumeStrategy;
@@ -79,7 +79,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
+  public ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
     withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new InMemorySeekOnlyAck<>(kafkaConsumer));
@@ -88,7 +88,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition) {
+  public ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition) {
     return withAllPartitionsAssigned(seekPosition, Duration.ofMinutes(5));
   }
 
@@ -190,7 +190,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         .map(partition -> consumingState
             .getGlobalSeekedOffset(new TopicPartition(topicName, partition.partition()))
             .map(seekedOffset -> new TopicPartitionOffset(topicName, partition.partition(), seekedOffset.offset()))
-            .orElseGet(() -> new TopicPartitionOffset(topicName, partition.partition(), seekPositionIfNoConsumerGroup))
+            .orElseGet(() -> new TopicPartitionOffset(topicName, partition.partition(), seekPositionIfNoConsumerGroup.getSpringSeekPosition()))
         )
         .toArray(TopicPartitionOffset[]::new);
 

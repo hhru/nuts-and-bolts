@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.function.BiFunction;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.slf4j.Logger;
-import org.springframework.kafka.support.TopicPartitionOffset;
 
 public interface ConsumerBuilder<T> {
 
@@ -33,9 +32,9 @@ public interface ConsumerBuilder<T> {
    *                                   Если null - проверяться не будут. По-умолчанию - 5 минут.
    * @return this
    */
-  ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition, Duration checkNewPartitionsInterval);
+  ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval);
 
-  ConsumerBuilder<T> withAllPartitionsAssigned(TopicPartitionOffset.SeekPosition seekPosition);
+  ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition);
 
   KafkaConsumer<T> start();
 }

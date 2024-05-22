@@ -1,3 +1,10 @@
+-   name: 4.53.0
+    date: '2024-05-22T21:22:18.480090+03:00'
+    description: В nab-kafka появилась возможность на старте подписаться на все партиции
+        топика (игнорируя consumer-group). Для этого нужно использовать метод ConsumerBuilder#withAllPartitionsAssigned.
+    instructions: ''
+    compatible: true
+
 -   name: 4.52.0
     date: '2024-05-13T11:43:34.386313+03:00'
     description: "Добавлен новый интерфейс ru.hh.nab.kafka.consumer.ConsumerBuilder\

@@ -25,9 +25,11 @@ import static ru.hh.nab.testbase.NabTestConfig.createProperties;
 @Configuration
 public class KafkaTestConfig {
 
+  public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
   @Bean
   public TestKafkaWithJsonMessages testKafka() {
-    return KafkaTestUtils.startKafkaWithJsonMessages(new ObjectMapper(), Map.of("num.partitions", "5"));
+    return KafkaTestUtils.startKafkaWithJsonMessages(OBJECT_MAPPER, Map.of("num.partitions", "5"));
   }
 
   @Bean
@@ -38,7 +40,7 @@ public class KafkaTestConfig {
 
   @Bean
   DeserializerSupplier deserializerSupplier() {
-    return new JacksonDeserializerSupplier(new ObjectMapper());
+    return new JacksonDeserializerSupplier(OBJECT_MAPPER);
   }
 
   @Bean

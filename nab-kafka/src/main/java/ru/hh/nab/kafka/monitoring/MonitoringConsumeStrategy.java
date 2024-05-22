@@ -8,7 +8,7 @@ import org.slf4j.MDC;
 import ru.hh.metrics.timinglogger.Timings;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
-import ru.hh.nab.kafka.consumer.ConsumerGroupId;
+import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
@@ -17,15 +17,15 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final ConsumeStrategy<T> consumeStrategy;
 
   private final AtomicLong processingId = new AtomicLong(0);
-  private final ConsumerGroupId consumerGroupId;
+  private final ConsumerMetadata consumerMetadata;
 
   public MonitoringConsumeStrategy(
       StatsDSender statsDSender,
-      ConsumerGroupId consumerGroupId,
+      ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy
   ) {
-    this.consumerGroupId = consumerGroupId;
-    this.timings = buildTimings(statsDSender, consumerGroupId);
+    this.consumerMetadata = consumerMetadata;
+    this.timings = buildTimings(statsDSender, consumerMetadata);
     this.consumeStrategy = consumeStrategy;
   }
 
@@ -39,14 +39,14 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
 
   private void addMdcData(List<ConsumerRecord<String, T>> messages) {
     String partitions = messages.stream().map(ConsumerRecord::partition).distinct().map(Object::toString).collect(Collectors.joining(","));
-    MDC.put("topic", consumerGroupId.getTopic());
-    MDC.put("operation", consumerGroupId.getOperation());
+    MDC.put("topic", consumerMetadata.getTopic());
+    MDC.put("operation", consumerMetadata.getOperation());
     MDC.put("processingId", String.valueOf(processingId.addAndGet(1L)));
     MDC.put("partitions", partitions);
     MDC.put("batchSize", String.valueOf(messages.size()));
   }
 
-  private Timings buildTimings(StatsDSender statsDSender, ConsumerGroupId identifier) {
+  private Timings buildTimings(StatsDSender statsDSender, ConsumerMetadata identifier) {
     Timings.Builder builder = new Timings.Builder()
         .withMetric("batchProcessingTime")
         .withStatsDSender(statsDSender);

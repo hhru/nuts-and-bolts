@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
@@ -22,23 +23,20 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> {
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
   private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
-
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-
   private final BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
-
-
-  private AbstractMessageListenerContainer<String, T> currentSpringKafkaContainer;
   private List<PartitionInfo> assignedPartitions;
+  private volatile ScheduledFuture<?> checkPartitionsChangeFuture;
+  private volatile AbstractMessageListenerContainer<String, T> currentSpringKafkaContainer;
 
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
@@ -71,7 +69,6 @@ public class KafkaConsumer<T> {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.ackProvider = ackProvider;
-
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
     this.springContainerProvider = null;
@@ -99,25 +96,22 @@ public class KafkaConsumer<T> {
   }
 
   private void subscribeForAssignedPartitionsChange() {
-    topicPartitionsMonitoring.trackPartitionsChanges(
-        this,
+    this.checkPartitionsChangeFuture = topicPartitionsMonitoring.subscribeOnPartitionsChange(
         consumerMetadata.getTopic(),
         checkNewPartitionsInterval,
-        this.assignedPartitions,
-        (prevPartitions, actualPartitions) -> {
+        assignedPartitions,
+        newPartitions -> {
           restartLock.lock();
           try {
-            if (!running || !currentSpringKafkaContainer.isRunning()) {
+            if (!running) {
+              stopPartitionsMonitoring();
               return;
             }
-            currentSpringKafkaContainer.stop(true);
-            LOGGER.info(
-                "reconnection for topic {} due to partitions change, prev={}, new={}",
-                consumerMetadata.getTopic(),
-                prevPartitions,
-                actualPartitions
-            );
-            this.assignedPartitions = actualPartitions;
+            if (!currentSpringKafkaContainer.isRunning()) {
+              return;
+            }
+            currentSpringKafkaContainer.stop();
+            this.assignedPartitions = newPartitions;
             createNewSpringContainer();
             currentSpringKafkaContainer.start();
           } finally {
@@ -125,7 +119,6 @@ public class KafkaConsumer<T> {
           }
         }
     );
-    topicPartitionsMonitoring.startScheduling();
   }
 
   public void stop(Runnable callback) {
@@ -136,7 +129,7 @@ public class KafkaConsumer<T> {
       }
       running = false;
       currentSpringKafkaContainer.stop(callback);
-      removeAssignedCallbacks();
+      stopPartitionsMonitoring();
     } finally {
       restartLock.unlock();
     }
@@ -150,15 +143,15 @@ public class KafkaConsumer<T> {
       }
       running = false;
       currentSpringKafkaContainer.stop();
-      removeAssignedCallbacks();
+      stopPartitionsMonitoring();
     } finally {
       restartLock.unlock();
     }
   }
 
-  private void removeAssignedCallbacks() {
-    if (topicPartitionsMonitoring != null) {
-      topicPartitionsMonitoring.clearCallback(this);
+  private void stopPartitionsMonitoring() {
+    if (checkPartitionsChangeFuture != null) {
+      checkPartitionsChangeFuture.cancel(false);
     }
   }
 

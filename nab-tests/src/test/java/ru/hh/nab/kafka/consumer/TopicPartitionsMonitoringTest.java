@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 public class TopicPartitionsMonitoringTest extends KafkaConsumerTestbase {
 
-
   @Test
   public void testSubsceribeForPartitionsChanges() throws InterruptedException, ExecutionException {
     DefaultConsumerFactory defaultConsumerFactory = (DefaultConsumerFactory) consumerFactory;
@@ -23,13 +22,11 @@ public class TopicPartitionsMonitoringTest extends KafkaConsumerTestbase {
     assertEquals(5, initialPartitions.size());
 
     CountDownLatch latch = new CountDownLatch(1);
-    topicPartitionsMonitoring.trackPartitionsChanges(this, topicName, Duration.ofSeconds(1), initialPartitions, (prev, next) -> {
-      if (prev.size() == 5 && next.size() == 7) {
+    topicPartitionsMonitoring.subscribeOnPartitionsChange(topicName, Duration.ofSeconds(1), initialPartitions, (newPartitions) -> {
+      if (newPartitions.size() == 7) {
         latch.countDown();
       }
     });
-    topicPartitionsMonitoring.changeSchedulingInterval(Duration.ofMillis(500));
-    topicPartitionsMonitoring.startScheduling();
 
     addPartitions(topicName, 7);
 

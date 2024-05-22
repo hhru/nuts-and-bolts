@@ -1,16 +1,12 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +16,7 @@ public class TopicPartitionsMonitoring {
   private static final Logger LOGGER = LoggerFactory.getLogger(TopicPartitionsMonitoring.class);
 
   private final ClusterMetadataProvider clusterMetadataProvider;
-  private final Map<Object, CallbackConfiguration> partitionsChangesCallbacks;
   private final ScheduledExecutorService executor;
-  private ScheduledFuture<?> scheduledFuture;
-  private Duration schedulingInterval;
-  private final Lock executionLock = new ReentrantLock();
 
   public TopicPartitionsMonitoring(ClusterMetadataProvider clusterMetadataProvider) {
     this(clusterMetadataProvider, Executors.newSingleThreadScheduledExecutor());
@@ -34,113 +26,29 @@ public class TopicPartitionsMonitoring {
       ClusterMetadataProvider clusterMetadataProvider, ScheduledExecutorService executor
   ) {
     this.clusterMetadataProvider = clusterMetadataProvider;
-    this.partitionsChangesCallbacks = new ConcurrentHashMap<>();
     this.executor = executor;
-    this.schedulingInterval = Duration.ofMinutes(1);
-    this.scheduledFuture = null;
   }
 
-  public void startScheduling() {
-    executionLock.lock();
-    try {
-      if (scheduledFuture != null) {
-        return;
-      }
-      scheduledFuture = executor.scheduleAtFixedRate(
-          this::tryRunCallbacks,
-          schedulingInterval.toMillis(),
-          schedulingInterval.toMillis(),
-          TimeUnit.MILLISECONDS
-      );
-    } finally {
-      executionLock.unlock();
-    }
-  }
-
-  public void changeSchedulingInterval(Duration period) {
-    boolean stopped = stopScheduledFuture();
-    schedulingInterval = period;
-    if (stopped) {
-      startScheduling();
-    }
-  }
-
-  private void tryRunCallbacks() {
-    executionLock.lock();
-    try {
-      for (CallbackConfiguration callback : partitionsChangesCallbacks.values()) {
-        try {
-          Instant currentTime = Instant.now();
-          if (callback.lastCheckAt.plus(callback.checkInterval).isAfter(currentTime)) {
-            continue;
+  public ScheduledFuture<?> subscribeOnPartitionsChange(
+      String topic, Duration checkInterval, List<PartitionInfo> currentPartitions, Consumer<List<PartitionInfo>> onPartitionsChange
+  ) {
+    return executor.scheduleAtFixedRate(
+        () -> {
+          try {
+            List<PartitionInfo> newPartitions = clusterMetadataProvider.getPartitionsInfo(topic);
+            if (newPartitions.size() == currentPartitions.size()) {
+              return;
+            }
+            LOGGER.info("Got partitions change for topic prev={}, new={}", currentPartitions.size(), newPartitions.size());
+            onPartitionsChange.accept(newPartitions);
+          } catch (RuntimeException e) {
+            LOGGER.error("Error while running partitions monitoring", e);
           }
-          LOGGER.info("Check if partitions changed for {}", callback.topic);
-
-          List<PartitionInfo> currentPartitions = clusterMetadataProvider.getPartitionsInfo(callback.topic);
-          if (callback.prevPartitionsState.size() != currentPartitions.size()) {
-            LOGGER.info("Got partitions change for topic {}", callback.topic);
-            callback.callback.onConfigurationChanged(callback.prevPartitionsState, currentPartitions);
-            callback.setPrevPartitionsState(currentPartitions);
-          }
-          callback.setLastCheckAt(currentTime);
-        } catch (RuntimeException e) {
-          LOGGER.error("Error while running callbacks for topic {}", callback.topic, e);
-        }
-      }
-    } finally {
-      executionLock.unlock();
-    }
-  }
-
-
-  void trackPartitionsChanges(Object registeredBy, String topic, Duration interval, List<PartitionInfo> currentPartitions, Callback callback) {
-    this.partitionsChangesCallbacks.put(registeredBy, new CallbackConfiguration(topic, callback, interval, currentPartitions, Instant.now()));
-  }
-
-  void clearCallback(Object registeredBy) {
-    this.partitionsChangesCallbacks.remove(registeredBy);
-  }
-
-  private boolean stopScheduledFuture() {
-    if (scheduledFuture == null) {
-      return false;
-    }
-
-    scheduledFuture.cancel(false);
-    scheduledFuture = null;
-    return true;
-  }
-
-  private static class CallbackConfiguration {
-    public final String topic;
-    public final Callback callback;
-    public final Duration checkInterval;
-    public List<PartitionInfo> prevPartitionsState;
-    public Instant lastCheckAt;
-
-
-    public CallbackConfiguration(
-        String topic, Callback callback, Duration checkInterval, List<PartitionInfo> prevPartitionsState, Instant lastCheckAt
-    ) {
-      this.topic = topic;
-      this.callback = callback;
-      this.checkInterval = checkInterval;
-      this.prevPartitionsState = prevPartitionsState;
-      this.lastCheckAt = lastCheckAt;
-    }
-
-    public void setPrevPartitionsState(List<PartitionInfo> prevPartitionsState) {
-      this.prevPartitionsState = prevPartitionsState;
-    }
-
-    public void setLastCheckAt(Instant nextCheckAfter) {
-      this.lastCheckAt = nextCheckAfter;
-    }
-  }
-
-
-  public interface Callback {
-    void onConfigurationChanged(List<PartitionInfo> prevPartitions, List<PartitionInfo> newPartitions);
+        },
+        checkInterval.toMillis(),
+        checkInterval.toMillis(),
+        TimeUnit.MILLISECONDS
+    );
   }
 
 }

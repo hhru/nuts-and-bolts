@@ -267,7 +267,6 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     startedConsumers.add(consumer2);
     assertEquals(5, consumer1.getAssignedPartitions().size());
     assertEquals(5, consumer2.getAssignedPartitions().size());
-    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofSeconds(1));
 
     addPartitions(topicName, 7);
     for (int i = 0; i < 7; i++) {
@@ -319,7 +318,6 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
         .start();
     startedConsumers.add(consumer2);
     Thread.sleep(1000);
-    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofSeconds(1));
 
     putMessagesIntoKafka(40);
 
@@ -359,7 +357,6 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
         })
         .start();
     startedConsumers.add(consumer1);
-    ((DefaultConsumerFactory) consumerFactory).getTopicPartitionsMonitoring().changeSchedulingInterval(Duration.ofMillis(500));
 
     Executors.newSingleThreadExecutor().submit(() -> {
       putMessagesIntoKafka(500);

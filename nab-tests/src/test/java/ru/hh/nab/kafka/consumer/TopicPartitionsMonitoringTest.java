@@ -14,12 +14,12 @@ public class TopicPartitionsMonitoringTest extends KafkaConsumerTestbase {
 
 
   @Test
-  public void testGetPartitionsCountByClusterMetaInfoProvider() throws InterruptedException, ExecutionException {
+  public void testSubsceribeForPartitionsChanges() throws InterruptedException, ExecutionException {
     DefaultConsumerFactory defaultConsumerFactory = (DefaultConsumerFactory) consumerFactory;
-    ClusterMetaInfoProvider clusterMetaInfoProvider = new ClusterMetaInfoProvider(defaultConsumerFactory);
-    TopicPartitionsMonitoring topicPartitionsMonitoring = new TopicPartitionsMonitoring(clusterMetaInfoProvider);
+    ClusterMetadataProvider clusterMetadataProvider = new ClusterMetadataProvider(defaultConsumerFactory);
+    TopicPartitionsMonitoring topicPartitionsMonitoring = new TopicPartitionsMonitoring(clusterMetadataProvider);
 
-    List<PartitionInfo> initialPartitions = clusterMetaInfoProvider.getPartitionsInfo(topicName);
+    List<PartitionInfo> initialPartitions = clusterMetadataProvider.getPartitionsInfo(topicName);
     assertEquals(5, initialPartitions.size());
 
     CountDownLatch latch = new CountDownLatch(1);

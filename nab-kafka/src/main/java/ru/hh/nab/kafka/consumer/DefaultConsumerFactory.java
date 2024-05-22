@@ -27,7 +27,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   private final StatsDSender statsDSender;
   private final Logger factoryLogger;
   private final Supplier<String> bootstrapServersSupplier;
-  private final ClusterMetaInfoProvider clusterMetaInfoProvider;
+  private final ClusterMetadataProvider clusterMetadataProvider;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
 
   public DefaultConsumerFactory(
@@ -68,8 +68,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     this.statsDSender = statsDSender;
     this.factoryLogger = logger;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
-    this.clusterMetaInfoProvider = new ClusterMetaInfoProvider(this);
-    this.topicPartitionsMonitoring = new TopicPartitionsMonitoring(this.clusterMetaInfoProvider);
+    this.clusterMetadataProvider = new ClusterMetadataProvider(this);
+    this.topicPartitionsMonitoring = new TopicPartitionsMonitoring(this.clusterMetadataProvider);
   }
 
   @Override
@@ -145,8 +145,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     return configProvider;
   }
 
-  ClusterMetaInfoProvider getClusterMetaInfoProvider() {
-    return clusterMetaInfoProvider;
+  ClusterMetadataProvider getClusterMetadataProvider() {
+    return clusterMetadataProvider;
   }
 
   TopicPartitionsMonitoring getTopicPartitionsMonitoring() {

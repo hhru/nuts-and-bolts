@@ -19,21 +19,21 @@ public class TopicPartitionsMonitoring {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopicPartitionsMonitoring.class);
 
-  private final ClusterMetaInfoProvider clusterMetaInfoProvider;
+  private final ClusterMetadataProvider clusterMetadataProvider;
   private final Map<Object, CallbackConfiguration> partitionsChangesCallbacks;
   private final ScheduledExecutorService executor;
   private ScheduledFuture<?> scheduledFuture;
   private Duration schedulingInterval;
   private final Lock executionLock = new ReentrantLock();
 
-  public TopicPartitionsMonitoring(ClusterMetaInfoProvider clusterMetaInfoProvider) {
-    this(clusterMetaInfoProvider, Executors.newSingleThreadScheduledExecutor());
+  public TopicPartitionsMonitoring(ClusterMetadataProvider clusterMetadataProvider) {
+    this(clusterMetadataProvider, Executors.newSingleThreadScheduledExecutor());
   }
 
   public TopicPartitionsMonitoring(
-      ClusterMetaInfoProvider clusterMetaInfoProvider, ScheduledExecutorService executor
+      ClusterMetadataProvider clusterMetadataProvider, ScheduledExecutorService executor
   ) {
-    this.clusterMetaInfoProvider = clusterMetaInfoProvider;
+    this.clusterMetadataProvider = clusterMetadataProvider;
     this.partitionsChangesCallbacks = new ConcurrentHashMap<>();
     this.executor = executor;
     this.schedulingInterval = Duration.ofMinutes(1);
@@ -76,7 +76,7 @@ public class TopicPartitionsMonitoring {
           }
           LOGGER.info("Check if partitions changed for {}", callback.topic);
 
-          List<PartitionInfo> currentPartitions = clusterMetaInfoProvider.getPartitionsInfo(callback.topic);
+          List<PartitionInfo> currentPartitions = clusterMetadataProvider.getPartitionsInfo(callback.topic);
           if (callback.prevPartitionsState.size() != currentPartitions.size()) {
             LOGGER.info("Got partitions change for topic {}", callback.topic);
             callback.callback.onConfigurationChanged(callback.prevPartitionsState, currentPartitions);

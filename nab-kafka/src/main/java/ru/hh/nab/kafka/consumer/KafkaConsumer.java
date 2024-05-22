@@ -64,7 +64,7 @@ public class KafkaConsumer<T> {
       ConsumeStrategy<T> consumeStrategy,
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
-      ClusterMetaInfoProvider clusterMetaInfoProvider,
+      ClusterMetadataProvider clusterMetadataProvider,
       BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider,
       Duration checkNewPartitionsInterval
   ) {
@@ -78,7 +78,7 @@ public class KafkaConsumer<T> {
     this.springContainerForPartitionsProvider = springContainerForPartitionsProvider;
     this.topicPartitionsMonitoring = topicPartitionsMonitoring;
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
-    this.assignedPartitions = clusterMetaInfoProvider.getPartitionsInfo(consumerMetadata.getTopic());
+    this.assignedPartitions = clusterMetadataProvider.getPartitionsInfo(consumerMetadata.getTopic());
     createNewSpringContainer();
   }
 

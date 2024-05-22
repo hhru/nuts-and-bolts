@@ -157,7 +157,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         springContainerProvider,
         consumerFactory.getTopicPartitionsMonitoring(),
-        consumerFactory.getClusterMetaInfoProvider(),
+        consumerFactory.getClusterMetadataProvider(),
         ackProvider,
         checkNewPartitionsInterval
     );

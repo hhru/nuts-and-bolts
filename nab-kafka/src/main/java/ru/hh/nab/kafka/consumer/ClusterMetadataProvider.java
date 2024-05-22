@@ -7,13 +7,13 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.springframework.kafka.core.ConsumerFactory;
 
-public class ClusterMetaInfoProvider {
+public class ClusterMetadataProvider {
 
   private final Map<String, ConsumerFactory<String, String>> springConsumerFactoryCache = new ConcurrentHashMap<>();
 
   private final DefaultConsumerFactory defaultConsumerFactory;
 
-  public ClusterMetaInfoProvider(DefaultConsumerFactory defaultConsumerFactory) {
+  public ClusterMetadataProvider(DefaultConsumerFactory defaultConsumerFactory) {
     this.defaultConsumerFactory = defaultConsumerFactory;
   }
 

@@ -34,7 +34,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   @Override
   public void commit(Collection<ConsumerRecord<String, T>> messages) {
-    // commit is not performed, because offset is stored in memory only;
+    throw new UnsupportedOperationException("commit is not supported for InMemorySeekOnlyAck");
   }
 
   @Override

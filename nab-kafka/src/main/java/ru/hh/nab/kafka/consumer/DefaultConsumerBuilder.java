@@ -102,41 +102,41 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public KafkaConsumer<T> start() {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
-    ConsumerDescription consumerDescription = new ConsumerDescription(configProvider.getServiceName(), topicName, operationName);
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
     if (useConsumerGroup) {
-      return startKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerDescription);
+      return startKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerMetadata);
     }
-    return startKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerDescription);
+    return startKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
 
   }
 
   private KafkaConsumer<T> startKafkaConsumerForConsumerGroup(
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
-      ConsumerDescription consumerDescription
+      ConsumerMetadata consumerMetadata
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
           configProvider,
-          consumerDescription,
+          consumerMetadata,
           (BatchConsumerAwareMessageListener<String, T>) nabKafkaConsumer::onMessagesBatch
       );
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
-        consumerDescription,
-        consumerFactory.interceptConsumeStrategy(consumerDescription, consumeStrategy),
+        consumerMetadata,
+        consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         springContainerProvider,
         ackProvider
     );
     kafkaConsumer.start();
-    logger.info("Subscribed for {}, consumer group id {}", topicName, consumerDescription.getConsumerGroupId());
+    logger.info("Subscribed for {}, consumer group id {}", topicName, consumerMetadata.getConsumerGroupId());
     return kafkaConsumer;
   }
 
   private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
-      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerDescription consumerDescription
+      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
 
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (
@@ -153,8 +153,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     };
 
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
-        consumerDescription,
-        consumerFactory.interceptConsumeStrategy(consumerDescription, consumeStrategy),
+        consumerMetadata,
+        consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         springContainerProvider,
         consumerFactory.getTopicPartitionsMonitoring(),
         consumerFactory.getClusterMetaInfoProvider(),
@@ -162,7 +162,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         checkNewPartitionsInterval
     );
     kafkaConsumer.start();
-    logger.info("Subscribed {} for all partitions, operation={}", topicName, consumerDescription.getOperation());
+    logger.info("Subscribed {} for all partitions, operation={}", topicName, consumerMetadata.getOperation());
     return kafkaConsumer;
   }
 
@@ -201,11 +201,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private ContainerProperties getSpringConsumerContainerPropertiesWithConsumerGroup(
-      ConfigProvider configProvider, ConsumerDescription consumerDescription, GenericMessageListener<?> messageListener
+      ConfigProvider configProvider, ConsumerMetadata consumerMetadata, GenericMessageListener<?> messageListener
   ) {
     FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(topicName);
-    containerProperties.setGroupId(consumerDescription.getConsumerGroupId());
+    containerProperties.setGroupId(consumerMetadata.getConsumerGroupId());
     addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
     return containerProperties;
   }

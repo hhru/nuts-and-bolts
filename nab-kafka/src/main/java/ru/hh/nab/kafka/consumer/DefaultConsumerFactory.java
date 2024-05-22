@@ -114,8 +114,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
 
-  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerDescription consumerDescription, ConsumeStrategy<T> consumeStrategy) {
-    return new MonitoringConsumeStrategy<>(statsDSender, consumerDescription, consumeStrategy);
+  public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerMetadata consumerMetadata, ConsumeStrategy<T> consumeStrategy) {
+    return new MonitoringConsumeStrategy<>(statsDSender, consumerMetadata, consumeStrategy);
   }
 
   <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {

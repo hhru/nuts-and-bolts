@@ -49,7 +49,7 @@ kafkaConsumerFactory.subscribe(
 );
 ```
 
-Совокупность параметров topicName и operationName, а также имя сервиса, определяет [имя consumer группы](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumerDescription.java).
+Совокупность параметров topicName и operationName, а также имя сервиса, определяет [имя consumer группы](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumerMetadata.java).
 Подробнее про [consumer группы](https://kafka.apache.org/documentation/#intro_consumers)
 
 Лямбда реализовывает интерфейс [ConsumeStrategy](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumeStrategy.java)

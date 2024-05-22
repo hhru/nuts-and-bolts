@@ -21,21 +21,21 @@ import java.util.List;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
-import ru.hh.nab.kafka.consumer.ConsumerDescription;
+import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 
 public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
 
   private final String clusterName;
   private final ConsumeStrategy<T> consumeStrategy;
-  private final ConsumerDescription consumerDescription;
+  private final ConsumerMetadata consumerMetadata;
   private final Tracer tracer;
   private final KafkaTelemetryPropagator propagator;
 
   TelemetryConsumeStrategyWrapper(String clusterName, ConsumeStrategy<T> consumeStrategy,
-                                  ConsumerDescription consumerDescription, OpenTelemetry telemetry) {
+                                  ConsumerMetadata consumerMetadata, OpenTelemetry telemetry) {
     this.clusterName = clusterName;
     this.consumeStrategy = consumeStrategy;
-    this.consumerDescription = consumerDescription;
+    this.consumerMetadata = consumerMetadata;
     this.tracer = telemetry.getTracer("kafka");
     this.propagator = new KafkaTelemetryPropagator(telemetry);
   }
@@ -43,16 +43,16 @@ public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
   @Override
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
     SpanBuilder builder = tracer
-        .spanBuilder(consumerDescription.getTopic() + " process")
+        .spanBuilder(consumerMetadata.getTopic() + " process")
         .setParent(Context.current())
         .setSpanKind(SpanKind.CONSUMER)
         .setAttribute(SERVICE_NAME, clusterName)
         .setAttribute(MESSAGING_SYSTEM, "kafka")
         .setAttribute(MESSAGING_OPERATION, PROCESS)
-        .setAttribute(MESSAGING_DESTINATION_NAME, consumerDescription.getTopic())
+        .setAttribute(MESSAGING_DESTINATION_NAME, consumerMetadata.getTopic())
         .setAttribute(MESSAGING_DESTINATION_KIND, TOPIC)
-        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, consumerDescription.getServiceName())
-        .setAttribute(MESSAGING_KAFKA_CONSUMER_GROUP, consumerDescription.getConsumerGroupId());
+        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, consumerMetadata.getServiceName())
+        .setAttribute(MESSAGING_KAFKA_CONSUMER_GROUP, consumerMetadata.getConsumerGroupId());
 
     messages.forEach(record -> {
       Context extractedContext = propagator.getTelemetryContext(Context.current(), record.headers());

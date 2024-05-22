@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
-public class ConsumerDescription {
+public class ConsumerMetadata {
 
   private final String serviceName;
   private final String topic;
@@ -13,7 +13,7 @@ public class ConsumerDescription {
 
   private final List<Tag> tags;
 
-  public ConsumerDescription(String serviceName, String topic, String operation) {
+  public ConsumerMetadata(String serviceName, String topic, String operation) {
     this.serviceName = serviceName;
     this.topic = topic;
     this.operation = operation;

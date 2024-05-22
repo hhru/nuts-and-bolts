@@ -26,7 +26,7 @@ public class KafkaConsumer<T> {
   private final Lock restartLock = new ReentrantLock();
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
 
-  private final ConsumerDescription consumerDescription;
+  private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
 
@@ -41,12 +41,12 @@ public class KafkaConsumer<T> {
   private List<PartitionInfo> assignedPartitions;
 
   public KafkaConsumer(
-      ConsumerDescription consumerDescription,
+      ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
       BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider
   ) {
-    this.consumerDescription = consumerDescription;
+    this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
@@ -60,7 +60,7 @@ public class KafkaConsumer<T> {
   }
 
   public KafkaConsumer(
-      ConsumerDescription consumerDescription,
+      ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
@@ -68,7 +68,7 @@ public class KafkaConsumer<T> {
       BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider,
       Duration checkNewPartitionsInterval
   ) {
-    this.consumerDescription = consumerDescription;
+    this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.ackProvider = ackProvider;
 
@@ -78,7 +78,7 @@ public class KafkaConsumer<T> {
     this.springContainerForPartitionsProvider = springContainerForPartitionsProvider;
     this.topicPartitionsMonitoring = topicPartitionsMonitoring;
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
-    this.assignedPartitions = clusterMetaInfoProvider.getPartitionsInfo(consumerDescription.getTopic());
+    this.assignedPartitions = clusterMetaInfoProvider.getPartitionsInfo(consumerMetadata.getTopic());
     createNewSpringContainer();
   }
 
@@ -101,7 +101,7 @@ public class KafkaConsumer<T> {
   private void subscribeForAssignedPartitionsChange() {
     topicPartitionsMonitoring.trackPartitionsChanges(
         this,
-        consumerDescription.getTopic(),
+        consumerMetadata.getTopic(),
         checkNewPartitionsInterval,
         this.assignedPartitions,
         (prevPartitions, actualPartitions) -> {
@@ -113,7 +113,7 @@ public class KafkaConsumer<T> {
             currentSpringKafkaContainer.stop(true);
             LOGGER.info(
                 "reconnection for topic {} due to partitions change, prev={}, new={}",
-                consumerDescription.getTopic(),
+                consumerMetadata.getTopic(),
                 prevPartitions,
                 actualPartitions
             );

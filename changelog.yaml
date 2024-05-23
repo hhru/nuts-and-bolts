@@ -1,3 +1,11 @@
+-   name: 4.54.0
+    date: '2024-05-23T17:14:21.885513+03:00'
+    description: ExceptionMapper'ы по дефолту возвращают ответ с Content-Type=application/json
+    instructions: Если требуется, чтобы при возникновении исключений возвращался ответ
+        с Content-Type, отличным от application/json, то необходимо заимплементить
+        ExceptionSerializer
+    compatible: false
+
 -   name: 4.53.0
     date: '2024-05-23T10:17:53.354944+03:00'
     description: не отличается от версии 4.52.1

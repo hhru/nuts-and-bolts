@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.Context;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import static java.util.Optional.ofNullable;
@@ -113,7 +114,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
               exception.getClass().getCanonicalName(),
               ofNullable(exception.getMessage()).orElse("")
           );
-          return Response.status(statusCode).entity(errors).build();
+          return Response.status(statusCode).type(APPLICATION_JSON).entity(errors).build();
         });
   }
 }

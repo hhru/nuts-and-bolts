@@ -45,6 +45,7 @@ public class CustomExceptionMappersTest {
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("Any exception", getErrorDescription(response));
+    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
 
     response = resourceHelper.executeGet("/any?customSerializer=true");
 

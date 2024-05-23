@@ -3,6 +3,7 @@ package ru.hh.nab.starter.exceptions;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static jakarta.ws.rs.core.MediaType.TEXT_HTML_TYPE;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -50,16 +51,19 @@ public class NabExceptionMappersTest {
 
     assertEquals(BAD_REQUEST.getStatusCode(), response.getStatus());
     assertEquals("IAE", getErrorDescription(response));
+    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
 
     response = resourceHelper.executeGet("/ise");
 
     assertEquals(CONFLICT.getStatusCode(), response.getStatus());
     assertEquals("ISE", getErrorDescription(response));
+    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
 
     response = resourceHelper.executeGet("/se");
 
     assertEquals(FORBIDDEN.getStatusCode(), response.getStatus());
     assertEquals("SE", getErrorDescription(response));
+    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
 
     response = resourceHelper.executeGet("/wae");
 
@@ -82,6 +86,7 @@ public class NabExceptionMappersTest {
 
     assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
     assertEquals("Any exception", getErrorDescription(response));
+    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
 
     response = resourceHelper.executeGet("/notFound");
 

@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.slf4j.Logger;
@@ -113,7 +114,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
               exception.getClass().getCanonicalName(),
               ofNullable(exception.getMessage()).orElse("")
           );
-          return Response.status(statusCode).entity(errors).build();
+          return Response.status(statusCode).type(APPLICATION_JSON).entity(errors).build();
         });
   }
 }

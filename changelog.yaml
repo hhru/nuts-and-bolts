@@ -1,3 +1,9 @@
+-   name: 4.54.1
+    date: '2024-05-28T16:59:25.339042+03:00'
+    description: '* Заменен logger com.datastax.driver на com.dastastax'
+    instructions: ''
+    compatible: true
+
 -   name: 4.54.0
     date: '2024-05-23T17:14:21.885513+03:00'
     description: ExceptionMapper'ы по дефолту возвращают ответ с Content-Type=application/json

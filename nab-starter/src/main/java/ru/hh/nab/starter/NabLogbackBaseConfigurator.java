@@ -95,7 +95,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.springframework.kafka", Level.WARN, false, List.of(libraries, sentry));
-    createLogger(context, "com.datastax.driver", Level.INFO, false, List.of(libraries, sentry));
+    createLogger(context, "com.datastax", Level.INFO, false, List.of(libraries, sentry));
     createLogger(context, NabApplication.class, Level.INFO, false, service, sentry);
     createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
     createLogger(context, JettyServer.class, Level.INFO, false, service, sentry);

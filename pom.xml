@@ -19,6 +19,7 @@
         <module>nab-starter</module>
         <module>nab-data-source</module>
         <module>nab-example</module>
+        <module>nab-jpa</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
@@ -53,6 +54,11 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-data-source</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-jpa</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

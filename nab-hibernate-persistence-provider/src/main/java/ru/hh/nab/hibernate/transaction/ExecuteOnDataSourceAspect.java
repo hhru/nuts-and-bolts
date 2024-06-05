@@ -2,6 +2,7 @@ package ru.hh.nab.hibernate.transaction;
 
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -32,14 +33,9 @@ public class ExecuteOnDataSourceAspect {
       return pjp.proceed();
     }
     String txManagerQualifier = executeOnDataSource.txManager();
-    DataSourceContextTransactionManager transactionManager = Optional
-        .of(txManagerQualifier)
-        .filter(String::isEmpty)
-        .map(ignored -> defaultTxManager)
-        .orElseGet(() -> Optional
-            .ofNullable(txManagers.get(txManagerQualifier))
-            .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"))
-        );
+    DataSourceContextTransactionManager transactionManager = StringUtils.isEmpty(txManagerQualifier) ?
+        defaultTxManager :
+        getTxManagerByQualifier(txManagerQualifier);
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
     transactionTemplate.setPropagationBehavior(executeOnDataSource.writableTx() ? PROPAGATION_REQUIRED : PROPAGATION_NOT_SUPPORTED);
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
@@ -51,5 +47,11 @@ public class ExecuteOnDataSourceAspect {
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();
     }
+  }
+
+  private DataSourceContextTransactionManager getTxManagerByQualifier(String txManagerQualifier) {
+    return Optional
+        .ofNullable(txManagers.get(txManagerQualifier))
+        .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"));
   }
 }

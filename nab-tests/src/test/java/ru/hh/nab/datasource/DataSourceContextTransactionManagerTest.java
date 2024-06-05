@@ -15,11 +15,11 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.hibernate.HibernateTestConfig;
-import ru.hh.nab.hibernate.model.TestEntity;
+import ru.hh.nab.jpa.JpaTestConfig;
+import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class})
+@ContextConfiguration(classes = {JpaTestConfig.class})
 public class DataSourceContextTransactionManagerTest extends JpaTestBase {
   private TestEntity existingTestEntity;
 
@@ -55,7 +55,7 @@ public class DataSourceContextTransactionManagerTest extends JpaTestBase {
   }
 
   @Test
-  public void readOnlyTransactionOnMasterShouldOnlyInitializeHibernate() {
+  public void readOnlyTransactionOnMasterShouldOnlyInitializePersistenceProvider() {
     TransactionStatus readOnlyTransactionStatus = createTransaction(true);
     assertReadOnlyMode();
 

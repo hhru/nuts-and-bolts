@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.jpa;
 
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
@@ -7,8 +7,7 @@ import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.datasource.DataSourceType;
-import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.jpa.MappingConfig;
+import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 
@@ -17,8 +16,8 @@ import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
     NabHibernateTestBaseConfig.class,
     NabTestConfig.class,
 })
-public class HibernateTestConfig {
-  static final String TEST_PACKAGE = "ru.hh.nab.hibernate.model.test";
+public class JpaTestConfig {
+  static final String TEST_PACKAGE = "ru.hh.nab.jpa.model.test";
 
   @Bean
   MappingConfig mappingConfig() {

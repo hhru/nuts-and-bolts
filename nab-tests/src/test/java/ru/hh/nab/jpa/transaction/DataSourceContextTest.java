@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jpa.transaction;
 
 import jakarta.inject.Inject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,12 +14,14 @@ import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
-import ru.hh.nab.hibernate.HibernateTestConfig;
+import ru.hh.nab.hibernate.transaction.DataSourceContext;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
+import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class})
+@ContextConfiguration(classes = {JpaTestConfig.class})
 public class DataSourceContextTest extends JpaTestBase {
 
   @Inject

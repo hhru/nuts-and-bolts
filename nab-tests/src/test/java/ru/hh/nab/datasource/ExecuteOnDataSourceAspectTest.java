@@ -28,13 +28,13 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
-import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {HibernateTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
+@ContextConfiguration(classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
 public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
   private static final String WRITABLE_DATASOURCE = "writable";
@@ -69,16 +69,16 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
   @Test
   public void testWrite() {
-    assertHibernateIsNotInitialized();
+    assertTransactionIsNotActive();
     testService.customWrite();
-    assertHibernateIsNotInitialized();
+    assertTransactionIsNotActive();
   }
 
   @Test
   public void testThrowCheckedException() {
     String message = "test for @ExecuteOnDataSource";
 
-    assertHibernateIsNotInitialized();
+    assertTransactionIsNotActive();
     try {
       testService.throwCheckedException(message);
       fail("Expected exception was not thrown");
@@ -92,7 +92,7 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
   public void testThrowUncheckedException() {
     String message = "test for @ExecuteOnDataSource";
 
-    assertHibernateIsNotInitialized();
+    assertTransactionIsNotActive();
     try {
       testService.throwUncheckedException(message);
       fail("Expected exception was not thrown");
@@ -102,7 +102,7 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
     }
   }
 
-  private static void assertHibernateIsNotInitialized() {
+  private static void assertTransactionIsNotActive() {
     assertFalse(isSynchronizationActive());
     assertFalse(isActualTransactionActive());
   }

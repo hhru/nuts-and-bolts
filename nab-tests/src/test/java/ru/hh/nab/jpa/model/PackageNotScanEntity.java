@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.model.test;
+package ru.hh.nab.jpa.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,7 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class PackageScanEntity {
+public class PackageNotScanEntity {
   @Column(name = "id")
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Id

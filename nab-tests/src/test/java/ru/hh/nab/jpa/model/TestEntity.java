@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.model;
+package ru.hh.nab.jpa.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate;
+package ru.hh.nab.jpa;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.zaxxer.hikari.HikariConfig;
@@ -49,17 +49,15 @@ import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;
 import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
-import ru.hh.nab.hibernate.model.TestEntity;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
-import ru.hh.nab.jpa.MappingConfig;
+import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 @ContextConfiguration(
     classes = {
-        NabHibernateTestBaseConfig.class,
+        JpaTestConfig.class,
         DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
     }
 )
@@ -298,7 +296,6 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
   @Configuration
   static class DataSourceSwitchingTestConfig {
-    static final String TEST_PACKAGE = "ru.hh.nab.hibernate.model.test";
     static final String SERVICE_NAME_VALUE = "test-service";
 
     @Bean
@@ -422,9 +419,7 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
     @Bean
     MappingConfig mappingConfig() {
-      MappingConfig mappingConfig = new MappingConfig(TestEntity.class);
-      mappingConfig.addPackagesToScan(TEST_PACKAGE);
-      return mappingConfig;
+      return new MappingConfig(TestEntity.class);
     }
 
     @Bean

@@ -14,7 +14,6 @@ import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 
 @Configuration
 @Import({
-    NabHibernateCommonConfig.class,
     NabHibernateTestBaseConfig.class,
     NabTestConfig.class,
 })

@@ -6,13 +6,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.hibernate.NabHibernateCommonConfig;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 @Configuration
+@Import(NabHibernateCommonConfig.class)
 public class NabHibernateTestBaseConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NabHibernateTestBaseConfig.class);

@@ -60,7 +60,6 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 @ContextConfiguration(
     classes = {
         NabHibernateTestBaseConfig.class,
-        NabHibernateCommonConfig.class,
         DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
     }
 )

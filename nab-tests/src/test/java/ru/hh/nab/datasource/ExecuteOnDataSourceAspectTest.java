@@ -32,10 +32,10 @@ import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
+import ru.hh.nab.testbase.jpa.JpaTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
-public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
+public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
   private static final String WRITABLE_DATASOURCE = "writable";
 

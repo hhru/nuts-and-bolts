@@ -17,10 +17,10 @@ import static ru.hh.nab.datasource.DataSourceType.SLOW;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
+import ru.hh.nab.testbase.jpa.JpaTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
-public class DataSourceContextTest extends HibernateTestBase {
+public class DataSourceContextTest extends JpaTestBase {
 
   @Inject
   private TransactionalScope transactionalScope;

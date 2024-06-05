@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase.hibernate;
+package ru.hh.nab.testbase.jpa;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -10,7 +10,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 
 @ExtendWith(SpringExtension.class)
-public abstract class HibernateTestBase {
+public abstract class JpaTestBase {
   @Inject
   protected EntityManager entityManager;
   @Inject

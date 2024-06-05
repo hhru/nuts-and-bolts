@@ -53,8 +53,8 @@ import ru.hh.nab.hibernate.model.TestEntity;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
 import ru.hh.nab.jpa.MappingConfig;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
+import ru.hh.nab.testbase.jpa.JpaTestBase;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
 @ContextConfiguration(
@@ -64,7 +64,7 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
         DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
     }
 )
-public class DataSourceSwitchingTest extends HibernateTestBase {
+public class DataSourceSwitchingTest extends JpaTestBase {
 
   private static final String DB1 = "db1";
   private static final String DB2 = "db2";

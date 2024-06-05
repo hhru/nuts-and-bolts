@@ -17,10 +17,10 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.hibernate.HibernateTestConfig;
 import ru.hh.nab.hibernate.model.TestEntity;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
+import ru.hh.nab.testbase.jpa.JpaTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
-public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
+public class DataSourceContextTransactionManagerTest extends JpaTestBase {
   private TestEntity existingTestEntity;
 
   @BeforeEach

@@ -12,10 +12,10 @@ import ru.hh.nab.hibernate.model.PackageNotScanEntity;
 import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.hibernate.model.test.PackageScanEntity;
 import ru.hh.nab.jpa.MappingConfig;
-import ru.hh.nab.testbase.hibernate.HibernateTestBase;
+import ru.hh.nab.testbase.jpa.JpaTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
-public class MappingConfigTest extends HibernateTestBase {
+public class MappingConfigTest extends JpaTestBase {
 
   @Inject
   private MappingConfig mappingConfig;

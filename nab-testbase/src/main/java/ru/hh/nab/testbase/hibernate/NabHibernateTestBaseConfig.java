@@ -9,21 +9,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.hibernate.NabHibernateCommonConfig;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
-import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
+import ru.hh.nab.testbase.datasource.NabDataSourceTestBaseConfig;
 
 @Configuration
-@Import(NabHibernateCommonConfig.class)
+@Import({
+    NabDataSourceTestBaseConfig.class,
+    NabHibernateCommonConfig.class,
+})
 public class NabHibernateTestBaseConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NabHibernateTestBaseConfig.class);
-
-  @Bean
-  DataSourceFactory dataSourceFactory() {
-    return new EmbeddedPostgresDataSourceFactory();
-  }
 
   @Bean
   HibernatePropertiesProvider hibernatePropertiesProvider() {

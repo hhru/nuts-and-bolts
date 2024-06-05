@@ -1,11 +1,13 @@
 package ru.hh.nab.jpa.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import ru.hh.nab.jpa.model.test.TestConverter;
 
 @Entity
 @Table(name = "test_entity")
@@ -16,6 +18,7 @@ public class TestEntity {
   @Id
   private Integer id;
 
+  @Convert(converter = TestConverter.class)
   @Column(name = "name", nullable = false)
   private String name;
 

@@ -8,6 +8,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.model.TestEntity;
+import ru.hh.nab.jpa.MappingConfig;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
 

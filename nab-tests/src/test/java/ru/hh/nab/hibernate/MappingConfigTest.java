@@ -1,21 +1,21 @@
 package ru.hh.nab.hibernate;
 
 import jakarta.inject.Inject;
-import org.hibernate.SessionFactory;
+import jakarta.persistence.EntityManager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 import static ru.hh.nab.hibernate.HibernateTestConfig.TEST_PACKAGE;
+import ru.hh.nab.hibernate.model.PackageNotScanEntity;
 import ru.hh.nab.hibernate.model.TestEntity;
 import ru.hh.nab.hibernate.model.test.PackageScanEntity;
+import ru.hh.nab.jpa.MappingConfig;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
 public class MappingConfigTest extends HibernateTestBase {
-
-  @Inject
-  private SessionFactory sessionFactory;
 
   @Inject
   private MappingConfig mappingConfig;
@@ -38,7 +38,17 @@ public class MappingConfigTest extends HibernateTestBase {
 
   @Test
   public void hibernateShouldHaveMappedEntities() {
-    assertNotNull(sessionFactory.getMetamodel().entity(TestEntity.class));
-    assertNotNull(sessionFactory.getMetamodel().entity(PackageScanEntity.class));
+    assertTrue(metamodelContainsEntity(entityManager, TestEntity.class));
+    assertTrue(metamodelContainsEntity(entityManager, PackageScanEntity.class));
+    assertFalse(metamodelContainsEntity(entityManager, PackageNotScanEntity.class));
+  }
+
+  private boolean metamodelContainsEntity(EntityManager entityManager, Class<?> cls) {
+    return entityManager
+        .getEntityManagerFactory()
+        .getMetamodel()
+        .getEntities()
+        .stream()
+        .anyMatch(e -> e.getJavaType().equals(cls));
   }
 }

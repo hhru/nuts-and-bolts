@@ -1,33 +1,42 @@
 package ru.hh.nab.hibernate.transaction;
 
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
+import jakarta.persistence.EntityManager;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.hibernate.CacheMode;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.lang.NonNull;
+import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 public class ExecuteOnDataSourceTransactionCallback implements TransactionCallback<Object> {
+
+  private static final String CACHE_STORE_MODE_PROPERTY = "jakarta.persistence.cache.storeMode";
+  private static final String CACHE_RETRIEVE_MODE_PROPERTY = "jakarta.persistence.cache.retrieveMode";
   
   private final ProceedingJoinPoint pjp;
-  private final SessionFactory factory;
-  private final ExecuteOnDataSource replica;
+  private final EntityManagerProxy entityManagerProxy;
+  private final DataSourceCacheMode cacheMode;
 
-  ExecuteOnDataSourceTransactionCallback(ProceedingJoinPoint pjp, SessionFactory factory, ExecuteOnDataSource dataSource) {
+  ExecuteOnDataSourceTransactionCallback(ProceedingJoinPoint pjp, EntityManagerProxy entityManagerProxy, DataSourceCacheMode cacheMode) {
     this.pjp = pjp;
-    this.factory = factory;
-    this.replica = dataSource;
+    this.entityManagerProxy = entityManagerProxy;
+    this.cacheMode = cacheMode;
   }
 
   @Override
   public Object doInTransaction(@NonNull TransactionStatus status) {
-    Session session = null;
-    CacheMode initialCacheMode = null;
+    EntityManager entityManager = entityManagerProxy.getTargetEntityManager();
+
+    CacheStoreMode initialCacheStoreMode = null;
+    CacheRetrieveMode initialCacheRetrieveMode = null;
+
     try {
-      session = factory.getCurrentSession();
-      initialCacheMode = session.getCacheMode();
-      session.setCacheMode(replica.cacheMode().getHibernateCacheMode());
+      initialCacheStoreMode = (CacheStoreMode) entityManager.getProperties().get(CACHE_STORE_MODE_PROPERTY);
+      initialCacheRetrieveMode = (CacheRetrieveMode) entityManager.getProperties().get(CACHE_RETRIEVE_MODE_PROPERTY);
+
+      entityManager.setProperty(CACHE_STORE_MODE_PROPERTY, cacheMode.getStoreMode());
+      entityManager.setProperty(CACHE_RETRIEVE_MODE_PROPERTY, cacheMode.getRetrieveMode());
 
       return pjp.proceed();
     } catch (RuntimeException | Error e) {
@@ -35,8 +44,11 @@ public class ExecuteOnDataSourceTransactionCallback implements TransactionCallba
     } catch (Throwable e) {
       throw new ExecuteOnDataSourceWrappedException(e);
     } finally {
-      if (session != null && initialCacheMode != null) {
-        session.setCacheMode(initialCacheMode);
+      if (initialCacheStoreMode != null) {
+        entityManager.setProperty(CACHE_STORE_MODE_PROPERTY, initialCacheStoreMode);
+      }
+      if (initialCacheRetrieveMode != null) {
+        entityManager.setProperty(CACHE_RETRIEVE_MODE_PROPERTY, initialCacheRetrieveMode);
       }
     }
   }

@@ -1,7 +1,5 @@
 package ru.hh.nab.datasource;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -22,22 +21,19 @@ import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 
 @ContextConfiguration(classes = {HibernateTestConfig.class})
 public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
-  private int existingTestEntityId;
+  private TestEntity existingTestEntity;
 
   @BeforeEach
   public void setUpTestBaseClass() {
     DataSourcePropertiesStorage.clear();
-    try (Session session = sessionFactory.openSession()) {
-      session.getTransaction().begin();
-      TestEntity testEntity = createTestEntity(session);
-      session.getTransaction().commit();
-      existingTestEntityId = testEntity.getId();
-    }
+    startTransaction();
+    this.existingTestEntity = createTestEntity();
+    commitTransaction();
   }
 
   @Test
   public void noDefaultSynchronizationInTests() {
-    assertThrows(HibernateException.class, this::getCurrentSession);
+    assertThrows(IllegalStateException.class, () -> ((EntityManagerProxy) entityManager).getTargetEntityManager());
   }
 
   @Test
@@ -47,14 +43,14 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     assertReadWriteTransaction();
 
     TestEntity newTestEntity = createTestEntity();
-    TestEntity newTestEntityFromDb = getCurrentSession().get(TestEntity.class, newTestEntity.getId());
+    TestEntity newTestEntityFromDb = entityManager.find(TestEntity.class, newTestEntity.getId());
     assertNotNull(newTestEntityFromDb);
 
     transactionManager.rollback(transactionStatus);
-    assertHibernateIsNotInitialized();
+    assertActualTransactionIsNotActive();
 
     transactionStatus = createTransaction(false);
-    assertNull(getCurrentSession().get(TestEntity.class, newTestEntity.getId()));
+    assertNull(entityManager.find(TestEntity.class, newTestEntity.getId()));
     transactionManager.rollback(transactionStatus);
   }
 
@@ -63,17 +59,16 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     TransactionStatus readOnlyTransactionStatus = createTransaction(true);
     assertReadOnlyMode();
 
-    Session session = getCurrentSession();
-    assertTrue(session.getStatistics().getEntityKeys().isEmpty());
+    assertFalse(entityManager.contains(existingTestEntity));
 
-    TestEntity testEntityFromDb = session.get(TestEntity.class, existingTestEntityId);
+    TestEntity testEntityFromDb = entityManager.find(TestEntity.class, existingTestEntity.getId());
     assertNotNull(testEntityFromDb);
-    assertTrue(session.contains(testEntityFromDb));
-    assertEquals(existingTestEntityId, testEntityFromDb.getId().intValue());
+    assertTrue(entityManager.contains(testEntityFromDb));
+    assertEquals(existingTestEntity.getId(), testEntityFromDb.getId().intValue());
 
     transactionManager.commit(readOnlyTransactionStatus);
 
-    assertHibernateIsNotInitialized();
+    assertActualTransactionIsNotActive();
   }
 
   @Test
@@ -84,20 +79,19 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
     assertReadWriteTransaction();
 
-    Session session = getCurrentSession();
-    assertSessionIsEmpty(session);
-    assertNotNull(session.get(TestEntity.class, existingTestEntityId));
+    assertFalse(entityManager.contains(existingTestEntity));
+    assertNotNull(entityManager.find(TestEntity.class, existingTestEntity.getId()));
 
     transactionManager.commit(innerReadOnlyTransactionStatus);
 
     assertReadWriteTransaction();
 
     TestEntity newTestEntity = createTestEntity();
-    assertNotNull(session.get(TestEntity.class, newTestEntity.getId()));
+    assertNotNull(entityManager.find(TestEntity.class, newTestEntity.getId()));
 
     transactionManager.rollback(outerReadWriteTransactionStatus);
 
-    assertHibernateIsNotInitialized();
+    assertActualTransactionIsNotActive();
   }
 
   @Test
@@ -116,7 +110,7 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
 
     transactionManager.commit(outerReadOnlyTransactionStatus);
 
-    assertHibernateIsNotInitialized();
+    assertActualTransactionIsNotActive();
   }
 
   @Test
@@ -130,31 +124,26 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
   }
 
   private void testDataSource(String dataSourceName, boolean readOnly) {
-    assertHibernateIsNotInitialized();
+    assertActualTransactionIsNotActive();
     DataSourcePropertiesStorage.registerPropertiesFor(dataSourceName, new DataSourcePropertiesStorage.DataSourceProperties(!readOnly));
     DataSourceContextUnsafe.executeOn(dataSourceName, false, () -> {
       TransactionStatus transactionStatus = createTransaction(false);
 
       assertReadOnlyMode();
 
-      Session session = getCurrentSession();
-      assertSessionIsEmpty(session);
+      assertFalse(entityManager.contains(existingTestEntity));
 
-      TestEntity testEntity = session.get(TestEntity.class, existingTestEntityId);
+      TestEntity testEntity = entityManager.find(TestEntity.class, existingTestEntity.getId());
       assertNotNull(testEntity);
-      assertTrue(session.contains(testEntity));
-      assertEquals(existingTestEntityId, testEntity.getId().intValue());
+      assertTrue(entityManager.contains(testEntity));
+      assertEquals(existingTestEntity.getId(), testEntity.getId().intValue());
 
       transactionManager.commit(transactionStatus);
 
-      assertHibernateIsNotInitialized();
+      assertActualTransactionIsNotActive();
 
       return null;
     });
-  }
-
-  private static void assertSessionIsEmpty(Session session) {
-    assertTrue(session.getStatistics().getEntityKeys().isEmpty());
   }
 
   private TransactionStatus createTransaction(boolean readOnly) {
@@ -174,22 +163,14 @@ public class DataSourceContextTransactionManagerTest extends HibernateTestBase {
     assertFalse(isActualTransactionActive()); // means no transaction when @Transactional(readOnly=true) is used
   }
 
-  private static void assertHibernateIsNotInitialized() {
+  private static void assertActualTransactionIsNotActive() {
     assertFalse(isSynchronizationActive());
     assertFalse(isActualTransactionActive());
   }
 
   private TestEntity createTestEntity() {
-    Session session = getCurrentSession();
-    TestEntity testEntity = createTestEntity(session);
-    session.flush();
-    session.clear();
-    return testEntity;
-  }
-
-  private static TestEntity createTestEntity(Session session) {
     TestEntity testEntity = new TestEntity("test entity");
-    session.save(testEntity);
+    entityManager.persist(testEntity);
     return testEntity;
   }
 }

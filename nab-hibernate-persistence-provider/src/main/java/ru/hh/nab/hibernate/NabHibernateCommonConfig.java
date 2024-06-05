@@ -1,60 +1,48 @@
 package ru.hh.nab.hibernate;
 
-import jakarta.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
-import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.service.Service;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.orm.jpa.EntityManagerProxy;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import ru.hh.nab.hibernate.adapter.NabHibernateJpaVendorAdapter;
+import ru.hh.nab.hibernate.adapter.NabHibernatePersistenceProvider;
 import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
-import ru.hh.nab.hibernate.qualifier.Hibernate;
+import ru.hh.nab.hibernate.events.EventListenerRegistryPropagator;
+import ru.hh.nab.hibernate.service.NabServiceContributor;
+import ru.hh.nab.hibernate.service.ServiceSupplier;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
-
+import ru.hh.nab.jpa.NabJpaCommonConfig;
 
 @Configuration
 @Import({
     RoutingDataSourceFactory.class,
+    NabJpaCommonConfig.class,
+    NabHibernateJpaVendorAdapter.class,
+    NabHibernatePersistenceProvider.class,
+    NabServiceContributor.class,
+    EventListenerRegistryPropagator.class,
+    ExecuteOnDataSourceBeanPostProcessor.class,
+    DataSourcesReadyTarget.class,
+    TransactionalScope.class,
 })
-@EnableTransactionManagement(order = 0)
-@EnableAspectJAutoProxy
 public class NabHibernateCommonConfig {
 
   @Primary
   @Bean
-  DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory) {
-    HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
-    simpleTransactionManager.setAutodetectDataSource(true);
-    return new DataSourceContextTransactionManager(simpleTransactionManager);
-  }
-
-  @Bean
-  ExecuteOnDataSourceBeanPostProcessor executeOnDataSourceBeanPostProcessor() {
-    return new ExecuteOnDataSourceBeanPostProcessor();
-  }
-
-  @Bean
-  DataSourcesReadyTarget dataSourcesReadyTarget(List<DataSource> dataSources) {
-    return new DataSourcesReadyTarget(dataSources);
+  DataSourceContextTransactionManager transactionManager(EntityManagerFactory entityManagerFactory, EntityManagerProxy entityManagerProxy) {
+    JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(entityManagerFactory);
+    return new DataSourceContextTransactionManager(jpaTransactionManager, entityManagerProxy);
   }
 
   @Bean
@@ -66,44 +54,8 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  NabSessionFactoryBean sessionFactoryBean(
-      DataSource dataSource,
-      @Hibernate Properties hibernateProperties,
-      BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder,
-      List<MappingConfig> mappingConfigs,
-      @Nullable Collection<NabSessionFactoryBean.ServiceSupplier<Service>> serviceSuppliers,
-      @Nullable Collection<NabSessionFactoryBean.SessionFactoryCreationHandler> sessionFactoryCreationHandlers
-  ) {
-    NabSessionFactoryBean sessionFactoryBean = new NabSessionFactoryBean(
-        dataSource,
-        hibernateProperties,
-        bootstrapServiceRegistryBuilder,
-        Objects.requireNonNullElseGet(serviceSuppliers, ArrayList::new),
-        Objects.requireNonNullElseGet(sessionFactoryCreationHandlers, ArrayList::new)
-    );
-    sessionFactoryBean.setDataSource(dataSource);
-
-    Class<?>[] annotatedClasses = mappingConfigs.stream().flatMap(mc -> Stream.of(mc.getAnnotatedClasses())).toArray(Class[]::new);
-    String[] packagesToScan = mappingConfigs.stream().flatMap(mc -> Stream.of(mc.getPackagesToScan())).toArray(String[]::new);
-
-    sessionFactoryBean.setAnnotatedClasses(annotatedClasses);
-    sessionFactoryBean.setPackagesToScan(packagesToScan);
-    sessionFactoryBean.setHibernateProperties(hibernateProperties);
-    return sessionFactoryBean;
-  }
-
-  @Bean
-  BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder(@Nullable Collection<Integrator> integrators) {
-    BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder = new BootstrapServiceRegistryBuilder();
-    if (integrators != null) {
-      integrators.forEach(bootstrapServiceRegistryBuilder::applyIntegrator);
-    }
-    return bootstrapServiceRegistryBuilder;
-  }
-
-  @Bean
-  NabSessionFactoryBean.ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
-    return new NabSessionFactoryBean.ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
+  ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
+    return new ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
       @Override
       public Class<NabSessionFactoryBuilderFactory.BuilderService> getClazz() {
         return NabSessionFactoryBuilderFactory.BuilderService.class;
@@ -114,10 +66,5 @@ public class NabHibernateCommonConfig {
         return new NabSessionFactoryBuilderFactory.BuilderService();
       }
     };
-  }
-
-  @Bean
-  TransactionalScope transactionalScope() {
-    return new TransactionalScope();
   }
 }

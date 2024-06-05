@@ -1,8 +1,7 @@
 package ru.hh.nab.testbase.hibernate;
 
 import jakarta.inject.Inject;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.TransactionDefinition;
@@ -13,7 +12,7 @@ import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 @ExtendWith(SpringExtension.class)
 public abstract class HibernateTestBase {
   @Inject
-  protected SessionFactory sessionFactory;
+  protected EntityManager entityManager;
   @Inject
   protected DataSourceContextTransactionManager transactionManager;
 
@@ -25,12 +24,13 @@ public abstract class HibernateTestBase {
     transactionStatus = transactionManager.getTransaction(transactionDefinition);
   }
 
-  protected void rollBackTransaction() {
-    transactionManager.rollback(transactionStatus);
+  protected void commitTransaction() {
+    transactionManager.commit(transactionStatus);
     transactionStatus = null;
   }
 
-  protected Session getCurrentSession() {
-    return sessionFactory.getCurrentSession();
+  protected void rollBackTransaction() {
+    transactionManager.rollback(transactionStatus);
+    transactionStatus = null;
   }
 }

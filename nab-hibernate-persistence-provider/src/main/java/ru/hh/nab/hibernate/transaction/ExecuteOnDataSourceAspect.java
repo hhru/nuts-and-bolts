@@ -17,8 +17,10 @@ public class ExecuteOnDataSourceAspect {
   private final DataSourceContextTransactionManager defaultTxManager;
   private final Map<String, DataSourceContextTransactionManager> txManagers;
 
-  public ExecuteOnDataSourceAspect(DataSourceContextTransactionManager defaultTxManager,
-                                   Map<String, DataSourceContextTransactionManager> txManagers) {
+  public ExecuteOnDataSourceAspect(
+      DataSourceContextTransactionManager defaultTxManager,
+      Map<String, DataSourceContextTransactionManager> txManagers
+  ) {
     this.defaultTxManager = defaultTxManager;
     this.txManagers = txManagers;
   }
@@ -44,7 +46,7 @@ public class ExecuteOnDataSourceAspect {
     try {
       return DataSourceContextUnsafe.executeOn(dataSourceType, executeOnDataSource.overrideByRequestScope(),
           () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(
-              pjp, transactionManager.getSessionFactory(), executeOnDataSource
+              pjp, transactionManager.getEntityManagerProxy(), executeOnDataSource.cacheMode()
           )));
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();

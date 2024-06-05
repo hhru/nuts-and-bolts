@@ -13,7 +13,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
-import org.hibernate.Session;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,6 +51,7 @@ import ru.hh.nab.hibernate.datasource.RoutingDataSource;
 import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
 import ru.hh.nab.hibernate.model.TestEntity;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onDataSource;
+import ru.hh.nab.jpa.MappingConfig;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.hibernate.HibernateTestBase;
 import ru.hh.nab.testbase.hibernate.NabHibernateTestBaseConfig;
@@ -132,10 +132,7 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
     CompletableFuture
         .supplyAsync(
             () -> {
-              Supplier<TestEntity> supplier = () -> {
-                Session currentSession = sessionFactory.getCurrentSession();
-                return currentSession.find(TestEntity.class, 1);
-              };
+              Supplier<TestEntity> supplier = () -> entityManager.find(TestEntity.class, 1);
               TargetMethod<TestEntity> method = () -> onDataSource(DataSourceType.READONLY, supplier);
               return transactionalScope.read(method);
             },
@@ -287,18 +284,12 @@ public class DataSourceSwitchingTest extends HibernateTestBase {
   }
 
   private TestEntity invokeMethodOnDataSource(String dataSource) {
-    TargetMethod<TestEntity> method = () -> {
-      Session currentSession = sessionFactory.getCurrentSession();
-      return currentSession.find(TestEntity.class, 1);
-    };
+    TargetMethod<TestEntity> method = () -> entityManager.find(TestEntity.class, 1);
     return onDataSource(dataSource, () -> transactionalScope.read(method));
   }
 
   private Exception invokeMethodOnDataSourceWithException(String dataSource) {
-    TargetMethod<TestEntity> method = () -> {
-      Session currentSession = sessionFactory.getCurrentSession();
-      return currentSession.find(TestEntity.class, 1);
-    };
+    TargetMethod<TestEntity> method = () -> entityManager.find(TestEntity.class, 1);
     PersistenceException ex = assertThrows(
         PersistenceException.class,
         () -> onDataSource(dataSource, () -> transactionalScope.read(method))

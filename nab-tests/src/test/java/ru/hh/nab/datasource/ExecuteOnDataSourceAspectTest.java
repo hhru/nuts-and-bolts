@@ -1,6 +1,7 @@
 package ru.hh.nab.datasource;
 
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -8,8 +9,6 @@ import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.test.context.ContextConfiguration;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
@@ -40,8 +40,8 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   private static final String WRITABLE_DATASOURCE = "writable";
 
   private ExecuteOnDataSourceAspect executeOnDataSourceAspect;
-  private Session masterSession;
-  private Session outerReadonlySession;
+  private EntityManager masterEntityManager;
+  private EntityManager outerReadonlyEntityManager;
   @Inject
   private TestService testService;
 
@@ -56,14 +56,14 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
   public void testReadOnly() throws Throwable {
     startTransaction();
     assertEquals(MASTER, getDataSourceName());
-    masterSession = getCurrentSession();
+    masterEntityManager = ((EntityManagerProxy) entityManager).getTargetEntityManager();
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
     assertEquals(MASTER, getDataSourceName());
-    assertEquals(masterSession, getCurrentSession());
+    assertEquals(masterEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
     rollBackTransaction();
   }
 
@@ -109,22 +109,22 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
   private Object readonlyOuter() throws Throwable {
     assertEquals(DataSourceType.READONLY, getDataSourceName());
-    outerReadonlySession = getCurrentSession();
-    assertNotEquals(masterSession, outerReadonlySession);
+    outerReadonlyEntityManager = ((EntityManagerProxy) entityManager).getTargetEntityManager();
+    assertNotEquals(masterEntityManager, outerReadonlyEntityManager);
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
     executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
 
     assertEquals(DataSourceType.READONLY, getDataSourceName());
-    assertEquals(outerReadonlySession, getCurrentSession());
+    assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
 
     return null;
   }
 
   private Object readonlyInner() {
     assertEquals(DataSourceType.READONLY, getDataSourceName());
-    assertEquals(outerReadonlySession, getCurrentSession());
+    assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
     return null;
   }
 
@@ -165,17 +165,17 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
 
   static class TestService {
 
-    private final SessionFactory sessionFactory;
+    private final EntityManager entityManager;
 
-    TestService(SessionFactory sessionFactory) {
-      this.sessionFactory = sessionFactory;
+    TestService(EntityManager entityManager) {
+      this.entityManager = entityManager;
     }
 
     @Transactional
     @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE, writableTx = true)
     public void customWrite() {
       assertEquals(WRITABLE_DATASOURCE, getDataSourceName());
-      assertNotNull(sessionFactory.getCurrentSession());
+      assertNotNull(entityManager);
       assertTrue(isSynchronizationActive());
       assertTrue(isActualTransactionActive());
     }
@@ -219,8 +219,8 @@ public class ExecuteOnDataSourceAspectTest extends HibernateTestBase {
     }
 
     @Bean
-    TestService testService(SessionFactory sessionFactory) {
-      return new TestService(sessionFactory);
+    TestService testService(EntityManager entityManager) {
+      return new TestService(entityManager);
     }
   }
 }

@@ -1,7 +1,6 @@
 package ru.hh.nab.hibernate.transaction;
 
-import org.hibernate.SessionFactory;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
@@ -17,19 +16,15 @@ import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
   private final PlatformTransactionManager delegate;
-  private final SessionFactory sessionFactory;
+  private final EntityManagerProxy entityManagerProxy;
 
-  public DataSourceContextTransactionManager(HibernateTransactionManager delegate) {
-    this(delegate, delegate.getSessionFactory());
-  }
-
-  public DataSourceContextTransactionManager(PlatformTransactionManager delegate, SessionFactory sessionFactory) {
+  public DataSourceContextTransactionManager(PlatformTransactionManager delegate, EntityManagerProxy entityManagerProxy) {
     this.delegate = delegate;
-    this.sessionFactory = sessionFactory;
+    this.entityManagerProxy = entityManagerProxy;
   }
 
-  public SessionFactory getSessionFactory() {
-    return sessionFactory;
+  public EntityManagerProxy getEntityManagerProxy() {
+    return entityManagerProxy;
   }
 
   @Override

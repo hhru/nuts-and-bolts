@@ -1,19 +1,26 @@
 package ru.hh.nab.hibernate.transaction;
 
-import org.hibernate.CacheMode;
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
 
 public enum DataSourceCacheMode {
 
-  NORMAL(CacheMode.NORMAL),
-  GET(CacheMode.GET);
+  NORMAL(CacheStoreMode.USE, CacheRetrieveMode.USE),
+  GET(CacheStoreMode.BYPASS, CacheRetrieveMode.USE);
 
-  private final CacheMode cacheMode;
+  private final CacheStoreMode storeMode;
+  private final CacheRetrieveMode retrieveMode;
 
-  DataSourceCacheMode(CacheMode cacheMode) {
-    this.cacheMode = cacheMode;
+  DataSourceCacheMode(CacheStoreMode storeMode, CacheRetrieveMode retrieveMode) {
+    this.storeMode = storeMode;
+    this.retrieveMode = retrieveMode;
   }
 
-  public CacheMode getHibernateCacheMode() {
-    return cacheMode;
+  public CacheStoreMode getStoreMode() {
+    return storeMode;
+  }
+
+  public CacheRetrieveMode getRetrieveMode() {
+    return retrieveMode;
   }
 }

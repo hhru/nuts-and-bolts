@@ -8,7 +8,7 @@ public class DataSourcePropertiesStorage {
 
   private static final ConcurrentMap<String, DataSourceProperties> PROPERTIES_STORAGE = new ConcurrentHashMap<>();
 
-  static void registerPropertiesFor(String dataSourceName, DataSourceProperties dataSourceProperties) {
+  public static void registerPropertiesFor(String dataSourceName, DataSourceProperties dataSourceProperties) {
     PROPERTIES_STORAGE.putIfAbsent(dataSourceName, dataSourceProperties);
   }
 

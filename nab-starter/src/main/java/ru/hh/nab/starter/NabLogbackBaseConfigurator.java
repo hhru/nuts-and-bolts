@@ -82,8 +82,14 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
       return multiAppender;
     });
 
-    HhMultiAppender libraries = createAppender(context, "libraries", () -> new HhMultiAppender(true));
+    HhMultiAppender kafkaLogs = createAppender(context, "kafka", () -> new HhMultiAppender(true));
+    createLogger(context, "org.apache.kafka", Level.INFO, false, List.of(kafkaLogs, sentry));
+    createLogger(context, "ru.hh.nab.kafka", Level.INFO, false, List.of(kafkaLogs, sentry));
 
+    HhMultiAppender scyllaLogs = createAppender(context, "scylla", () -> new HhMultiAppender(true));
+    createLogger(context, "com.datastax", Level.INFO, false, List.of(scyllaLogs, sentry));
+
+    HhMultiAppender libraries = createAppender(context, "libraries", () -> new HhMultiAppender(true));
     createLogger(context, StructuredRequestLogger.class, Level.INFO, requests);
     createLogger(context, "org.hibernate", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "com.mchange", Level.WARN, false, List.of(libraries, sentry));
@@ -94,7 +100,6 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.springframework.kafka", Level.WARN, false, List.of(libraries, sentry));
-    createLogger(context, "com.datastax", Level.INFO, false, List.of(libraries, sentry));
     createLogger(context, NabApplication.class, Level.INFO, false, service, sentry);
     createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
     createLogger(context, JettyServer.class, Level.INFO, false, service, sentry);

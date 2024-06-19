@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.common;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;

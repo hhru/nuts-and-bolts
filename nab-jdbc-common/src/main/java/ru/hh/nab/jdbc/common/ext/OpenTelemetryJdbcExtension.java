@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource.ext;
+package ru.hh.nab.jdbc.common.ext;
 
 import javax.sql.DataSource;
 

@@ -1,7 +1,7 @@
 package ru.hh.nab.telemetry.jdbc;
 
 import javax.sql.DataSource;
-import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
+import ru.hh.nab.jdbc.common.ext.OpenTelemetryJdbcExtension;
 
 public class NabTelemetryJdbcExtension implements OpenTelemetryJdbcExtension {
 

@@ -12,7 +12,7 @@ import java.util.function.Function;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
+import ru.hh.nab.jdbc.common.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.ConnectionSpanNameExtractor;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.NabDataSourceInfoExtractor;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.NabJdbcOperationKindExtractor;

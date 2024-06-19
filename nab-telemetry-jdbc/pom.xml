@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-data-source</artifactId>
+            <artifactId>nab-jdbc-common</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>

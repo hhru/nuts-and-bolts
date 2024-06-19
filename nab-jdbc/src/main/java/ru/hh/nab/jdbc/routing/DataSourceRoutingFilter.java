@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.routing;
+package ru.hh.nab.jdbc.routing;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -12,8 +12,6 @@ import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.jdbc.common.DataSourceType;
-import ru.hh.nab.jdbc.routing.DataSourceContext;
-import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 public class DataSourceRoutingFilter implements Filter {
   private static final Logger LOG = LoggerFactory.getLogger(DataSourceRoutingFilter.class);

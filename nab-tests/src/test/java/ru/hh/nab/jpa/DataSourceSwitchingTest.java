@@ -40,6 +40,7 @@ import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
 import ru.hh.nab.datasource.DatabaseSwitcher;
+import ru.hh.nab.datasource.DatabaseSwitcherImpl;
 import ru.hh.nab.datasource.healthcheck.AsyncHealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
@@ -416,7 +417,7 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
     @Bean
     DatabaseSwitcher databaseSwitcher(DatabaseNameHolder databaseNameHolder) {
-      return new DatabaseSwitcher(databaseNameHolder::getDatabaseName);
+      return new DatabaseSwitcherImpl(databaseNameHolder::getDatabaseName);
     }
 
     @Bean

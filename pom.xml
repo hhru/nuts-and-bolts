@@ -19,6 +19,8 @@
         <module>nab-starter</module>
         <module>nab-data-source</module>
         <module>nab-example</module>
+        <module>nab-jdbc-common</module>
+        <module>nab-jdbc</module>
         <module>nab-jpa</module>
         <module>nab-hibernate-persistence-provider</module>
         <module>nab-testbase</module>
@@ -31,7 +33,6 @@
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
         <module>nab-websocket</module>
-        <module>nab-jdbc-common</module>
     </modules>
 
     <properties>
@@ -55,6 +56,11 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-jdbc-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

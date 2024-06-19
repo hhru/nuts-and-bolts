@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.datasource;
+package ru.hh.nab.jdbc.routing;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,14 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
-import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
 import ru.hh.nab.jdbc.common.DataSourceType;
 import ru.hh.nab.jdbc.common.datasource.NamedDataSource;
 import ru.hh.nab.jdbc.common.ext.JdbcExtension;
 import ru.hh.nab.jdbc.common.healthcheck.HealthCheck;
 import ru.hh.nab.jdbc.common.healthcheck.HealthCheckDataSource;
-import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
@@ -32,6 +30,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private static final String FAILED_SWITCHING_METRIC_NAME = "nab.db.switching.failure";
   private static final String PRIMARY_DATASOURCE_TAG_NAME = "primary_datasource";
   private static final String SECONDARY_DATASOURCE_TAG_NAME = "secondary_datasource";
+  private static final String DATASOURCE_NAME_FORMAT = "%s.%s";
 
   private final Map<String, DataSource> targetDataSources = new HashMap<>();
   private final Map<String, HealthCheck> dataSourceHealthChecks = new HashMap<>();

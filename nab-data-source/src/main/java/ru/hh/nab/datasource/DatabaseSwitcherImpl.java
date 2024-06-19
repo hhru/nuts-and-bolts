@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.jdbc.common.DatabaseSwitcher;
 import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
@@ -61,6 +60,8 @@ import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
  * </p>
  */
 public class DatabaseSwitcherImpl implements DatabaseSwitcher {
+
+  public static final String DATASOURCE_NAME_FORMAT = "%s.%s";
 
   private final Supplier<String> databaseNameSupplier;
   private final Map<String, Map<String, String>> dataSourceNames = new HashMap<>();

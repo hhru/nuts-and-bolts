@@ -3,6 +3,7 @@ package ru.hh.nab.hibernate.datasource;
 import jakarta.inject.Named;
 import javax.sql.DataSource;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.jdbc.routing.RoutingDataSource;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class RoutingDataSourceFactory {

@@ -32,6 +32,7 @@ import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
+import ru.hh.nab.jdbc.common.DatabaseSwitcher;
 import ru.hh.nab.jdbc.common.datasource.NamedDataSource;
 import ru.hh.nab.jdbc.common.ext.OpenTelemetryJdbcExtension;
 

@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.common;
 
 public interface DatabaseSwitcher {
   String createDataSourceName(String databaseName, String dataSourceType);

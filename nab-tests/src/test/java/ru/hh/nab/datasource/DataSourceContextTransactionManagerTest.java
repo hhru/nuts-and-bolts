@@ -17,6 +17,7 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
 import ru.hh.nab.jdbc.common.DataSourceType;
+import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;

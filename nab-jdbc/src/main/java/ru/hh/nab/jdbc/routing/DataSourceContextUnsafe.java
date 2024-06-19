@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.routing;
 
 import java.util.Optional;
 import static java.util.Optional.ofNullable;

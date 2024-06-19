@@ -26,12 +26,12 @@ import org.springframework.test.context.ContextConfiguration;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
 import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
+import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 

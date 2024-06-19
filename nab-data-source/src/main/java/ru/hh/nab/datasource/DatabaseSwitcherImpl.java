@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.jdbc.common.DatabaseSwitcher;
+import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 /**
  * Для того, чтобы приложение работало с несколькими базами данных, необходимо в service.properties добавить конфиги для всех датасорсов, используя

@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.hibernate.transaction.DataSourceContext;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
@@ -17,6 +15,9 @@ import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
 import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
 import static ru.hh.nab.jdbc.common.DataSourceType.SLOW;
+import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.MDC_KEY;
+import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.getDataSourceName;
+import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.setDefaultMDC;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
@@ -28,7 +29,7 @@ public class DataSourceContextTest extends JpaTestBase {
 
   @BeforeEach
   public void setUp() {
-    DataSourceContextUnsafe.setDefaultMDC();
+    setDefaultMDC();
   }
 
   @Test
@@ -37,7 +38,7 @@ public class DataSourceContextTest extends JpaTestBase {
 
     onReplica(() -> {
       assertEquals(READONLY, getDataSourceName());
-      assertEquals(READONLY, MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(READONLY, MDC.get(MDC_KEY));
       return null;
     });
 
@@ -50,7 +51,7 @@ public class DataSourceContextTest extends JpaTestBase {
 
     onSlowReplica(() -> {
       assertEquals(SLOW, getDataSourceName());
-      assertEquals(SLOW, MDC.get(DataSourceContextUnsafe.MDC_KEY));
+      assertEquals(SLOW, MDC.get(MDC_KEY));
       return null;
     });
 
@@ -59,7 +60,7 @@ public class DataSourceContextTest extends JpaTestBase {
 
   private static void assertIsCurrentDataSourceMaster() {
     assertEquals(MASTER, getDataSourceName());
-    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertEquals(MASTER, MDC.get(MDC_KEY));
   }
 
   @Test

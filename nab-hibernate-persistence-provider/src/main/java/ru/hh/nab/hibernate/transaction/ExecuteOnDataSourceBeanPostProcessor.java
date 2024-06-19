@@ -11,9 +11,9 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationConfigurationException;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
 import ru.hh.nab.jdbc.common.DataSourceType;
+import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 public class ExecuteOnDataSourceBeanPostProcessor implements BeanPostProcessor {
 

@@ -10,7 +10,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
+import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {

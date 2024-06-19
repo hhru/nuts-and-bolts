@@ -1,9 +1,8 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.routing;
 
 import java.util.function.Supplier;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.nab.jdbc.common.DataSourceType;
-import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 public class DataSourceContext {
   private static boolean checkTransaction = true;

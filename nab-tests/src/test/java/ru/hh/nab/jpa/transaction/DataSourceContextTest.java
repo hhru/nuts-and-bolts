@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.hibernate.transaction.DataSourceContext;
-import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
-import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
 import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
 import static ru.hh.nab.jdbc.common.DataSourceType.SLOW;
+import static ru.hh.nab.jdbc.routing.DataSourceContext.onDataSource;
+import static ru.hh.nab.jdbc.routing.DataSourceContext.onReplica;
+import static ru.hh.nab.jdbc.routing.DataSourceContext.onSlowReplica;
 import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.MDC_KEY;
 import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.getDataSourceName;
 import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.setDefaultMDC;
@@ -78,12 +78,12 @@ public class DataSourceContextTest extends JpaTestBase {
   @Test
   public void testDsManageInsideTxScope() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
-    transactionalScope.read(() -> DataSourceContext.onDataSource(SLOW, dataSourceCheck));
+    transactionalScope.read(() -> onDataSource(SLOW, dataSourceCheck));
   }
 
   @Test
   public void testTxScopeDoesntChangeDs() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
-    DataSourceContext.onDataSource(SLOW, () -> transactionalScope.read(dataSourceCheck));
+    onDataSource(SLOW, () -> transactionalScope.read(dataSourceCheck));
   }
 }

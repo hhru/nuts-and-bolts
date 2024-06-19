@@ -13,7 +13,6 @@ import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import ru.hh.nab.hibernate.adapter.NabHibernateJpaVendorAdapter;
 import ru.hh.nab.hibernate.adapter.NabHibernatePersistenceProvider;
-import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
 import ru.hh.nab.hibernate.events.EventListenerRegistryPropagator;
 import ru.hh.nab.hibernate.service.NabServiceContributor;
 import ru.hh.nab.hibernate.service.ServiceSupplier;
@@ -22,6 +21,7 @@ import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import ru.hh.nab.jdbc.routing.RoutingDataSourceFactory;
 import ru.hh.nab.jpa.NabJpaCommonConfig;
 
 @Configuration

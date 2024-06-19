@@ -19,6 +19,7 @@ import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckDataSource;
+import ru.hh.nab.jdbc.common.ext.JdbcExtension;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
@@ -36,7 +37,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private final Map<String, HealthCheck> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
   private final Counters successfulSwitchingCounters, failedSwitchingCounters;
-  private DataSourceProxyFactory proxyFactory;
+  private JdbcExtension jdbcExtension;
 
   /**
    * @deprecated Use {@link RoutingDataSource#RoutingDataSource(DataSource, String, StatsDSender)}
@@ -92,7 +93,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   @Override
   protected DataSource determineTargetDataSource() {
     DataSource original = super.determineTargetDataSource();
-    return proxyFactory != null ? proxyFactory.createProxy(original) : original;
+    return jdbcExtension != null ? jdbcExtension.wrap(original) : original;
   }
 
   @Override
@@ -149,8 +150,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     );
   }
 
-  public void setProxyFactory(DataSourceProxyFactory proxyFactory) {
-    this.proxyFactory = proxyFactory;
+  public void setJdbcExtension(JdbcExtension jdbcExtension) {
+    this.jdbcExtension = jdbcExtension;
   }
 
   private boolean isWrapperForHealthCheckDataSource(DataSource wrapper) {

@@ -31,6 +31,7 @@
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
         <module>nab-websocket</module>
+        <module>nab-jdbc-common</module>
     </modules>
 
     <properties>
@@ -49,6 +50,11 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-jdbc-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -80,7 +80,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   protected String determineCurrentLookupKey() {
     String primaryDataSourceName = DataSourceContextUnsafe.getDataSourceName();
     boolean dataSourceIsHealthy = ofNullable(dataSourceHealthChecks.get(primaryDataSourceName))
-        .map(healthCheck -> healthCheck.check().isHealthy())
+        .map(healthCheck -> healthCheck.getCheckResult().healthy())
         .orElse(true);
     return dataSourceIsHealthy ? primaryDataSourceName :
         DataSourcePropertiesStorage

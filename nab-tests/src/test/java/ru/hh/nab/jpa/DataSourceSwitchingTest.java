@@ -1,6 +1,5 @@
 package ru.hh.nab.jpa;
 
-import com.codahale.metrics.health.HealthCheck;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Inject;
@@ -42,8 +41,11 @@ import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFI
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.DatabaseSwitcher;
+import ru.hh.nab.datasource.healthcheck.AsyncHealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
+import ru.hh.nab.datasource.healthcheck.HealthCheckResult;
+import ru.hh.nab.datasource.healthcheck.HealthCheckResultImpl;
 import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.hibernate.datasource.RoutingDataSource;
@@ -442,8 +444,9 @@ public class DataSourceSwitchingTest extends JpaTestBase {
       DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, new FileSettings(properties)));
       try {
         var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
-        HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
-        when(failedHealthCheck.check()).thenReturn(HealthCheck.Result.unhealthy("Data source is unhealthy"));
+        AsyncHealthCheck failedHealthCheck = mock(AsyncHealthCheck.class);
+        HealthCheckResult healthCheckResult = new HealthCheckResultImpl(false);
+        when(failedHealthCheck.getCheckResult()).thenReturn(healthCheckResult);
         when(healthCheckHikariDataSource.getHealthCheck()).thenReturn(failedHealthCheck);
       } catch (SQLException e) {
         // empty

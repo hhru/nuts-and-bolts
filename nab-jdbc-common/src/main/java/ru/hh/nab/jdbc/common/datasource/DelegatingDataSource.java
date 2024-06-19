@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.common.datasource;
 
 import java.io.PrintWriter;
 import java.sql.Connection;

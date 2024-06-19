@@ -15,10 +15,10 @@ import org.springframework.lang.Nullable;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;
-import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.healthcheck.HealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckDataSource;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
+import ru.hh.nab.jdbc.common.datasource.NamedDataSource;
 import ru.hh.nab.jdbc.common.ext.JdbcExtension;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.StatsDSender;
@@ -136,8 +136,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   }
 
   /**
-   * Original DataSource must be wrapped with {@link ru.hh.nab.datasource.NamedDataSource} otherwise IllegalArgumentException will be thrown.
-   * If DataSource doesn't wrapped with {@link ru.hh.nab.datasource.NamedDataSource} prefer to use
+   * Original DataSource must be wrapped with {@link NamedDataSource} otherwise IllegalArgumentException will be thrown.
+   * If DataSource doesn't wrapped with {@link NamedDataSource} prefer to use
    * - {@link #addDataSource(String, DataSource)}
    * - {@link #addDataSource(String, String, DataSource)}
    */

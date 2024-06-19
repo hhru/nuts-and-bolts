@@ -1,9 +1,8 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.common.datasource;
 
 import java.sql.SQLException;
 import java.util.Optional;
 import javax.sql.DataSource;
-import ru.hh.nab.jdbc.common.datasource.DelegatingDataSource;
 
 /**
  * Wrapper for DataSource which holds unique {@link #getName() name}.

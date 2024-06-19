@@ -13,4 +13,11 @@
     <artifactId>nab-jdbc</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-jdbc-common</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

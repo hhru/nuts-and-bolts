@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.executor.ScheduledExecutor;
+import ru.hh.nab.jdbc.common.healthcheck.HealthCheck;
+import ru.hh.nab.jdbc.common.healthcheck.HealthCheckResult;
 import ru.hh.nab.metrics.TaggedSender;
 
 public class AsyncHealthCheck extends com.codahale.metrics.health.HealthCheck implements HealthCheck, Runnable {

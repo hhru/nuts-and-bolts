@@ -21,7 +21,7 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-jdbc-common</artifactId>
+            <artifactId>nab-jdbc</artifactId>
         </dependency>
 
         <dependency>

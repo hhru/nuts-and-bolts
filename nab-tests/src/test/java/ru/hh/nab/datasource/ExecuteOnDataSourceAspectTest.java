@@ -27,10 +27,11 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
-import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
+import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
@@ -60,7 +61,7 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyOuter());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
+    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(READONLY, false));
 
     assertEquals(MASTER, getDataSourceName());
     assertEquals(masterEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
@@ -108,22 +109,22 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
   }
 
   private Object readonlyOuter() throws Throwable {
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
+    assertEquals(READONLY, getDataSourceName());
     outerReadonlyEntityManager = ((EntityManagerProxy) entityManager).getTargetEntityManager();
     assertNotEquals(masterEntityManager, outerReadonlyEntityManager);
 
     ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
     when(pjpMock.proceed()).then(invocation -> readonlyInner());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
+    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(READONLY, false));
 
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
+    assertEquals(READONLY, getDataSourceName());
     assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
 
     return null;
   }
 
   private Object readonlyInner() {
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
+    assertEquals(READONLY, getDataSourceName());
     assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
     return null;
   }
@@ -196,13 +197,13 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
     @Bean
     DataSource readOnlyDataSource(DataSourceFactory dataSourceFactory, FileSettings readOnlySettings) {
-      return dataSourceFactory.create(DataSourceType.READONLY, true, readOnlySettings);
+      return dataSourceFactory.create(READONLY, true, readOnlySettings);
     }
 
     @Bean
     FileSettings readOnlySettings() {
       Properties properties = new Properties();
-      properties.setProperty(DataSourceType.READONLY + ".pool.maximumPoolSize", "2");
+      properties.setProperty(READONLY + ".pool.maximumPoolSize", "2");
       return new FileSettings(properties);
     }
 

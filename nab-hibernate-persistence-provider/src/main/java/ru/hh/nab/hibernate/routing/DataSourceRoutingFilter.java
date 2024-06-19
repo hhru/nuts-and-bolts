@@ -12,8 +12,8 @@ import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
-import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.hibernate.transaction.DataSourceContext;
+import ru.hh.nab.jdbc.common.DataSourceType;
 
 public class DataSourceRoutingFilter implements Filter {
   private static final Logger LOG = LoggerFactory.getLogger(DataSourceRoutingFilter.class);

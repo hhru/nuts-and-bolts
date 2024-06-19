@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.jdbc.common;
 
 public final class DataSourceType {
   public static final String MASTER = "master";

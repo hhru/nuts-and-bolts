@@ -30,6 +30,7 @@ import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
+import ru.hh.nab.jdbc.common.DataSourceType;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;

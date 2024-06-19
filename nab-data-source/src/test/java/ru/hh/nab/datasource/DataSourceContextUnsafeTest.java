@@ -10,9 +10,9 @@ import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeInScope;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeOn;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.setDefaultMDC;
-import static ru.hh.nab.datasource.DataSourceType.MASTER;
-import static ru.hh.nab.datasource.DataSourceType.READONLY;
-import static ru.hh.nab.datasource.DataSourceType.SLOW;
+import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
+import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
+import static ru.hh.nab.jdbc.common.DataSourceType.SLOW;
 
 public class DataSourceContextUnsafeTest {
 

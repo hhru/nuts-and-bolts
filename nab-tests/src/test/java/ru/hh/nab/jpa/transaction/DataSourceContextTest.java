@@ -10,14 +10,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
-import ru.hh.nab.datasource.DataSourceType;
-import static ru.hh.nab.datasource.DataSourceType.MASTER;
-import static ru.hh.nab.datasource.DataSourceType.READONLY;
-import static ru.hh.nab.datasource.DataSourceType.SLOW;
 import ru.hh.nab.hibernate.transaction.DataSourceContext;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
 import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
+import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
+import static ru.hh.nab.jdbc.common.DataSourceType.SLOW;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
@@ -78,12 +77,12 @@ public class DataSourceContextTest extends JpaTestBase {
   @Test
   public void testDsManageInsideTxScope() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
-    transactionalScope.read(() -> DataSourceContext.onDataSource(DataSourceType.SLOW, dataSourceCheck));
+    transactionalScope.read(() -> DataSourceContext.onDataSource(SLOW, dataSourceCheck));
   }
 
   @Test
   public void testTxScopeDoesntChangeDs() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
-    DataSourceContext.onDataSource(DataSourceType.SLOW, () -> transactionalScope.read(dataSourceCheck));
+    DataSourceContext.onDataSource(SLOW, () -> transactionalScope.read(dataSourceCheck));
   }
 }

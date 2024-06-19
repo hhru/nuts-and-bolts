@@ -3,7 +3,7 @@ package ru.hh.nab.hibernate.transaction;
 import java.util.function.Supplier;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.hh.nab.datasource.DataSourceContextUnsafe;
-import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.jdbc.common.DataSourceType;
 
 public class DataSourceContext {
   private static boolean checkTransaction = true;

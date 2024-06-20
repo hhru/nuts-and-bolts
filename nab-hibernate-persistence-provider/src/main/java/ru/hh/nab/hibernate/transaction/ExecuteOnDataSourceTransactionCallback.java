@@ -9,6 +9,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import ru.hh.nab.jdbc.annotation.DataSourceCacheMode;
 import ru.hh.nab.jdbc.annotation.ExecuteOnDataSource;
+import ru.hh.nab.jdbc.aspect.ExecuteOnDataSourceWrappedException;
 
 public class ExecuteOnDataSourceTransactionCallback implements TransactionCallback<Object> {
 

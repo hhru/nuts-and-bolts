@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.transaction.support.TransactionCallback;
 import ru.hh.nab.jdbc.annotation.ExecuteOnDataSource;
+import ru.hh.nab.jdbc.aspect.ExecuteOnDataSourceTransactionCallbackFactory;
 
 public class ExecuteOnDataSourceTransactionCallbackFactoryImpl implements ExecuteOnDataSourceTransactionCallbackFactory {
 

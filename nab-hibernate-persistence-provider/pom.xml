@@ -48,16 +48,6 @@
             <artifactId>hibernate-core</artifactId>
         </dependency>
 
-        <!-- AspectJ -->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-        </dependency>
-
         <!--Testing-->
         <dependency>
             <groupId>ru.hh.nab</groupId>

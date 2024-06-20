@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.transaction.support.TransactionCallback;

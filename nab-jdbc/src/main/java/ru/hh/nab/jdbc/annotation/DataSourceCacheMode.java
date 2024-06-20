@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.annotation;
 
 public enum DataSourceCacheMode {
   NORMAL,

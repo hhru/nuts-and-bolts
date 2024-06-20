@@ -3,6 +3,7 @@ package ru.hh.nab.hibernate.transaction;
 import jakarta.persistence.EntityManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.transaction.support.TransactionCallback;
+import ru.hh.nab.jdbc.annotation.ExecuteOnDataSource;
 
 public class ExecuteOnDataSourceTransactionCallbackFactoryImpl implements ExecuteOnDataSourceTransactionCallbackFactory {
 

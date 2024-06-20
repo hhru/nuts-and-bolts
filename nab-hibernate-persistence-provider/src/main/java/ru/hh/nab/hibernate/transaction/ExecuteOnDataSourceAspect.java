@@ -13,6 +13,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import ru.hh.nab.jdbc.annotation.ExecuteOnDataSource;
 import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 
 @Aspect

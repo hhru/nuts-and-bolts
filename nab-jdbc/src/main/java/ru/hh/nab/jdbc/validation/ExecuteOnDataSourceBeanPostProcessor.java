@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.validation;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

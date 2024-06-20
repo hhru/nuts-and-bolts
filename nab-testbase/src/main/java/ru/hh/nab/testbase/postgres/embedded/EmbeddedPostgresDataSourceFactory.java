@@ -14,7 +14,7 @@ import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
 import static ru.hh.nab.datasource.DataSourceSettings.USER;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
-import ru.hh.nab.jdbc.common.DatabaseSwitcher;
+import ru.hh.nab.jdbc.routing.DatabaseSwitcher;
 
 public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_JDBC_URL = "jdbc:postgresql://${host}:${port}/${database}";

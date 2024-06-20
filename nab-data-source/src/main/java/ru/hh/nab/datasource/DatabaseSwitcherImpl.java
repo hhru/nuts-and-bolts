@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.jdbc.common.DatabaseSwitcher;
 import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
+import ru.hh.nab.jdbc.routing.DatabaseSwitcher;
 
 /**
  * Для того, чтобы приложение работало с несколькими базами данных, необходимо в service.properties добавить конфиги для всех датасорсов, используя

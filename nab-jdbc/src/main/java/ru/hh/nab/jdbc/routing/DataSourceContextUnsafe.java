@@ -4,8 +4,7 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.jdbc.common.DataSourceType;
-import ru.hh.nab.jdbc.common.DatabaseSwitcher;
+import ru.hh.nab.jdbc.DataSourceType;
 
 public final class DataSourceContextUnsafe {
   public static final String MDC_KEY = "db";

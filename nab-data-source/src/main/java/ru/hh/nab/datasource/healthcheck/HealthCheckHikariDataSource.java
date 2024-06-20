@@ -7,8 +7,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import static java.util.Optional.ofNullable;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_DELAY;
-import ru.hh.nab.jdbc.common.healthcheck.HealthCheck;
-import ru.hh.nab.jdbc.common.healthcheck.HealthCheckDataSource;
+import ru.hh.nab.jdbc.healthcheck.HealthCheck;
+import ru.hh.nab.jdbc.healthcheck.HealthCheckDataSource;
 import ru.hh.nab.metrics.TaggedSender;
 
 public class HealthCheckHikariDataSource extends HikariDataSource implements HealthCheckDataSource {

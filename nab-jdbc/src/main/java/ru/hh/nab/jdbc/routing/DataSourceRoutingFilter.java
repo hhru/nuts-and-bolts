@@ -11,7 +11,7 @@ import java.io.IOException;
 import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.jdbc.common.DataSourceType;
+import ru.hh.nab.jdbc.DataSourceType;
 
 public class DataSourceRoutingFilter implements Filter {
   private static final Logger LOG = LoggerFactory.getLogger(DataSourceRoutingFilter.class);

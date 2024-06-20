@@ -4,7 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import ru.hh.nab.jdbc.common.DataSourceType;
+import ru.hh.nab.jdbc.DataSourceType;
 
 /**
  * Warning: unlike {@link org.springframework.transaction.annotation.Transactional}

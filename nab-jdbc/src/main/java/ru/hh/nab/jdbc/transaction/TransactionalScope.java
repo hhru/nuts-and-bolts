@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.transaction;
 
 import java.util.function.Supplier;
 import org.springframework.transaction.annotation.Transactional;

@@ -35,9 +35,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jdbc.common.DataSourcePropertiesStorage;
 import ru.hh.nab.jdbc.common.DataSourceType;
+import ru.hh.nab.jdbc.transaction.TransactionalScope;
 import ru.hh.nab.metrics.StatsDSender;
 
 @ExtendWith(SpringExtension.class)

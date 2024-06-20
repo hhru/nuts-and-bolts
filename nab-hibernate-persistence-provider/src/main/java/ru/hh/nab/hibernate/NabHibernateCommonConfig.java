@@ -22,9 +22,9 @@ import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactory;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jdbc.routing.RoutingDataSourceFactory;
 import ru.hh.nab.jdbc.transaction.DataSourceContextTransactionManager;
+import ru.hh.nab.jdbc.transaction.TransactionalScope;
 import ru.hh.nab.jpa.NabJpaCommonConfig;
 
 @Configuration

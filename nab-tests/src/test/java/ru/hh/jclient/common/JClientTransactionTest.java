@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jclient.NabJClientConfig;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
+import ru.hh.nab.jdbc.transaction.TransactionalScope;
 import ru.hh.nab.jpa.JpaTestConfig;
 
 @ExtendWith(SpringExtension.class)

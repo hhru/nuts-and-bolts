@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.datasource.NabDataSourceProdConfig;
 import ru.hh.nab.hibernate.monitoring.HibernateStatisticsSender;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
 import ru.hh.nab.metrics.StatsDSender;
@@ -17,7 +16,6 @@ import ru.hh.nab.metrics.StatsDSender;
 @Configuration
 @Import({
     NabHibernateCommonConfig.class,
-    NabDataSourceProdConfig.class
 })
 public class NabHibernateProdConfig {
 

@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate;
 
-import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
@@ -16,7 +15,6 @@ import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,20 +41,6 @@ import ru.hh.nab.metrics.StatsDSender;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class)
 public class NabSessionFactoryBuilderFactoryTest {
-
-  private static Connection connection;
-
-  @BeforeEach
-  public void setUp() throws SQLException {
-    ResultSetMetaData metaData = mock(ResultSetMetaData.class);
-    ResultSet rs = mock(ResultSet.class);
-    when(rs.getMetaData()).thenReturn(metaData);
-    PreparedStatement ps = mock(PreparedStatement.class);
-    when(ps.executeQuery()).thenReturn(rs);
-    connection = spy(Connection.class);
-    when(connection.prepareStatement(anyString())).thenReturn(ps);
-
-  }
 
   @Inject
   private TestService testService;
@@ -112,18 +96,26 @@ public class NabSessionFactoryBuilderFactoryTest {
     }
 
     @Bean
-    DataSource dataSource() {
-      DataSource hikariDataSource = new HikariDataSource() {
-        @Override
-        public Connection getConnection() {
-          return connection;
-        }
-      };
+    DataSource dataSource() throws SQLException {
+      ResultSetMetaData metaData = mock(ResultSetMetaData.class);
+
+      ResultSet rs = mock(ResultSet.class);
+      when(rs.getMetaData()).thenReturn(metaData);
+
+      PreparedStatement ps = mock(PreparedStatement.class);
+      when(ps.executeQuery()).thenReturn(rs);
+
+      Connection connection = spy(Connection.class);
+      when(connection.prepareStatement(anyString())).thenReturn(ps);
+
+      DataSource dataSource = mock(DataSource.class);
+      when(dataSource.getConnection()).thenReturn(connection);
+
       DataSourcePropertiesStorage.registerPropertiesFor(
           DataSourceType.READONLY,
           new DataSourcePropertiesStorage.DataSourceProperties(false, null)
       );
-      return hikariDataSource;
+      return dataSource;
     }
 
     @Bean

@@ -31,14 +31,6 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-data-source</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jpa</artifactId>
         </dependency>
 
@@ -67,6 +59,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -20,6 +20,10 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-data-source</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-hibernate-persistence-provider</artifactId>
         </dependency>
 

@@ -1,6 +1,5 @@
 package ru.hh.nab.hibernate.transaction;
 
-import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
@@ -16,15 +15,9 @@ import ru.hh.nab.jdbc.routing.DataSourceContextUnsafe;
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
   private final PlatformTransactionManager delegate;
-  private final EntityManagerProxy entityManagerProxy;
 
-  public DataSourceContextTransactionManager(PlatformTransactionManager delegate, EntityManagerProxy entityManagerProxy) {
+  public DataSourceContextTransactionManager(PlatformTransactionManager delegate) {
     this.delegate = delegate;
-    this.entityManagerProxy = entityManagerProxy;
-  }
-
-  public EntityManagerProxy getEntityManagerProxy() {
-    return entityManagerProxy;
   }
 
   @Override

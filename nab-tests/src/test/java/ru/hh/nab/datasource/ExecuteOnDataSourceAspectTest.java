@@ -29,6 +29,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.hibernate.transaction.DataSourceCacheMode;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
+import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactory;
 import static ru.hh.nab.jdbc.common.DataSourceType.MASTER;
 import static ru.hh.nab.jdbc.common.DataSourceType.READONLY;
 import static ru.hh.nab.jdbc.routing.DataSourceContextUnsafe.getDataSourceName;
@@ -45,11 +46,15 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
   private EntityManager outerReadonlyEntityManager;
   @Inject
   private TestService testService;
+  @Inject
+  private ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory;
 
   @BeforeEach
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
-        transactionManager, Map.of("transactionManager", transactionManager)
+        transactionManager,
+        Map.of("transactionManager", transactionManager),
+        transactionCallbackFactory
     );
   }
 

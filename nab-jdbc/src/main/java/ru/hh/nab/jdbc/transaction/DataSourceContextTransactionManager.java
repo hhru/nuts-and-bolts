@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jdbc.transaction;
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;

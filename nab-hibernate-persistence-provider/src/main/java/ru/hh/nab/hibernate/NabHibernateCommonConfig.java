@@ -17,7 +17,6 @@ import ru.hh.nab.hibernate.adapter.NabHibernatePersistenceProvider;
 import ru.hh.nab.hibernate.events.EventListenerRegistryPropagator;
 import ru.hh.nab.hibernate.service.NabServiceContributor;
 import ru.hh.nab.hibernate.service.ServiceSupplier;
-import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
@@ -25,6 +24,7 @@ import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFac
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
 import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jdbc.routing.RoutingDataSourceFactory;
+import ru.hh.nab.jdbc.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.jpa.NabJpaCommonConfig;
 
 @Configuration

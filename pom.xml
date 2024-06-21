@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.54.1.jakarta-rc2-SNAPSHOT</version>
+    <version>4.54.1.jakarta-rc3-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -19,7 +19,8 @@
         <module>nab-starter</module>
         <module>nab-data-source</module>
         <module>nab-example</module>
-        <module>nab-hibernate</module>
+        <module>nab-jpa</module>
+        <module>nab-hibernate-persistence-provider</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
         <module>nab-logging</module>
@@ -57,7 +58,12 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-hibernate</artifactId>
+                <artifactId>nab-jpa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-hibernate-persistence-provider</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

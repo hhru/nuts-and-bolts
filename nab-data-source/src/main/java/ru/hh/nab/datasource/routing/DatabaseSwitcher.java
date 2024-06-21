@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.routing;
 
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 
 /**

@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.annotation;
 
 /**
  * Controls how the entityManager interacts with the second-level cache or query cache.

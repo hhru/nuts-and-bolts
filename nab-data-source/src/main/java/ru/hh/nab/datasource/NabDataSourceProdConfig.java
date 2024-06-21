@@ -8,6 +8,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
+import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 import ru.hh.nab.metrics.StatsDSender;
 
 @Configuration

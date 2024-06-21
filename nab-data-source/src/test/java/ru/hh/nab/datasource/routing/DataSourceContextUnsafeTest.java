@@ -1,18 +1,18 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.routing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.clearMDC;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeInScope;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.executeOn;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.setDefaultMDC;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.clearMDC;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.executeInScope;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.executeOn;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.setDefaultMDC;
 
 public class DataSourceContextUnsafeTest {
 

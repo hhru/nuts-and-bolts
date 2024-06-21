@@ -15,6 +15,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;

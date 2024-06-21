@@ -1,26 +1,18 @@
 package ru.hh.nab.hibernate.transaction;
 
-import jakarta.persistence.CacheRetrieveMode;
-import jakarta.persistence.CacheStoreMode;
-
+/**
+ * Controls how the entityManager interacts with the second-level cache or query cache.
+ * An instance of DataSourceCacheMode may be viewed as packaging a JPA-defined CacheStoreMode with a CacheRetrieveMode.
+ */
 public enum DataSourceCacheMode {
 
-  NORMAL(CacheStoreMode.USE, CacheRetrieveMode.USE),
-  GET(CacheStoreMode.BYPASS, CacheRetrieveMode.USE);
+  /**
+   * NORMAL represents the combination (CacheStoreMode.USE, CacheRetrieveMode.USE)
+   */
+  NORMAL,
 
-  private final CacheStoreMode storeMode;
-  private final CacheRetrieveMode retrieveMode;
-
-  DataSourceCacheMode(CacheStoreMode storeMode, CacheRetrieveMode retrieveMode) {
-    this.storeMode = storeMode;
-    this.retrieveMode = retrieveMode;
-  }
-
-  public CacheStoreMode getStoreMode() {
-    return storeMode;
-  }
-
-  public CacheRetrieveMode getRetrieveMode() {
-    return retrieveMode;
-  }
+  /**
+   * GET represents the combination (CacheStoreMode.BYPASS, CacheRetrieveMode.USE)
+   */
+  GET,
 }

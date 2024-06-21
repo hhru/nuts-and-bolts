@@ -24,6 +24,9 @@ public @interface ExecuteOnDataSource {
 
   boolean overrideByRequestScope() default false;
 
+  /**
+   * JPA specific attribute. So this attribute is processed only if you use nab-jpa module. Otherwise, it's useless
+   */
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 
   String txManager() default "";

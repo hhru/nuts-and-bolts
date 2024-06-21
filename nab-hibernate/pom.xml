@@ -31,10 +31,6 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-data-source</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jpa</artifactId>
         </dependency>
 

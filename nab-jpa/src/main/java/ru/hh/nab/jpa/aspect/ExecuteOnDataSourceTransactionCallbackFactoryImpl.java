@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.jpa.aspect;
 
 import jakarta.persistence.EntityManager;
 import org.aspectj.lang.ProceedingJoinPoint;

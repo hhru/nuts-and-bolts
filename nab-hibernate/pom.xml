@@ -4,11 +4,11 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.54.1.jakarta-rc3-SNAPSHOT</version>
+        <version>4.54.1.jakarta-rc4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>nab-hibernate-persistence-provider</artifactId>
+    <artifactId>nab-hibernate</artifactId>
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts hibernate persistence provider</name>

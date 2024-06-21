@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>4.54.1.jakarta-rc3-SNAPSHOT</version>
+        <version>4.54.1.jakarta-rc4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>nab-hibernate-persistence-provider</artifactId>
+            <artifactId>nab-hibernate</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

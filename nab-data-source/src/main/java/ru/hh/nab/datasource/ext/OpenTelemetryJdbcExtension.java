@@ -1,7 +1,5 @@
 package ru.hh.nab.datasource.ext;
 
-import javax.sql.DataSource;
-
 /**
  * <p>Extension provides the ability to decorate DataSource with wrapper sending OpenTelemetry spans.
  * This extension used if you create DataSource via {@link ru.hh.nab.datasource.DataSourceFactory}.
@@ -9,7 +7,6 @@ import javax.sql.DataSource;
  *
  * <p>Default implementation placed in nab-telemetry-jdbc module.</p>
  */
-public interface OpenTelemetryJdbcExtension {
-
-  DataSource wrap(DataSource dataSourceToWrap);
+@FunctionalInterface
+public interface OpenTelemetryJdbcExtension extends JdbcExtension {
 }

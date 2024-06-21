@@ -4,17 +4,17 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
 
 @ExtendWith(SpringExtension.class)
 public abstract class JpaTestBase {
   @Inject
   protected EntityManager entityManager;
   @Inject
-  protected DataSourceContextTransactionManager transactionManager;
+  protected PlatformTransactionManager transactionManager;
 
   private static TransactionStatus transactionStatus;
 

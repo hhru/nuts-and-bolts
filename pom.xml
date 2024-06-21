@@ -20,7 +20,7 @@
         <module>nab-data-source</module>
         <module>nab-example</module>
         <module>nab-jpa</module>
-        <module>nab-hibernate-persistence-provider</module>
+        <module>nab-hibernate</module>
         <module>nab-testbase</module>
         <module>nab-tests</module>
         <module>nab-logging</module>
@@ -63,7 +63,7 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-hibernate-persistence-provider</artifactId>
+                <artifactId>nab-hibernate</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

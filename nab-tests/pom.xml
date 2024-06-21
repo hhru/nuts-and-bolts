@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>nab-hibernate-persistence-provider</artifactId>
+            <artifactId>nab-hibernate</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

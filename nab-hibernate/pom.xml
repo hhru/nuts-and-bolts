@@ -8,7 +8,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>nab-hibernate-persistence-provider</artifactId>
+    <artifactId>nab-hibernate</artifactId>
     <packaging>jar</packaging>
 
     <name>nuts'n'bolts hibernate persistence provider</name>

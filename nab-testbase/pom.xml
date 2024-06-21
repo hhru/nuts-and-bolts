@@ -20,7 +20,7 @@
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-hibernate-persistence-provider</artifactId>
+            <artifactId>nab-hibernate</artifactId>
         </dependency>
 
         <!-- Embedded PostgreSQL -->

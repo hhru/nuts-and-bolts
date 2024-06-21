@@ -1,26 +1,40 @@
 package ru.hh.nab.hibernate.transaction;
 
-import jakarta.persistence.CacheRetrieveMode;
-import jakarta.persistence.CacheStoreMode;
-
+/**
+ * Controls how the entityManager interacts with the second-level cache or query cache.
+ * An instance of DataSourceCacheMode may be viewed as packaging a JPA-defined CacheStoreMode with a CacheRetrieveMode.
+ */
 public enum DataSourceCacheMode {
 
-  NORMAL(CacheStoreMode.USE, CacheRetrieveMode.USE),
-  GET(CacheStoreMode.BYPASS, CacheRetrieveMode.USE);
+  /**
+   * NORMAL represents the combination (CacheStoreMode.USE, CacheRetrieveMode.USE)
+   * The entityManager may read items from the cache, and add items to the cache as it reads them from the database.
+   */
+  NORMAL,
 
-  private final CacheStoreMode storeMode;
-  private final CacheRetrieveMode retrieveMode;
+  /**
+   * IGNORE represents the combination (CacheStoreMode.BYPASS, CacheRetrieveMode.BYPASS)
+   * The entityManager will never interact with the cache, except to invalidate cached items when updates occur.
+   */
+  IGNORE,
 
-  DataSourceCacheMode(CacheStoreMode storeMode, CacheRetrieveMode retrieveMode) {
-    this.storeMode = storeMode;
-    this.retrieveMode = retrieveMode;
-  }
+  /**
+   * GET represents the combination (CacheStoreMode.BYPASS, CacheRetrieveMode.USE)
+   * The entityManager may read items from the cache, but will not add items, except to invalidate items when updates occur.
+   */
+  GET,
 
-  public CacheStoreMode getStoreMode() {
-    return storeMode;
-  }
+  /**
+   * PUT represents the combination (CacheStoreMode.USE, CacheRetrieveMode.BYPASS)
+   * The entityManager will never read items from the cache, but will add items to the cache as it reads them from the database.
+   * EntityManager does not force refresh of already cached items when reading from database.
+   */
+  PUT,
 
-  public CacheRetrieveMode getRetrieveMode() {
-    return retrieveMode;
-  }
+  /**
+   * REFRESH represents the combination (CacheStoreMode.REFRESH, CacheRetrieveMode.BYPASS)
+   * As with to PUT, the entityManager will never read items from the cache, but will add items to the cache as it reads them from the database.
+   * EntityManager forces refresh of cache for items read from database.
+   */
+  REFRESH,
 }

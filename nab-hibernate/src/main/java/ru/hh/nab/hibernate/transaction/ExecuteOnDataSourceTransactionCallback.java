@@ -32,8 +32,8 @@ public class ExecuteOnDataSourceTransactionCallback implements TransactionCallba
       initialCacheStoreMode = (CacheStoreMode) entityManager.getProperties().get(CACHE_STORE_MODE_PROPERTY);
       initialCacheRetrieveMode = (CacheRetrieveMode) entityManager.getProperties().get(CACHE_RETRIEVE_MODE_PROPERTY);
 
-      entityManager.setProperty(CACHE_STORE_MODE_PROPERTY, executeOnDataSource.cacheMode().getStoreMode());
-      entityManager.setProperty(CACHE_RETRIEVE_MODE_PROPERTY, executeOnDataSource.cacheMode().getRetrieveMode());
+      entityManager.setProperty(CACHE_STORE_MODE_PROPERTY, getCacheStoreMode(executeOnDataSource.cacheMode()));
+      entityManager.setProperty(CACHE_RETRIEVE_MODE_PROPERTY, getCacheRetrieveMode(executeOnDataSource.cacheMode()));
 
       return pjp.proceed();
     } catch (RuntimeException | Error e) {
@@ -48,5 +48,20 @@ public class ExecuteOnDataSourceTransactionCallback implements TransactionCallba
         entityManager.setProperty(CACHE_RETRIEVE_MODE_PROPERTY, initialCacheRetrieveMode);
       }
     }
+  }
+
+  private CacheStoreMode getCacheStoreMode(DataSourceCacheMode cacheMode) {
+    return switch (cacheMode) {
+      case NORMAL, PUT -> CacheStoreMode.USE;
+      case IGNORE, GET -> CacheStoreMode.BYPASS;
+      case REFRESH -> CacheStoreMode.REFRESH;
+    };
+  }
+
+  private CacheRetrieveMode getCacheRetrieveMode(DataSourceCacheMode cacheMode) {
+    return switch (cacheMode) {
+      case NORMAL, GET -> CacheRetrieveMode.USE;
+      case IGNORE, PUT, REFRESH -> CacheRetrieveMode.BYPASS;
+    };
   }
 }

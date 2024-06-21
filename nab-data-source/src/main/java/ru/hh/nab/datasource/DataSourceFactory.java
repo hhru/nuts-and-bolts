@@ -32,6 +32,7 @@ import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
+import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 
 public class DataSourceFactory {
   private static final int HIKARI_MIN_VALIDATION_TIMEOUT_MS = 250;

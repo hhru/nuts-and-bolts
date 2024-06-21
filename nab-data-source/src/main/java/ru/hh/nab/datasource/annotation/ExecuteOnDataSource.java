@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.routing;
+package ru.hh.nab.datasource.routing;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

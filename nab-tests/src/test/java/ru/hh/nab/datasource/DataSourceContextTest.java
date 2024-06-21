@@ -1,4 +1,4 @@
-package ru.hh.nab.jpa.transaction;
+package ru.hh.nab.datasource;
 
 import jakarta.inject.Inject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,16 +8,15 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
-import static ru.hh.nab.datasource.DataSourceContextUnsafe.getDataSourceName;
-import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
-import ru.hh.nab.hibernate.transaction.DataSourceContext;
-import static ru.hh.nab.hibernate.transaction.DataSourceContext.onReplica;
-import static ru.hh.nab.hibernate.transaction.DataSourceContext.onSlowReplica;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import ru.hh.nab.datasource.routing.DataSourceContext;
+import static ru.hh.nab.datasource.routing.DataSourceContext.onReplica;
+import static ru.hh.nab.datasource.routing.DataSourceContext.onSlowReplica;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
+import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
+import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 

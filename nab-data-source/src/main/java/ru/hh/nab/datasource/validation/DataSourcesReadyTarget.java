@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.validation;
 
 import java.util.List;
 import javax.sql.DataSource;

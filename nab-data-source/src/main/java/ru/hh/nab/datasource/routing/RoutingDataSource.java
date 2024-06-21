@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.datasource;
+package ru.hh.nab.datasource.routing;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;

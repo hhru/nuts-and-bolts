@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.aspect;
 
 import jakarta.annotation.Nullable;
 import java.util.Map;
@@ -13,7 +13,8 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
+import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {

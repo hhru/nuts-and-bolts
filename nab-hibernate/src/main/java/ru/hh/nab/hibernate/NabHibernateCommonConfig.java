@@ -12,19 +12,19 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceAspect;
+import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceTransactionCallbackFactory;
+import ru.hh.nab.datasource.routing.RoutingDataSourceFactory;
+import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
+import ru.hh.nab.datasource.transaction.TransactionalScope;
+import ru.hh.nab.datasource.validation.DataSourcesReadyTarget;
+import ru.hh.nab.datasource.validation.ExecuteOnDataSourceBeanPostProcessor;
 import ru.hh.nab.hibernate.adapter.NabHibernateJpaVendorAdapter;
 import ru.hh.nab.hibernate.adapter.NabHibernatePersistenceProvider;
-import ru.hh.nab.hibernate.datasource.RoutingDataSourceFactory;
 import ru.hh.nab.hibernate.events.EventListenerRegistryPropagator;
 import ru.hh.nab.hibernate.service.NabServiceContributor;
 import ru.hh.nab.hibernate.service.ServiceSupplier;
-import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
-import ru.hh.nab.hibernate.transaction.DataSourcesReadyTarget;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceAspect;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceBeanPostProcessor;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactory;
 import ru.hh.nab.hibernate.transaction.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.jpa.NabJpaCommonConfig;
 
 @Configuration

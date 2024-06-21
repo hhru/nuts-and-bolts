@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.transaction;
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -9,8 +9,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 

@@ -1,0 +1,29 @@
+-   name: 4.54.1.jakarta-rc3
+    date: '2024-06-21T14:15:00.000000+03:00'
+    description: "Модуль nab-hibernate-persistence-provider переименован в nab-hibernate"
+    instructions: "Поправить помник - вместо nab-hibernate-persistence-provider необходимо подключать nab-hibernate"
+    compatible: false
+
+-   name: 4.54.1.jakarta-rc2
+    date: '2024-06-21T10:20:00.000000+03:00'
+    description: "Исправлена ошибка, возникающая при использовании hibernate @converter'ов (в nab-hibernate ушли от 
+        использования классов из пакета org.springframework.orm.hibernate5, так как не все они имеют совместимость с hibernate 6).
+        Модуль nab-hibernate переименован в nab-hibernate-persistence-provider. Для использования hibernate достаточно подключить 
+        в сервисе модуль nab-hibernate-persistence-provider и импортировать конфиг NabHibernateProdConfig."
+    instructions: "1. Поправить помник - вместо nab-hibernate необходимо подключать nab-hibernate-persistence-provider
+        2. Вместо NabSessionFactoryBean необходимо использовать NabEntityManagerFactoryBean
+        3. Вместо SessionFactoryCreationHandler необходимо использовать EntityManagerFactoryCreationHandler 
+        4. Для регистрации EventListener'ов необходимо добавить бин EventListenerRegistryConsumer в контекст спринга
+        5. Для использования Integrator'ов необходимо реализовать IntegratorProvider и указать имя класса 
+           в настройке hibernate.integrator_provider
+        6. Вместо SessionFactory необходимо инжектить EntityManager и использовать его для работы с базой, спринг сам 
+           создаст инстанс EntityManager'а или переиспользует существующий в текущей транзакции. Подробнее об этом можно 
+           прочитать в документации: 
+           https://docs.spring.io/spring-framework/reference/data-access/orm/jpa.html#orm-jpa-dao
+           https://docs.spring.io/spring-framework/reference/data-access/orm/jpa.html#orm-jpa-dao-autowired
+           Ручная работа с использованием метода SessionFactory.getCurrentSession больше не поддерживается, 
+           и вызовы данного метода будут приводить к ошибке
+        7. Поправить импорт класса MappingConfig
+        8. Поправить импорт ServiceSupplier
+        9. Вместо класса HibernateTestBase необходимо использовать JpaTestBase"
+    compatible: false

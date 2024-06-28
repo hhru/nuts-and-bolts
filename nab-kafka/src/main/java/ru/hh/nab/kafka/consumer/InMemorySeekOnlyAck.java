@@ -2,9 +2,12 @@ package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 import ru.hh.nab.kafka.util.AckUtils;
 
 class InMemorySeekOnlyAck<T> implements Ack<T> {
@@ -42,4 +45,13 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
     consumingState.seekOffset(AckUtils.getMessagePartition(message), AckUtils.getOffsetOfNextMessage(message));
   }
 
+  @Override
+  public CompletableFuture<Void> retry(ConsumerRecord<String, T> message, Throwable error) {
+    throw new UnsupportedOperationException("Retry is not supported by InMemorySeekOnlyAck");
+  }
+
+  @Override
+  public Optional<MessageProcessingHistory> getProcessingHistory(ConsumerRecord<String, T> message) {
+    throw new UnsupportedOperationException("Retries and processing history is not supported by InMemorySeekOnlyAck");
+  }
 }

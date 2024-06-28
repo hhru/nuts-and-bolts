@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
+import ru.hh.nab.kafka.consumer.retry.RetryService;
 
 public class KafkaConsumer<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
@@ -29,8 +30,9 @@ public class KafkaConsumer<T> {
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-  private final BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
+  private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
+  private final RetryService<T> retryService;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
@@ -41,11 +43,13 @@ public class KafkaConsumer<T> {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
+      RetryService<T> retryService,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider
+      AckProvider<T> ackProvider
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = retryService;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -63,11 +67,12 @@ public class KafkaConsumer<T> {
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider,
+      AckProvider<T> ackProvider,
       Duration checkNewPartitionsInterval
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = null;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -164,7 +169,7 @@ public class KafkaConsumer<T> {
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.apply(this, consumer);
+    Ack<T> ack = ackProvider.createAck(this, consumer, retryService);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }

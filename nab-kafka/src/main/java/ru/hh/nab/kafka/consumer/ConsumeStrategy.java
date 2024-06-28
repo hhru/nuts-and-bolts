@@ -9,8 +9,12 @@ public interface ConsumeStrategy<T> {
   static <M> ConsumeStrategy<M> atLeastOnceWithBatchAck(MessageProcessor<M> messageProcessor) {
     return (consumerRecords, ack) -> {
       for (ConsumerRecord<String, M> record : consumerRecords) {
-        messageProcessor.process(record.value());
-        ack.seek(record);
+        try {
+          messageProcessor.process(record.value());
+          ack.seek(record);
+        } catch (RuntimeException e) {
+          ack.retry(record, e);
+        }
       }
       ack.acknowledge();
     };

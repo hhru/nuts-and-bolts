@@ -1,9 +1,8 @@
 package ru.hh.nab.hibernate;
 
 import jakarta.inject.Named;
-import jakarta.persistence.EntityManagerFactory;
 import java.util.Properties;
-import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,13 +30,13 @@ public class NabHibernateProdConfig {
   HibernateStatisticsSender hibernateStatisticsSender(
       HibernatePropertiesProvider hibernatePropertiesProvider,
       @Named(SERVICE_NAME) String serviceName,
-      EntityManagerFactory entityManagerFactory,
+      SessionFactory sessionFactory,
       StatsDSender statsDSender
   ) {
     return new HibernateStatisticsSender(
         hibernatePropertiesProvider.get(),
         serviceName,
-        entityManagerFactory.unwrap(SessionFactoryImpl.class),
+        sessionFactory,
         statsDSender
     );
   }

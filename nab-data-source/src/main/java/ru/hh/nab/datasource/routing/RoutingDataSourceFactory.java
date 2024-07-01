@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.datasource;
+package ru.hh.nab.datasource.routing;
 
 import jakarta.inject.Named;
 import javax.sql.DataSource;

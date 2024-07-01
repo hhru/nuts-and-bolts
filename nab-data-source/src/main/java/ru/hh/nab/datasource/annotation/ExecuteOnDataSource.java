@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,6 +24,9 @@ public @interface ExecuteOnDataSource {
 
   boolean overrideByRequestScope() default false;
 
+  /**
+   * JPA specific attribute. So this attribute is processed only if you use nab-jpa module. Otherwise, it's useless
+   */
   DataSourceCacheMode cacheMode() default DataSourceCacheMode.NORMAL;
 
   String txManager() default "";

@@ -4,13 +4,18 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
+import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 import ru.hh.nab.metrics.StatsDSender;
 
 @Configuration
+@Import({
+    NabDataSourceCommonConfig.class,
+})
 public class NabDataSourceProdConfig {
   @Bean
   DataSourceFactory dataSourceFactory(

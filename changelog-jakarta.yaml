@@ -1,3 +1,24 @@
+-   name: 4.54.1.jakarta-rc5
+    date: '2024-07-10T14:30:00.000000+03:00'
+    description: "Выполнен рефакторинг:
+        1. Логика по маршрутизации запросов в различные датасорсы переехала из модуля nab-hibernate в модуль nab-data-source. 
+           Таким образом, при необходимости ее использовать необязательно тянуть в сервис hibernate 
+        2. Из модуля nab-data-source удалена зависимость org.postgresql:postgresql
+        3. Удален интерфейс DataSourceProxyFactory, вместо него добавлен JdbcExtension
+           Удален метод RoutingDataSource.setProxyFactory, вместо него добавлен RoutingDataSource.setJdbcExtension
+        4. Из DataSourceContextTransactionManager удален entityManagerProxy
+        5. В nab-testbase добавлен HibernateTestBase"
+    instructions: "
+        1. Сбилдить проект и поправить импорты
+        2. Добавить в помник сервиса необходимый JDBC Driver. Например, если сервис работает с postgresql, нужно добавить
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+            </dependency>
+        3. Вместо DataSourceProxyFactory необходимо использовать JdbcExtension
+        4. Вместо вызова метода RoutingDataSource.setProxyFactory необходимо вызывать RoutingDataSource.setJdbcExtension"
+    compatible: false
+
 -   name: 4.54.1.jakarta-rc4
     date: '2024-07-04T12:25:00.000000+03:00'
     description: "Обновление kafka-client-utils до 1.3.jakarta-rc1, timing-logger до 1.2.6.jakarta-rc1"
@@ -34,5 +55,6 @@
            и вызовы данного метода будут приводить к ошибке
         7. Поправить импорт класса MappingConfig
         8. Поправить импорт ServiceSupplier
-        9. Вместо класса HibernateTestBase необходимо использовать JpaTestBase"
+        9. Вместо класса HibernateTestBase необходимо использовать JpaTestBase
+           upd: данный пункт можно скипать, если вы обновляетесь на версию 4.54.1.jakarta-rc5 или новее И в ваших тестах используется хиберовский api"
     compatible: false

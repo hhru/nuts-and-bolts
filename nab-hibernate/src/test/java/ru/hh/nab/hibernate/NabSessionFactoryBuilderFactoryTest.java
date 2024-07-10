@@ -3,7 +3,6 @@ package ru.hh.nab.hibernate;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.internal.SessionImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +33,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
+import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
 import ru.hh.nab.metrics.StatsDSender;
 
 @ExtendWith(SpringExtension.class)
@@ -67,11 +65,11 @@ public class NabSessionFactoryBuilderFactoryTest {
   }
 
   private static class TestService {
-    private final EntityManager entityManager;
+    private final Session session;
     private final TransactionalScope transactionalScope;
 
-    TestService(EntityManager entityManager, TransactionalScope transactionalScope) {
-      this.entityManager = entityManager;
+    TestService(Session session, TransactionalScope transactionalScope) {
+      this.session = session;
       this.transactionalScope = transactionalScope;
     }
 
@@ -80,11 +78,10 @@ public class NabSessionFactoryBuilderFactoryTest {
       AtomicReference<Connection> ref = new AtomicReference<>();
       transactionalScope.read(() -> {
         try {
-          Session currentSession = entityManager.unwrap(SessionImpl.class);
-          ref.set(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection());
-          verify(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection(), times(0)).close();
-          entityManager.createNativeQuery("select 1 from dual").getResultList();
-          verify(((SharedSessionContractImplementor) currentSession).getJdbcConnectionAccess().obtainConnection(), times(1)).close();
+          ref.set(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection());
+          verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(0)).close();
+          session.createNativeQuery("select 1 from dual").uniqueResult();
+          verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(1)).close();
         } catch (SQLException e) {
           throw new RuntimeException(e);
         }

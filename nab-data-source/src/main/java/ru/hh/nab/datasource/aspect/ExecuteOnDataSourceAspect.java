@@ -1,29 +1,36 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.aspect;
 
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.transaction.PlatformTransactionManager;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
+import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 
 @Aspect
 public class ExecuteOnDataSourceAspect {
 
-  private final DataSourceContextTransactionManager defaultTxManager;
-  private final Map<String, DataSourceContextTransactionManager> txManagers;
+  private final PlatformTransactionManager defaultTxManager;
+  private final Map<String, PlatformTransactionManager> txManagers;
+  private final ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory;
 
   public ExecuteOnDataSourceAspect(
-      DataSourceContextTransactionManager defaultTxManager,
-      Map<String, DataSourceContextTransactionManager> txManagers
+      PlatformTransactionManager defaultTxManager,
+      Map<String, PlatformTransactionManager> txManagers,
+      @Nullable ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory
   ) {
     this.defaultTxManager = defaultTxManager;
     this.txManagers = txManagers;
+    this.transactionCallbackFactory = transactionCallbackFactory == null ? new DefaultTransactionCallbackFactory() : transactionCallbackFactory;
   }
 
   @Around(value = "@annotation(executeOnDataSource)", argNames = "pjp,executeOnDataSource")
@@ -33,7 +40,7 @@ public class ExecuteOnDataSourceAspect {
       return pjp.proceed();
     }
     String txManagerQualifier = executeOnDataSource.txManager();
-    DataSourceContextTransactionManager transactionManager = StringUtils.isEmpty(txManagerQualifier) ?
+    PlatformTransactionManager transactionManager = StringUtils.isEmpty(txManagerQualifier) ?
         defaultTxManager :
         getTxManagerByQualifier(txManagerQualifier);
     TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
@@ -41,17 +48,31 @@ public class ExecuteOnDataSourceAspect {
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
     try {
       return DataSourceContextUnsafe.executeOn(dataSourceType, executeOnDataSource.overrideByRequestScope(),
-          () -> transactionTemplate.execute(new ExecuteOnDataSourceTransactionCallback(
-              pjp, transactionManager.getEntityManagerProxy(), executeOnDataSource.cacheMode()
-          )));
+          () -> transactionTemplate.execute(transactionCallbackFactory.create(pjp, executeOnDataSource)));
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();
     }
   }
 
-  private DataSourceContextTransactionManager getTxManagerByQualifier(String txManagerQualifier) {
+  private PlatformTransactionManager getTxManagerByQualifier(String txManagerQualifier) {
     return Optional
         .ofNullable(txManagers.get(txManagerQualifier))
         .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"));
+  }
+
+  private static class DefaultTransactionCallbackFactory implements ExecuteOnDataSourceTransactionCallbackFactory {
+
+    @Override
+    public TransactionCallback<Object> create(ProceedingJoinPoint pjp, ExecuteOnDataSource executeOnDataSource) {
+      return status -> {
+        try {
+          return pjp.proceed();
+        } catch (RuntimeException | Error e) {
+          throw e;
+        } catch (Throwable e) {
+          throw new ExecuteOnDataSourceWrappedException(e);
+        }
+      };
+    }
   }
 }

@@ -1,6 +1,5 @@
-package ru.hh.nab.hibernate.transaction;
+package ru.hh.nab.datasource.transaction;
 
-import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED;
@@ -10,21 +9,15 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 
 public class DataSourceContextTransactionManager implements PlatformTransactionManager {
 
   private final PlatformTransactionManager delegate;
-  private final EntityManagerProxy entityManagerProxy;
 
-  public DataSourceContextTransactionManager(PlatformTransactionManager delegate, EntityManagerProxy entityManagerProxy) {
+  public DataSourceContextTransactionManager(PlatformTransactionManager delegate) {
     this.delegate = delegate;
-    this.entityManagerProxy = entityManagerProxy;
-  }
-
-  public EntityManagerProxy getEntityManagerProxy() {
-    return entityManagerProxy;
   }
 
   @Override

@@ -1,9 +1,10 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.routing;
 
 import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.function.Supplier;
 import ru.hh.nab.common.mdc.MDC;
+import ru.hh.nab.datasource.DataSourceType;
 
 public final class DataSourceContextUnsafe {
   public static final String MDC_KEY = "db";

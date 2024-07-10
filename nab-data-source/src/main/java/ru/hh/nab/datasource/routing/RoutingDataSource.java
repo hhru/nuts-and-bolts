@@ -1,4 +1,4 @@
-package ru.hh.nab.hibernate.datasource;
+package ru.hh.nab.datasource.routing;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
-import ru.hh.nab.datasource.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;
 import ru.hh.nab.datasource.NamedDataSource;
+import ru.hh.nab.datasource.ext.JdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckDataSource;
 import ru.hh.nab.metrics.Counters;
@@ -36,7 +36,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private final Map<String, HealthCheck> dataSourceHealthChecks = new HashMap<>();
   private final String serviceName;
   private final Counters successfulSwitchingCounters, failedSwitchingCounters;
-  private DataSourceProxyFactory proxyFactory;
+  private JdbcExtension jdbcExtension;
 
   /**
    * @deprecated Use {@link RoutingDataSource#RoutingDataSource(DataSource, String, StatsDSender)}
@@ -92,7 +92,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   @Override
   protected DataSource determineTargetDataSource() {
     DataSource original = super.determineTargetDataSource();
-    return proxyFactory != null ? proxyFactory.createProxy(original) : original;
+    return jdbcExtension != null ? jdbcExtension.wrap(original) : original;
   }
 
   @Override
@@ -149,8 +149,8 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     );
   }
 
-  public void setProxyFactory(DataSourceProxyFactory proxyFactory) {
-    this.proxyFactory = proxyFactory;
+  public void setJdbcExtension(JdbcExtension jdbcExtension) {
+    this.jdbcExtension = jdbcExtension;
   }
 
   private boolean isWrapperForHealthCheckDataSource(DataSource wrapper) {

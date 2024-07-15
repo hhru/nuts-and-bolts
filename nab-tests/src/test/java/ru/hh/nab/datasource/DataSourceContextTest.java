@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
@@ -17,12 +18,13 @@ import static ru.hh.nab.datasource.routing.DataSourceContext.onSlowReplica;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
-import ru.hh.nab.jpa.JpaTestConfig;
-import ru.hh.nab.testbase.jpa.JpaTestBase;
+import ru.hh.nab.testbase.transaction.TransactionTestBase;
 
-@ContextConfiguration(classes = {JpaTestConfig.class})
-public class DataSourceContextTest extends JpaTestBase {
+@ContextConfiguration(classes = DataSourceTestConfig.class)
+public class DataSourceContextTest extends TransactionTestBase {
 
+  @Inject
+  private PlatformTransactionManager transactionManager;
   @Inject
   private TransactionalScope transactionalScope;
 

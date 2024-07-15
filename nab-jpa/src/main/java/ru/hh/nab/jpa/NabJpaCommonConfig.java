@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -16,14 +15,11 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.datasource.NabDataSourceCommonConfig;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.jpa.aspect.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
 
 @Configuration
-@EnableTransactionManagement(order = 0)
-@EnableAspectJAutoProxy
 @Import({
     NabDataSourceCommonConfig.class,
     ExecuteOnDataSourceTransactionCallbackFactoryImpl.class,

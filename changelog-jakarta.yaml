@@ -1,3 +1,11 @@
+-   name: 4.54.1.jakarta-rc6
+    date: '2024-07-15T15:30:00.000000+03:00'
+    description: "В NabDataSourceCommonConfig добавлен бин defaultJdbcTransactionManager"
+    instructions: "Если в вашем сервисе импортится NabDataSourceCommonConfig, и вы самостоятельно описываете бин PlatformTransactionManager 
+        в @Configuration классе, тогда нужно либо выпилить это писание, чтобы везде инжектился бин из NabDataSourceCommonConfig'а, либо
+        проставить аннотации @Primary/@Qualifier"
+    compatible: false
+
 -   name: 4.54.1.jakarta-rc5
     date: '2024-07-10T14:30:00.000000+03:00'
     description: "Выполнен рефакторинг:

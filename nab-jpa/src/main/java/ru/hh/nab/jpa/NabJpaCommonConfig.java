@@ -14,7 +14,6 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
-import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import ru.hh.nab.datasource.NabDataSourceCommonConfig;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.jpa.aspect.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
@@ -40,17 +39,18 @@ public class NabJpaCommonConfig {
         .flatMap(Stream::of)
         .map(Class::getCanonicalName)
         .toList();
-    List<String> managedPackages = mappingConfigs
+    String[] packagesToScan = mappingConfigs
         .stream()
         .map(MappingConfig::getPackagesToScan)
         .flatMap(Stream::of)
-        .toList();
+        .toArray(String[]::new);
 
     NabEntityManagerFactoryBean entityManagerFactoryBean = new NabEntityManagerFactoryBean();
     entityManagerFactoryBean.setDataSource(dataSource);
     entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter);
     entityManagerFactoryBean.setJpaProperties(jpaPropertiesProvider.get());
-    entityManagerFactoryBean.setManagedTypes(PersistenceManagedTypes.of(managedClassNames, managedPackages));
+    entityManagerFactoryBean.setPackagesToScan(packagesToScan);
+    entityManagerFactoryBean.setPersistenceUnitPostProcessors(new NabPersistenceUnitPostProcessor(managedClassNames));
     entityManagerFactoryBean.setEntityManagerFactoryCreationHandlers(entityManagerFactoryCreationHandlers);
     return entityManagerFactoryBean;
   }

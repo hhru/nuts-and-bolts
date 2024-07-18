@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.54.1.jakarta-rc7-SNAPSHOT</version>
+    <version>4.54.1.jakarta-rc8-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 

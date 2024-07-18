@@ -1,3 +1,9 @@
+-   name: 4.54.1.jakarta-rc7
+    date: '2024-07-18T13:00:00.000000+03:00'
+    description: "Удалено сканирование сущностей из кода наба, вместо этого добавлен NabPersistenceUnitPostProcessor"
+    instructions: ""
+    compatible: true
+
 -   name: 4.54.1.jakarta-rc6
     date: '2024-07-15T15:30:00.000000+03:00'
     description: "В NabDataSourceCommonConfig добавлен бин defaultJdbcTransactionManager"

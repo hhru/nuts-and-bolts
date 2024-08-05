@@ -30,7 +30,6 @@ import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import ru.hh.nab.datasource.annotation.DataSourceCacheMode;
 import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
 import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceAspect;
-import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceTransactionCallbackFactory;
 import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
@@ -45,15 +44,12 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
   private EntityManager outerReadonlyEntityManager;
   @Inject
   private TestService testService;
-  @Inject
-  private ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory;
 
   @BeforeEach
   public void setUp() {
     executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
         transactionManager,
-        Map.of("transactionManager", transactionManager),
-        transactionCallbackFactory
+        Map.of("transactionManager", transactionManager)
     );
   }
 

@@ -1,3 +1,15 @@
+-   name: 4.54.1.jakarta-rc8
+    date: '2024-08-05T19:00:00.000000+03:00'
+    description: "Исправлены конфиги NabDataSourceCommonConfig и NabJpaCommonConfig таким образом, чтобы в сервисах при необходимости 
+        была возможность сконфигурировать несколько бинов Session/EntityManager для работы с разными датасорсами"
+    instructions: "В DataSourceContextTransactionManager добавлен конструктор, который принимает на вход 
+        ExecuteOnDataSourceTransactionCallbackFactory. То есть если в сервисе явно создается объект DataSourceContextTransactionManager, 
+        то нужно помимо PlatformTransactionManager'а также передавать реализацию ExecuteOnDataSourceTransactionCallbackFactory, 
+        иначе будет использоваться DefaultTransactionCallbackFactory. Также при объявлении бина в качестве возвращаемого типа необходимо 
+        указывать именно DataSourceContextTransactionManager, а не PlatformTransactionManager (transactionManager'ы, объявленные как 
+        PlatformTransactionManager, не будут инжектиться в ExecuteOnDataSourceAspect)"
+    compatible: false
+
 -   name: 4.54.1.jakarta-rc7
     date: '2024-07-18T13:00:00.000000+03:00'
     description: "Удалено сканирование сущностей из кода наба, вместо этого добавлен NabPersistenceUnitPostProcessor"

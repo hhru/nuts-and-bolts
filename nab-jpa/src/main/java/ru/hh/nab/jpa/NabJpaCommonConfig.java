@@ -22,10 +22,12 @@ import ru.hh.nab.jpa.aspect.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
 @Configuration
 @Import({
     NabDataSourceCommonConfig.class,
+    EntityManagerFactoryRegistry.class,
 })
 public class NabJpaCommonConfig {
 
   @Bean
+  @EntityManagerFactoryId("default")
   LocalContainerEntityManagerFactoryBean entityManagerFactory(
       DataSource dataSource,
       JpaVendorAdapter jpaVendorAdapter,

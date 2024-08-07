@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.kafka.consumer.retry.RetryService;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
@@ -37,8 +37,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private Duration checkNewPartitionsInterval;
 
   private ConsumeStrategy<T> consumeStrategy;
+  private RetryService<T> retryService;
   private Logger logger;
-  private BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
+  private AckProvider<T> ackProvider;
 
   public DefaultConsumerBuilder(DefaultConsumerFactory consumerFactory, String topicName, Class<T> messageClass) {
     this.topicName = topicName;
@@ -60,13 +61,19 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withRetryService(RetryService<T> retryService) {
+    this.retryService = retryService;
+    return this;
+  }
+
+  @Override
   public DefaultConsumerBuilder<T> withLogger(Logger logger) {
     this.logger = logger;
     return this;
   }
 
   @Override
-  public DefaultConsumerBuilder<T> withAckProvider(BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider) {
+  public DefaultConsumerBuilder<T> withAckProvider(AckProvider<T> ackProvider) {
     this.ackProvider = ackProvider;
     return this;
   }
@@ -74,7 +81,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   @Override
   public ConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
-    withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer));
+    withAckProvider(KafkaInternalTopicAck::new);
     return this;
   }
 
@@ -82,7 +89,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    withAckProvider((kafkaConsumer, nativeKafkaConsumer) -> new InMemorySeekOnlyAck<>(kafkaConsumer));
+    withAckProvider((kafkaConsumer, nativeKafkaConsumer, retryService) -> new InMemorySeekOnlyAck<>(kafkaConsumer));
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     return this;
   }
@@ -127,6 +134,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
+        retryService,
         springContainerProvider,
         ackProvider
     );
@@ -138,6 +146,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
+    if (retryService != null) {
+      throw new IllegalStateException("Consumer is configured to use retries and consume from all partitions - these two are not compatible");
+    }
 
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (
         nabKafkaConsumer,

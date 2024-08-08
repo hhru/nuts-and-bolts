@@ -3,16 +3,16 @@ package ru.hh.nab.testbase.transaction;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 
 @ExtendWith(SpringExtension.class)
 public class TransactionTestBase {
 
   @Inject
-  protected PlatformTransactionManager transactionManager;
+  protected DataSourceContextTransactionManager transactionManager;
 
   private static TransactionStatus transactionStatus;
 

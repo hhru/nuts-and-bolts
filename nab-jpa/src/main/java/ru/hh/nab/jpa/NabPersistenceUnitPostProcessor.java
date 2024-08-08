@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 
-class NabPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor {
+public class NabPersistenceUnitPostProcessor implements PersistenceUnitPostProcessor {
 
   private final List<String> managedClassNames;
 

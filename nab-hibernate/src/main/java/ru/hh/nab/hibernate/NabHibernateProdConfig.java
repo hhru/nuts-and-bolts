@@ -10,6 +10,7 @@ import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.hibernate.monitoring.HibernateStatisticsSender;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
+import ru.hh.nab.jpa.EntityManagerFactoryRegistry;
 import ru.hh.nab.jpa.NabJpaProdConfig;
 import ru.hh.nab.metrics.StatsDSender;
 
@@ -30,13 +31,13 @@ public class NabHibernateProdConfig {
   HibernateStatisticsSender hibernateStatisticsSender(
       HibernatePropertiesProvider hibernatePropertiesProvider,
       @Named(SERVICE_NAME) String serviceName,
-      SessionFactory sessionFactory,
-      StatsDSender statsDSender
+      StatsDSender statsDSender,
+      EntityManagerFactoryRegistry entityManagerFactoryRegistry
   ) {
     return new HibernateStatisticsSender(
         hibernatePropertiesProvider.get(),
         serviceName,
-        sessionFactory,
+        entityManagerFactoryRegistry.getEntityManagerFactories(SessionFactory.class),
         statsDSender
     );
   }

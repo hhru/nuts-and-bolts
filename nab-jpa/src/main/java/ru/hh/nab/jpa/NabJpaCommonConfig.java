@@ -15,18 +15,20 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 import ru.hh.nab.datasource.NabDataSourceCommonConfig;
+import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceTransactionCallbackFactory;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.jpa.aspect.ExecuteOnDataSourceTransactionCallbackFactoryImpl;
 
 @Configuration
 @Import({
     NabDataSourceCommonConfig.class,
-    ExecuteOnDataSourceTransactionCallbackFactoryImpl.class,
+    EntityManagerFactoryRegistry.class,
 })
 public class NabJpaCommonConfig {
 
   @Bean
-  LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(
+  @EntityManagerFactoryId("default")
+  LocalContainerEntityManagerFactoryBean entityManagerFactory(
       DataSource dataSource,
       JpaVendorAdapter jpaVendorAdapter,
       JpaPropertiesProvider jpaPropertiesProvider,
@@ -56,14 +58,22 @@ public class NabJpaCommonConfig {
   }
 
   @Bean
-  public static EntityManager sharedEntityManager(EntityManagerFactory emf) {
-    return SharedEntityManagerCreator.createSharedEntityManager(emf);
+  public EntityManager entityManager(EntityManagerFactory entityManagerFactory) {
+    return SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
+  }
+
+  @Bean
+  public ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory(EntityManager entityManager) {
+    return new ExecuteOnDataSourceTransactionCallbackFactoryImpl(entityManager);
   }
 
   @Primary
   @Bean
-  DataSourceContextTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+  DataSourceContextTransactionManager transactionManager(
+      EntityManagerFactory entityManagerFactory,
+      ExecuteOnDataSourceTransactionCallbackFactory transactionCallbackFactory
+  ) {
     JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(entityManagerFactory);
-    return new DataSourceContextTransactionManager(jpaTransactionManager);
+    return new DataSourceContextTransactionManager(jpaTransactionManager, transactionCallbackFactory);
   }
 }

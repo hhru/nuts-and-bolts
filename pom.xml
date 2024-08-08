@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.54.1.jakarta-rc8</version>
+    <version>4.54.1.jakarta-rc9-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -235,6 +235,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>4.54.1.jakarta-rc8</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>

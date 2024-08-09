@@ -8,7 +8,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.lang.Nullable;
-import ru.hh.kafka.monitoring.KafkaStatsDReporter;
+import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 

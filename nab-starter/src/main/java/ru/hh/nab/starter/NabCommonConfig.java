@@ -16,6 +16,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.metrics.StatsDConstants.STATSD_DEFAULT_PERIODIC_SEND_INTERVAL;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.metrics.JvmMetricsSender;
 import ru.hh.nab.starter.qualifier.Service;
@@ -25,8 +26,6 @@ import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 @Configuration
 public class NabCommonConfig {
-
-  private static final String STATSD_DEFAULT_PERIODIC_SEND_INTERVAL = "statsd.defaultPeriodicSendIntervalSec";
   private static final String NODE_NAME_ENV = "NODE_NAME";
 
   public static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";

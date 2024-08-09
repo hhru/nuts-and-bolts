@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class StatsDSender {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StatsDSender.class);
-  private static final int DEFAULT_SEND_INTERVAL_SECONDS = 60;
+  public static final int DEFAULT_SEND_INTERVAL_SECONDS = 60;
   public static final int[] DEFAULT_PERCENTILES = {95, 99, 100};
 
   private final StatsDClient statsDClient;
@@ -53,6 +53,14 @@ public class StatsDSender {
 
   public void sendGauge(String metricName, long metric, Tag... tags) {
     statsDClient.gauge(getFullMetricName(metricName, tags), metric);
+  }
+
+  public void sendGauge(String metricName, double metric, Tag... tags) {
+    statsDClient.gauge(getFullMetricName(metricName, tags), metric);
+  }
+
+  public void sendSetValue(String metricName, String metric, Tag... tags) {
+    statsDClient.recordSetValue(getFullMetricName(metricName, tags), metric);
   }
 
   public void sendMax(String metricName, Max max, Tag... tags) {

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <groupId>ru.hh.nab</groupId>
-        <version>4.54.1.jakarta-rc9-SNAPSHOT</version>
+        <version>5.0.0.jakarta-rc1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,15 +17,12 @@
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
         </dependency>
+
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-metrics</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ru.hh</groupId>
-            <artifactId>kafka-client-utils</artifactId>
-            <version>1.3.jakarta-rc1</version>
-        </dependency>
+
         <dependency>
             <groupId>ru.hh.logging</groupId>
             <artifactId>timing-logger</artifactId>

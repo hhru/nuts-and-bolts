@@ -178,7 +178,7 @@ public class KafkaConsumer<T> {
     }
   }
 
-  private void createNewSpringContainer() {
+  protected void createNewSpringContainer() {
     if (springContainerProvider != null) {
       currentSpringKafkaContainer = springContainerProvider.apply(this);
       return;

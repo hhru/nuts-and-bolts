@@ -31,6 +31,10 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-kafka</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ru.hh.kafka.test</groupId>
             <artifactId>hh-kafka-test-utils</artifactId>
             <version>1.0.0</version>

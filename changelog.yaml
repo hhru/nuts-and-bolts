@@ -1,3 +1,18 @@
+-   name: 5.1.1
+    date: '2024-08-14T13:53:35.565635+03:00'
+    description: 1. Тэг "client-id" заменен на "client_id" у Kafka метрик для совместимости
+        с Okmeter
+    instructions: ''
+    compatible: true
+
+-   name: 5.1.0
+    date: '2024-08-13T14:05:59.090071+03:00'
+    description: В nab-testbase добавлен класс NoopKafkaConsumerFactory, который можно
+        использовать в тестах вместо мокирования. То есть в тестовых спринговых конфигах
+        вместо mock(KafkaConsumerFactory.class) можно создавать объект new NoopKafkaConsumerFactory()
+    instructions: ''
+    compatible: true
+
 -   name: 5.0.0
     date: '2024-08-08T12:12:24.074420+03:00'
     description: "1.  hh-java-libs/kafka-client-utils перенесен в nuts-and-bolts/nab-kafka\r\

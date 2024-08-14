@@ -31,7 +31,8 @@ import ru.hh.nab.metrics.Tag;
 
 public class KafkaStatsDReporter implements MetricsReporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
-  private static final String CLIENT_ID_TAG_NAME = ConsumerConfig.CLIENT_ID_CONFIG.replace(".", "-");
+  // Warning : Okmeter doesn't parse anything except underscore in tag's key name
+  private static final String CLIENT_ID_TAG_NAME = ConsumerConfig.CLIENT_ID_CONFIG.replace(".", "_");
   private static final String TOPIC_TAG_NAME = "topic";
 
   private String serviceName;

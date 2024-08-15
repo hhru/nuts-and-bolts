@@ -1,3 +1,12 @@
+-   name: 5.2.0
+    date: '2024-08-15T13:44:43.647008+03:00'
+    description: "1. Обновлен java-dogstatsd-client до 4.4.2\r\n2. Аггрегация метрик\
+        \ включена по-умолчанию"
+    instructions: "1. Если используется API из java-dogstatsd-client напрямую, то\
+        \ нужно ознакомиться с гайдом миграции https://github.com/DataDog/java-dogstatsd-client?tab=readme-ov-file#migrating-from-2x-to-3x\r\
+        \n2. Гайд миграции применим для миграции  с 2.x.x до 4.x.x миную версию 3.x.x"
+    compatible: false
+
 -   name: 5.1.1
     date: '2024-08-14T13:53:35.565635+03:00'
     description: 1. Тэг "client-id" заменен на "client_id" у Kafka метрик для совместимости

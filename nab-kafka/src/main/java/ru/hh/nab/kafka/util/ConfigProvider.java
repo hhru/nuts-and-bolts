@@ -222,7 +222,7 @@ public class ConfigProvider {
     int maxPacketSizeBytes = ofNullable(fileSettings.getString(STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY))
         .or(() -> ofNullable(System.getProperty(STATSD_MAX_PACKET_SIZE_BYTES_ENV)))
         .map(Integer::parseInt)
-        .orElse(NonBlockingStatsDClient.DEFAULT_UDP_MAX_PACKET_SIZE_BYTES);
+        .orElse(NonBlockingStatsDClient.DEFAULT_MAX_PACKET_SIZE_BYTES);
     properties.put(STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY, maxPacketSizeBytes);
 
     int bufferPoolSize = ofNullable(fileSettings.getString(STATSD_BUFFER_POOL_SIZE_PROPERTY))

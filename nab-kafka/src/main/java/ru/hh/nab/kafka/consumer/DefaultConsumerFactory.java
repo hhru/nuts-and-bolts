@@ -1,8 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
-import java.util.Map;
 import java.util.function.Supplier;
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +8,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.backoff.ExponentialBackOff;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
@@ -129,12 +126,9 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {
-    Map<String, Object> consumerConfig = configProvider.getConsumerConfig(topicName);
-    consumerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
-
     return new FailFastDefaultKafkaConsumerFactory<>(
         topicName,
-        consumerConfig,
+        configProvider.getConsumerConfig(topicName),
         new StringDeserializer(),
         deserializerSupplier.supplyFor(messageClass),
         bootstrapServersSupplier

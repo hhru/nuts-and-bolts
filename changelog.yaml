@@ -1,3 +1,9 @@
+-   name: 5.3.1
+    date: '2024-08-19T17:34:49.078958+03:00'
+    description: 1. Исправлена ошибка приводящая к потери kafka метрик
+    instructions: ''
+    compatible: true
+
 -   name: 5.3.0
     date: '2024-08-16T13:56:05.682995+03:00'
     description: 1. Downgrade java-dogstatsd-client с 4.4.2 до 2.10.5
@@ -7,8 +13,8 @@
 
 -   name: 5.2.0
     date: '2024-08-15T13:44:43.647008+03:00'
-    description: " НЕ ОБНОВЛЯТЬСЯ НА ЭТУ ВЕРСИЮ, сломан statsd клиент - исправлено в 5.3.0
-        \ 1. Обновлен java-dogstatsd-client до 4.4.2\r\n2. Аггрегация метрик\
+    description: " НЕ ОБНОВЛЯТЬСЯ НА ЭТУ ВЕРСИЮ, сломан statsd клиент - исправлено\
+        \ в 5.3.0  1. Обновлен java-dogstatsd-client до 4.4.2\r\n2. Аггрегация метрик\
         \ включена по-умолчанию"
     instructions: "1. Если используется API из java-dogstatsd-client напрямую, то\
         \ нужно ознакомиться с гайдом миграции https://github.com/DataDog/java-dogstatsd-client?tab=readme-ov-file#migrating-from-2x-to-3x\r\

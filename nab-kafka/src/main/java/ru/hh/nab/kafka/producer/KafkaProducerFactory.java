@@ -8,7 +8,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.lang.Nullable;
-import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 
@@ -62,11 +61,8 @@ public class KafkaProducerFactory {
   }
 
   public KafkaProducer createProducer(String producerSettingsName) {
-    var producerConfig = configProvider.getProducerConfig(producerSettingsName);
-    producerConfig.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, KafkaStatsDReporter.class.getName());
-
     DefaultKafkaProducerFactory<String, Object> producerFactory = new DefaultKafkaProducerFactory<>(
-        producerConfig,
+        configProvider.getProducerConfig(producerSettingsName),
         new StringSerializer(),
         serializerSupplier.supply()
     );

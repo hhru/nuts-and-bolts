@@ -13,11 +13,13 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_BUFFER_POOL_SIZE_ENV;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_BUFFER_POOL_SIZE_PROPERTY;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_DEFAULT_PERIODIC_SEND_INTERVAL;
@@ -201,6 +203,11 @@ public class ConfigProvider {
   private Map<String, Object> getCommonProperties() {
     Map<String, Object> properties = getConfigAsMap(String.format(COMMON_CONFIG_TEMPLATE, kafkaClusterName));
     properties.put(SERVICE_NAME, serviceName);
+
+    String metricReporters = ofNullable(properties.get(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG))
+        .map(Object::toString)
+        .orElseGet(KafkaStatsDReporter.class::getName);
+    properties.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, metricReporters);
 
     String host = ofNullable(fileSettings.getString(STATSD_HOST_PROPERTY))
         .or(() -> ofNullable(System.getProperty(STATSD_HOST_ENV)))

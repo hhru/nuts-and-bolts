@@ -43,51 +43,56 @@ public class KafkaStatsDReporter implements MetricsReporter {
   private ScheduledExecutorService scheduledExecutorService;
   private final Map<String, Object> statsdSenderProperties = new LinkedHashMap<>();
 
-  private final ConcurrentMap<String, Metric> recordedMetrics = new ConcurrentHashMap<>();
+  protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
 
   @Override
   public void init(List<KafkaMetric> metrics) {
+    for (KafkaMetric metric : metrics) {
+      MetricName metricName = metric.metricName();
+      recordedMetrics.put(metricName, metric);
+      LOGGER.debug("Added metric %s on initialization step".formatted(createMetricName(metricName)));
+    }
+
     statsDSender.sendPeriodically(() -> {
       recordedMetrics.forEach((key, value) -> {
-        Object metricValue = value.metricValue();
-        MetricName metricName = value.metricName();
-        Map<String, String> tags = metricName.tags();
+        try {
+          Object metricValue = value.metricValue();
+          Map<String, String> tags = key.tags();
 
-        String clientId = tags.getOrDefault(CLIENT_ID_TAG_NAME, "unknown-client-id");
-        Tag clientIdTag = new Tag(CLIENT_ID_TAG_NAME, clientId);
+          String clientId = tags.getOrDefault(CLIENT_ID_TAG_NAME, "unknown-client-id");
+          Tag clientIdTag = new Tag(CLIENT_ID_TAG_NAME, clientId);
 
-        Tag serviceNameTag = new Tag(Tag.APP_TAG_NAME, this.serviceName);
-        String name = createMetricName(metricName);
-        if (metricValue instanceof Number number) {
-          String topic = tags.getOrDefault(TOPIC_TAG_NAME, "unknown-topic");
-          Tag topicTag = new Tag(TOPIC_TAG_NAME, topic);
+          Tag serviceNameTag = new Tag(Tag.APP_TAG_NAME, this.serviceName);
+          String name = createMetricName(key);
+          if (metricValue instanceof Number number) {
+            String topic = tags.getOrDefault(TOPIC_TAG_NAME, "unknown-topic");
+            Tag topicTag = new Tag(TOPIC_TAG_NAME, topic);
 
-          statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, clientIdTag, topicTag);
-          LOGGER.debug("Sent gauge value %s for metric %s".formatted(value.toString(), name));
-        } else {
-          statsDSender.sendSetValue(name, metricValue.toString(), serviceNameTag, clientIdTag);
-          LOGGER.debug("Sent set value %s for metric %s".formatted(value.toString(), name));
+            statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, clientIdTag, topicTag);
+            LOGGER.debug("Sent gauge value %s for metric %s".formatted(value.toString(), name));
+          } else {
+            statsDSender.sendSetValue(name, metricValue.toString(), serviceNameTag, clientIdTag);
+            LOGGER.debug("Sent set value %s for metric %s".formatted(value.toString(), name));
+          }
+        } catch (Exception e) {
+          LOGGER.error("Skipping metric %s".formatted(key), e);
         }
       });
-      recordedMetrics.clear();
     });
   }
 
   @Override
   public void metricChange(KafkaMetric metric) {
-    Object value = metric.metricValue();
-    if (value == null) {
-      return;
-    }
-
-    String metricName = createMetricName(metric.metricName());
+    MetricName metricName = metric.metricName();
     recordedMetrics.put(metricName, metric);
-    LOGGER.debug("Recorded value %s for metric %s".formatted(value.toString(), metricName));
+    LOGGER.debug("Added metric %s".formatted(createMetricName(metricName)));
   }
 
   @Override
   public void metricRemoval(KafkaMetric metric) {
-    // no-ops case
+    MetricName metricName = metric.metricName();
+    recordedMetrics.remove(metricName);
+    LOGGER.debug("Removed metric %s".formatted(createMetricName(metricName)));
   }
 
   @Override

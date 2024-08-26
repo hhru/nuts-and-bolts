@@ -17,7 +17,8 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
@@ -37,7 +38,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private Duration checkNewPartitionsInterval;
 
   private ConsumeStrategy<T> consumeStrategy;
-  private RetryService<T> retryService;
+  private RetryPolicyResolver<T> retryPolicyResolver;
+  private KafkaProducer retryProducer;
+  private boolean standaloneRetries;
   private Logger logger;
   private AckProvider<T> ackProvider;
 
@@ -60,9 +63,24 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return this;
   }
 
+  public ConsumerBuilder<T> withRetryProducer(KafkaProducer retryProducer) {
+    this.retryProducer = retryProducer;
+    return this;
+  }
+
   @Override
-  public ConsumerBuilder<T> withRetryService(RetryService<T> retryService) {
-    this.retryService = retryService;
+  public ConsumerBuilder<T> withStandaloneRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+    this.standaloneRetries = true;
+    this.retryProducer = retryProducer;
+    this.retryPolicyResolver = retryPolicyResolver;
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withExternalRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+    this.standaloneRetries = false;
+    this.retryProducer = retryProducer;
+    this.retryPolicyResolver = retryPolicyResolver;
     return this;
   }
 
@@ -117,6 +135,18 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   }
 
+  private RetryService<T> buildRetryService() {
+    if (retryProducer == null && retryPolicyResolver == null) {
+      return null;
+    }
+    String retryTopic = getRetryTopicName();
+    return new RetryService<>(retryProducer, retryTopic, retryPolicyResolver);
+  }
+
+  private String getRetryTopicName() {
+    return topicName + "_" + operationName + "_" + (standaloneRetries ? "retry_receive" : "retry_send");
+  }
+
   private KafkaConsumer<T> startKafkaConsumerForConsumerGroup(
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
@@ -130,6 +160,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       );
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
+
+    RetryService<T> retryService = buildRetryService();
 
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
         consumerMetadata,
@@ -146,8 +178,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
-    if (retryService != null) {
-      throw new IllegalStateException("Consumer is configured to use retries and consume from all partitions - these two are not compatible");
+    if (retryProducer != null || retryPolicyResolver != null) {
+      throw new IllegalStateException("Can't use retries for consumer reading all partitions");
     }
 
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (

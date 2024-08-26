@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
 
 public class KafkaConsumer<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);

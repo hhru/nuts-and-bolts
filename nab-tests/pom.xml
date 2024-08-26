@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>nab-starter</artifactId>
+            <artifactId>nab-web</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

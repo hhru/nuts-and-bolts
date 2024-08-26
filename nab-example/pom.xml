@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-starter</artifactId>
+            <artifactId>nab-web</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

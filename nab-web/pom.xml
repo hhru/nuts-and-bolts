@@ -8,10 +8,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>nab-starter</artifactId>
+    <artifactId>nab-web</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts application starter</name>
+    <name>nuts'n'bolts web</name>
 
     <dependencies>
         <dependency>

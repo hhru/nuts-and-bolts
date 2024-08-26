@@ -23,6 +23,13 @@ public record MessageProcessingHistory(
     this.lastFailTime = Objects.requireNonNull(lastFailTime);
   }
 
+  public static MessageProcessingHistory initial(Instant creationTime) {
+    return initial(creationTime, Instant.now());
+  }
+
+  public static MessageProcessingHistory initial(Instant creationTime, Instant lastFailTime) {
+    return new MessageProcessingHistory(creationTime, 1, lastFailTime);
+  }
 
   public MessageProcessingHistory withOneMoreFail() {
     return withOneMoreFail(Instant.now());

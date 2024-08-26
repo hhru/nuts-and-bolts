@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
  * Provides retries implementation and message processing history to {@link ru.hh.nab.kafka.consumer.Ack}.
  * This is not a public API, it is not meant to be implemented outside NAB code, and it may change any time without backward compatibility
  */
-public abstract class RetryService<T> {
+public abstract sealed class RetryService<T> permits KafkaRetryService {
 
   public CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
     RetryPolicy retryPolicy = getRetryPolicy(message, error);

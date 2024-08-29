@@ -1,17 +1,20 @@
 package ru.hh.nab.kafka.consumer.retry;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import ru.hh.nab.kafka.consumer.retry.policy.FixedDelay;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public final class KafkaFixedDelayRetryService<T> extends KafkaRetryService<T> {
-  private final FixedDelay retryPolicy;
+  private final RetryPolicy retryPolicy;
 
   public KafkaFixedDelayRetryService(
       KafkaProducer retryProducer,
       String retryTopic,
-      FixedDelay retryPolicy) {
+      RetryPolicy retryPolicy) {
     super(retryProducer, retryTopic);
+    if (!retryPolicy.hasFixedDelay()) {
+      throw new IllegalArgumentException("Retry policy must have fixed delay");
+    }
     this.retryPolicy = retryPolicy;
   }
 
@@ -19,7 +22,7 @@ public final class KafkaFixedDelayRetryService<T> extends KafkaRetryService<T> {
       KafkaProducer retryProducer,
       String retryTopic,
       MessageMetadataProvider messageMetadataProvider,
-      FixedDelay retryPolicy
+      RetryPolicy retryPolicy
   ) {
     super(retryProducer, retryTopic, messageMetadataProvider);
     this.retryPolicy = retryPolicy;

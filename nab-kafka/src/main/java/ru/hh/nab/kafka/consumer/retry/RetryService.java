@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 
 
 /**

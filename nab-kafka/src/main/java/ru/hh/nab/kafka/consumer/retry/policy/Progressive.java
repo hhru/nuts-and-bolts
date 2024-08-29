@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
-import ru.hh.nab.kafka.consumer.retry.RetryPolicy;
 
 public record Progressive(DelayByRetryNumber delayByRetryNumber) implements RetryPolicy {
   public Progressive(DelayByRetryNumber delayByRetryNumber) {
@@ -17,6 +16,11 @@ public record Progressive(DelayByRetryNumber delayByRetryNumber) implements Retr
     return Optional.of(history
         .lastFailTime()
         .plus(delayByRetryNumber.getDelay(history.retryNumber())));
+  }
+
+  @Override
+  public boolean hasFixedDelay() {
+    return false;
   }
 
   @FunctionalInterface

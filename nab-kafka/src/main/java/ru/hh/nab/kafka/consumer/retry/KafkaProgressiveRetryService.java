@@ -1,7 +1,9 @@
 package ru.hh.nab.kafka.consumer.retry;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public final class KafkaProgressiveRetryService<T> extends KafkaRetryService<T> {
@@ -12,7 +14,7 @@ public final class KafkaProgressiveRetryService<T> extends KafkaRetryService<T> 
       String retryTopic,
       BiFunction<ConsumerRecord<String, T>, Throwable, RetryPolicy> retryPolicyResolver) {
     super(retryProducer, retryTopic);
-    this.retryPolicyResolver = retryPolicyResolver;
+    this.retryPolicyResolver = Objects.requireNonNull(retryPolicyResolver);
   }
 
   public KafkaProgressiveRetryService(

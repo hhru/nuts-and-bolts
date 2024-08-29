@@ -1,17 +1,11 @@
-package ru.hh.nab.kafka.consumer.retry;
+package ru.hh.nab.kafka.consumer.retry.policy;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import ru.hh.nab.kafka.consumer.retry.policy.Deadline;
-import ru.hh.nab.kafka.consumer.retry.policy.FixedDelay;
-import ru.hh.nab.kafka.consumer.retry.policy.Never;
-import ru.hh.nab.kafka.consumer.retry.policy.Progressive;
-import ru.hh.nab.kafka.consumer.retry.policy.RetryLimit;
-import ru.hh.nab.kafka.consumer.retry.policy.Ttl;
+import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 
-@FunctionalInterface
-public interface RetryPolicy {
+public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progressive, RetryLimit, Ttl {
 
   /**
    * Creates policy that never retries
@@ -64,4 +58,6 @@ public interface RetryPolicy {
    * @return Time when this message should be retried next. {@link Optional#empty()} means message should not be retried anymore
    */
   Optional<Instant> getNextRetryTime(MessageProcessingHistory history);
+
+  boolean hasFixedDelay();
 }

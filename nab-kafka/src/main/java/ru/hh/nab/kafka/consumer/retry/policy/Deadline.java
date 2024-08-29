@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
-import ru.hh.nab.kafka.consumer.retry.RetryPolicy;
 
 public record Deadline(RetryPolicy base, Instant deadline) implements RetryPolicy {
   public Deadline(RetryPolicy base, Instant deadline) {
@@ -17,5 +16,10 @@ public record Deadline(RetryPolicy base, Instant deadline) implements RetryPolic
     return base
         .getNextRetryTime(history)
         .filter(deadline::isAfter);
+  }
+
+  @Override
+  public boolean hasFixedDelay() {
+    return base.hasFixedDelay();
   }
 }

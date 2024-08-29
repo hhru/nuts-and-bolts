@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.consumer.retry;
+package ru.hh.nab.kafka.consumer.retry.policy;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,9 +10,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import static ru.hh.nab.kafka.consumer.retry.RetryPolicy.fixedDelay;
-import static ru.hh.nab.kafka.consumer.retry.RetryPolicy.never;
-import static ru.hh.nab.kafka.consumer.retry.RetryPolicy.progressive;
+import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
+import static ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy.fixedDelay;
+import static ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy.never;
+import static ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy.progressive;
 
 class RetryPolicyTest {
 

@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
-import ru.hh.nab.kafka.consumer.retry.RetryPolicy;
 
 public record Ttl(RetryPolicy base, Duration ttl) implements RetryPolicy {
   public Ttl(RetryPolicy base, Duration ttl) {
@@ -25,5 +24,10 @@ public record Ttl(RetryPolicy base, Duration ttl) implements RetryPolicy {
         .filter(history
             .creationTime()
             .plus(ttl)::isAfter);
+  }
+
+  @Override
+  public boolean hasFixedDelay() {
+    return base.hasFixedDelay();
   }
 }

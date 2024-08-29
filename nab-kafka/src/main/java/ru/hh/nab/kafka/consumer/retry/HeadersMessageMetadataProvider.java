@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer.retry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -10,16 +11,18 @@ import java.util.Optional;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 
 public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
-  public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-kafka-retry-message-processing-history";
-  public static final String HEADER_NEXT_RETRY_TIME = "x-kafka-retry-next-retry_time";
-  ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-retry-message-processing-history";
+  public static final String HEADER_NEXT_RETRY_TIME = "x-retry-next-retry-time";
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(new JavaTimeModule());
 
-  @Override
-  public Optional<MessageProcessingHistory> getMessageProcessingHistory(ConsumerRecord<?, ?> consumerRecord) {
+  public static Optional<MessageProcessingHistory> getMessageProcessingHistory(Headers headers) {
     return Optional
-        .ofNullable(consumerRecord.headers().lastHeader(HEADER_MESSAGE_PROCESSING_HISTORY))
+        .ofNullable(headers.lastHeader(HEADER_MESSAGE_PROCESSING_HISTORY))
         .map(Header::value)
         .map(value -> {
           try {
@@ -28,6 +31,18 @@ public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
             throw new RuntimeException(e);
           }
         });
+  }
+
+  public static Optional<Instant> getNextRetryTime(Headers headers) {
+    return Optional
+        .ofNullable(headers.lastHeader(HEADER_NEXT_RETRY_TIME))
+        .map(Header::value)
+        .map(value -> Instant.parse(new String(value, StandardCharsets.UTF_8)));
+  }
+
+  @Override
+  public Optional<MessageProcessingHistory> getMessageProcessingHistory(ConsumerRecord<?, ?> consumerRecord) {
+    return getMessageProcessingHistory(consumerRecord.headers());
   }
 
   @Override
@@ -46,10 +61,7 @@ public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
 
   @Override
   public Optional<Instant> getNextRetryTime(ConsumerRecord<?, ?> consumerRecord) {
-    return Optional
-        .ofNullable(consumerRecord.headers().lastHeader(HEADER_NEXT_RETRY_TIME))
-        .map(Header::value)
-        .map(value -> Instant.parse(new String(value, StandardCharsets.UTF_8)));
+    return getNextRetryTime(consumerRecord.headers());
   }
 
   @Override
@@ -57,7 +69,7 @@ public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
     byte[] headerValue = nextRetryTime.toString().getBytes(StandardCharsets.UTF_8);
     producerRecord
         .headers()
-        .remove(HEADER_MESSAGE_PROCESSING_HISTORY)
-        .add(HEADER_MESSAGE_PROCESSING_HISTORY, headerValue);
+        .remove(HEADER_NEXT_RETRY_TIME)
+        .add(HEADER_NEXT_RETRY_TIME, headerValue);
   }
 }

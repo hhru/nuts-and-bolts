@@ -3,7 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import ru.hh.nab.kafka.consumer.retry.RetryPolicy;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.util.PredicateChainResolver;
 
 public class RetryPolicyResolverBuilder<T> {

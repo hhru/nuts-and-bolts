@@ -147,7 +147,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
     if (retryService != null) {
-      throw new IllegalStateException("Consumer is configured to use retries and consume from all partitions - these two are not compatible");
+      throw new IllegalStateException("Can't set retryService for consumer reading all partitions");
     }
 
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (

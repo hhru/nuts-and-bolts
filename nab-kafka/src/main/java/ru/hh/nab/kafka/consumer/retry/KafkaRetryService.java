@@ -1,10 +1,12 @@
 package ru.hh.nab.kafka.consumer.retry;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public abstract sealed class KafkaRetryService<T> extends RetryService<T> permits KafkaFixedDelayRetryService, KafkaProgressiveRetryService {
@@ -21,17 +23,17 @@ public abstract sealed class KafkaRetryService<T> extends RetryService<T> permit
       String retryTopic,
       MessageMetadataProvider messageMetadataProvider
   ) {
-    this.messageMetadataProvider = messageMetadataProvider;
-    this.retryProducer = retryProducer;
-    this.retryTopic = retryTopic;
+    this.messageMetadataProvider = Objects.requireNonNull(messageMetadataProvider);
+    this.retryProducer = Objects.requireNonNull(retryProducer);
+    this.retryTopic = Objects.requireNonNull(retryTopic);
   }
 
   @Override
   protected CompletableFuture<?> retry(ConsumerRecord<String, T> message, Instant retryTime, MessageProcessingHistory updatedProcessingHistory) {
-    ProducerRecord<String, T> retryRecord = new ProducerRecord<>(retryTopic, message.key(), message.value());
+    ProducerRecord<String, T> retryRecord = new ProducerRecord<>(retryTopic, null,  message.key(), message.value(), new RecordHeaders());
     messageMetadataProvider.setMessageProcessingHistory(retryRecord, updatedProcessingHistory);
     messageMetadataProvider.setNextRetryTime(retryRecord, retryTime);
-    return retryProducer.sendMessage(retryTopic, retryRecord);
+    return retryProducer.sendMessage(retryRecord, Runnable::run);
   }
 
   @Override

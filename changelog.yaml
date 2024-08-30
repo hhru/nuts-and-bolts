@@ -1,3 +1,12 @@
+-   name: 5.4.0
+    date: '2024-08-29T13:19:29.961116+03:00'
+    description: Обновлен java-dogstatsd-client до 4.4.2
+    instructions: 'Если вы в коде своего сервиса сами конфигурируете бин StatsDClient,
+        то не делайте так, используйте набовский. Если сервис не на набе, то в NonBlockingStatsDClientBuilder
+        задайте: enableAggregation(false), originDetectionEnabled(false) и enableTelemetry(false).
+        Если этого не сделать, метрики перестанут отправляться'
+    compatible: false
+
 -   name: 5.3.1
     date: '2024-08-19T17:34:49.078958+03:00'
     description: 1. Исправлена ошибка приводящая к потери kafka метрик

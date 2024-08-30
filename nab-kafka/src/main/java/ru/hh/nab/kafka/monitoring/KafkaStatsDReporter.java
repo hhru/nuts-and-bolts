@@ -136,6 +136,9 @@ public class KafkaStatsDReporter implements MetricsReporter {
         .hostname(host)
         .queueSize(queueSize)
         .port(port)
+        .enableAggregation(false)
+        .originDetectionEnabled(false)
+        .enableTelemetry(false)
         .maxPacketSizeBytes(maxPacketSizeBytes)
         .bufferPoolSize(bufferPoolSize)
         .build();

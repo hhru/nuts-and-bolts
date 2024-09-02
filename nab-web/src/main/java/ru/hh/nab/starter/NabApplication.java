@@ -6,7 +6,6 @@ import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -15,8 +14,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -30,8 +27,6 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
-import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
-import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
@@ -75,7 +70,6 @@ public final class NabApplication {
    */
   public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
     try {
-      configureLogger(baseContext);
       configureSentry(baseContext);
       JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
@@ -88,7 +82,6 @@ public final class NabApplication {
 
   public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
-      configureLogger(baseContext);
       logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
@@ -135,13 +128,6 @@ public final class NabApplication {
     }
   }
 
-  private static void configureLogger(ApplicationContext context) {
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
-    SLF4JBridgeHandler.install();
-
-    getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension, context.getBean(FileSettings.class)));
-  }
-
   private static void logStartupInfo(ApplicationContext context) {
     AppMetadata appMetadata = context.getBean(AppMetadata.class);
     LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
@@ -149,17 +135,6 @@ public final class NabApplication {
 
   private static String getCurrentPid() {
     return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-  }
-
-  private static Optional<LogLevelOverrideExtension> getLogLevelOverrideExtension(ApplicationContext context) {
-    try {
-      var extension = context.getBean(LogLevelOverrideExtension.class);
-      LOGGER.info("{} activated", LogLevelOverrideExtension.class.getSimpleName());
-      return Optional.of(extension);
-    } catch (NoSuchBeanDefinitionException e) {
-      // Extension not activated, normal behaviour
-      return Optional.empty();
-    }
   }
 
   private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {

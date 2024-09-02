@@ -6,6 +6,7 @@ import java.sql.SQLTransientConnectionException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.IntStream;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -17,7 +18,6 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import org.hibernate.exception.JDBCConnectionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +31,7 @@ import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.NabApplication;
+import static ru.hh.nab.starter.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
 import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
@@ -72,15 +73,15 @@ public class NabExceptionMappersTest {
 
     response = resourceHelper.executeGet("/connectionTimeout");
 
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
 
     response = resourceHelper.executeGet("/connectionTimeoutWrapped");
 
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
 
     response = resourceHelper.executeGet("/connectionTimeoutWrappedWithIllegalState");
 
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
 
     response = resourceHelper.executeGet("/any");
 
@@ -95,7 +96,7 @@ public class NabExceptionMappersTest {
 
     response = resourceHelper.executeGet("/rejectedExecution");
 
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
   }
 
   private String getErrorDescription(Response response) throws IOException {
@@ -104,46 +105,55 @@ public class NabExceptionMappersTest {
 
   @Path("/")
   public static class TestResource {
+    @GET
     @Path("/iae")
     public Response iae() {
       throw new IllegalArgumentException("IAE");
     }
 
+    @GET
     @Path("/ise")
     public Response ise() {
       throw new IllegalStateException("ISE");
     }
 
+    @GET
     @Path("/se")
     public Response se() {
       throw new SecurityException("SE");
     }
 
+    @GET
     @Path("/wae")
     public Response wae() {
       throw new WebApplicationException("WAE", 401);
     }
 
+    @GET
     @Path("/any")
     public Response any() {
       throw new RuntimeException("Any exception");
     }
 
+    @GET
     @Path("/connectionTimeout")
     public Response connectionTimeout() throws SQLException {
       throw new SQLTransientConnectionException();
     }
 
+    @GET
     @Path("/connectionTimeoutWrapped")
     public Response connectionTimeoutWrapped() {
       throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException());
     }
 
+    @GET
     @Path("/connectionTimeoutWrappedWithIllegalState")
     public Response connectionTimeoutWrappedWithIllegal() {
       throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException(new IllegalStateException()));
     }
 
+    @GET
     @Path("/rejectedExecution")
     public Response rejectedExecution() {
       var properties = new Properties();

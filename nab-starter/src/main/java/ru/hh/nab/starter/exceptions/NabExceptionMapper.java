@@ -50,7 +50,7 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
     DEBUG_WITH_STACK_TRACE,
   }
 
-  public NabExceptionMapper(Response.StatusType defaultStatus, LoggingLevel defaultLoggingLevel) {
+  protected NabExceptionMapper(Response.StatusType defaultStatus, LoggingLevel defaultLoggingLevel) {
     this.defaultStatus = defaultStatus;
     this.defaultLoggingLevel = defaultLoggingLevel;
   }

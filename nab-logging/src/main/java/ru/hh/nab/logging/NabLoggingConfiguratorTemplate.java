@@ -38,7 +38,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       throw new AssertionError(e);
     }
     appenders = null;
-    return ExecutionStatus.NEUTRAL;
+    return ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY;
   }
 
   protected void statusListener(LoggerContext context, Properties properties) {

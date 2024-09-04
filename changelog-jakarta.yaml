@@ -1,3 +1,9 @@
+-   name: 5.4.0.jakarta-rc2
+    date: '2024-09-04T15:20:00.000000+03:00'
+    description: "Исправлен дефект записи логов в stdout"
+    instructions: ""
+    compatible: true
+
 -   name: 4.54.1.jakarta-rc8
     date: '2024-08-05T19:00:00.000000+03:00'
     description: "Исправлены конфиги NabDataSourceCommonConfig и NabJpaCommonConfig таким образом, чтобы в сервисах при необходимости 

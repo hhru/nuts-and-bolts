@@ -25,4 +25,46 @@ public static void main(String[] args) {
   }
 ``` 
 
-3) Добавить в spring контекст ресурс описывающий нужный endpoint, [например](https://github.com/hhru/nuts-and-bolts/blob/master/nab-example/src/main/java/ru/hh/nab/example/WebsocketEchoEndpoint.java)
+3) Добавить в spring контекст ресурс описывающий нужный endpoint, например
+
+```java
+
+@ServerEndpoint(value = "/wsEchoEndpoint", configurator = SpringConfigurator.class)
+public class WebsocketEchoEndpoint {
+  private static final Logger LOG = LoggerFactory.getLogger(WebsocketEchoEndpoint.class);
+
+  private final WebsocketSessionsHandler websocketSessionsHandler;
+
+  @Inject
+  public WebsocketEchoEndpoint(WebsocketSessionsHandler websocketSessionsHandler) {
+    this.websocketSessionsHandler = websocketSessionsHandler;
+  }
+
+  @OnClose
+  public void onWebSocketClose(Session session, CloseReason closeReason) {
+    LOG.info("WebSocket Close: {} - {}", closeReason.getCloseCode(), closeReason.getReasonPhrase());
+    websocketSessionsHandler.closeSocket(session);
+  }
+
+  @OnOpen
+  public void onWebSocketOpen(Session session, EndpointConfig endpointConfig) {
+    websocketSessionsHandler.addSocket(session);
+  }
+
+  @OnError
+  public void onWebSocketError(Throwable cause) {
+    LOG.warn("WebSocket Error", cause);
+  }
+
+  @OnMessage
+  public String onWebSocketText(String message, Session session) {
+    LOG.info("Echoing back text message [{}]", message);
+    return message;
+  }
+
+  @OnMessage
+  public void onPong(PongMessage pongMessage, Session session) {
+    websocketSessionsHandler.handlePong(session);
+  }
+}
+```

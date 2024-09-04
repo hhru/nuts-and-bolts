@@ -19,7 +19,6 @@
         <module>nab-web</module>
         <module>nab-web-spring-boot-starter</module>
         <module>nab-data-source</module>
-        <module>nab-example</module>
         <module>nab-jpa</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>

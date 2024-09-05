@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
 
 @FunctionalInterface
 public interface AckProvider<T> {

@@ -7,7 +7,9 @@ import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerBuilder;
 import ru.hh.nab.kafka.consumer.KafkaConsumer;
 import ru.hh.nab.kafka.consumer.SeekPosition;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
 
@@ -27,7 +29,17 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withRetryService(RetryService<T> retryService) {
+  public ConsumerBuilder<T> withRetryProducer(KafkaProducer retryProducer) {
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withFixedDelayRetries(RetryPolicy retryPolicy) {
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withRetryPolicyResolver(RetryPolicyResolver<T> retryPolicyResolver) {
     return this;
   }
 

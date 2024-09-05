@@ -13,7 +13,6 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.InterruptException;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
 import ru.hh.nab.kafka.util.AckUtils;
 
 class KafkaInternalTopicAck<T> implements Ack<T> {

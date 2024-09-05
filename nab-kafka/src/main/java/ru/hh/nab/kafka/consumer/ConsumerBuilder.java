@@ -2,7 +2,9 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import org.slf4j.Logger;
-import ru.hh.nab.kafka.consumer.retry.RetryService;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public interface ConsumerBuilder<T> {
 
@@ -12,7 +14,11 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withConsumeStrategy(ConsumeStrategy<T> consumeStrategy);
 
-  ConsumerBuilder<T> withRetryService(RetryService<T> retryService);
+  ConsumerBuilder<T> withRetryProducer(KafkaProducer retryProducer);
+
+  ConsumerBuilder<T> withFixedDelayRetries(RetryPolicy retryPolicy);
+
+  ConsumerBuilder<T> withRetryPolicyResolver(RetryPolicyResolver<T> retryPolicyResolver);
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

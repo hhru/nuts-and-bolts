@@ -1,4 +1,4 @@
-package ru.hh.nab.kafka.consumer;
+package ru.hh.nab.kafka.consumer.retry;
 
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -6,16 +6,15 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.util.PredicateChainResolver;
 
-public class RetryPolicyResolverBuilder<T> {
-  private final PredicateChainResolver<ConsumerRecord<String, T>, Throwable, RetryPolicy> retryPolicyResolver = new PredicateChainResolver<>();
+public class RetryPolicyResolverBuilder<T> extends PredicateChainResolver<ConsumerRecord<String, T>, Throwable, RetryPolicy> {
 
   public RetryPolicyResolverBuilder<T> registerRetryPolicy(BiPredicate<T, Throwable> predicate, RetryPolicy retryPolicy) {
-    retryPolicyResolver.when((record, error) -> predicate.test(record.value(), error), retryPolicy);
+    when((record, error) -> predicate.test(record.value(), error), retryPolicy);
     return this;
   }
 
   public RetryPolicyResolverBuilder<T> registerRetryPolicy(Predicate<Throwable> exceptionPredicate, RetryPolicy retryPolicy) {
-    retryPolicyResolver.whenB(exceptionPredicate, retryPolicy);
+    whenB(exceptionPredicate, retryPolicy);
     return this;
   }
 
@@ -23,7 +22,7 @@ public class RetryPolicyResolverBuilder<T> {
     return registerRetryPolicy(exceptionClass::isInstance, retryPolicy);
   }
 
-  public PredicateChainResolver<ConsumerRecord<String, T>, Throwable, RetryPolicy> build() {
-    return retryPolicyResolver;
+  public RetryPolicyResolver<T> build() {
+    return this::apply;
   }
 }

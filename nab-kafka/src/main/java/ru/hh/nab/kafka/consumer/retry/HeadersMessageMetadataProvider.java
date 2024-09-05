@@ -13,7 +13,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
-public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
+public class HeadersMessageMetadataProvider {
   public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-retry-message-processing-history";
   public static final String HEADER_NEXT_RETRY_TIME = "x-retry-next-retry-time";
   private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -40,12 +40,10 @@ public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
         .map(value -> Instant.parse(new String(value, StandardCharsets.UTF_8)));
   }
 
-  @Override
   public Optional<MessageProcessingHistory> getMessageProcessingHistory(ConsumerRecord<?, ?> consumerRecord) {
     return getMessageProcessingHistory(consumerRecord.headers());
   }
 
-  @Override
   public void setMessageProcessingHistory(ProducerRecord<?, ?> producerRecord, MessageProcessingHistory messageProcessingHistory) {
     byte[] headerValue;
     try {
@@ -59,12 +57,10 @@ public class HeadersMessageMetadataProvider implements MessageMetadataProvider {
         .add(HEADER_MESSAGE_PROCESSING_HISTORY, headerValue);
   }
 
-  @Override
   public Optional<Instant> getNextRetryTime(ConsumerRecord<?, ?> consumerRecord) {
     return getNextRetryTime(consumerRecord.headers());
   }
 
-  @Override
   public void setNextRetryTime(ProducerRecord<?, ?> producerRecord, Instant nextRetryTime) {
     byte[] headerValue = nextRetryTime.toString().getBytes(StandardCharsets.UTF_8);
     producerRecord

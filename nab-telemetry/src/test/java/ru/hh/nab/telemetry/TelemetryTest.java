@@ -18,28 +18,35 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 
-  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
-  ResourceHelper resourceHelper;
+  private final ResourceHelper resourceHelper;
+
+  public TelemetryTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     SPAN_EXPORTER.reset();
   }
 
@@ -217,14 +224,22 @@ public class TelemetryTest {
   }
 
   @Configuration
+  @EnableAutoConfiguration
   @Import({
+      NabTestConfig.class,
       TestResource.class,
       TestResourceWithSubResource.class,
       TestResourceWithSubResource.SubResource.class,
   })
-  public static class SpringCtxForJersey implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
+  public static class TestConfiguration {
+
+    @Bean
+    public ServletRegistrationBean<ServletContainer> jerseyServletRegistration(ResourceConfig resourceConfig) {
+      return new ServletRegistrationBean<>(new ServletContainer(resourceConfig), "/*", "/app/*");
+    }
+
+    @Bean
+    public FilterRegistrationBean<TelemetryFilter> telemetryFilter() {
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
           .builder()
           .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
@@ -238,15 +253,12 @@ public class TelemetryTest {
       TelemetryFilter telemetryFilter = new TelemetryFilter(
           openTelemetry.getTracer("nab"),
           new TelemetryPropagator(openTelemetry),
-          true);
+          true
+      );
 
-      return NabApplication
-          .builder()
-          .addFilter(telemetryFilter)
-          .bindToRoot()
-          .configureJersey(SpringCtxForJersey.class)
-          .bindTo("/*", "/app/*")
-          .build();
+      FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>();
+      registration.setFilter(telemetryFilter);
+      return registration;
     }
   }
 }

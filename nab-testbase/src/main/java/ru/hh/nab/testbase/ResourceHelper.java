@@ -15,12 +15,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 
 public class ResourceHelper {
-  private final JettyServer jettyServer;
-  private Client client;
+  private final int serverPort;
+  private final Client client;
 
   public ResourceHelper(JettyServer jettyServer) {
-    this.jettyServer = jettyServer;
-    client = getClientBuilder().build();
+    this(jettyServer.getPort());
+  }
+
+  public ResourceHelper(int serverPort) {
+    this.serverPort = serverPort;
+    this.client = getClientBuilder().build();
   }
 
   public ClientBuilder getClientBuilder() {
@@ -28,15 +32,15 @@ public class ResourceHelper {
   }
 
   public String baseUrl() {
-    return getServerAddress(jettyServer.getPort()).toString();
+    return getServerAddress(serverPort).toString();
   }
 
   public String baseUrl(String protocol) {
-    return getServerAddress(protocol, jettyServer.getPort()).toString();
+    return getServerAddress(protocol, serverPort).toString();
   }
 
   public int port() {
-    return jettyServer.getPort();
+    return serverPort;
   }
 
   public void assertGet(String url, String expectedResponse) {

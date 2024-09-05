@@ -1,21 +1,26 @@
 package ru.hh.nab.starter.jersey;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class JacksonTest {
-  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
-  ResourceHelper resourceHelper;
+
+  private final ResourceHelper resourceHelper;
+
+  public JacksonTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @Test
   public void testJacksonJaxb() {
@@ -36,16 +41,16 @@ public class JacksonTest {
   }
 
   @Configuration
-  @Import(TestResource.class)
-  public static class SpringCtxForJersey implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication
-          .builder()
-          .configureJersey(SpringCtxForJersey.class)
-          .registerResources(ObjectMapperContextResolver.class)
-          .bindToRoot()
-          .build();
+  @EnableAutoConfiguration
+  @Import({
+      NabTestConfig.class,
+      TestResource.class,
+  })
+  public static class TestConfiguration {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      return new ResourceConfig().register(ObjectMapperContextResolver.class);
     }
   }
 }

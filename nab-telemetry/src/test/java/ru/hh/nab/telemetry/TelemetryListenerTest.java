@@ -28,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.jclient.common.DefaultRequestStrategy;
@@ -37,14 +40,10 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryListenerTest {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 
@@ -52,8 +51,11 @@ public class TelemetryListenerTest {
   private static HttpClientContext httpClientContext;
   private static HttpClientFactory httpClientFactory;
 
-  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
-  ResourceHelper resourceHelper;
+  private final ResourceHelper resourceHelper;
+
+  public TelemetryListenerTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @BeforeAll
   public static void init() {
@@ -82,7 +84,7 @@ public class TelemetryListenerTest {
   }
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     SPAN_EXPORTER.reset();
   }
 
@@ -148,15 +150,11 @@ public class TelemetryListenerTest {
   }
 
   @Configuration
-  @Import(TestResource.class)
-  public static class SpringCtxForJersey implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication
-          .builder()
-          .configureJersey(SpringCtxForJersey.class)
-          .bindToRoot()
-          .build();
-    }
+  @EnableAutoConfiguration
+  @Import({
+      NabTestConfig.class,
+      TestResource.class,
+  })
+  public static class TestConfiguration {
   }
 }

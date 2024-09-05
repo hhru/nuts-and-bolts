@@ -18,7 +18,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
-import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 
 public final class NabApplicationBuilder {
@@ -29,7 +28,6 @@ public final class NabApplicationBuilder {
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
   private final List<BiConsumer<WebAppContext, WebApplicationContext>> servletContextHandlerConfigurers;
 
-  private NabJerseyConfig.Builder jerseyBuilder;
   private String contextPath;
   private ClassLoader classLoader;
 
@@ -95,17 +93,6 @@ public final class NabApplicationBuilder {
     return this;
   }
 
-  // Jersey CONTEXT
-
-  public NabApplicationBuilder configureJersey(NabJerseyConfig.Builder jerseyBuilder) {
-    this.jerseyBuilder = jerseyBuilder;
-    return this;
-  }
-
-  public NabJerseyConfig.Builder configureJersey(Class<?>... childConfigs) {
-    return new NabJerseyConfig.Builder(this, childConfigs);
-  }
-
   // Spring CONTEXT
 
   public NabApplicationBuilder configureWebapp(BiConsumer<WebAppContext, WebApplicationContext> servletContextHandlerConfigurer) {
@@ -164,14 +151,6 @@ public final class NabApplicationBuilder {
       @Override
       protected List<NabServletConfig> getServletConfigs(WebApplicationContext rootCtx) {
         return servletBuilders.stream().map(NabServletConfig.Builder::build).collect(Collectors.toList());
-      }
-
-      @Override
-      protected NabJerseyConfig getJerseyConfig() {
-        if (jerseyBuilder == null) {
-          return super.getJerseyConfig();
-        }
-        return jerseyBuilder.build();
       }
     });
   }

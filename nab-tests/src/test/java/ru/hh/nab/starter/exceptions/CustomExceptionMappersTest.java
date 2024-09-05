@@ -9,29 +9,30 @@ import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import java.io.IOException;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig({
-    NabTestConfig.class,
-    CustomExceptionMappersTest.CustomExceptionMapperConfig.class
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomExceptionMappersTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  @NabTestServer(overrideApplication = CustomExceptionMapperConfig.class)
-  ResourceHelper resourceHelper;
+  private final ResourceHelper resourceHelper;
+
+  public CustomExceptionMappersTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @Test
   public void testCustomExceptionMappers() throws IOException {
@@ -59,16 +60,16 @@ public class CustomExceptionMappersTest {
   }
 
   @Configuration
-  @Import(CustomExceptionSerializer.class)
-  public static class CustomExceptionMapperConfig implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication
-          .builder()
-          .configureJersey(SpringCtxForJersey.class)
-          .registerResources(CustomExceptionMapper.class)
-          .bindToRoot()
-          .build();
+  @EnableAutoConfiguration
+  @Import({
+      NabTestConfig.class,
+      CustomExceptionSerializer.class,
+  })
+  public static class CustomExceptionMapperConfig {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      return new ResourceConfig().register(CustomExceptionMapper.class);
     }
   }
 

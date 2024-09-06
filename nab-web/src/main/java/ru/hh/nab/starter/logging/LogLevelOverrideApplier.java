@@ -1,11 +1,11 @@
 package ru.hh.nab.starter.logging;
 
 import ch.qos.logback.classic.Level;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,26 +14,31 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
 
 public class LogLevelOverrideApplier {
-
-  public static final String UPDATE_INTERVAL_IN_MINUTES_PROPERTY = "logLevelOverrideExtension.updateIntervalInMinutes";
-  public static final int DEFAULT_INTERVAL_IN_MINUTES = 5;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LogLevelOverrideApplier.class);
 
   private final Map<String, LogInfo> initialLogLevelsInfo = new HashMap<>();
   private final Map<String, String> previousOverrides = new HashMap<>();
 
-  public void run(LogLevelOverrideExtension extension, FileSettings fileSettings) {
+  private final LogLevelOverrideExtension extension;
+  private final long updateInterval;
+  private final TimeUnit timeUnit;
+
+  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, long updateInterval, TimeUnit timeUnit) {
+    this.extension = extension;
+    this.updateInterval = updateInterval;
+    this.timeUnit = timeUnit;
+  }
+
+  @PostConstruct
+  public void run() {
     var executor = newSingleThreadScheduledExecutor((Runnable r) -> {
       Thread thread = new Thread(r, LogLevelOverrideApplier.class.getSimpleName());
       thread.setDaemon(true);
       return thread;
     });
-
-    int updateIntervalInMinutes = ofNullable(fileSettings.getInteger(UPDATE_INTERVAL_IN_MINUTES_PROPERTY)).orElse(DEFAULT_INTERVAL_IN_MINUTES);
 
     executor.scheduleWithFixedDelay(() -> {
       try {
@@ -43,7 +48,7 @@ public class LogLevelOverrideApplier {
       } catch (RuntimeException e) {
         LOGGER.error("Could not apply log level overrides", e);
       }
-    }, updateIntervalInMinutes, updateIntervalInMinutes, TimeUnit.MINUTES);
+    }, updateInterval, updateInterval, timeUnit);
   }
 
   private void applyFilteredOverrides(Map<String, String> currentOverrides) {

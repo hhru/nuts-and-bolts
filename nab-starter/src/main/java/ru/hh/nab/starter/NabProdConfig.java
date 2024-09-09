@@ -88,7 +88,7 @@ public class NabProdConfig {
     int bufferPoolSize = ofNullable(fileSettings.getString(STATSD_BUFFER_POOL_SIZE_PROPERTY))
         .or(() -> ofNullable(System.getProperty(STATSD_BUFFER_POOL_SIZE_ENV)))
         .map(Integer::parseInt)
-        .orElse(NonBlockingStatsDClient.DEFAULT_POOL_SIZE);
+        .orElse(8);
 
     return new NonBlockingStatsDClientBuilder()
         .hostname(host)

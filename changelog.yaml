@@ -1,3 +1,10 @@
+-   name: 5.4.1
+    date: '2024-09-09T20:33:33.078244+03:00'
+    description: Размер пула StatsD-клиента для отправки метрик сокращен с 512 до
+        8 по умолчанию
+    instructions: ''
+    compatible: true
+
 -   name: 5.4.0
     date: '2024-08-29T13:19:29.961116+03:00'
     description: Обновлен java-dogstatsd-client до 4.4.2

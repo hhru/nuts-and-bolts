@@ -34,7 +34,12 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withFixedDelayRetries(RetryPolicy retryPolicy) {
+  public ConsumerBuilder<T> withStandaloneRetries() {
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withRetryPolicy(RetryPolicy retryPolicy) {
     return this;
   }
 

@@ -31,7 +31,7 @@ class RetryService<T> {
   }
 
   public CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
-    RetryPolicy retryPolicy = getRetryPolicy(message, error);
+    RetryPolicy retryPolicy = retryPolicyResolver.apply(message, error);
     MessageProcessingHistory updatedProcessingHistory = getProcessingHistory(message)
         .map(MessageProcessingHistory::withOneMoreFail)
         .orElseGet(() -> createInitialProcessingHistory(message));
@@ -54,9 +54,5 @@ class RetryService<T> {
 
   protected MessageProcessingHistory createInitialProcessingHistory(ConsumerRecord<String, T> message) {
     return new MessageProcessingHistory(Instant.ofEpochMilli(message.timestamp()), 1, Instant.now());
-  }
-
-  protected RetryPolicy getRetryPolicy(ConsumerRecord<String, T> message, Throwable error) {
-    return retryPolicyResolver.apply(message, error);
   }
 }

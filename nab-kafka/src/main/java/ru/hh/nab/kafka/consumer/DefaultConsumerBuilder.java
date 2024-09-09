@@ -41,8 +41,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   private ConsumeStrategy<T> consumeStrategy;
   private RetryPolicyResolver<T> retryPolicyResolver;
-  private RetryPolicy retryPolicy;
+  private boolean usingFixedDelayRetryPolicy;
   private KafkaProducer retryProducer;
+  private boolean standaloneRetries;
   private Logger logger;
   private AckProvider<T> ackProvider;
 
@@ -51,6 +52,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.messageClass = messageClass;
     this.consumerFactory = consumerFactory;
     withConsumerGroup();
+    this.retryPolicyResolver = RetryPolicyResolver.never();
   }
 
   @Override
@@ -71,17 +73,22 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withFixedDelayRetries(RetryPolicy retryPolicy) {
-    if (!retryPolicy.hasFixedDelay()) {
-      throw new IllegalArgumentException("RetryPolicy must have fixed delay");
-    }
-    this.retryPolicy = retryPolicy;
+  public ConsumerBuilder<T> withStandaloneRetries() {
+    this.standaloneRetries = true;
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withRetryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicyResolver = RetryPolicyResolver.always(retryPolicy);
+    this.usingFixedDelayRetryPolicy = retryPolicy.hasFixedDelay();
     return this;
   }
 
   @Override
   public ConsumerBuilder<T> withRetryPolicyResolver(RetryPolicyResolver<T> retryPolicyResolver) {
     this.retryPolicyResolver = retryPolicyResolver;
+    this.usingFixedDelayRetryPolicy = false;
     return this;
   }
 
@@ -137,22 +144,20 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private RetryService<T> buildRetryService() {
-    if (retryProducer == null && retryPolicyResolver == null && retryPolicy == null) {
+    if (retryProducer == null && retryPolicyResolver == null) {
       return null;
     }
     Objects.requireNonNull(retryProducer);
-    if (retryPolicyResolver == null && retryPolicy == null) {
-      throw new IllegalStateException("retryPolicy or retryPolicyResolver should be set");
+    Objects.requireNonNull(retryPolicyResolver);
+    if (standaloneRetries && !usingFixedDelayRetryPolicy) {
+      throw new IllegalStateException("Standalone retries can be used only with fixed delay retry policy");
     }
-    boolean isFixedDelay = false;
-    if (retryPolicyResolver == null) {
-      retryPolicyResolver = (consumerRecord, throwable) -> retryPolicy;
-      if (retryPolicy.hasFixedDelay()) {
-        isFixedDelay = true;
-      }
-    }
-    String retryTopic = topicName + (isFixedDelay ? "-fixed" : "-progressive"); //TODO
+    String retryTopic = getRetryTopicName();
     return new RetryService<>(retryProducer, retryTopic, retryPolicyResolver);
+  }
+
+  private String getRetryTopicName() {
+    return topicName + "_" + operationName + "_" + (standaloneRetries ? "retry_receive" : "retry_send");
   }
 
   private KafkaConsumer<T> startKafkaConsumerForConsumerGroup(
@@ -186,7 +191,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
-    if (retryProducer != null || retryPolicy != null || retryPolicyResolver != null) {
+    if (retryProducer != null || retryPolicyResolver != null) {
       throw new IllegalStateException("Can't use retries for consumer reading all partitions");
     }
 

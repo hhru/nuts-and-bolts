@@ -16,7 +16,9 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withRetryProducer(KafkaProducer retryProducer);
 
-  ConsumerBuilder<T> withFixedDelayRetries(RetryPolicy retryPolicy);
+  ConsumerBuilder<T> withStandaloneRetries();
+
+  ConsumerBuilder<T> withRetryPolicy(RetryPolicy retryPolicy);
 
   ConsumerBuilder<T> withRetryPolicyResolver(RetryPolicyResolver<T> retryPolicyResolver);
 

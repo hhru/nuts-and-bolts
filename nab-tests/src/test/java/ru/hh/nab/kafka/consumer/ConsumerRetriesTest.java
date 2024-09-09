@@ -58,7 +58,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
           ack.acknowledge();
         })
         .withRetryProducer(retryProducer)
-        .withFixedDelayRetries(RetryPolicy.fixedDelay(Duration.ofSeconds(10)))
+        .withRetryPolicy(RetryPolicy.fixedDelay(Duration.ofSeconds(10)))
         .start();
 
     waitUntil(() -> {

@@ -1,6 +1,5 @@
 package ru.hh.nab.starter;
 
-import io.sentry.Sentry;
 import jakarta.servlet.ServletContextEvent;
 import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
@@ -8,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
@@ -36,7 +34,6 @@ import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 
 public final class NabApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabApplication.class);
-  private static final String SENTRY_RELEASE_ENV = "SENTRY_RELEASE";
 
   private final NabServletContextConfig servletContextConfig;
 
@@ -70,7 +67,6 @@ public final class NabApplication {
    */
   public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
     try {
-      configureSentry(baseContext);
       JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
       logStartupInfo(baseContext);
@@ -112,20 +108,6 @@ public final class NabApplication {
 
   public static NabApplicationBuilder builder() {
     return new NabApplicationBuilder();
-  }
-
-  public static void configureSentry(ApplicationContext context) {
-    FileSettings settings = context.getBean(FileSettings.class);
-    String dsn = settings.getString("sentry.dsn");
-    if (StringUtils.isBlank(dsn)) {
-      LOGGER.warn("Sentry DSN is empty!");
-    } else {
-      Sentry.init(options -> {
-        options.setEnableExternalConfiguration(true);
-        options.setDsn(dsn);
-        options.setRelease(System.getProperty(SENTRY_RELEASE_ENV));
-      });
-    }
   }
 
   private static void logStartupInfo(ApplicationContext context) {

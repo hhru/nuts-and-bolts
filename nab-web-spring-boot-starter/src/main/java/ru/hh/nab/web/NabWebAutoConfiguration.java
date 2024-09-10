@@ -3,6 +3,7 @@ package ru.hh.nab.web;
 import jakarta.ws.rs.Path;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,6 +16,9 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 
+/**
+ * {@link EnableAutoConfiguration Auto-configuration} for nab web components (servlets, filters, web server customizers and so on).
+ */
 @AutoConfiguration(before = JerseyAutoConfiguration.class)
 @PropertySource("classpath:nab-web.properties")
 public class NabWebAutoConfiguration {

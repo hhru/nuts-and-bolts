@@ -14,7 +14,12 @@ import java.util.function.Predicate;
  * and returns the result associated with the first predicate that matches them. If no predicate matches then {@code null} is returned
  */
 public class PredicateChainResolver<A, B, R> implements BiFunction<A, B, R> {
-  LinkedHashMap<BiPredicate<A, B>, R> predicateToResult = new LinkedHashMap<>();
+  final LinkedHashMap<BiPredicate<A, B>, R> predicateToResult = new LinkedHashMap<>();
+  R defaultResult;
+
+  public PredicateChainResolver(R defaultResult) {
+    this.defaultResult = defaultResult;
+  }
 
   @Override
   public R apply(A a, B b) {
@@ -24,7 +29,7 @@ public class PredicateChainResolver<A, B, R> implements BiFunction<A, B, R> {
         .filter(entry -> entry.getKey().test(a, b))
         .map(Map.Entry::getValue)
         .findFirst()
-        .orElse(null);
+        .orElse(defaultResult);
   }
 
   public PredicateChainResolver<A, B, R> when(BiPredicate<A, B> predicate, R result) {

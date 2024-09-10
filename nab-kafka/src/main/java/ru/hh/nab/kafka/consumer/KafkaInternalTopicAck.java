@@ -2,7 +2,6 @@ package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -12,7 +11,6 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.InterruptException;
-import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 import ru.hh.nab.kafka.util.AckUtils;
 
 class KafkaInternalTopicAck<T> implements Ack<T> {
@@ -56,7 +54,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
 
   @Override
   public void commit(Collection<ConsumerRecord<String, T>> messages) {
-    //TODO Непонятно, надо ли здесь waitForRetriesToComplete();
+    waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync(AckUtils.getLatestOffsetForEachPartition(messages));
   }
 
@@ -75,15 +73,6 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     CompletableFuture<?> retryFuture = retryService.retry(message, error);
     consumingState.addRetryFuture(retryFuture);
     return retryFuture;
-  }
-
-  @Override
-  public Optional<MessageProcessingHistory> getProcessingHistory(ConsumerRecord<String, T> message) {
-    if (retryService == null) {
-      throw new UnsupportedOperationException(
-          "This Consumer has not been configured for retries so there is no meaningful processing history");
-    }
-    return retryService.getProcessingHistory(message);
   }
 
   private void waitForRetriesToComplete() {

@@ -2,7 +2,6 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -19,7 +18,6 @@ import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
-import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
@@ -41,7 +39,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   private ConsumeStrategy<T> consumeStrategy;
   private RetryPolicyResolver<T> retryPolicyResolver;
-  private boolean usingFixedDelayRetryPolicy;
   private KafkaProducer retryProducer;
   private boolean standaloneRetries;
   private Logger logger;
@@ -52,7 +49,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.messageClass = messageClass;
     this.consumerFactory = consumerFactory;
     withConsumerGroup();
-    this.retryPolicyResolver = RetryPolicyResolver.never();
   }
 
   @Override
@@ -73,22 +69,18 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withStandaloneRetries() {
+  public ConsumerBuilder<T> withStandaloneRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
     this.standaloneRetries = true;
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withRetryPolicy(RetryPolicy retryPolicy) {
-    this.retryPolicyResolver = RetryPolicyResolver.always(retryPolicy);
-    this.usingFixedDelayRetryPolicy = retryPolicy.hasFixedDelay();
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withRetryPolicyResolver(RetryPolicyResolver<T> retryPolicyResolver) {
+    this.retryProducer = retryProducer;
     this.retryPolicyResolver = retryPolicyResolver;
-    this.usingFixedDelayRetryPolicy = false;
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withExternalRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+    this.standaloneRetries = false;
+    this.retryProducer = retryProducer;
+    this.retryPolicyResolver = retryPolicyResolver;
     return this;
   }
 
@@ -146,11 +138,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private RetryService<T> buildRetryService() {
     if (retryProducer == null && retryPolicyResolver == null) {
       return null;
-    }
-    Objects.requireNonNull(retryProducer);
-    Objects.requireNonNull(retryPolicyResolver);
-    if (standaloneRetries && !usingFixedDelayRetryPolicy) {
-      throw new IllegalStateException("Standalone retries can be used only with fixed delay retry policy");
     }
     String retryTopic = getRetryTopicName();
     return new RetryService<>(retryProducer, retryTopic, retryPolicyResolver);

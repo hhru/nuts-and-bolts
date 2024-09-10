@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getNextRetryTime;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
@@ -57,8 +58,9 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
           }
           ack.acknowledge();
         })
-        .withRetryProducer(retryProducer)
-        .withRetryPolicy(RetryPolicy.fixedDelay(Duration.ofSeconds(10)))
+        .withStandaloneRetries(
+            retryProducer,
+            RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))))
         .start();
 
     waitUntil(() -> {

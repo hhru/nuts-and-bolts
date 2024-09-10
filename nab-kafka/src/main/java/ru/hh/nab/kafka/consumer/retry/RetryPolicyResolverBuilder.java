@@ -8,18 +8,26 @@ import ru.hh.nab.kafka.util.PredicateChainResolver;
 
 public class RetryPolicyResolverBuilder<T> extends PredicateChainResolver<ConsumerRecord<String, T>, Throwable, RetryPolicy> {
 
+  public RetryPolicyResolverBuilder(RetryPolicy defaultPolicy) {
+    super(defaultPolicy);
+  }
+
   public RetryPolicyResolverBuilder<T> registerRetryPolicy(BiPredicate<T, Throwable> predicate, RetryPolicy retryPolicy) {
     when((record, error) -> predicate.test(record.value(), error), retryPolicy);
     return this;
   }
 
-  public RetryPolicyResolverBuilder<T> registerRetryPolicy(Predicate<Throwable> exceptionPredicate, RetryPolicy retryPolicy) {
+  public RetryPolicyResolverBuilder<T> onException(Predicate<Throwable> exceptionPredicate, RetryPolicy retryPolicy) {
     whenB(exceptionPredicate, retryPolicy);
     return this;
   }
 
-  public RetryPolicyResolverBuilder<T> registerRetryPolicy(Class<? extends Throwable> exceptionClass, RetryPolicy retryPolicy) {
-    return registerRetryPolicy(exceptionClass::isInstance, retryPolicy);
+  public RetryPolicyResolverBuilder<T> onException(Class<? extends Throwable> exceptionClass, RetryPolicy retryPolicy) {
+    return onException(exceptionClass::isInstance, retryPolicy);
+  }
+
+  public RetryPolicyResolverBuilder<T> neverRetry(Class<? extends Throwable> exceptionClass) {
+    return onException(exceptionClass, RetryPolicy.never());
   }
 
   public RetryPolicyResolver<T> build() {

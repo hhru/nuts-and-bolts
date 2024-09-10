@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
@@ -85,12 +84,4 @@ public interface Ack<T> {
    * @throws UnsupportedOperationException if implementation does not support retries
    */
   CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error);
-
-  /**
-   * Get processing history for message.
-   * @param message Message to get processing history for
-   * @return {@link Optional#empty()} if the message is being processed for the first time, otherwise it is being retried
-   * @throws UnsupportedOperationException if implementation does not support retries
-   */
-  Optional<MessageProcessingHistory> getProcessingHistory(ConsumerRecord<String, T> message);
 }

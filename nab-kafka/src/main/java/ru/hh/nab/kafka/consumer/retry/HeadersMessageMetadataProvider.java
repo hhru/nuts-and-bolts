@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Optional;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
@@ -40,31 +38,21 @@ public class HeadersMessageMetadataProvider {
         .map(value -> Instant.parse(new String(value, StandardCharsets.UTF_8)));
   }
 
-  public Optional<MessageProcessingHistory> getMessageProcessingHistory(ConsumerRecord<?, ?> consumerRecord) {
-    return getMessageProcessingHistory(consumerRecord.headers());
-  }
-
-  public void setMessageProcessingHistory(ProducerRecord<?, ?> producerRecord, MessageProcessingHistory messageProcessingHistory) {
+  public static void setMessageProcessingHistory(Headers headers, MessageProcessingHistory messageProcessingHistory) {
     byte[] headerValue;
     try {
       headerValue = objectMapper.writeValueAsBytes(messageProcessingHistory);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-    producerRecord
-        .headers()
+    headers
         .remove(HEADER_MESSAGE_PROCESSING_HISTORY)
         .add(HEADER_MESSAGE_PROCESSING_HISTORY, headerValue);
   }
 
-  public Optional<Instant> getNextRetryTime(ConsumerRecord<?, ?> consumerRecord) {
-    return getNextRetryTime(consumerRecord.headers());
-  }
-
-  public void setNextRetryTime(ProducerRecord<?, ?> producerRecord, Instant nextRetryTime) {
+  public static void setNextRetryTime(Headers headers, Instant nextRetryTime) {
     byte[] headerValue = nextRetryTime.toString().getBytes(StandardCharsets.UTF_8);
-    producerRecord
-        .headers()
+    headers
         .remove(HEADER_NEXT_RETRY_TIME)
         .add(HEADER_NEXT_RETRY_TIME, headerValue);
   }

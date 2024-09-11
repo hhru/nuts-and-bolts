@@ -7,6 +7,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.resource.StatusResource;
 
+// TODO: выпилить этот конфиг
 public class StatusServletConfig implements NabServletConfig {
   @Override
   public String[] getMapping() {

@@ -1,3 +1,15 @@
+-   name: 6.0.0
+    date: '2024-09-11T12:54:54.551301+03:00'
+    description: "Необработанные `SQLTransientConnectionException` и `RejectedExecutionException`\
+        \ теперь по умолчанию превращаются в http-код 597.\r\nСлужебные методы в `NabExceptionMapper`\
+        \ и `AnyExceptionMapper` теперь имеют доступ `protected`."
+    instructions: "Если вы хотите, чтобы для вашего сервиса ретраились ошибки 597,\
+        \ надо в `upstream-config.yml` в секцию `retry_policy` добавить запись с ключом\
+        \ `597` и значением `idempotent: 'false'`.\r\nЕсли у вас в коде вызывается\
+        \ конструктор `NabExceptionMapper(...)` или метод `AnyExceptionMapper.toResponseInternal(...)`\
+        \ не из классов-наследников, нужно исправить такой код."
+    compatible: false
+
 -   name: 5.4.1
     date: '2024-09-09T20:33:33.078244+03:00'
     description: Размер пула StatsD-клиента для отправки метрик сокращен с 512 до

@@ -34,6 +34,7 @@ import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.NabAppTestConfig;
@@ -90,6 +91,7 @@ public class ConsulServiceTest {
             PROPERTY_TEMPLATE.formatted(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, true),
             PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "defaultTestService"),
             PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
+            PROPERTY_TEMPLATE.formatted(DATACENTERS, "test"),
             PROPERTY_TEMPLATE.formatted(NODE_NAME, TEST_NODE_NAME),
             PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "17")
         )

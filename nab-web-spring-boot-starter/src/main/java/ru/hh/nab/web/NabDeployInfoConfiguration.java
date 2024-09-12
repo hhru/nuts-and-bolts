@@ -2,10 +2,10 @@ package ru.hh.nab.web;
 
 import jakarta.inject.Named;
 import java.util.Arrays;
-import static java.util.Optional.ofNullable;
+import java.util.List;
 import java.util.Properties;
-import java.util.function.Predicate;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -13,40 +13,37 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.AppMetadata;
 
 @Configuration
+@EnableConfigurationProperties(InfrastructureProperties.class)
 public class NabDeployInfoConfiguration {
-
-  private static final String NODE_NAME_ENV = "NODE_NAME";
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
-  public String serviceName(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(SERVICE_NAME))
-        .filter(Predicate.not(String::isEmpty))
-        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
+  public String serviceName(InfrastructureProperties infrastructureProperties) {
+    return infrastructureProperties.getServiceName();
   }
 
   @Named(DATACENTER)
   @Bean(DATACENTER)
-  public String datacenter(FileSettings fileSettings) {
-    return ofNullable(fileSettings.getString(DATACENTER))
-        .filter(Predicate.not(String::isEmpty))
-        .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
+  public String datacenter(InfrastructureProperties infrastructureProperties) {
+    return infrastructureProperties.getDatacenter();
+  }
+
+  @Named(DATACENTERS)
+  @Bean(DATACENTERS)
+  public List<String> datacenters(InfrastructureProperties infrastructureProperties) {
+    return infrastructureProperties.getDatacenters();
   }
 
   @Named(NODE_NAME)
   @Bean(NODE_NAME)
-  public String nodeName(FileSettings fileSettings) {
-    return ofNullable(System.getenv(NODE_NAME_ENV))
-        .orElseGet(
-            () -> ofNullable(fileSettings.getString(NODE_NAME))
-                .filter(Predicate.not(String::isEmpty))
-                .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)))
-        );
+  public String nodeName(InfrastructureProperties infrastructureProperties) {
+    return infrastructureProperties.getNodeName();
   }
 
   @Bean

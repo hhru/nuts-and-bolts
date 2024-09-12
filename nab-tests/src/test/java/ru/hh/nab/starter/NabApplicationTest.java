@@ -35,6 +35,7 @@ import ru.hh.consul.Consul;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
@@ -144,6 +145,7 @@ public class NabApplicationTest {
             PROPERTY_TEMPLATE.formatted(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, true),
             PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "testService"),
             PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
+            PROPERTY_TEMPLATE.formatted(DATACENTERS, "test"),
             PROPERTY_TEMPLATE.formatted(NODE_NAME, "localhost"),
             PROPERTY_TEMPLATE.formatted(CONSUL_PORT_PROPERTY, "123"),
             PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "0")

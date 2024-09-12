@@ -2,6 +2,7 @@ package ru.hh.nab.web;
 
 import jakarta.annotation.Nullable;
 import jakarta.inject.Named;
+import java.util.List;
 import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
@@ -14,6 +15,7 @@ import ru.hh.consul.HealthClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
@@ -102,12 +104,16 @@ public class NabConsulConfiguration {
 
   @Bean
   @Lazy
-  public ConsulFetcher consulFetcher(@Nullable HealthClient healthClient, FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName) {
+  public ConsulFetcher consulFetcher(
+      @Nullable HealthClient healthClient,
+      @Named(SERVICE_NAME) String serviceName,
+      @Named(DATACENTERS) List<String> datacenters
+  ) {
     if (healthClient == null) {
       throw new RuntimeException(String.format("HealthClient is null. Set %s as true for using fetcher", ConsulService.CONSUL_ENABLED_PROPERTY));
     }
 
-    return new ConsulFetcher(healthClient, fileSettings, serviceName);
+    return new ConsulFetcher(healthClient, serviceName, datacenters);
   }
 
   private boolean isConsulDisabled(FileSettings fileSettings) {

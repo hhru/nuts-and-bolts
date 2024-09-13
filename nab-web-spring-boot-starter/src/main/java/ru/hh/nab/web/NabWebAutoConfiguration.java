@@ -30,7 +30,6 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.resource.StatusResource;

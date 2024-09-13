@@ -82,7 +82,7 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
-  public ServletRegistrationBean<ServletContainer> statusServletRegistration(ApplicationContext applicationContext) {
+  public ServletRegistrationBean<ServletContainer> statusServlet(ApplicationContext applicationContext) {
     ResourceConfig statusResourceConfig = new ResourceConfig();
     statusResourceConfig.register(new StatusResource(applicationContext.getBean(AppMetadata.class)));
 

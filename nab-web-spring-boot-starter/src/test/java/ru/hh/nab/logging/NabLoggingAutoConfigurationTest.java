@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
@@ -16,29 +14,22 @@ public class NabLoggingAutoConfigurationTest {
       .withConfiguration(AutoConfigurations.of(NabLoggingAutoConfiguration.class));
 
   @Test
-  public void testSpringContextHasLogLevelOverrideApplierBean() {
+  public void testSpringContextContainsAllBeans() {
     applicationContextRunner
-        .withUserConfiguration(ConfigurationWithLogLevelOverrideExtensionBean.class)
-        .run(context -> assertThat(context).hasSingleBean(LogLevelOverrideApplier.class));
+        .withBean("logLevelOverrideExtensionBean", LogLevelOverrideExtension.class, () -> mock(LogLevelOverrideExtension.class))
+        .run(context -> {
+          assertThat(context).hasSingleBean(LogLevelOverrideApplier.class);
+          assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
+        });
   }
 
   @Test
-  public void testSpringContextDoesNotHaveBeanLogLevelOverrideApplierBean() {
-    applicationContextRunner
-        .withUserConfiguration(ConfigurationWithoutLogLevelOverrideExtensionBean.class)
-        .run(context -> assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class));
+  public void testSpringContextDoesNotContainLogLevelOverrideExtensionPropertiesBeanWithFailedConditions() {
+    applicationContextRunner.run(context -> assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class));
   }
 
-  @Configuration
-  public static class ConfigurationWithLogLevelOverrideExtensionBean {
-
-    @Bean
-    public LogLevelOverrideExtension testExtension() {
-      return mock(LogLevelOverrideExtension.class);
-    }
-  }
-
-  @Configuration
-  public static class ConfigurationWithoutLogLevelOverrideExtensionBean {
+  @Test
+  public void testSpringContextDoesNotContainLogLevelOverrideApplierBeanWithFailedConditions() {
+    applicationContextRunner.run(context -> assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class));
   }
 }

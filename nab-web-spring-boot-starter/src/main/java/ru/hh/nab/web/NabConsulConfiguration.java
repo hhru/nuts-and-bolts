@@ -30,6 +30,7 @@ public class NabConsulConfiguration {
 
   private static final String CONSUL_PORT_PROPERTY = "consul.http.port";
   private static final String CONSUL_HOST_PROPERTY = "consul.http.host";
+  private static final String CONSUL_PING_PROPERTY = "consul.http.ping";
   private static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
   private static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
   private static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
@@ -54,7 +55,11 @@ public class NabConsulConfiguration {
         .withWriteTimeoutMillis(fileSettings.getLong(CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY, 10_500))
         .withAddress(address);
     builder.withClientEventCallback(new ConsulMetricsTracker(serviceName, statsDSender));
-    return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN)).map(builder::withAclToken).orElse(builder).build();
+    return ofNullable(fileSettings.getString(CONSUL_CLIENT_ACL_TOKEN))
+        .map(builder::withAclToken)
+        .orElse(builder)
+        .withPing(fileSettings.getBoolean(CONSUL_PING_PROPERTY, true))
+        .build();
   }
 
   @Bean

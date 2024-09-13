@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
@@ -20,7 +20,7 @@ import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSource
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.testbase.transaction.TransactionTestBase;
 
-@ContextConfiguration(classes = DataSourceTestConfig.class)
+@SpringBootTest(classes = DataSourceTestConfig.class)
 public class DataSourceContextTest extends TransactionTestBase {
 
   @Inject

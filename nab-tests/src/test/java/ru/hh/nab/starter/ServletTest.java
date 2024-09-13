@@ -6,23 +6,27 @@ import jakarta.servlet.ServletResponse;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.hh.nab.starter.qualifier.Service;
+import org.springframework.context.annotation.Import;
+import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ServletTest {
 
-  @NabTestServer(overrideApplication = Cfg.class)
-  ResourceHelper resourceHelper;
+  private  final ResourceHelper resourceHelper;
+
+  public ServletTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @Test
   public void testServlet() {
@@ -46,15 +50,14 @@ public class ServletTest {
   }
 
   @Configuration
-  public static class Cfg implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication.builder().addServlet(ctx -> ctx.getBean(TestServlet.class), Cfg.class).bindTo("/springservlet").build();
-    }
+  @EnableAutoConfiguration
+  @Import(NabTestConfig.class)
+  public static class Cfg {
 
     @Bean
-    TestServlet testServlet(@Service Properties serviceProperties) {
-      return new TestServlet(serviceProperties.getProperty("customTestProperty"));
+    public ServletRegistrationBean<TestServlet> testServlet(FileSettings fileSettings) {
+      TestServlet testServlet = new TestServlet(fileSettings.getString("customTestProperty"));
+      return new ServletRegistrationBean<>(testServlet, "/springservlet");
     }
   }
 }

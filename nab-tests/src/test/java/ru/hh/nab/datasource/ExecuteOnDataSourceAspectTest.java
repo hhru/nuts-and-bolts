@@ -19,10 +19,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.EntityManagerProxy;
-import org.springframework.test.context.ContextConfiguration;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 import ru.hh.nab.common.properties.FileSettings;
@@ -34,7 +34,7 @@ import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSource
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
+@SpringBootTest(classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
 public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
   private static final String WRITABLE_DATASOURCE = "writable";

@@ -2,9 +2,9 @@ package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import java.util.Properties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
@@ -17,9 +17,10 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import ru.hh.nab.starter.qualifier.Service;
+import ru.hh.nab.web.NabDeployInfoConfiguration;
 
 @Configuration
+@Import(NabDeployInfoConfiguration.class)
 public class KafkaTestConfig {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -35,8 +36,8 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  ConfigProvider configProvider(@Service Properties serviceProperties) {
-    return new ConfigProvider("service", "kafka", new FileSettings(serviceProperties));
+  ConfigProvider configProvider(FileSettings fileSettings) {
+    return new ConfigProvider("service", "kafka", fileSettings);
   }
 
   @Bean

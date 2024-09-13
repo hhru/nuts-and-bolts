@@ -10,12 +10,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.starter.NabCommonConfig;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
+import ru.hh.nab.web.NabDeployInfoConfiguration;
+import ru.hh.nab.web.NabMetricsConfiguration;
+import ru.hh.nab.web.NabTaskSchedulingConfiguration;
 
 @Configuration
-@Import({NabCommonConfig.class})
+@Import({
+    NabDeployInfoConfiguration.class,
+    NabMetricsConfiguration.class,
+    NabTaskSchedulingConfiguration.class,
+})
 public class NabTestConfig {
   public static final String TEST_SERVICE_NAME = "testService";
 

@@ -27,10 +27,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
@@ -54,7 +54,7 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
-@ContextConfiguration(
+@SpringBootTest(
     classes = {
         JpaTestConfig.class,
         DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class

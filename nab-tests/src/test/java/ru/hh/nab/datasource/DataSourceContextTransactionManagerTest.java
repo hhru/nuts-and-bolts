@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.orm.jpa.EntityManagerProxy;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
@@ -20,7 +20,7 @@ import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {JpaTestConfig.class})
+@SpringBootTest(classes = JpaTestConfig.class)
 public class DataSourceContextTransactionManagerTest extends JpaTestBase {
   private TestEntity existingTestEntity;
 

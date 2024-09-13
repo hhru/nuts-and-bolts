@@ -22,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
@@ -44,6 +45,12 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
  */
 @AutoConfiguration(before = JerseyAutoConfiguration.class)
 @PropertySource("classpath:nab-web.properties")
+@Import({
+    NabConsulConfiguration.class,
+    NabDeployInfoConfiguration.class,
+    NabMetricsConfiguration.class,
+    NabTaskSchedulingConfiguration.class,
+})
 @EnableConfigurationProperties(HttpCacheProperties.class)
 public class NabWebAutoConfiguration {
 

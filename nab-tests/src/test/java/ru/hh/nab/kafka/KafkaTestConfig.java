@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import org.springframework.context.annotation.Bean;
@@ -18,9 +17,7 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import static ru.hh.nab.starter.NabCommonConfig.TEST_PROPERTIES_FILE_NAME;
 import ru.hh.nab.starter.qualifier.Service;
-import static ru.hh.nab.testbase.NabTestConfig.createProperties;
 
 @Configuration
 public class KafkaTestConfig {
@@ -30,12 +27,6 @@ public class KafkaTestConfig {
   @Bean
   public TestKafkaWithJsonMessages testKafka() {
     return KafkaTestUtils.startKafkaWithJsonMessages(OBJECT_MAPPER, Map.of("num.partitions", "5"));
-  }
-
-  @Bean
-  @Service
-  Properties serviceProperties() throws IOException {
-    return createProperties(TEST_PROPERTIES_FILE_NAME);
   }
 
   @Bean

@@ -5,7 +5,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -36,12 +34,7 @@ import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
-import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.NabAppTestConfig;
-import ru.hh.nab.starter.qualifier.Service;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 @ExtendWith(SpringExtension.class)
@@ -53,8 +46,6 @@ public class ConsulServiceTest {
   private ConsulService consulService;
   @Autowired
   private AgentClient agentClient;
-  @Autowired
-  private KeyValueClient keyValueClient;
 
   @BeforeEach
   void setUp() {
@@ -159,18 +150,5 @@ public class ConsulServiceTest {
   @Configuration
   @Import(CustomKVConfig.class)
   public static class EmptyConsulConfig {
-
-    @Bean
-    @Primary
-    @Service
-    Properties serviceProperties() {
-      Properties properties = new Properties();
-      properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
-      properties.setProperty(SERVICE_NAME, "defaultTestService");
-      properties.setProperty(DATACENTER, "test");
-      properties.setProperty(NODE_NAME, TEST_NODE_NAME);
-      properties.setProperty(JettySettingsConstants.JETTY_PORT, "17");
-      return properties;
-    }
   }
 }

@@ -1,28 +1,26 @@
 package ru.hh.nab.web;
 
 import jakarta.inject.Named;
-import java.io.IOException;
+import java.util.Arrays;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
-import ru.hh.nab.starter.qualifier.Service;
 
 @Configuration
 public class NabDeployInfoConfiguration {
 
   private static final String NODE_NAME_ENV = "NODE_NAME";
-  private static final String PROPERTIES_FILE_NAME = "service.properties";
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
@@ -52,8 +50,17 @@ public class NabDeployInfoConfiguration {
   }
 
   @Bean
-  public FileSettings fileSettings(@Service Properties serviceProperties) {
-    return new FileSettings(serviceProperties);
+  public FileSettings fileSettings(ConfigurableEnvironment environment) {
+    Properties properties = new Properties();
+    environment
+        .getPropertySources()
+        .stream()
+        .filter(source -> source instanceof EnumerablePropertySource<?>)
+        .map(source -> ((EnumerablePropertySource<?>) source).getPropertyNames())
+        .flatMap(Arrays::stream)
+        .distinct()
+        .forEach(propertyName -> properties.setProperty(propertyName, environment.getProperty(propertyName)));
+    return new FileSettings(properties);
   }
 
   @Bean
@@ -67,12 +74,5 @@ public class NabDeployInfoConfiguration {
   @Bean
   public AppMetadata appMetadata(String serviceName, Properties projectProperties) {
     return new AppMetadata(serviceName, projectProperties);
-  }
-
-  @Bean
-  @Service
-  @MainProfile
-  public Properties serviceProperties() throws IOException {
-    return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 }

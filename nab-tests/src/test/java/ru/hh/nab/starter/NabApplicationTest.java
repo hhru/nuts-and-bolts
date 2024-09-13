@@ -10,7 +10,6 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import static java.util.Objects.requireNonNullElse;
-import java.util.Properties;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,13 +28,8 @@ import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
-import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettyServer;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import ru.hh.nab.testbase.NabTestConfig;
 
 public class NabApplicationTest {
@@ -201,19 +195,6 @@ public class NabApplicationTest {
           fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY)
       );
       return Consul.builder().withAddress(hostAndPort).build().agentClient();
-    }
-
-    @Bean
-    @Service
-    Properties serviceProperties() {
-      Properties properties = new Properties();
-      properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
-      properties.setProperty(SERVICE_NAME, "testService");
-      properties.setProperty(DATACENTER, "test");
-      properties.setProperty(NODE_NAME, "localhost");
-      properties.setProperty(NabProdConfig.CONSUL_PORT_PROPERTY, "123");
-      properties.setProperty(JettySettingsConstants.JETTY_PORT, "0");
-      return properties;
     }
   }
 }

@@ -30,7 +30,7 @@
         <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
-        <module>nab-websocket</module>
+        <module>nab-websocket-spring-boot-starter</module>
     </modules>
 
     <properties>
@@ -113,7 +113,7 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-websocket</artifactId>
+                <artifactId>nab-websocket-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

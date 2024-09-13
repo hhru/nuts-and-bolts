@@ -1,0 +1,11 @@
+{
+  "groups": [],
+  "properties": [
+    {
+      "name": "spring.autoconfigure.exclude.nested",
+      "type": "java.util.List<java.lang.Class>",
+      "description": "Nested auto-configuration classes to exclude."
+    }
+  ],
+  "hints": []
+}

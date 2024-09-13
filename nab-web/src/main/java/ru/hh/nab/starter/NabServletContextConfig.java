@@ -17,13 +17,11 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
-import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.StatusServletConfig;
 
@@ -38,10 +36,6 @@ public class NabServletContextConfig {
 
   protected List<NabServletConfig> getServletConfigs(WebApplicationContext rootCtx) {
     return Collections.emptyList();
-  }
-
-  protected NabJerseyConfig getJerseyConfig() {
-    return NabJerseyConfig.DISABLED;
   }
 
   /**
@@ -109,13 +103,7 @@ public class NabServletContextConfig {
 
   private List<NabServletConfig> compileFullServletConfiguration(WebApplicationContext rootCtx) {
     List<NabServletConfig> servletConfigs = getServletConfigs(rootCtx);
-    servletConfigs.forEach(servlet -> {
-      if (servlet instanceof ServletContainer) {
-        throw new IllegalArgumentException("Please register Jersey servlets via NabJerseyConfig");
-      }
-    });
     servletConfigs = new ArrayList<>(servletConfigs);
-    servletConfigs.add(getJerseyConfig());
     servletConfigs.add(0, new StatusServletConfig());
     return Collections.unmodifiableList(servletConfigs);
   }
@@ -123,10 +111,7 @@ public class NabServletContextConfig {
   protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
 
   private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
-    servletConfigs
-        .stream()
-        .filter(servletConfig -> !servletConfig.isDisabled())
-        .forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
+    servletConfigs.forEach(nabServletConfig -> registerServlet(nabServletConfig, servletContext, rootCtx));
   }
 
   private static void registerServlet(NabServletConfig nabServletConfig, ServletContext servletContext, WebApplicationContext rootCtx) {

@@ -33,7 +33,6 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.jersey.TestResource;
 import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
@@ -172,13 +171,6 @@ public class NabApplicationTest {
   @ExpectSystemExitWithStatus(1)
   public void runShouldFailOnContextRefreshFail() {
     NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class, BrokenCtx.class);
-  }
-
-  @Test
-  public void runShouldFailOnWrongJerseyCfg() {
-    assertThrows(IllegalArgumentException.class, () ->
-        NabApplication.builder().configureJersey().registerResources(TestResource.class).bindToRoot().build().run()
-    );
   }
 
   @XmlRootElement

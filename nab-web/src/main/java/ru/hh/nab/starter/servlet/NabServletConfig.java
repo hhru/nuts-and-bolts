@@ -32,10 +32,6 @@ public interface NabServletConfig {
 
   Servlet createServlet(WebApplicationContext rootCtx);
 
-  default boolean isDisabled() {
-    return false;
-  }
-
   final class Builder {
 
     private final NabApplicationBuilder nabApplicationBuilder;

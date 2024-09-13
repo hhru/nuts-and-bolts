@@ -15,24 +15,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.jersey.application-path=/test")
 public class ResourceInformationFilterTest {
 
-  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
-  ResourceHelper resourceHelper;
-  @Context
-  HttpServletRequest request;
+  private final ResourceHelper resourceHelper;
+
+  public ResourceInformationFilterTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @Test
   public void testResourceName() {
@@ -79,11 +79,11 @@ public class ResourceInformationFilterTest {
   }
 
   @Configuration
-  @Import(TestResource.class)
-  public static class SpringCtxForJersey implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication.builder().configureJersey(SpringCtxForJersey.class).bindTo("/test/*").build();
-    }
+  @EnableAutoConfiguration
+  @Import({
+      NabTestConfig.class,
+      TestResource.class,
+  })
+  public static class TestConfiguration {
   }
 }

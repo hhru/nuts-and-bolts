@@ -23,10 +23,12 @@ import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactor
 import org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.hh.nab.env.AutoConfigurationPropertiesEnvironmentPostProcessor.PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE;
+import static ru.hh.nab.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
 import static ru.hh.nab.env.AutoConfigurationPropertiesEnvironmentPostProcessor.SPRING_PACKAGE;
-import ru.hh.nab.web.NabWebAutoConfiguration;
 
 public class AutoConfigurationPropertiesEnvironmentPostProcessorTest {
 
@@ -36,28 +38,37 @@ public class AutoConfigurationPropertiesEnvironmentPostProcessorTest {
       );
 
   private final List<String> whitelistedSpringAutoConfigurations = List.of(
-      ConfigurationPropertiesAutoConfiguration.class.getCanonicalName(),
-      LifecycleAutoConfiguration.class.getCanonicalName(),
-      PropertyPlaceholderAutoConfiguration.class.getCanonicalName(),
-      ProjectInfoAutoConfiguration.class.getCanonicalName(),
-      JerseyAutoConfiguration.class.getCanonicalName(),
-      EmbeddedWebServerFactoryCustomizerAutoConfiguration.class.getCanonicalName(),
-      ServletWebServerFactoryAutoConfiguration.class.getCanonicalName(),
-      WebSocketServletAutoConfiguration.class.getCanonicalName()
+      ConfigurationPropertiesAutoConfiguration.class.getName(),
+      LifecycleAutoConfiguration.class.getName(),
+      PropertyPlaceholderAutoConfiguration.class.getName(),
+      ProjectInfoAutoConfiguration.class.getName(),
+      JerseyAutoConfiguration.class.getName(),
+      EmbeddedWebServerFactoryCustomizerAutoConfiguration.class.getName(),
+      ServletWebServerFactoryAutoConfiguration.class.getName(),
+      WebSocketServletAutoConfiguration.class.getName()
+  );
+
+  private final List<String> blacklistedAutoConfigurations = ImportCandidates
+      .load(AutoConfiguration.class, getClass().getClassLoader())
+      .getCandidates()
+      .stream()
+      .filter(autoConfiguration -> autoConfiguration.startsWith(SPRING_PACKAGE))
+      .filter(Predicate.not(whitelistedSpringAutoConfigurations::contains))
+      .toList();
+
+  private final List<String> blacklistedNestedAutoConfigurations = List.of(
+      "org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration$JacksonResourceConfigCustomizer",
+      "org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration$JacksonResourceConfigCustomizer$JaxbObjectMapperCustomizer"
   );
 
   @Test
   public void testExcludePropertyContainsAllBlacklistedSpringAutoConfigurations() {
     applicationContextRunner
         .run(context -> {
-          List<String> excludedAutoConfigurations = asList(
-              requireNonNull(context.getEnvironment().getProperty(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, String[].class))
-          );
-
-          List<String> expectedExcludedAutoConfigurations = getAllBlacklistedSpringAutoConfigurations();
+          List<String> excludedAutoConfigurations = getPropertyValue(context, EXCLUDE_AUTOCONFIGURATION_PROPERTY);
 
           assertFalse(isEmpty(excludedAutoConfigurations));
-          assertThat(excludedAutoConfigurations, containsInAnyOrder(expectedExcludedAutoConfigurations.toArray()));
+          assertThat(excludedAutoConfigurations, containsInAnyOrder(blacklistedAutoConfigurations.toArray()));
         });
   }
 
@@ -65,35 +76,65 @@ public class AutoConfigurationPropertiesEnvironmentPostProcessorTest {
   public void testExcludePropertyContainsMergedUserDefinedAndBlacklistedSpringAutoConfigurations() {
     // exclude some whitelisted and custom auto configurations
     List<String> userDefinedExcludedAutoConfigurations = List.of(
-        ConfigurationPropertiesAutoConfiguration.class.getCanonicalName(),
-        NabWebAutoConfiguration.class.getCanonicalName()
+        ConfigurationPropertiesAutoConfiguration.class.getName(),
+        TestAutoConfiguration.class.getName()
     );
     applicationContextRunner
-        .withPropertyValues("%s=%s".formatted(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, join(",", userDefinedExcludedAutoConfigurations)))
+        .withPropertyValues("%s=%s".formatted(EXCLUDE_AUTOCONFIGURATION_PROPERTY, join(",", userDefinedExcludedAutoConfigurations)))
         .run(context -> {
-          List<String> excludedAutoConfigurations = asList(
-              requireNonNull(context.getEnvironment().getProperty(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, String[].class))
-          );
+          List<String> excludedAutoConfigurations = getPropertyValue(context, EXCLUDE_AUTOCONFIGURATION_PROPERTY);
 
-          List<String> expectedExcludedAutoConfigurations = Stream
-              .concat(getAllBlacklistedSpringAutoConfigurations().stream(), userDefinedExcludedAutoConfigurations.stream())
+          List<String> mergedExcludedAutoConfigurations = Stream
+              .concat(blacklistedAutoConfigurations.stream(), userDefinedExcludedAutoConfigurations.stream())
               .toList();
 
           assertFalse(isEmpty(excludedAutoConfigurations));
           assertThat(
               excludedAutoConfigurations,
-              containsInAnyOrder(expectedExcludedAutoConfigurations.toArray())
+              containsInAnyOrder(mergedExcludedAutoConfigurations.toArray())
           );
         });
   }
 
-  private List<String> getAllBlacklistedSpringAutoConfigurations() {
-    return ImportCandidates
-        .load(AutoConfiguration.class, getClass().getClassLoader())
-        .getCandidates()
-        .stream()
-        .filter(autoConfiguration -> autoConfiguration.startsWith(SPRING_PACKAGE))
-        .filter(Predicate.not(whitelistedSpringAutoConfigurations::contains))
-        .toList();
+  @Test
+  public void testExcludeNestedPropertyContainsAllBlacklistedNestedAutoConfigurations() {
+    applicationContextRunner
+        .run(context -> {
+          List<String> excludedNestedAutoConfigurations = getPropertyValue(context, EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY);
+
+          assertFalse(isEmpty(excludedNestedAutoConfigurations));
+          assertThat(excludedNestedAutoConfigurations, containsInAnyOrder(blacklistedNestedAutoConfigurations.toArray()));
+        });
+  }
+
+  @Test
+  public void testExcludeNestedPropertyContainsMergedUserDefinedAndBlacklistedNestedAutoConfigurations() {
+    // exclude some nested auto configurations
+    List<String> userDefinedExcludedNestedAutoConfigurations = List.of(
+        TestAutoConfiguration.NestedConfiguration.class.getName()
+    );
+    applicationContextRunner
+        .withPropertyValues("%s=%s".formatted(EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY, join(",", userDefinedExcludedNestedAutoConfigurations)))
+        .run(context -> {
+          List<String> excludedNestedAutoConfigurations = getPropertyValue(context, EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY);
+
+          List<String> mergedExcludedNestedAutoConfigurations = Stream
+              .concat(blacklistedNestedAutoConfigurations.stream(), userDefinedExcludedNestedAutoConfigurations.stream())
+              .toList();
+
+          assertFalse(isEmpty(excludedNestedAutoConfigurations));
+          assertThat(excludedNestedAutoConfigurations, containsInAnyOrder(mergedExcludedNestedAutoConfigurations.toArray()));
+        });
+  }
+
+  private List<String> getPropertyValue(ApplicationContext applicationContext, String property) {
+    return asList(requireNonNull(applicationContext.getEnvironment().getProperty(property, String[].class)));
+  }
+
+  @AutoConfiguration
+  private static class TestAutoConfiguration {
+    @Configuration
+    private static class NestedConfiguration {
+    }
   }
 }

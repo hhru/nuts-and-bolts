@@ -1,3 +1,4 @@
 org.springframework.boot.env.EnvironmentPostProcessor=ru.hh.nab.env.AutoConfigurationPropertiesEnvironmentPostProcessor
 org.springframework.boot.logging.LoggingSystemFactory=ru.hh.nab.logging.NabLoggingSystem.Factory
 org.springframework.context.ApplicationListener=ru.hh.nab.sentry.SentryInitializer
+org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=ru.hh.nab.autoconfigure.NestedAutoConfigurationImportFilter

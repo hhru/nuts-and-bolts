@@ -25,7 +25,7 @@ public class NabDeployInfoConfiguration {
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
-  String serviceName(FileSettings fileSettings) {
+  public String serviceName(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(SERVICE_NAME))
         .filter(Predicate.not(String::isEmpty))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", SERVICE_NAME)));
@@ -33,7 +33,7 @@ public class NabDeployInfoConfiguration {
 
   @Named(DATACENTER)
   @Bean(DATACENTER)
-  String datacenter(FileSettings fileSettings) {
+  public String datacenter(FileSettings fileSettings) {
     return ofNullable(fileSettings.getString(DATACENTER))
         .filter(Predicate.not(String::isEmpty))
         .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", DATACENTER)));
@@ -41,7 +41,7 @@ public class NabDeployInfoConfiguration {
 
   @Named(NODE_NAME)
   @Bean(NODE_NAME)
-  String nodeName(FileSettings fileSettings) {
+  public String nodeName(FileSettings fileSettings) {
     return ofNullable(System.getenv(NODE_NAME_ENV))
         .orElseGet(
             () -> ofNullable(fileSettings.getString(NODE_NAME))
@@ -51,12 +51,12 @@ public class NabDeployInfoConfiguration {
   }
 
   @Bean
-  FileSettings fileSettings(@Service Properties serviceProperties) {
+  public FileSettings fileSettings(@Service Properties serviceProperties) {
     return new FileSettings(serviceProperties);
   }
 
   @Bean
-  PropertiesFactoryBean projectProperties() {
+  public PropertiesFactoryBean projectProperties() {
     PropertiesFactoryBean projectProps = new PropertiesFactoryBean();
     projectProps.setLocation(new ClassPathResource(AppMetadata.PROJECT_PROPERTIES));
     projectProps.setIgnoreResourceNotFound(true);
@@ -64,13 +64,13 @@ public class NabDeployInfoConfiguration {
   }
 
   @Bean
-  AppMetadata appMetadata(String serviceName, Properties projectProperties) {
+  public AppMetadata appMetadata(String serviceName, Properties projectProperties) {
     return new AppMetadata(serviceName, projectProperties);
   }
 
   @Bean
   @Service
-  Properties serviceProperties() throws IOException {
+  public Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 }

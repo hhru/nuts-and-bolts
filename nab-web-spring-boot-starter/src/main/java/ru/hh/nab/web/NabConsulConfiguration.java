@@ -26,16 +26,16 @@ import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 @Configuration
 public class NabConsulConfiguration {
 
-  public static final String CONSUL_PORT_PROPERTY = "consul.http.port";
-  public static final String CONSUL_HOST_PROPERTY = "consul.http.host";
-  public static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
-  public static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
-  public static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
-  public static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
-  public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
+  private static final String CONSUL_PORT_PROPERTY = "consul.http.port";
+  private static final String CONSUL_HOST_PROPERTY = "consul.http.host";
+  private static final String CONSUL_CLIENT_CONNECT_TIMEOUT_PROPERTY = "consul.client.connectTimeoutMillis";
+  private static final String CONSUL_CLIENT_READ_TIMEOUT_PROPERTY = "consul.client.readTimeoutMillis";
+  private static final String CONSUL_CLIENT_WRITE_TIMEOUT_PROPERTY = "consul.client.writeTimeoutMillis";
+  private static final String CONSUL_CLIENT_ACL_TOKEN = "consul.client.aclToken";
+  private static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
 
   @Bean
-  Consul consul(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
+  public Consul consul(FileSettings fileSettings, @Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
     if (isConsulDisabled(fileSettings)) {
       return null;
     }
@@ -56,23 +56,23 @@ public class NabConsulConfiguration {
   }
 
   @Bean
-  AgentClient agentClient(@Nullable Consul consul) {
+  public AgentClient agentClient(@Nullable Consul consul) {
     return consul != null ? consul.agentClient() : null;
   }
 
   @Bean
-  KeyValueClient keyValueClient(@Nullable Consul consul) {
+  public KeyValueClient keyValueClient(@Nullable Consul consul) {
     return consul != null ? consul.keyValueClient() : null;
   }
 
   @Bean
-  HealthClient healthClient(@Nullable Consul consul) {
+  public HealthClient healthClient(@Nullable Consul consul) {
     return consul != null ? consul.healthClient() : null;
   }
 
   @Bean
   @Lazy(value = false)
-  ConsulService consulService(
+  public ConsulService consulService(
       FileSettings fileSettings,
       AppMetadata appMetadata,
       @Nullable AgentClient agentClient,

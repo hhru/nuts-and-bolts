@@ -48,7 +48,7 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 public class NabWebAutoConfiguration {
 
   @Bean
-  MonitoredQueuedThreadPool jettyThreadPool(
+  public MonitoredQueuedThreadPool jettyThreadPool(
       FileSettings fileSettings,
       @Named(SERVICE_NAME) String serviceNameValue,
       StatsDSender statsDSender
@@ -57,7 +57,7 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
-  JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
+  public JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
     return new JettyEventListener(consulService);
   }
 

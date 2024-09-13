@@ -9,7 +9,7 @@ import ru.hh.nab.common.executor.ScheduledExecutor;
 public class NabTaskSchedulingConfiguration {
 
   @Bean
-  ScheduledExecutorService scheduledExecutorService() {
+  public ScheduledExecutorService scheduledExecutorService() {
     return new ScheduledExecutor();
   }
 }

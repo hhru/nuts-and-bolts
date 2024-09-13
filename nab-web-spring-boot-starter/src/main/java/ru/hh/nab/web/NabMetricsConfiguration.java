@@ -29,7 +29,7 @@ import ru.hh.nab.starter.metrics.JvmMetricsSender;
 public class NabMetricsConfiguration {
 
   @Bean
-  StatsDSender statsDSender(
+  public StatsDSender statsDSender(
       ScheduledExecutorService scheduledExecutorService,
       StatsDClient statsDClient,
       @Named(SERVICE_NAME) String serviceNameValue,
@@ -46,7 +46,7 @@ public class NabMetricsConfiguration {
   }
 
   @Bean
-  StatsDClient statsDClient(FileSettings fileSettings) {
+  public StatsDClient statsDClient(FileSettings fileSettings) {
 
     String host = ofNullable(fileSettings.getString(STATSD_HOST_PROPERTY))
         .or(() -> ofNullable(System.getProperty(STATSD_HOST_ENV)))

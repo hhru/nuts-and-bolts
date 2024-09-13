@@ -1,5 +1,7 @@
 package ru.hh.nab.web;
 
+import jakarta.annotation.Nullable;
+import jakarta.inject.Named;
 import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
 import java.util.EnumSet;
@@ -21,13 +23,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
+import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
+import ru.hh.nab.starter.consul.ConsulService;
+import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
+import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
+import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
+import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 
 /**
@@ -37,6 +46,20 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 @PropertySource("classpath:nab-web.properties")
 @EnableConfigurationProperties(HttpCacheProperties.class)
 public class NabWebAutoConfiguration {
+
+  @Bean
+  MonitoredQueuedThreadPool jettyThreadPool(
+      FileSettings fileSettings,
+      @Named(SERVICE_NAME) String serviceNameValue,
+      StatsDSender statsDSender
+  ) throws Exception {
+    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
+  }
+
+  @Bean
+  JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
+    return new JettyEventListener(consulService);
+  }
 
   @Bean
   @ConditionalOnMissingBean

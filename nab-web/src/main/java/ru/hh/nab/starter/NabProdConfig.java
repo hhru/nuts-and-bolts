@@ -5,11 +5,9 @@ import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Named;
-import java.io.IOException;
 import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.util.Properties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -20,7 +18,6 @@ import ru.hh.consul.HealthClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_BUFFER_POOL_SIZE_ENV;
@@ -39,7 +36,6 @@ import ru.hh.nab.starter.consul.ConsulMetricsTracker;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
-import ru.hh.nab.starter.qualifier.Service;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -54,12 +50,6 @@ public class NabProdConfig {
 
   public static final int CONSUL_DEFAULT_READ_TIMEOUT_MILLIS = 10_500;
   static final String PROPERTIES_FILE_NAME = "service.properties";
-
-  @Bean
-  @Service
-  Properties serviceProperties() throws IOException {
-    return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
-  }
 
   @Bean
   StatsDClient statsDClient(FileSettings fileSettings) {

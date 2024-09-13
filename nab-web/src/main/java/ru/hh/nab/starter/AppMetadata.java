@@ -10,7 +10,7 @@ public class AppMetadata {
   private final String version;
   private final long started;
 
-  AppMetadata(String serviceName, Properties projectProperties) {
+  public AppMetadata(String serviceName, Properties projectProperties) {
     this.serviceName = serviceName;
     version = projectProperties.getProperty("project.version", "unknown");
     started = System.currentTimeMillis();

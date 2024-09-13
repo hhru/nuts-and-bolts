@@ -23,6 +23,7 @@ import static ru.hh.nab.metrics.StatsDConstants.STATSD_PORT_PROPERTY;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_QUEUE_SIZE_ENV;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_QUEUE_SIZE_PROPERTY;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.metrics.JvmMetricsSender;
 
 @Configuration
@@ -46,6 +47,7 @@ public class NabMetricsConfiguration {
   }
 
   @Bean
+  @MainProfile
   public StatsDClient statsDClient(FileSettings fileSettings) {
 
     String host = ofNullable(fileSettings.getString(STATSD_HOST_PROPERTY))

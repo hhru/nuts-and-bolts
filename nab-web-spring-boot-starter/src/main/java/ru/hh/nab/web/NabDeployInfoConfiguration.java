@@ -14,6 +14,7 @@ import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.qualifier.Service;
 
@@ -70,6 +71,7 @@ public class NabDeployInfoConfiguration {
 
   @Bean
   @Service
+  @MainProfile
   public Properties serviceProperties() throws IOException {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }

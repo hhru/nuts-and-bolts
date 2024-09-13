@@ -57,6 +57,7 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
+  @MainProfile
   public JettyEventListener jettyEventListener(@Nullable ConsulService consulService) {
     return new JettyEventListener(consulService);
   }

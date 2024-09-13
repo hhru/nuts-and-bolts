@@ -17,6 +17,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulMetricsTracker;
@@ -24,6 +25,7 @@ import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 
 @Configuration
+@MainProfile
 public class NabConsulConfiguration {
 
   private static final String CONSUL_PORT_PROPERTY = "consul.http.port";

@@ -44,6 +44,8 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class NabApplicationTest {
 
   private static final String PROPERTY_TEMPLATE = "%s=%s";
+  private static final String CONSUL_PORT_PROPERTY = "consul.http.port";
+  private static final String CONSUL_HOST_PROPERTY = "consul.http.host";
 
   @Test
   public void runShouldStartJetty() {
@@ -143,7 +145,7 @@ public class NabApplicationTest {
             PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "testService"),
             PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
             PROPERTY_TEMPLATE.formatted(NODE_NAME, "localhost"),
-            PROPERTY_TEMPLATE.formatted(NabProdConfig.CONSUL_PORT_PROPERTY, "123"),
+            PROPERTY_TEMPLATE.formatted(CONSUL_PORT_PROPERTY, "123"),
             PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "0")
         )
         .applyTo(aggregateCtx);
@@ -194,8 +196,8 @@ public class NabApplicationTest {
     @Bean
     AgentClient consulClient(FileSettings fileSettings) {
       Address hostAndPort = new Address(
-          requireNonNullElse(fileSettings.getString(NabProdConfig.CONSUL_HOST_PROPERTY), "127.0.0.1"),
-          fileSettings.getInteger(NabProdConfig.CONSUL_PORT_PROPERTY)
+          requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"),
+          fileSettings.getInteger(CONSUL_PORT_PROPERTY)
       );
       return Consul.builder().withAddress(hostAndPort).build().agentClient();
     }

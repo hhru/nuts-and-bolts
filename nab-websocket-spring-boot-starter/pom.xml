@@ -15,12 +15,12 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web</artifactId>
+            <artifactId>nab-web-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-server</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
         </dependency>
 
         <dependency>

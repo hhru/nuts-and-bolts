@@ -32,6 +32,24 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jetty</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty.websocket</groupId>
+                    <artifactId>websocket-jakarta-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty.websocket</groupId>
+                    <artifactId>websocket-jetty-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>jakarta.websocket</groupId>
+                    <artifactId>jakarta.websocket-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>jakarta.websocket</groupId>
+                    <artifactId>jakarta.websocket-client-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- TODO: rm after migration to spring-boot-dependencies:3.2.0 -->
         <dependency>

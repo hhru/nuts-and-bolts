@@ -2,7 +2,6 @@ package ru.hh.nab.websocket;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -11,24 +10,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import ru.hh.nab.starter.NabApplication;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
 
-@NabJunitWebConfig({NabTestConfig.class, WebsocketTest.WebsocketCtx.class})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class WebsocketTest {
 
-  @NabTestServer(overrideApplication = WebsocketCtx.class)
-  ResourceHelper resourceHelper;
+  private final ResourceHelper resourceHelper;
+
+  public WebsocketTest(@LocalServerPort int serverPort) {
+    this.resourceHelper = new ResourceHelper(serverPort);
+  }
 
   @Test
   public void testWebsocketConnection() throws ExecutionException, InterruptedException, IOException {
@@ -63,15 +64,11 @@ public class WebsocketTest {
   }
 
   @Configuration
-  @Import(TestEndpoint.class)
-  public static class WebsocketCtx implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
-      return NabApplication
-          .builder()
-          .apply(builder -> NabWebsocketConfigurator.configureWebsocket(builder, Set.of("ru.hh")))
-          .build();
-    }
+  @EnableAutoConfiguration
+  @Import({
+      NabTestConfig.class,
+      TestEndpoint.class,
+  })
+  public static class WebsocketCtx {
   }
-
 }

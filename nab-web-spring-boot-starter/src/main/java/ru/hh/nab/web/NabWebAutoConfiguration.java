@@ -1,6 +1,8 @@
 package ru.hh.nab.web;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
+import java.util.EnumSet;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -8,16 +10,24 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.AppMetadata;
+import ru.hh.nab.starter.filters.CommonHeadersFilter;
+import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.resource.StatusResource;
+import ru.hh.nab.starter.server.cache.CacheFilter;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 
 /**
@@ -25,6 +35,7 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
  */
 @AutoConfiguration(before = JerseyAutoConfiguration.class)
 @PropertySource("classpath:nab-web.properties")
+@EnableConfigurationProperties(HttpCacheProperties.class)
 public class NabWebAutoConfiguration {
 
   @Bean
@@ -51,6 +62,36 @@ public class NabWebAutoConfiguration {
     );
     registration.setName("status");
     registration.setLoadOnStartup(0);
+    return registration;
+  }
+
+  @Bean
+  public FilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
+    FilterRegistrationBean<RequestIdLoggingFilter> registration = new FilterRegistrationBean<>(new RequestIdLoggingFilter());
+    registration.setName(RequestIdLoggingFilter.class.getName());
+    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+    registration.setMatchAfter(true);
+    return registration;
+  }
+
+  @Bean
+  public FilterRegistrationBean<CommonHeadersFilter> commonHeadersFilter() {
+    FilterRegistrationBean<CommonHeadersFilter> registration = new FilterRegistrationBean<>(new CommonHeadersFilter());
+    registration.setName(CommonHeadersFilter.class.getName());
+    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+    registration.setMatchAfter(true);
+    return registration;
+  }
+
+  @Bean
+  @MainProfile
+  @ConditionalOnProperty(prefix = HttpCacheProperties.PREFIX, name = HttpCacheProperties.SIZE_PROPERTY)
+  public FilterRegistrationBean<CacheFilter> cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
+    CacheFilter cacheFilter = new CacheFilter(serviceName, httpCacheProperties.getSize(), statsDSender);
+    FilterRegistrationBean<CacheFilter> registration = new FilterRegistrationBean<>(cacheFilter);
+    registration.setName(CacheFilter.class.getName());
+    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+    registration.setMatchAfter(true);
     return registration;
   }
 

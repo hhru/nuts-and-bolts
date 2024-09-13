@@ -10,7 +10,6 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -41,7 +40,6 @@ import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.qualifier.Service;
-import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
 
 @Configuration
 @Import({NabCommonConfig.class})
@@ -100,11 +98,6 @@ public class NabProdConfig {
         .maxPacketSizeBytes(maxPacketSizeBytes)
         .bufferPoolSize(bufferPoolSize)
         .build();
-  }
-
-  @Bean
-  FilterHolder cacheFilter(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
-    return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
   }
 
   @Bean

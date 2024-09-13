@@ -14,14 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
-import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
-import ru.hh.nab.starter.filters.CommonHeadersFilter;
-import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.StatusServletConfig;
 
@@ -47,28 +43,6 @@ public class NabServletContextConfig {
     webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
     webAppContext.addEventListener(new RequestContextListener());
-    registerFilter(
-        webAppContext.getServletContext(),
-        RequestIdLoggingFilter.class.getName(),
-        RequestIdLoggingFilter.class,
-        Collections.emptyMap(),
-        EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING
-    );
-    registerFilter(
-        webAppContext.getServletContext(),
-        CommonHeadersFilter.class.getName(),
-        CommonHeadersFilter.class,
-        Collections.emptyMap(),
-        EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING
-    );
-    if (rootCtx.containsBean("cacheFilter")) {
-      FilterHolder cacheFilter = rootCtx.getBean("cacheFilter", FilterHolder.class);
-      if (cacheFilter.isInstance()) {
-        registerFilter(webAppContext.getServletHandler(), cacheFilter, EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING);
-      }
-    }
     rootCtx
         .getBeansOfType(NabServletFilter.class)
         .entrySet()
@@ -171,20 +145,6 @@ public class NabServletContextConfig {
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
     dynamic.setAsyncSupported(async);
     dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
-  }
-
-  public static void registerFilter(
-      ServletHandler servletContextHandler,
-      FilterHolder filterHolder,
-      EnumSet<DispatcherType> dispatcherTypes,
-      String... mappings
-  ) {
-    validateMappings(mappings);
-    FilterMapping mapping = new FilterMapping();
-    mapping.setFilterName(filterHolder.getName());
-    mapping.setPathSpecs(mappings);
-    mapping.setDispatcherTypes(dispatcherTypes);
-    servletContextHandler.addFilter(filterHolder, mapping);
   }
 
   public static void registerFilter(

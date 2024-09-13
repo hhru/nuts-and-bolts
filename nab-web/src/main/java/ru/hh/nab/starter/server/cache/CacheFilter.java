@@ -19,6 +19,7 @@ import org.caffinitas.ohc.OHCacheBuilder;
 import org.caffinitas.ohc.OHCacheStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.unit.DataSize;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
@@ -38,11 +39,11 @@ public class CacheFilter implements Filter {
   private final AtomicInteger cachedPlaceholder = new AtomicInteger(0);
   private final AtomicInteger cachedBypass = new AtomicInteger(0);
 
-  public CacheFilter(String serviceName, int size, StatsDSender statsDSender) {
+  public CacheFilter(String serviceName, DataSize size, StatsDSender statsDSender) {
     Serializer serializer = new Serializer();
     ohCache = OHCacheBuilder
         .<byte[], byte[]>newBuilder()
-        .capacity(size * 1024L * 1024L)
+        .capacity(size.toBytes())
         .timeouts(true)
         .keySerializer(serializer)
         .valueSerializer(serializer)

@@ -15,7 +15,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +38,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.NabAppTestConfig;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
+import static ru.hh.nab.testbase.NabProjectInfoConfiguration.TEST_SERVICE_VERSION;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
 @SpringBootTest(classes = ConsulServiceTest.CustomKVConfig.class)
@@ -78,7 +78,7 @@ public class ConsulServiceTest {
     assertEquals(List.of("tag1", "tag2"), tags);
     Map<String, String> meta = registration.getMeta();
     assertEquals(1, meta.size());
-    assertEquals(Map.of("serviceVersion", "test-version"), meta);
+    assertEquals(Map.of("serviceVersion", TEST_SERVICE_VERSION), meta);
   }
 
   @Test
@@ -96,7 +96,7 @@ public class ConsulServiceTest {
             PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "17")
         )
         .applyTo(aggregateCtx);
-    aggregateCtx.register(EmptyConsulConfig.class);
+    aggregateCtx.register(CustomKVConfig.class);
     aggregateCtx.refresh();
 
     ConsulService defaultConsulService = aggregateCtx.getBean(ConsulService.class);
@@ -128,7 +128,7 @@ public class ConsulServiceTest {
     assertEquals(0, tags.size());
     Map<String, String> meta = registration.getMeta();
     assertEquals(1, meta.size());
-    assertEquals(Map.of("serviceVersion", "unknown"), meta);
+    assertEquals(Map.of("serviceVersion", TEST_SERVICE_VERSION), meta);
   }
 
   @Configuration
@@ -151,16 +151,6 @@ public class ConsulServiceTest {
       when(mock.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
           .thenReturn(Optional.of(new ConsulResponse<>(weight, 0, true, BigInteger.ONE, null, null)));
       return mock;
-    }
-
-  }
-
-  @Configuration
-  @Import(CustomKVConfig.class)
-  public static class EmptyConsulConfig {
-    @Bean
-    public PropertiesFactoryBean projectProperties() {
-      return new PropertiesFactoryBean();
     }
   }
 }

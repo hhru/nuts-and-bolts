@@ -3,19 +3,20 @@ package ru.hh.nab.web;
 import jakarta.inject.Named;
 import java.util.Arrays;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.Properties;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.starter.AppMetadata;
 
 @Configuration
@@ -26,6 +27,12 @@ public class NabDeployInfoConfiguration {
   @Bean(SERVICE_NAME)
   public String serviceName(InfrastructureProperties infrastructureProperties) {
     return infrastructureProperties.getServiceName();
+  }
+
+  @Named(SERVICE_VERSION)
+  @Bean(SERVICE_VERSION)
+  public String serviceVersion(BuildProperties buildProperties) {
+    return requireNonNull(buildProperties.getVersion());
   }
 
   @Named(DATACENTER)
@@ -61,15 +68,7 @@ public class NabDeployInfoConfiguration {
   }
 
   @Bean
-  public PropertiesFactoryBean projectProperties() {
-    PropertiesFactoryBean projectProps = new PropertiesFactoryBean();
-    projectProps.setLocation(new ClassPathResource(AppMetadata.PROJECT_PROPERTIES));
-    projectProps.setIgnoreResourceNotFound(true);
-    return projectProps;
-  }
-
-  @Bean
-  public AppMetadata appMetadata(String serviceName, Properties projectProperties) {
-    return new AppMetadata(serviceName, projectProperties);
+  public AppMetadata appMetadata(String serviceName, BuildProperties buildProperties) {
+    return new AppMetadata(serviceName, buildProperties.getVersion());
   }
 }

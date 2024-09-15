@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
 import org.springframework.boot.context.properties.bind.validation.BindValidationException;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -27,6 +28,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.profile.Profiles.MAIN;
 import ru.hh.nab.starter.AppMetadata;
@@ -40,6 +42,7 @@ public class NabWebAutoConfigurationTest {
   private static final String PROPERTY_TEMPLATE = "%s=%s";
 
   private static final String TEST_SERVICE_NAME = "test-service";
+  private static final String TEST_SERVICE_VERSION = "test-version";
   private static final String TEST_NODE_NAME = "test-host";
   private static final String TEST_DATACENTER_NAME = "test-dc1";
   private static final List<String> TEST_DATACENTER_NAMES = List.of("test-dc1", "test-dc2");
@@ -68,7 +71,12 @@ public class NabWebAutoConfigurationTest {
   };
 
   private final ApplicationContextRunner applicationContextRunner = new ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(NabWebAutoConfiguration.class));
+      .withConfiguration(AutoConfigurations.of(NabWebAutoConfiguration.class))
+      .withBean(BuildProperties.class, () -> {
+        Properties properties = new Properties();
+        properties.setProperty("version", TEST_SERVICE_VERSION);
+        return new BuildProperties(properties);
+      });
 
   @Test
   public void testSpringContextContainsAllBeans() {
@@ -82,12 +90,12 @@ public class NabWebAutoConfigurationTest {
         .run(context -> {
           // deploy info beans
           assertThat(context).getBean(SERVICE_NAME, String.class).hasToString(TEST_SERVICE_NAME);
+          assertThat(context).getBean(SERVICE_VERSION, String.class).hasToString(TEST_SERVICE_VERSION);
           assertThat(context).getBean(NODE_NAME, String.class).hasToString(TEST_NODE_NAME);
           assertThat(context).getBean(DATACENTER, String.class).hasToString(TEST_DATACENTER_NAME);
           assertThat(context).getBean(DATACENTERS, List.class).isEqualTo(TEST_DATACENTER_NAMES);
           assertThat(context).hasSingleBean(FileSettings.class);
           assertThat(context).hasSingleBean(AppMetadata.class);
-          assertThat(context).getBean("projectProperties").isInstanceOf(Properties.class);
           assertThat(context).hasSingleBean(InfrastructureProperties.class);
 
           // consul beans

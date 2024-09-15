@@ -15,7 +15,6 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import jakarta.inject.Named;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +23,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 
 @Configuration
 public class NabTelemetryConfig {
@@ -45,9 +45,14 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, IdGenerator idGenerator,
-                                             @Named(SERVICE_NAME) String serviceName, @Named(NODE_NAME) String nodeName,
-                                             @Named(DATACENTER) String datacenter, Properties projectProperties) {
+  public SdkTracerProvider sdkTracerProvider(
+      FileSettings fileSettings,
+      IdGenerator idGenerator,
+      @Named(SERVICE_NAME) String serviceName,
+      @Named(SERVICE_VERSION) String serviceVersion,
+      @Named(NODE_NAME) String nodeName,
+      @Named(DATACENTER) String datacenter
+  ) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();
@@ -68,7 +73,7 @@ public class NabTelemetryConfig {
           Attributes
               .builder()
               .put(ResourceAttributes.SERVICE_NAME, serviceName)
-              .put(ResourceAttributes.SERVICE_VERSION, projectProperties.getProperty("project.version", "unknown"))
+              .put(ResourceAttributes.SERVICE_VERSION, serviceVersion)
               .put(ResourceAttributes.HOST_NAME, nodeName)
               .put(ResourceAttributes.CLOUD_REGION, datacenter)
               .build()
@@ -114,8 +119,12 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator,
-                                                      HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
+  TelemetryProcessorFactory telemetryProcessorFactory(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      HttpClientContextThreadLocalSupplier contextSupplier,
+      FileSettings fileSettings
+  ) {
     TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
         telemetryPropagator);
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {

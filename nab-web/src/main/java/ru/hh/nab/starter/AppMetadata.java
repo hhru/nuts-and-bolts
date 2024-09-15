@@ -1,18 +1,16 @@
 package ru.hh.nab.starter;
 
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class AppMetadata {
-  public static final String PROJECT_PROPERTIES = "/project.properties";
 
   private final String serviceName;
   private final String version;
   private final long started;
 
-  public AppMetadata(String serviceName, Properties projectProperties) {
+  public AppMetadata(String serviceName, String version) {
     this.serviceName = serviceName;
-    version = projectProperties.getProperty("project.version", "unknown");
+    this.version = version;
     started = System.currentTimeMillis();
   }
 

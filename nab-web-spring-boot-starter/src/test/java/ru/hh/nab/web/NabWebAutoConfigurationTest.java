@@ -31,7 +31,6 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.profile.Profiles.MAIN;
-import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
@@ -95,7 +94,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).getBean(DATACENTER, String.class).hasToString(TEST_DATACENTER_NAME);
           assertThat(context).getBean(DATACENTERS, List.class).isEqualTo(TEST_DATACENTER_NAMES);
           assertThat(context).hasSingleBean(FileSettings.class);
-          assertThat(context).hasSingleBean(AppMetadata.class);
           assertThat(context).hasSingleBean(InfrastructureProperties.class);
 
           // consul beans

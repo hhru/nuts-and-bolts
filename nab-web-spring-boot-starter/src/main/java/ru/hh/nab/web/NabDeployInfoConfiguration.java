@@ -17,7 +17,6 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
-import ru.hh.nab.starter.AppMetadata;
 
 @Configuration
 @EnableConfigurationProperties(InfrastructureProperties.class)
@@ -65,10 +64,5 @@ public class NabDeployInfoConfiguration {
         .distinct()
         .forEach(propertyName -> properties.setProperty(propertyName, environment.getProperty(propertyName)));
     return new FileSettings(properties);
-  }
-
-  @Bean
-  public AppMetadata appMetadata(String serviceName, BuildProperties buildProperties) {
-    return new AppMetadata(serviceName, buildProperties.getVersion());
   }
 }

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.boot.web.context.WebServerApplicationContext;
 import org.springframework.boot.web.server.WebServer;
@@ -41,6 +42,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.web.InfrastructureProperties;
 
 public class NabApplicationTest {
 
@@ -52,8 +54,9 @@ public class NabApplicationTest {
   public void runShouldStartJetty() {
     ApplicationContext context = SpringApplication.run(TestConfiguration.class);
     WebServer server = ((WebServerApplicationContext) context).getWebServer();
-    AppMetadata appMetadata = context.getBean(AppMetadata.class);
-    long upTimeSeconds = appMetadata.getUpTimeSeconds();
+    InfrastructureProperties infrastructureProperties = context.getBean(InfrastructureProperties.class);
+    long upTimeSeconds = infrastructureProperties.getUpTime().toSeconds();
+    BuildProperties buildProperties = context.getBean(BuildProperties.class);
     assertEquals(NabTestConfig.TEST_SERVICE_NAME, context.getBean("serviceName"));
     Invocation.Builder statusReq = ClientBuilder
         .newBuilder()
@@ -64,8 +67,8 @@ public class NabApplicationTest {
     try (Response response = statusReq.get()) {
       assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
       Project project = response.readEntity(Project.class);
-      assertEquals(appMetadata.getServiceName(), project.name);
-      assertEquals(appMetadata.getVersion(), project.version);
+      assertEquals(infrastructureProperties.getServiceName(), project.name);
+      assertEquals(buildProperties.getVersion(), project.version);
       assertTrue(project.uptime >= upTimeSeconds);
     }
     SpringApplication.exit(context);

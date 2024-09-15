@@ -25,7 +25,6 @@ import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
@@ -75,7 +74,7 @@ public class ConsulService {
       AgentClient agentClient,
       KeyValueClient kvClient,
       FileSettings fileSettings,
-      AppMetadata appMetadata,
+      String serviceVersion,
       String nodeName,
       @Nullable LogLevelOverrideExtension logLevelOverrideExtension
   ) {
@@ -125,7 +124,7 @@ public class ConsulService {
           .address(address)
           .check(regCheck)
           .tags(tags)
-          .meta(Map.of("serviceVersion", appMetadata.getVersion()))
+          .meta(Map.of("serviceVersion", serviceVersion))
           .build();
     } else {
       this.serviceTemplate = null;

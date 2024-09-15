@@ -1,7 +1,6 @@
 package ru.hh.nab.starter;
 
 import jakarta.servlet.ServletContextEvent;
-import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +11,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
@@ -67,7 +65,6 @@ public final class NabApplication {
     try {
       JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
-      logStartupInfo(baseContext);
       return jettyServer;
     } catch (Exception e) {
       return logErrorAndExit(e, exitOnError);
@@ -76,7 +73,6 @@ public final class NabApplication {
 
   public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
-      logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
       return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
@@ -99,15 +95,6 @@ public final class NabApplication {
 
   public static NabApplicationBuilder builder() {
     return new NabApplicationBuilder();
-  }
-
-  private static void logStartupInfo(ApplicationContext context) {
-    AppMetadata appMetadata = context.getBean(AppMetadata.class);
-    LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
-  }
-
-  private static String getCurrentPid() {
-    return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 
   private static <T> T logErrorAndExit(Exception e, boolean exitOnError) {

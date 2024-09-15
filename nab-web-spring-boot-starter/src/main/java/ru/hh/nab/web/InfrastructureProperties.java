@@ -2,6 +2,8 @@ package ru.hh.nab.web;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +24,8 @@ public class InfrastructureProperties {
 
   @NotEmpty
   private List<String> datacenters;
+
+  private final Instant started = Instant.now();
 
   public String getServiceName() {
     return serviceName;
@@ -53,5 +57,9 @@ public class InfrastructureProperties {
 
   public void setDatacenters(List<String> datacenters) {
     this.datacenters = datacenters;
+  }
+
+  public Duration getUpTime() {
+    return Duration.between(started, Instant.now());
   }
 }

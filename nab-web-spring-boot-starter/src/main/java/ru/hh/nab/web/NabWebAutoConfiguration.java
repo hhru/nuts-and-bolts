@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +29,6 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
-import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
@@ -82,9 +82,14 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
-  public ServletRegistrationBean<ServletContainer> statusServlet(ApplicationContext applicationContext) {
+  public ServletRegistrationBean<ServletContainer> statusServlet(InfrastructureProperties infrastructureProperties, BuildProperties buildProperties) {
+    StatusResource statusResource = new StatusResource(
+        infrastructureProperties.getServiceName(),
+        buildProperties.getVersion(),
+        infrastructureProperties::getUpTime
+    );
     ResourceConfig statusResourceConfig = new ResourceConfig();
-    statusResourceConfig.register(new StatusResource(applicationContext.getBean(AppMetadata.class)));
+    statusResourceConfig.register(statusResource);
 
     ServletRegistrationBean<ServletContainer> registration = new ServletRegistrationBean<>(
         new ServletContainer(statusResourceConfig),

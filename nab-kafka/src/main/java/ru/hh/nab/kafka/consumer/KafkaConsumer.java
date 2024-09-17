@@ -29,6 +29,7 @@ public class KafkaConsumer<T> {
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
+  private final KafkaConsumer<T> retryKafkaConsumer;
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
   private final RetryService<T> retryService;
@@ -43,12 +44,14 @@ public class KafkaConsumer<T> {
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
       RetryService<T> retryService,
+      KafkaConsumer<T> retryKafkaConsumer,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
       AckProvider<T> ackProvider
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.retryService = retryService;
+    this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -72,6 +75,7 @@ public class KafkaConsumer<T> {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.retryService = null;
+    this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -134,6 +138,9 @@ public class KafkaConsumer<T> {
       running = false;
       currentSpringKafkaContainer.stop(callback);
       stopPartitionsMonitoring();
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.stop();
+      }
     } finally {
       restartLock.unlock();
     }

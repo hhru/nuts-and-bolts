@@ -7,7 +7,6 @@ import static java.util.Collections.synchronizedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +21,7 @@ import ru.hh.nab.kafka.producer.KafkaSendResult;
 
 public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   private List<ProducerRecord<String, String>> producedMessages;
-  private List<ConsumerRecord<String, String>> processedMessages;
+  private List<String> processedMessages;
 
   KafkaProducer retryProducer = new KafkaProducer() {
     @Override
@@ -47,17 +46,12 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     KafkaConsumer<String> consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
-        .withConsumeStrategy((messages, ack) -> {
-          for (ConsumerRecord<String, String> message : messages) {
-            if (message.value().equals("bad")) {
-              ack.retry(message, null);
-            } else {
-              processedMessages.add(message);
-              ack.seek(message);
-            }
+        .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(message -> {
+          if (message.equals("bad")) {
+            throw new RuntimeException();
           }
-          ack.acknowledge();
-        })
+          processedMessages.add(message);
+        }))
         .withStandaloneRetries(
             retryProducer,
             RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))))
@@ -69,8 +63,8 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     });
     consumer.stop();
 
-    assertEquals("good", processedMessages.get(0).value());
-    assertEquals("ugly", processedMessages.get(1).value());
+    assertEquals("good", processedMessages.get(0));
+    assertEquals("ugly", processedMessages.get(1));
     ProducerRecord<String, String> retryMessage = producedMessages.get(0);
     assertEquals("bad", retryMessage.value());
     MessageProcessingHistory history = getMessageProcessingHistory(retryMessage.headers()).get();
@@ -78,4 +72,6 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     Instant nextRetryTime = getNextRetryTime(retryMessage.headers()).get();
     assertEquals(history.lastFailTime().plusSeconds(10), nextRetryTime);
   }
+
+
 }

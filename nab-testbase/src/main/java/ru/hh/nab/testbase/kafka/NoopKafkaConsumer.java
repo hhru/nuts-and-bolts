@@ -10,7 +10,7 @@ import ru.hh.nab.kafka.consumer.KafkaConsumer;
 public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
 
   public NoopKafkaConsumer() {
-    super(null, null, null, null, null);
+    super(null, null, null, null, null, null);
   }
 
   @Override

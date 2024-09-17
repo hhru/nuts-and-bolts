@@ -1,81 +1,92 @@
 package ru.hh.nab.kafka.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import static java.util.Collections.synchronizedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import java.util.function.Consumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
-import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getNextRetryTime;
-import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.Mock;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 
+@ExtendWith(MockitoExtension.class)
 public class ConsumerRetriesTest extends KafkaConsumerTestbase {
-  private List<ProducerRecord<String, String>> producedMessages;
-  private List<ConsumerRecord<String, String>> processedMessages;
+  @Mock
+  Consumer<String> mockService;
 
   KafkaProducer retryProducer = new KafkaProducer() {
     @Override
     public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
-      producedMessages.add((ProducerRecord<String, String>) record);
-      return CompletableFuture.completedFuture(null);
+      return sendToKafka(record);
     }
   };
 
-  @BeforeEach
-  void setUp() {
-    producedMessages = synchronizedList(new ArrayList<>());
-    processedMessages = synchronizedList(new ArrayList<>());
+  private KafkaConsumer<String> consumer;
+
+  @AfterEach
+  void tearDown() {
+    if (consumer != null) {
+      consumer.stop();
+    }
   }
 
   @Test
-  void firstRetryAddsHeaders() throws InterruptedException {
-    kafkaTestUtils.sendMessage(topicName, "good");
-    kafkaTestUtils.sendMessage(topicName, "bad");
-    kafkaTestUtils.sendMessage(topicName, "ugly");
-
-    KafkaConsumer<String> consumer = consumerFactory
+  void retryOnceUsingSingleTopic() throws InterruptedException {
+    doThrow(new RuntimeException()).doNothing().when(mockService).accept(anyString());
+    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
-        .withConsumeStrategy((messages, ack) -> {
-          for (ConsumerRecord<String, String> message : messages) {
-            if (message.value().equals("bad")) {
-              ack.retry(message, null);
-            } else {
-              processedMessages.add(message);
-              ack.seek(message);
-            }
-          }
-          ack.acknowledge();
-        })
-        .withStandaloneRetries(
-            retryProducer,
-            RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))))
+        .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept))
+        .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(1))), true)
         .start();
-
     waitUntil(() -> {
       assertEquals(5, consumer.getAssignedPartitions().size());
-      assertEquals(3, processedMessages.size() + producedMessages.size());
+      assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
+      verify(mockService, times(2)).accept(eq("first pancake"));
     });
-    consumer.stop();
+  }
 
-    assertEquals("good", processedMessages.get(0).value());
-    assertEquals("ugly", processedMessages.get(1).value());
-    ProducerRecord<String, String> retryMessage = producedMessages.get(0);
-    assertEquals("bad", retryMessage.value());
-    MessageProcessingHistory history = getMessageProcessingHistory(retryMessage.headers()).get();
-    assertEquals(1, history.retryNumber());
-    Instant nextRetryTime = getNextRetryTime(retryMessage.headers()).get();
-    assertEquals(history.lastFailTime().plusSeconds(10), nextRetryTime);
+  private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
+    try {
+      kafkaTestUtils.sendMessage(toBinaryRecord(record)).get(); //TODO Add sending ProducerRecord with JSON value to kafka-test-utils
+    } catch (InterruptedException | ExecutionException e) {
+      return CompletableFuture.failedFuture(e);
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Test
+  void offsetsNotCommitedUntilRetryMessagesAreSent() {
+
+  }
+
+  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {
+    try {
+      return new ProducerRecord<>(
+          record.topic(),
+          record.partition(),
+          record.key(),
+          KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(record.value()),
+          record.headers()
+      );
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

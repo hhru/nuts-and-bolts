@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.ConfigProvider;
@@ -40,7 +42,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private ConsumeStrategy<T> consumeStrategy;
   private RetryPolicyResolver<T> retryPolicyResolver;
   private KafkaProducer retryProducer;
-  private boolean standaloneRetries;
+  private boolean useSingleRetryTopic;
   private Logger logger;
   private AckProvider<T> ackProvider;
 
@@ -63,22 +65,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return this;
   }
 
-  public ConsumerBuilder<T> withRetryProducer(KafkaProducer retryProducer) {
-    this.retryProducer = retryProducer;
-    return this;
-  }
-
   @Override
-  public ConsumerBuilder<T> withStandaloneRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
-    this.standaloneRetries = true;
-    this.retryProducer = retryProducer;
-    this.retryPolicyResolver = retryPolicyResolver;
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withExternalRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
-    this.standaloneRetries = false;
+  public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, boolean useSingleRetryTopic) {
+    this.useSingleRetryTopic = useSingleRetryTopic;
     this.retryProducer = retryProducer;
     this.retryPolicyResolver = retryPolicyResolver;
     return this;
@@ -129,28 +118,41 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
     if (useConsumerGroup) {
-      return startKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerMetadata);
+      RetryService<T> retryService = null;
+      KafkaConsumer<T> retryKafkaConsumer = null;
+      if (usingRetries()) {
+        retryService = new RetryService<>(retryProducer, getRetrySendTopicName(), retryPolicyResolver);
+        retryKafkaConsumer = buildAndStartRetryKafkaConsumer(retryService);
+      }
+      return startKafkaConsumerForConsumerGroup(
+          configProvider,
+          springConsumerFactory,
+          consumerMetadata,
+          retryService,
+          retryKafkaConsumer
+      );
     }
     return startKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
-
   }
 
-  private RetryService<T> buildRetryService() {
-    if (retryProducer == null && retryPolicyResolver == null) {
-      return null;
-    }
-    String retryTopic = getRetryTopicName();
-    return new RetryService<>(retryProducer, retryTopic, retryPolicyResolver);
+  private boolean usingRetries() {
+    return retryPolicyResolver != null;
   }
 
-  private String getRetryTopicName() {
-    return topicName + "_" + operationName + "_" + (standaloneRetries ? "retry_receive" : "retry_send");
+  private String getRetryReceiveTopicName() {
+    return topicName + "_" + operationName + "_retry_receive";
+  }
+
+  private String getRetrySendTopicName() {
+    return useSingleRetryTopic ? getRetryReceiveTopicName() : topicName + "_" + operationName + "_retry_send";
   }
 
   private KafkaConsumer<T> startKafkaConsumerForConsumerGroup(
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
-      ConsumerMetadata consumerMetadata
+      ConsumerMetadata consumerMetadata,
+      RetryService<T> retryService,
+      KafkaConsumer<T> retryKafkaConsumer
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
@@ -161,12 +163,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
-    RetryService<T> retryService = buildRetryService();
-
     KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         retryService,
+        retryKafkaConsumer,
         springContainerProvider,
         ackProvider
     );
@@ -175,10 +176,42 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return kafkaConsumer;
   }
 
+  private KafkaConsumer<T> buildAndStartRetryKafkaConsumer(RetryService<T> retryService) {
+    ConfigProvider configProvider = consumerFactory.getConfigProvider();
+    String retryReceiveTopicName = getRetryReceiveTopicName();
+    ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
+    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
+      ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
+          configProvider,
+          consumerMetadata,
+          (BatchConsumerAwareMessageListener<String, T>) nabKafkaConsumer::onMessagesBatch
+      );
+      return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
+    };
+    ConsumeStrategy<T> retryReceiveConsumeStrategy = new SimpleDelayedConsumeStrategy<>(
+        consumeStrategy,
+        message -> HeadersMessageMetadataProvider
+            .getNextRetryTime(message.headers())
+            .orElse(Instant.EPOCH),
+        Duration.ofMillis(DEFAULT_POLL_TIMEOUT_MS * 9 / 10)
+    );
+    KafkaConsumer<T> retryKafkaConsumer = new KafkaConsumer<>(
+        consumerMetadata,
+        consumerFactory.interceptConsumeStrategy(consumerMetadata, retryReceiveConsumeStrategy),
+        retryService,
+        null, // retry consumer has no retry consumer
+        springContainerProvider,
+        ackProvider
+    );
+    retryKafkaConsumer.start();
+    return retryKafkaConsumer;
+  }
+
   private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
-    if (retryProducer != null || retryPolicyResolver != null) {
+    if (usingRetries()) {
       throw new IllegalStateException("Can't use retries for consumer reading all partitions");
     }
 
@@ -217,7 +250,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(topicName, nabKafkaConsumer, logger);
     ConcurrentMessageListenerContainer<String, T> container = new ConcurrentMessageListenerContainer<>(springConsumerFactory, containerProperties);
     container.setCommonErrorHandler(errorHandler);
-    container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
+    container.setConcurrency(configProvider
+        .getNabConsumerSettings(topicName)
+        .getInteger(CONCURRENCY, 1));
     return container;
   }
 
@@ -246,8 +281,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private ContainerProperties getSpringConsumerContainerPropertiesWithConsumerGroup(
       ConfigProvider configProvider, ConsumerMetadata consumerMetadata, GenericMessageListener<?> messageListener
   ) {
-    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
-    var containerProperties = new ContainerProperties(topicName);
+    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
+    var containerProperties = new ContainerProperties(consumerMetadata.getTopic());
     containerProperties.setGroupId(consumerMetadata.getConsumerGroupId());
     addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
     return containerProperties;
@@ -256,7 +291,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private void addCommonContainerProperties(
       GenericMessageListener<?> messageListener, ContainerProperties containerProperties, FileSettings nabConsumerSettings
   ) {
-    containerProperties.setClientId(Optional.ofNullable(clientId).orElseGet(() -> UUID.randomUUID().toString()));
+    containerProperties.setClientId(Optional
+        .ofNullable(clientId)
+        .orElseGet(() -> UUID
+            .randomUUID()
+            .toString()));
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));

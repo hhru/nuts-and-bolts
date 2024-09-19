@@ -15,7 +15,7 @@ public final class DataSourceSettings {
 
   public static final String MONITORING_SEND_STATS = "monitoring.sendStats";
   public static final String MONITORING_LONG_CONNECTION_USAGE_MS = "monitoring.longConnectionUsageMs";
-  public static final String MONITORING_SEND_SAMPLED_STATS = "monitoring.sendSampledStats";
+  public static final String MONITORING_SAMPLE_POOL_USAGE_STATS = "monitoring.samplePoolUsageStats";
 
   public static final String MONITORING_CREATION_HISTOGRAM_SIZE = "monitoring.creation.histogramSize";
   public static final String MONITORING_CREATION_HISTOGRAM_COMPACTION_RATIO = "monitoring.creation.histogramCompactionRatio";

@@ -21,7 +21,7 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
-import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
+import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SAMPLE_POOL_USAGE_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
 import static ru.hh.nab.datasource.DataSourceSettings.STATEMENT_TIMEOUT_MS;
@@ -119,7 +119,7 @@ public class DataSourceFactoryTest {
     Properties properties = createTestProperties();
     properties.setProperty(getProperty(MONITORING_SEND_STATS), "true");
     properties.setProperty(getProperty(MONITORING_LONG_CONNECTION_USAGE_MS), "10");
-    properties.setProperty(getProperty(MONITORING_SEND_SAMPLED_STATS), "true");
+    properties.setProperty(getProperty(MONITORING_SAMPLE_POOL_USAGE_STATS), "true");
 
     HikariDataSource dataSource = createTestDataSource(properties).unwrap(HikariDataSource.class);
     assertNotNull(dataSource.getMetricsTrackerFactory());

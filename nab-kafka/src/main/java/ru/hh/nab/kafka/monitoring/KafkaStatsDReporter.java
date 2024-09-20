@@ -32,7 +32,8 @@ import ru.hh.nab.metrics.Tag;
 public class KafkaStatsDReporter implements MetricsReporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
   // Warning : Okmeter doesn't parse anything except underscore in tag's key name
-  private static final String CLIENT_ID_TAG_NAME = ConsumerConfig.CLIENT_ID_CONFIG.replace(".", "_");
+  private static final String STATSD_CLIENT_ID_TAG_NAME = ConsumerConfig.CLIENT_ID_CONFIG.replace(".", "_");
+  private static final String KAFKA_CLIENT_ID_TAG_NAME = ConsumerConfig.CLIENT_ID_CONFIG.replace(".", "-");
   private static final String TOPIC_TAG_NAME = "topic";
 
   private String serviceName;
@@ -53,14 +54,16 @@ public class KafkaStatsDReporter implements MetricsReporter {
       LOGGER.debug("Added metric %s on initialization step".formatted(createMetricName(metricName)));
     }
 
+
     statsDSender.sendPeriodically(() -> {
       recordedMetrics.forEach((key, value) -> {
         try {
           Object metricValue = value.metricValue();
           Map<String, String> tags = key.tags();
 
-          String clientId = tags.getOrDefault(CLIENT_ID_TAG_NAME, "unknown-client-id");
-          Tag clientIdTag = new Tag(CLIENT_ID_TAG_NAME, clientId);
+
+          String clientId = tags.getOrDefault(KAFKA_CLIENT_ID_TAG_NAME, "unknown-client-id");
+          Tag clientIdTag = new Tag(STATSD_CLIENT_ID_TAG_NAME, clientId);
 
           Tag serviceNameTag = new Tag(Tag.APP_TAG_NAME, this.serviceName);
           String name = createMetricName(key);

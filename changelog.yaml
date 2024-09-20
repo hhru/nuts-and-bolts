@@ -1,3 +1,29 @@
+-   name: 6.1.0
+    date: '2024-09-19T14:26:07.924532+03:00'
+    description: "1.Для метрик jdbc_pool.connection.total_usage_ms и jdbc_pool.connection.sampled_usage_ms\
+        \ удалены лэйблы с большим числом уникальных значений: controller и stack\
+        \ соответственно.\r\n2. Переименована настройка, регулирующая отправку метрики\
+        \ jdbc_pool.connection.sampled_usage_ms: <datasource>.monitoring.sendSampledStats\
+        \ -> <datasource>.monitoring.samplePoolUsageStats\r\n3. Изменена логика отправки\
+        \ метрик jdbc_pool.connection.total_usage_ms и jdbc_pool.connection.sampled_usage_ms:\
+        \ ранее обе метрики могли отправляться одновременно, теперь только какая-то\
+        \ одна в зависимости от настройки <datasource>.monitoring.samplePoolUsageStats\r\
+        \n4. Удалены классы пакета ru.hh.nab.datasource.monitoring.stack, т.к. удален\
+        \ лэйбл stack, для расчета которого они требовались"
+    instructions: "1. Удалить настройку <datasource>.monitoring.sendSampledStats из\
+        \ service.properties\r\n2. Если для снижения нагрузки на приемник метрик требуется\
+        \ снимать сэмплированные метрики использования jdbc пула, добавить в service.properties\
+        \ настройку <datasource>.monitoring.samplePoolUsageStats=true\r\n3. Удалить\
+        \ использование классов из пакета ru.hh.nab.datasource.monitoring.stack"
+    compatible: false
+
+-   name: 6.0.1
+    date: '2024-09-12T18:14:36.724702+03:00'
+    description: '* Исправлен баг из-за которого в метриках kafka был потерян client_id
+        тэг'
+    instructions: ''
+    compatible: true
+
 -   name: 6.0.0
     date: '2024-09-11T12:54:54.551301+03:00'
     description: "Необработанные `SQLTransientConnectionException` и `RejectedExecutionException`\

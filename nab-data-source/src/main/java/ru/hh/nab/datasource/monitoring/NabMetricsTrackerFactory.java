@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_SIZE;
@@ -17,7 +16,7 @@ import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_CREATION_HISTOG
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_CREATION_HISTOGRAM_SIZE;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_LONG_CONNECTION_USAGE_MS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SAMPLED_USAGE_MAX_NUM_OF_COUNTERS;
-import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SEND_SAMPLED_STATS;
+import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_SAMPLE_POOL_USAGE_STATS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_TOTAL_USAGE_MAX_NUM_OF_COUNTERS;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_USAGE_HISTOGRAM_COMPACTION_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_USAGE_HISTOGRAM_SIZE;
@@ -33,8 +32,6 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.SAMPLED_USAG
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNECTIONS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
-import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactory;
-import ru.hh.nab.datasource.monitoring.stack.CompressedStackFactoryConfig;
 import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Counters;
 import ru.hh.nab.metrics.Histogram;
@@ -49,18 +46,15 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
 
   private final String serviceName;
   private final StatsDSender statsDSender;
-  private final CompressedStackFactoryConfig compressedStackFactoryConfig;
   private final FileSettings dataSourceSettings;
 
   public NabMetricsTrackerFactory(
       String serviceName,
       StatsDSender statsDSender,
-      CompressedStackFactoryConfig compressedStackFactoryConfig,
       FileSettings dataSourceSettings
   ) {
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
-    this.compressedStackFactoryConfig = compressedStackFactoryConfig;
     this.dataSourceSettings = dataSourceSettings;
   }
 
@@ -71,16 +65,19 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
 
   class MonitoringMetricsTracker implements IMetricsTracker {
     private final String poolName;
-    private final boolean sendSampledStats;
+    private final boolean samplePoolUsageStats;
     private final Integer longConnectionUsageMs;
-    private final Counters usageCounters, timeoutCounters, sampledUsageCounters;
-    private final Histogram creationHistogram, acquisitionHistogram, usageHistogram;
-    private final CompressedStackFactory compressedStackFactory;
-    private final Tag datasourceTag, appTag;
+    private final Counters usageCounters;
+    private final Counters timeoutCounters;
+    private final Histogram creationHistogram;
+    private final Histogram acquisitionHistogram;
+    private final Histogram usageHistogram;
+    private final Tag datasourceTag;
+    private final Tag appTag;
 
     MonitoringMetricsTracker(String poolName, PoolStats poolStats) {
       this.poolName = poolName;
-      this.sendSampledStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_SAMPLED_STATS)).orElse(Boolean.FALSE);
+      this.samplePoolUsageStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SAMPLE_POOL_USAGE_STATS)).orElse(Boolean.FALSE);
       this.longConnectionUsageMs = dataSourceSettings.getInteger(MONITORING_LONG_CONNECTION_USAGE_MS);
       this.datasourceTag = new Tag(DATASOURCE_TAG_NAME, poolName);
       this.appTag = new Tag(APP_TAG_NAME, serviceName);
@@ -98,22 +95,18 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
           ofNullable(dataSourceSettings.getInteger(MONITORING_USAGE_HISTOGRAM_SIZE)).orElse(2048),
           ofNullable(dataSourceSettings.getInteger(MONITORING_USAGE_HISTOGRAM_COMPACTION_RATIO)).orElse(1)
       );
-      usageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_TOTAL_USAGE_MAX_NUM_OF_COUNTERS)).orElse(500));
       timeoutCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS)).orElse(500));
 
-      if (sendSampledStats) {
-        compressedStackFactory = new CompressedStackFactory(compressedStackFactoryConfig);
-        sampledUsageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_SAMPLED_USAGE_MAX_NUM_OF_COUNTERS)).orElse(2000));
+      if (samplePoolUsageStats) {
+        usageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_SAMPLED_USAGE_MAX_NUM_OF_COUNTERS)).orElse(2000));
       } else {
-        sampledUsageCounters = null;
-        compressedStackFactory = null;
+        usageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_TOTAL_USAGE_MAX_NUM_OF_COUNTERS)).orElse(500));
       }
 
       statsDSender.sendPeriodically(() -> {
         statsDSender.sendHistogram(CREATION_MS, jdbcTags, creationHistogram, DEFAULT_PERCENTILES);
         statsDSender.sendHistogram(ACQUISITION_MS, jdbcTags, acquisitionHistogram, DEFAULT_PERCENTILES);
         statsDSender.sendHistogram(USAGE_MS, jdbcTags, usageHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendCounters(TOTAL_USAGE_MS, usageCounters);
         statsDSender.sendCounters(CONNECTION_TIMEOUTS, timeoutCounters);
 
         statsDSender.sendGauge(ACTIVE_CONNECTIONS, poolStats.getActiveConnections(), jdbcTags);
@@ -123,8 +116,10 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
         statsDSender.sendGauge(MIN_CONNECTIONS, poolStats.getMinConnections(), jdbcTags);
         statsDSender.sendGauge(PENDING_THREADS, poolStats.getPendingThreads(), jdbcTags);
 
-        if (sampledUsageCounters != null) {
-          statsDSender.sendCounters(SAMPLED_USAGE_MS, sampledUsageCounters);
+        if (samplePoolUsageStats) {
+          statsDSender.sendCounters(SAMPLED_USAGE_MS, usageCounters);
+        } else {
+          statsDSender.sendCounters(TOTAL_USAGE_MS, usageCounters);
         }
       });
     }
@@ -152,12 +147,11 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
         );
         LOGGER.error(message, new RuntimeException(poolName + " connection usage duration exceeded"));
       }
-      Tag[] tags = new Tag[]{datasourceTag, appTag, new Tag("controller", MDC.getController().orElse("unknown"))};
-      usageCounters.add(connectionUsageMs, tags);
+      Tag[] tags = new Tag[]{datasourceTag, appTag};
       usageHistogram.save(connectionUsageMs);
 
-      if (sendSampledStats && ThreadLocalRandom.current().nextInt(100) == 0) {
-        sampledUsageCounters.add(connectionUsageMs, datasourceTag, appTag, new Tag("stack", compressedStackFactory.create()));
+      if (!samplePoolUsageStats || ThreadLocalRandom.current().nextInt(100) == 0) {
+        usageCounters.add(connectionUsageMs, tags);
       }
     }
 

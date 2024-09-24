@@ -8,19 +8,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>nab-websocket</artifactId>
+    <artifactId>nab-websocket-spring-boot-starter</artifactId>
 
     <name>nuts'n'bolts websocket</name>
 
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web</artifactId>
+            <artifactId>nab-web-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-server</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
         </dependency>
 
         <dependency>

@@ -1,6 +1,6 @@
 ### Описание 
 
-Работа с вебсокетами в основана на [Java API for WebSocket (JSR 356)](https://docs.oracle.com/javaee/7/tutorial/websocket.htm) стандарте
+Работа с вебсокетами основана на [Java API for WebSocket (JSR 356)](https://docs.oracle.com/javaee/7/tutorial/websocket.htm) стандарте
 
 Чтобы добавить в сервис работу с вебсокетами, нужно:
 
@@ -9,23 +9,12 @@
 ```
 <dependency>
     <groupId>ru.hh.nab</groupId>
-    <artifactId>nab-websocket</artifactId>
+    <artifactId>nab-websocket-spring-boot-starter</artifactId>
     <version>${nab.version}</version>
 </dependency>
 ```
 
-2) При конфигурации наба использовать NabWebsocketConfigurator
-
-```java
-public static void main(String[] args) {
-    NabApplication.builder()
-        .configureJersey(ExampleJerseyConfig.class).bindToRoot()
-        .apply(builder -> NabWebsocketConfigurator.configureWebsocket(builder, Set.of("ru.hh")))
-        .build().run(ExampleConfig.class);
-  }
-``` 
-
-3) Добавить в spring контекст ресурс описывающий нужный endpoint, например
+2) Добавить в spring контекст ресурс описывающий нужный endpoint, например
 
 ```java
 

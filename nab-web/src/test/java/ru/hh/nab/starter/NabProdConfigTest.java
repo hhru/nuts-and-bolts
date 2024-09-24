@@ -15,7 +15,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -76,7 +75,6 @@ public class NabProdConfigTest {
 
     assertNotNull(context.getBean(StatsDClient.class));
     assertNotNull(context.getBean(StatsDSender.class));
-    assertNotNull(context.getBean("cacheFilter", FilterHolder.class));
     assertNotNull(context.getBean("jettyThreadPool", ThreadPool.class));
     assertNotNull(context.getBean(ScheduledExecutorService.class));
     assertNotNull(context.getBean(AppMetadata.class));

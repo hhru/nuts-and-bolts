@@ -1,4 +1,5 @@
 {
+  "_comment": "spring-boot-configuration-processor merges additional metadata from this additional-spring-configuration-metadata.json file to resulting spring-configuration-metadata.json file which is used by IDE to provide auto-completion and properties documentation when editing application.properties / application.yml file",
   "groups": [],
   "properties": [
     {

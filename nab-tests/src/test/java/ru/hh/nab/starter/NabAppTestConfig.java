@@ -15,8 +15,8 @@ import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.testbase.NabTestConfig;
+import ru.hh.nab.web.ServiceRegistrator;
 
 @Configuration
 @Import({NabTestConfig.class})
@@ -42,7 +42,7 @@ public class NabAppTestConfig {
   }
 
   @Bean
-  JettyEventListener jettyEventConsulListener(ConsulService consulService) {
-    return new JettyEventListener(consulService);
+  ServiceRegistrator serviceRegistrator(ConsulService consulService) {
+    return new ServiceRegistrator(consulService);
   }
 }

@@ -10,16 +10,29 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toCollection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigurationImportSelector;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import ru.hh.nab.autoconfigure.AutoConfigurationProperties;
 import static ru.hh.nab.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
 import static ru.hh.nab.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
 import ru.hh.nab.autoconfigure.AutoConfigurationWhitelist;
 import ru.hh.nab.autoconfigure.NestedAutoConfigurationBlacklist;
+import ru.hh.nab.autoconfigure.NestedAutoConfigurationImportFilter;
 
+/**
+ * Environment post processor which is responsible for calculation of autoconfiguration blacklist and registration of property source with auto
+ * configuration properties (see {@link AutoConfigurationProperties}).
+ * <p>
+ * Property {@link AutoConfigurationProperties#EXCLUDE_AUTOCONFIGURATION_PROPERTY} is used in {@link AutoConfigurationImportSelector} in order to
+ * get and filter excluded auto configurations.
+ * <p>
+ * Property {@link AutoConfigurationProperties#EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY} is used in {@link NestedAutoConfigurationImportFilter} in
+ * order to get and filter excluded nested auto configurations.
+ */
 @Order
 public class AutoConfigurationPropertiesEnvironmentPostProcessor implements EnvironmentPostProcessor {
 

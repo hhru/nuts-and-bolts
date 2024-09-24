@@ -10,14 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {KafkaTestConfig.class})
+@SpringBootTest(classes = KafkaTestConfig.class)
 public class ProducerFactoryTest {
 
   @Inject

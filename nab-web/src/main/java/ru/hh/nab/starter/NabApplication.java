@@ -25,7 +25,6 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
-import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
@@ -61,7 +60,6 @@ public final class NabApplication {
   }
 
   /**
-   *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, jakarta.servlet.ServletContext)}
    */
@@ -87,23 +85,16 @@ public final class NabApplication {
     }
   }
 
-  JettyServer createJettyServer(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot) {
-    return createJettyServer(
-        baseContext,
-        directlyUseAsWebAppRoot,
-        webAppContext -> webAppContext.getServer().addEventListener(new JettyLifeCycleListener(baseContext))
-    );
-  }
-
-  private JettyServer createJettyServer(WebApplicationContext baseContext,
-                                boolean directlyUseAsWebAppRoot,
-                                WebAppInitializer extwebAppInitializer){
+  private JettyServer createJettyServer(
+      WebApplicationContext baseContext,
+      boolean directlyUseAsWebAppRoot
+  ) {
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
     ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
     StatsDSender sender = baseContext.getBean(StatsDSender.class);
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
     TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
-    return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer, extwebAppInitializer));
+    return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer));
   }
 
   public static NabApplicationBuilder builder() {
@@ -133,9 +124,11 @@ public final class NabApplication {
     }
   }
 
-  private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig,
-                                                           WebApplicationContext baseCtx,
-                                                           boolean directWebappRoot) {
+  private static WebAppInitializer createWebAppInitializer(
+      NabServletContextConfig servletContextConfig,
+      WebApplicationContext baseCtx,
+      boolean directWebappRoot
+  ) {
     WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
     return webApp -> {
       servletContextConfig.preConfigureWebApp(webApp, baseCtx);

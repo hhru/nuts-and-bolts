@@ -18,22 +18,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.jclient.NabJClientConfig;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 import ru.hh.nab.jpa.JpaTestConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(
+@SpringBootTest(
     classes = {JpaTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
 )
 public class JClientTransactionTest {

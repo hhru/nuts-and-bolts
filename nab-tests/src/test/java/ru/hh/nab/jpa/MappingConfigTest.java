@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import static ru.hh.nab.jpa.JpaTestConfig.TEST_PACKAGE;
 import ru.hh.nab.jpa.model.PackageNotScanEntity;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.jpa.model.test.PackageScanEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@ContextConfiguration(classes = {JpaTestConfig.class})
+@SpringBootTest(classes = JpaTestConfig.class)
 public class MappingConfigTest extends JpaTestBase {
 
   @Inject

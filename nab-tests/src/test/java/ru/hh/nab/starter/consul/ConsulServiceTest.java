@@ -5,12 +5,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -18,12 +15,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
@@ -40,31 +37,21 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.NabAppTestConfig;
-import ru.hh.nab.starter.qualifier.Service;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ConsulServiceTest.CustomKVConfig.class)
+@SpringBootTest(classes = ConsulServiceTest.CustomKVConfig.class)
 public class ConsulServiceTest {
-  public static final String TEST_NODE_NAME = "testNode";
 
-  @Autowired
-  private ConsulService consulService;
+  private static final String TEST_NODE_NAME = "testNode";
+  private static final String PROPERTY_TEMPLATE = "%s=%s";
+
   @Autowired
   private AgentClient agentClient;
-  @Autowired
-  private KeyValueClient keyValueClient;
-
-  @BeforeEach
-  void setUp() {
-
-  }
 
   @Test
   public void testRegisterWithFullFileProperties() {
     ArgumentCaptor<Registration> argument = ArgumentCaptor.forClass(Registration.class);
-    consulService.register();
     verify(agentClient).register(argument.capture(), any(QueryOptions.class));
     Registration registration = argument.getValue();
 
@@ -98,8 +85,18 @@ public class ConsulServiceTest {
     ArgumentCaptor<Registration> defaultArgument = ArgumentCaptor.forClass(Registration.class);
 
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
+    TestPropertyValues
+        .of(
+            PROPERTY_TEMPLATE.formatted(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, true),
+            PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "defaultTestService"),
+            PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
+            PROPERTY_TEMPLATE.formatted(NODE_NAME, TEST_NODE_NAME),
+            PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "17")
+        )
+        .applyTo(aggregateCtx);
     aggregateCtx.register(EmptyConsulConfig.class);
     aggregateCtx.refresh();
+
     ConsulService defaultConsulService = aggregateCtx.getBean(ConsulService.class);
     AgentClient defaultAgentClient = aggregateCtx.getBean(AgentClient.class);
 
@@ -159,18 +156,9 @@ public class ConsulServiceTest {
   @Configuration
   @Import(CustomKVConfig.class)
   public static class EmptyConsulConfig {
-
     @Bean
-    @Primary
-    @Service
-    Properties serviceProperties() {
-      Properties properties = new Properties();
-      properties.setProperty(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, "true");
-      properties.setProperty(SERVICE_NAME, "defaultTestService");
-      properties.setProperty(DATACENTER, "test");
-      properties.setProperty(NODE_NAME, TEST_NODE_NAME);
-      properties.setProperty(JettySettingsConstants.JETTY_PORT, "17");
-      return properties;
+    public PropertiesFactoryBean projectProperties() {
+      return new PropertiesFactoryBean();
     }
   }
 }

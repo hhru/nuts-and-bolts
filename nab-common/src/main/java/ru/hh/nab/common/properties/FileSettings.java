@@ -9,8 +9,18 @@ import java.util.Properties;
 import java.util.function.Function;
 import static java.util.function.Function.identity;
 import java.util.stream.Collectors;
+import org.springframework.core.env.Environment;
 import static org.springframework.util.Assert.hasLength;
 
+/**
+ * @deprecated Use spring mechanisms to get settings:
+ * <ul>
+ *   <li>{@link Environment}</li>
+ *   <li>{@code @ConfigurationProperties}</li>
+ *   <li>{@code @Value}</li>
+ * </ul>
+ */
+@Deprecated(forRemoval = true)
 public class FileSettings {
   private final Properties properties;
 

@@ -36,6 +36,7 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaProducerFactory;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.qualifier.Service;
 
 @ContextConfiguration(classes = {KafkaStatsDReporterTest.CompanionConfiguration.class})
@@ -209,12 +210,12 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
   protected static class CompanionConfiguration extends KafkaTestConfig {
     @Primary
     @Bean
-    ConfigProvider configProvider(@Service Properties serviceProperties) {
+    ConfigProvider configProvider(@Service Properties serviceProperties, StatsDSender statsDSender) {
       String clusterName = "kafka";
       // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
       String prefix = "%s.common".formatted(clusterName);
       serviceProperties.put(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class.getName());
-      return new ConfigProvider("service", clusterName, new FileSettings(serviceProperties));
+      return new ConfigProvider("service", clusterName, new FileSettings(serviceProperties), statsDSender);
     }
   }
 }

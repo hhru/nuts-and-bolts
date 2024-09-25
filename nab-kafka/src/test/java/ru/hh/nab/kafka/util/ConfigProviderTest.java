@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.util;
 
+import com.timgroup.statsd.NoOpStatsDClient;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -7,12 +8,14 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
+import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.PRODUCER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_CONSUMER_CONFIG_TEMPLATE;
+import ru.hh.nab.metrics.StatsDSender;
 
 public class ConfigProviderTest {
 
@@ -168,7 +171,8 @@ public class ConfigProviderTest {
   }
 
   private static ConfigProvider createConfigProvider(FileSettings fileSettings) {
-    return new ConfigProvider(SERVICE_NAME, KAFKA_CLUSTER_NAME, fileSettings);
+    StatsDSender statsDSender = new StatsDSender(new NoOpStatsDClient(), new ScheduledExecutor(), StatsDSender.DEFAULT_SEND_INTERVAL_SECONDS);
+    return new ConfigProvider(SERVICE_NAME, KAFKA_CLUSTER_NAME, fileSettings, statsDSender);
   }
 
   private static FileSettings createFileSettings(Map<String, Object> props) {

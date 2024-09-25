@@ -33,7 +33,6 @@ public class KafkaProducerFactory {
     this.configProvider = configProvider;
     this.serializerSupplier = serializerSupplier;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
-
   }
 
   private static void validateConfig(

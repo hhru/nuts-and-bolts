@@ -15,7 +15,6 @@
     <name>nuts'n'bolts common utils</name>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>

@@ -18,7 +18,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_DEFAULT_PERIODIC_SEND_INTERVAL;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.starter.metrics.JvmMetricsSender;
+import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
@@ -72,16 +72,25 @@ public class NabCommonConfig {
   }
 
   @Bean
+  PropertiesFactoryBean projectProperties() {
+    PropertiesFactoryBean projectProps = new PropertiesFactoryBean();
+    projectProps.setLocation(new ClassPathResource(AppMetadata.PROJECT_PROPERTIES));
+    projectProps.setIgnoreResourceNotFound(true);
+    return projectProps;
+  }
+
+
+  @Bean
   ScheduledExecutorService scheduledExecutorService() {
     return new ScheduledExecutor();
   }
 
   @Bean
   StatsDSender statsDSender(
-      ScheduledExecutorService scheduledExecutorService,
-      StatsDClient statsDClient,
       @Named(SERVICE_NAME) String serviceNameValue,
-      FileSettings fileSettings
+      FileSettings fileSettings,
+      StatsDClient statsDClient,
+      ScheduledExecutorService scheduledExecutorService
   ) {
     StatsDSender statsDSender = Optional
         .ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
@@ -91,14 +100,6 @@ public class NabCommonConfig {
       JvmMetricsSender.create(statsDSender, serviceNameValue);
     }
     return statsDSender;
-  }
-
-  @Bean
-  PropertiesFactoryBean projectProperties() {
-    PropertiesFactoryBean projectProps = new PropertiesFactoryBean();
-    projectProps.setLocation(new ClassPathResource(AppMetadata.PROJECT_PROPERTIES));
-    projectProps.setIgnoreResourceNotFound(true);
-    return projectProps;
   }
 
   @Bean

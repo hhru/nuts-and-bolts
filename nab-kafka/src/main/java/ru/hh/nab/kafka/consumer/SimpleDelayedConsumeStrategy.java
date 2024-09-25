@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -10,22 +11,33 @@ public class SimpleDelayedConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final ConsumeStrategy<T> delegate;
   private final Function<ConsumerRecord<String, T>, Instant> getReadyTime;
   private final Duration sleepIfNotReadyDuration;
+  private final Clock clock;
 
   public SimpleDelayedConsumeStrategy(
       ConsumeStrategy<T> delegate,
       Function<ConsumerRecord<String, T>, Instant> getReadyTime,
       Duration sleepIfNotReadyDuration
   ) {
+    this(delegate, getReadyTime, sleepIfNotReadyDuration, Clock.systemDefaultZone());
+  }
+
+  public SimpleDelayedConsumeStrategy(
+      ConsumeStrategy<T> delegate,
+      Function<ConsumerRecord<String, T>, Instant> getReadyTime,
+      Duration sleepIfNotReadyDuration,
+      Clock clock
+  ) {
     this.delegate = delegate;
     this.getReadyTime = getReadyTime;
     this.sleepIfNotReadyDuration = sleepIfNotReadyDuration;
+    this.clock = clock;
   }
 
   @Override
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
     List<ConsumerRecord<String, T>> readyMessages = messages
         .stream()
-        .filter(message -> getReadyTime.apply(message).isBefore(Instant.now()))
+        .filter(message -> getReadyTime.apply(message).isBefore(Instant.now(clock)))
         .toList();
     if (readyMessages.isEmpty()) {
       Thread.sleep(sleepIfNotReadyDuration.toMillis());

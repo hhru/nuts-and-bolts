@@ -52,9 +52,11 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
           }
           processedMessages.add(message);
         }))
-        .withStandaloneRetries(
+        .withRetries(
             retryProducer,
-            RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))))
+            RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))),
+            true
+        )
         .start();
 
     waitUntil(() -> {

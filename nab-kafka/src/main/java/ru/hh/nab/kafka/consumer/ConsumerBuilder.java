@@ -13,9 +13,7 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withConsumeStrategy(ConsumeStrategy<T> consumeStrategy);
 
-  ConsumerBuilder<T> withStandaloneRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver);
-
-  ConsumerBuilder<T> withExternalRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver);
+  ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, boolean useSingleRetryTopic);
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

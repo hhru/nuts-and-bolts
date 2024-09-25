@@ -28,12 +28,7 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withStandaloneRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withExternalRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+  public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, boolean useSingleRetryTopic) {
     return this;
   }
 

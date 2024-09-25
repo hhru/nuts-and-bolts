@@ -37,7 +37,7 @@ public class SimpleDelayedConsumeStrategy<T> implements ConsumeStrategy<T> {
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
     List<ConsumerRecord<String, T>> readyMessages = messages
         .stream()
-        .filter(message -> getReadyTime.apply(message).isBefore(Instant.now(clock)))
+        .filter(message -> getReadyTime.apply(message).isAfter(Instant.now(clock)))
         .toList();
     if (readyMessages.isEmpty()) {
       Thread.sleep(sleepIfNotReadyDuration.toMillis());

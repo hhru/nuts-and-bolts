@@ -1,6 +1,5 @@
 package ru.hh.nab.web;
 
-import jakarta.annotation.Nullable;
 import jakarta.inject.Named;
 import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
@@ -64,7 +63,8 @@ public class NabWebAutoConfiguration {
 
   @Bean
   @MainProfile
-  public ServiceRegistrator serviceRegistrator(@Nullable ConsulService consulService) {
+  @ConditionalOnBean(ConsulService.class)
+  public ServiceRegistrator serviceRegistrator(ConsulService consulService) {
     return new ServiceRegistrator(consulService);
   }
 
@@ -120,7 +120,7 @@ public class NabWebAutoConfiguration {
 
   @Bean
   @MainProfile
-  @ConditionalOnProperty(prefix = HttpCacheProperties.PREFIX, name = HttpCacheProperties.SIZE_PROPERTY)
+  @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
   public FilterRegistrationBean<CacheFilter> cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
     CacheFilter cacheFilter = new CacheFilter(serviceName, httpCacheProperties.getSize(), statsDSender);
     FilterRegistrationBean<CacheFilter> registration = new FilterRegistrationBean<>(cacheFilter);

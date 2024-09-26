@@ -1,6 +1,5 @@
 package ru.hh.nab.web;
 
-import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
@@ -21,10 +20,10 @@ public class ServiceRegistrator {
   public void onApplicationEvent(AvailabilityChangeEvent<ReadinessState> event) {
     if (event.getState() == ReadinessState.ACCEPTING_TRAFFIC) {
       logger.debug("Received event to register service");
-      ofNullable(consulService).ifPresent(ConsulService::register);
+      consulService.register();
     } else if (event.getState() == ReadinessState.REFUSING_TRAFFIC) {
       logger.debug("Received event to DEregister service");
-      ofNullable(consulService).ifPresent(ConsulService::deregister);
+      consulService.deregister();
     }
   }
 }

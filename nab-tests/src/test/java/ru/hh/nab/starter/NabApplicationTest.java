@@ -8,6 +8,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +21,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.boot.web.context.WebServerApplicationContext;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.context.ApplicationContext;
@@ -30,25 +30,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
 import ru.hh.consul.util.Address;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
-import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.web.InfrastructureProperties;
 
 public class NabApplicationTest {
-
-  private static final String PROPERTY_TEMPLATE = "%s=%s";
-  private static final String CONSUL_PORT_PROPERTY = "consul.http.port";
-  private static final String CONSUL_HOST_PROPERTY = "consul.http.host";
 
   @Test
   public void runShouldStartJetty() {
@@ -57,7 +50,7 @@ public class NabApplicationTest {
     InfrastructureProperties infrastructureProperties = context.getBean(InfrastructureProperties.class);
     long upTimeSeconds = infrastructureProperties.getUpTime().toSeconds();
     BuildProperties buildProperties = context.getBean(BuildProperties.class);
-    assertEquals(NabTestConfig.TEST_SERVICE_NAME, context.getBean("serviceName"));
+    assertEquals(NabTestConfig.TEST_SERVICE_NAME, context.getBean(SERVICE_NAME));
     Invocation.Builder statusReq = ClientBuilder
         .newBuilder()
         .build()
@@ -142,21 +135,12 @@ public class NabApplicationTest {
 
   @Test
   public void testFailWithoutConsul() {
-    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
-    TestPropertyValues
-        .of(
-            PROPERTY_TEMPLATE.formatted(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, true),
-            PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "testService"),
-            PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
-            PROPERTY_TEMPLATE.formatted(DATACENTERS, "test"),
-            PROPERTY_TEMPLATE.formatted(NODE_NAME, "localhost"),
-            PROPERTY_TEMPLATE.formatted(CONSUL_PORT_PROPERTY, "123"),
-            PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "0")
-        )
-        .applyTo(aggregateCtx);
-    aggregateCtx.register(BrokenConsulConfig.class);
-    BeanCreationException exception = assertThrows(BeanCreationException.class, aggregateCtx::refresh);
+    BeanCreationException exception = assertThrows(
+        BeanCreationException.class,
+        () -> new SpringApplicationBuilder(BrokenConsulConfig.class).properties(Map.of(CONSUL_HTTP_PORT_PROPERTY, 123)).run()
+    );
     assertEquals("consulClient", exception.getBeanName());
+    assertTrue(exception.getMessage().contains("Error connecting to Consul"));
   }
 
   @Test
@@ -197,12 +181,13 @@ public class NabApplicationTest {
 
   @Configuration
   @Import(NabAppTestConfig.class)
+  @EnableAutoConfiguration
   public static class BrokenConsulConfig {
     @Bean
     AgentClient consulClient(FileSettings fileSettings) {
       Address hostAndPort = new Address(
-          requireNonNullElse(fileSettings.getString(CONSUL_HOST_PROPERTY), "127.0.0.1"),
-          fileSettings.getInteger(CONSUL_PORT_PROPERTY)
+          requireNonNullElse(fileSettings.getString(CONSUL_HTTP_HOST_PROPERTY), "127.0.0.1"),
+          fileSettings.getInteger(CONSUL_HTTP_PORT_PROPERTY)
       );
       return Consul.builder().withAddress(hostAndPort).build().agentClient();
     }

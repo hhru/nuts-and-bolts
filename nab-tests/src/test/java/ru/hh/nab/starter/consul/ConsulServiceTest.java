@@ -14,13 +14,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.config.ClientConfig;
@@ -32,26 +35,41 @@ import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
-import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
-import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.starter.NabAppTestConfig;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_CHECK_HOST_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_CHECK_INTERVAL_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_CHECK_TIMEOUT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_TAGS_PROPERTY;
 import static ru.hh.nab.testbase.NabProjectInfoConfiguration.TEST_SERVICE_VERSION;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
+import ru.hh.nab.web.NabWebAutoConfiguration;
 
-@SpringBootTest(classes = ConsulServiceTest.CustomKVConfig.class)
 public class ConsulServiceTest {
 
   private static final String TEST_NODE_NAME = "testNode";
   private static final String PROPERTY_TEMPLATE = "%s=%s";
 
-  @Autowired
-  private AgentClient agentClient;
-
   @Test
   public void testRegisterWithFullFileProperties() {
+    TestPropertyValues userProperties = TestPropertyValues.of(
+        PROPERTY_TEMPLATE.formatted(CONSUL_HTTP_PORT_PROPERTY, 123),
+        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_HOST_PROPERTY, "localhost"),
+        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_INTERVAL_PROPERTY, "33s"),
+        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_TIMEOUT_PROPERTY, "42s"),
+        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 7),
+        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 8),
+        PROPERTY_TEMPLATE.formatted(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "13m"),
+        PROPERTY_TEMPLATE.formatted(CONSUL_TAGS_PROPERTY, "tag1, tag2")
+    );
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(CustomKVConfig.class)
+        .web(WebApplicationType.NONE)
+        .initializers(userProperties::applyTo)
+        .run();
+    AgentClient agentClient = context.getBean(AgentClient.class);
     ArgumentCaptor<Registration> argument = ArgumentCaptor.forClass(Registration.class);
     verify(agentClient).register(argument.capture(), any(QueryOptions.class));
     Registration registration = argument.getValue();
@@ -71,7 +89,7 @@ public class ConsulServiceTest {
     assertEquals(0, serviceWeights.getWarning());
 
     assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "0"), registration.getId());
-    assertEquals("testService", registration.getName());
+    assertEquals(TEST_SERVICE_NAME, registration.getName());
     assertEquals(0, registration.getPort().get());
     List<String> tags = registration.getTags();
     assertEquals(2, tags.size());
@@ -84,26 +102,13 @@ public class ConsulServiceTest {
   @Test
   public void testRegisterWithDefault() {
     ArgumentCaptor<Registration> defaultArgument = ArgumentCaptor.forClass(Registration.class);
-
-    AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
-    TestPropertyValues
-        .of(
-            PROPERTY_TEMPLATE.formatted(ConsulService.CONSUL_REGISTRATION_ENABLED_PROPERTY, true),
-            PROPERTY_TEMPLATE.formatted(SERVICE_NAME, "defaultTestService"),
-            PROPERTY_TEMPLATE.formatted(DATACENTER, "test"),
-            PROPERTY_TEMPLATE.formatted(DATACENTERS, "test"),
-            PROPERTY_TEMPLATE.formatted(NODE_NAME, TEST_NODE_NAME),
-            PROPERTY_TEMPLATE.formatted(JettySettingsConstants.JETTY_PORT, "17")
-        )
-        .applyTo(aggregateCtx);
-    aggregateCtx.register(CustomKVConfig.class);
-    aggregateCtx.refresh();
-
-    ConsulService defaultConsulService = aggregateCtx.getBean(ConsulService.class);
-    AgentClient defaultAgentClient = aggregateCtx.getBean(AgentClient.class);
-
-    defaultConsulService.register();
-    verify(defaultAgentClient).register(defaultArgument.capture(), any(QueryOptions.class));
+    TestPropertyValues userProperties = TestPropertyValues.of(PROPERTY_TEMPLATE.formatted("server.port", "17"));
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(CustomKVConfig.class)
+        .web(WebApplicationType.NONE)
+        .initializers(userProperties::applyTo)
+        .run();
+    AgentClient agentClient = context.getBean(AgentClient.class);
+    verify(agentClient).register(defaultArgument.capture(), any(QueryOptions.class));
     Registration registration = defaultArgument.getValue();
 
     assertTrue(registration.getCheck().isPresent());
@@ -121,8 +126,8 @@ public class ConsulServiceTest {
     assertEquals(0, serviceWeights.getWarning());
 
 
-    assertEquals(String.join("-", "defaultTestService", TEST_NODE_NAME, "17"), registration.getId());
-    assertEquals("defaultTestService", registration.getName());
+    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "17"), registration.getId());
+    assertEquals(TEST_SERVICE_NAME, registration.getName());
     assertEquals(17, registration.getPort().get());
     List<String> tags = registration.getTags();
     assertEquals(0, tags.size());
@@ -133,6 +138,8 @@ public class ConsulServiceTest {
 
   @Configuration
   @Import(NabAppTestConfig.class)
+  @EnableConfigurationProperties(ServerProperties.class)
+  @ImportAutoConfiguration(NabWebAutoConfiguration.class)
   public static class CustomKVConfig {
     @Bean
     KeyValueClient keyValueClient() {

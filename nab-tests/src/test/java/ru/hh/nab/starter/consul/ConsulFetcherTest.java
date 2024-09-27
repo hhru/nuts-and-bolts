@@ -1,10 +1,8 @@
 package ru.hh.nab.starter.consul;
 
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
@@ -17,15 +15,13 @@ import ru.hh.consul.model.health.ImmutableNode;
 import ru.hh.consul.model.health.ImmutableService;
 import ru.hh.consul.model.health.ImmutableServiceHealth;
 import ru.hh.consul.model.health.ServiceHealth;
-import ru.hh.nab.common.properties.FileSettings;
 
 class ConsulFetcherTest {
 
   @Test
   void testFetchHostsByName() {
     HealthClient healthClient = mock(HealthClient.class);
-    FileSettings fileSettings = mock(FileSettings.class);
-    ConsulFetcher consulFetcher = new ConsulFetcher(healthClient, fileSettings, "service");
+    ConsulFetcher consulFetcher = new ConsulFetcher(healthClient, "service", List.of("dc1", "dc2", "dc3"));
 
     List<ServiceHealth> response = List.of(
         ImmutableServiceHealth
@@ -44,12 +40,9 @@ class ConsulFetcherTest {
             .service(ImmutableService.builder().service("scylla").address("33.33.33.33").id("3").port(1488).build())
             .build()
     );
-    Properties properties = new Properties();
-    properties.put("datacenters", "dc1, dc2, dc3");
 
     ConsulResponse<List<ServiceHealth>> healthClientResponse = new ConsulResponse<>(response, 0, false, BigInteger.ONE, Optional.empty());
     when(healthClient.getHealthyServiceInstances(Mockito.anyString(), Mockito.any())).thenReturn(healthClientResponse);
-    when(fileSettings.getProperties()).thenReturn(properties);
 
     Set<HostPort> hostPorts = consulFetcher.fetchHostsByName("scylla");
 

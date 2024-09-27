@@ -1,31 +1,32 @@
 package ru.hh.nab.starter.resource;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import ru.hh.nab.starter.AppMetadata;
+import java.time.Duration;
+import java.util.function.Supplier;
 
 @Path("")
-@Singleton
 public class StatusResource {
   
-  private final AppMetadata appMetaData;
+  private final String serviceName;
+  private final String serviceVersion;
+  private final Supplier<Duration> upTimeSupplier;
 
-  @Inject
-  public StatusResource(AppMetadata appMetaData) {
-    this.appMetaData = appMetaData;
+  public StatusResource(String serviceName, String serviceVersion, Supplier<Duration> upTimeSupplier) {
+    this.serviceName = serviceName;
+    this.serviceVersion = serviceVersion;
+    this.upTimeSupplier = upTimeSupplier;
   }
 
   @GET
   @Produces(MediaType.TEXT_XML)
   public String status() {
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        + "<project name=\"" + appMetaData.getServiceName() + "\">\n"
-        + " <version>" + appMetaData.getVersion() + "</version>\n"
-        + " <uptime>" + appMetaData.getUpTimeSeconds() + "</uptime>\n"
+        + "<project name=\"" + serviceName + "\">\n"
+        + " <version>" + serviceVersion + "</version>\n"
+        + " <uptime>" + upTimeSupplier.get().toSeconds() + "</uptime>\n"
         + "</project>\n";
   }
 }

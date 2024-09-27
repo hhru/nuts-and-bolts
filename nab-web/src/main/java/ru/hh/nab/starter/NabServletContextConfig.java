@@ -19,7 +19,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.starter.servlet.NabServletConfig;
-import ru.hh.nab.starter.servlet.StatusServletConfig;
 
 public class NabServletContextConfig {
 
@@ -78,7 +77,6 @@ public class NabServletContextConfig {
   private List<NabServletConfig> compileFullServletConfiguration(WebApplicationContext rootCtx) {
     List<NabServletConfig> servletConfigs = getServletConfigs(rootCtx);
     servletConfigs = new ArrayList<>(servletConfigs);
-    servletConfigs.add(0, new StatusServletConfig());
     return Collections.unmodifiableList(servletConfigs);
   }
 

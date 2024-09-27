@@ -11,6 +11,7 @@ import ru.hh.nab.web.NabTaskSchedulingConfiguration;
 
 @Configuration
 @Import({
+    NabProjectInfoConfiguration.class,
     NabDeployInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,

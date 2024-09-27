@@ -2,6 +2,8 @@ package ru.hh.nab.web;
 
 import com.timgroup.statsd.StatsDClient;
 import jakarta.ws.rs.Path;
+import static java.lang.String.join;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,7 +12,8 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
-import org.springframework.boot.context.annotation.UserConfigurations;
+import org.springframework.boot.context.properties.bind.validation.BindValidationException;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -22,11 +25,12 @@ import ru.hh.consul.HealthClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
+import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.profile.Profiles.MAIN;
-import ru.hh.nab.starter.AppMetadata;
 import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
@@ -37,15 +41,18 @@ public class NabWebAutoConfigurationTest {
   private static final String PROPERTY_TEMPLATE = "%s=%s";
 
   private static final String TEST_SERVICE_NAME = "test-service";
+  private static final String TEST_SERVICE_VERSION = "test-version";
   private static final String TEST_NODE_NAME = "test-host";
-  private static final String TEST_DATACENTER_NAME = "test-dc";
+  private static final String TEST_DATACENTER_NAME = "test-dc1";
+  private static final List<String> TEST_DATACENTER_NAMES = List.of("test-dc1", "test-dc2");
 
   private final String mainProfileProperty = PROPERTY_TEMPLATE.formatted("spring.profiles.active", MAIN);
 
-  private final String[] deployProperties = new String[]{
+  private final String[] infrastructureProperties = new String[]{
       PROPERTY_TEMPLATE.formatted("serviceName", TEST_SERVICE_NAME),
       PROPERTY_TEMPLATE.formatted("nodeName", TEST_NODE_NAME),
       PROPERTY_TEMPLATE.formatted("datacenter", TEST_DATACENTER_NAME),
+      PROPERTY_TEMPLATE.formatted("datacenters", join(",", TEST_DATACENTER_NAMES)),
   };
 
   private final String[] jettyProperties = new String[]{
@@ -63,13 +70,18 @@ public class NabWebAutoConfigurationTest {
   };
 
   private final ApplicationContextRunner applicationContextRunner = new ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(NabWebAutoConfiguration.class));
+      .withConfiguration(AutoConfigurations.of(NabWebAutoConfiguration.class))
+      .withBean(BuildProperties.class, () -> {
+        Properties properties = new Properties();
+        properties.setProperty("version", TEST_SERVICE_VERSION);
+        return new BuildProperties(properties);
+      });
 
   @Test
   public void testSpringContextContainsAllBeans() {
     applicationContextRunner
         .withPropertyValues(mainProfileProperty)
-        .withPropertyValues(deployProperties)
+        .withPropertyValues(infrastructureProperties)
         .withPropertyValues(jettyProperties)
         .withPropertyValues(consulProperties)
         .withPropertyValues(httpCacheProperties)
@@ -77,11 +89,12 @@ public class NabWebAutoConfigurationTest {
         .run(context -> {
           // deploy info beans
           assertThat(context).getBean(SERVICE_NAME, String.class).hasToString(TEST_SERVICE_NAME);
+          assertThat(context).getBean(SERVICE_VERSION, String.class).hasToString(TEST_SERVICE_VERSION);
           assertThat(context).getBean(NODE_NAME, String.class).hasToString(TEST_NODE_NAME);
           assertThat(context).getBean(DATACENTER, String.class).hasToString(TEST_DATACENTER_NAME);
+          assertThat(context).getBean(DATACENTERS, List.class).isEqualTo(TEST_DATACENTER_NAMES);
           assertThat(context).hasSingleBean(FileSettings.class);
-          assertThat(context).hasSingleBean(AppMetadata.class);
-          assertThat(context).getBean("projectProperties").isInstanceOf(Properties.class);
+          assertThat(context).hasSingleBean(InfrastructureProperties.class);
 
           // consul beans
           assertThat(context).hasSingleBean(Consul.class);
@@ -113,8 +126,8 @@ public class NabWebAutoConfigurationTest {
   @Test
   public void testSpringContextDoesNotContainConsulBeansWithFailedConditions() {
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> {
           assertThat(context).doesNotHaveBean(Consul.class);
           assertThat(context).doesNotHaveBean(AgentClient.class);
@@ -128,29 +141,29 @@ public class NabWebAutoConfigurationTest {
   @Test
   public void testSpringContextDoesNotContainStatsDClientBeanWithFailedConditions() {
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean("statsDClient"));
   }
 
   @Test
   public void testSpringContextDoesNotContainServiceRegistrarBeanWithFailedConditions() {
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean(ServiceRegistrator.class));
   }
 
   @Test
   public void testSpringContextDoesNotContainDefaultResourceConfigBeanWithFailedConditions() {
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean("defaultResourceConfig"));
 
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .withBean(ResourceConfig.class)
         .withBean(TestResource.class)
         .run(context -> assertThat(context).doesNotHaveBean("defaultResourceConfig"));
@@ -159,8 +172,8 @@ public class NabWebAutoConfigurationTest {
   @Test
   public void testSpringContextDoesNotContainResourceConfigCustomizerBeanWithFailedConditions() {
     applicationContextRunner
-        .withPropertyValues(deployProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean(ResourceConfigCustomizer.class));
   }
 
@@ -168,16 +181,32 @@ public class NabWebAutoConfigurationTest {
   public void testSpringContextDoesNotContainCacheFilterBeanWithFailedConditions() {
     applicationContextRunner
         .withPropertyValues(mainProfileProperty)
-        .withPropertyValues(deployProperties)
+        .withPropertyValues(infrastructureProperties)
         .withPropertyValues(jettyProperties)
         .withPropertyValues(consulProperties)
         .run(context -> assertThat(context).doesNotHaveBean("cacheFilter"));
 
     applicationContextRunner
-        .withPropertyValues(deployProperties)
+        .withPropertyValues(infrastructureProperties)
         .withPropertyValues(httpCacheProperties)
-        .withConfiguration(UserConfigurations.of(TestConfiguration.class))
+        .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean("cacheFilter"));
+  }
+
+  @Test
+  public void testInfrastructurePropertiesValidation() {
+    applicationContextRunner
+        .run(context -> {
+          assertThat(context)
+              .hasFailed()
+              .getFailure()
+              .rootCause()
+              .isInstanceOf(BindValidationException.class)
+              .hasMessageContaining("serviceName")
+              .hasMessageContaining("nodeName")
+              .hasMessageContaining("datacenter")
+              .hasMessageContaining("datacenters");
+        });
   }
 
   @Configuration

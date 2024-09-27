@@ -193,7 +193,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         message -> HeadersMessageMetadataProvider
             .getNextRetryTime(message.headers())
             .orElse(Instant.EPOCH),
-        Duration.ofMillis(DEFAULT_POLL_TIMEOUT_MS * 9 / 1)
+        Duration.ofMillis(DEFAULT_POLL_TIMEOUT_MS * 9 / 10)
     );
     KafkaConsumer<T> retryKafkaConsumer = new KafkaConsumer<>(
         consumerMetadata,

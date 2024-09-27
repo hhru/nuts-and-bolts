@@ -6,6 +6,10 @@ import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 
 @FunctionalInterface
 public interface RetryPolicyResolver<T> extends BiFunction<ConsumerRecord<String, T>, Throwable, RetryPolicy> {
+  static <T> RetryPolicyResolverBuilder<T> builder(RetryPolicy defaultPolicy) {
+    return new RetryPolicyResolverBuilder<>(defaultPolicy);
+  }
+
   static <T> RetryPolicyResolver<T> never() {
     return (consumerRecord, throwable) -> RetryPolicy.never();
   }

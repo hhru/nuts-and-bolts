@@ -17,6 +17,11 @@ public class RetryPolicyResolverBuilder<T> extends PredicateChainResolver<Consum
     return this;
   }
 
+  public RetryPolicyResolverBuilder<T> onMessage(Predicate<ConsumerRecord<String, T>> messagePredicate, RetryPolicy retryPolicy) {
+    whenA(messagePredicate, retryPolicy);
+    return this;
+  }
+
   public RetryPolicyResolverBuilder<T> onException(Predicate<Throwable> exceptionPredicate, RetryPolicy retryPolicy) {
     whenB(exceptionPredicate, retryPolicy);
     return this;
@@ -28,6 +33,10 @@ public class RetryPolicyResolverBuilder<T> extends PredicateChainResolver<Consum
 
   public RetryPolicyResolverBuilder<T> neverRetry(Class<? extends Throwable> exceptionClass) {
     return onException(exceptionClass, RetryPolicy.never());
+  }
+
+  public RetryPolicyResolverBuilder<T> neverRetry(Predicate<ConsumerRecord<String, T>> messagePredicate) {
+    return onMessage(messagePredicate, RetryPolicy.never());
   }
 
   public RetryPolicyResolver<T> build() {

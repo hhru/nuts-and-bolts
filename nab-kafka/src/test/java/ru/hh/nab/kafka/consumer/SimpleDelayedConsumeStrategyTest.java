@@ -50,8 +50,8 @@ class SimpleDelayedConsumeStrategyTest {
   void sleepWhenNoReadyMessages() {
     assertTimeout(Duration.ofSeconds(3), () -> strategy.onMessagesBatch(
         messages(
-            NOW.toEpochMilli() - 2,
-            NOW.toEpochMilli() - 1
+            NOW.toEpochMilli() + 1,
+            NOW.toEpochMilli() + 2
         ),
         myAck
     ));
@@ -64,9 +64,9 @@ class SimpleDelayedConsumeStrategyTest {
   void processReadyMessages() {
     assertTimeout(Duration.ofSeconds(1), () -> strategy.onMessagesBatch(
         messages(
-            NOW.toEpochMilli() - 2,
             NOW.toEpochMilli() - 1,
-            NOW.toEpochMilli() + 1
+            NOW.toEpochMilli() + 1,
+            NOW.toEpochMilli() + 2
         ),
         myAck
     ));
@@ -79,9 +79,9 @@ class SimpleDelayedConsumeStrategyTest {
   void processAllMessages() {
     assertTimeout(Duration.ofSeconds(1), () -> strategy.onMessagesBatch(
         messages(
-            NOW.toEpochMilli() + 1,
-            NOW.toEpochMilli() + 2,
-            NOW.toEpochMilli() + 3
+            NOW.toEpochMilli() - 3,
+            NOW.toEpochMilli() - 2,
+            NOW.toEpochMilli() - 1
 
         ),
         myAck

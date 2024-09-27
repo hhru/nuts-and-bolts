@@ -29,7 +29,7 @@ public class KafkaConsumer<T> {
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-  private final KafkaConsumer<T> retryKafkaConsumer;
+  final KafkaConsumer<T> retryKafkaConsumer;
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
   private final RetryService<T> retryService;

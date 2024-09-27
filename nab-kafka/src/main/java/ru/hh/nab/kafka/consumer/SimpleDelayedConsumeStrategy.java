@@ -21,7 +21,7 @@ public class SimpleDelayedConsumeStrategy<T> implements ConsumeStrategy<T> {
     this(delegate, getReadyTime, sleepIfNotReadyDuration, Clock.systemDefaultZone());
   }
 
-  public SimpleDelayedConsumeStrategy(
+  SimpleDelayedConsumeStrategy(
       ConsumeStrategy<T> delegate,
       Function<ConsumerRecord<String, T>, Instant> getReadyTime,
       Duration sleepIfNotReadyDuration,
@@ -37,7 +37,7 @@ public class SimpleDelayedConsumeStrategy<T> implements ConsumeStrategy<T> {
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Ack<T> ack) throws InterruptedException {
     List<ConsumerRecord<String, T>> readyMessages = messages
         .stream()
-        .filter(message -> getReadyTime.apply(message).isAfter(Instant.now(clock)))
+        .filter(message -> Instant.now(clock).isAfter(getReadyTime.apply(message)))
         .toList();
     if (readyMessages.isEmpty()) {
       Thread.sleep(sleepIfNotReadyDuration.toMillis());

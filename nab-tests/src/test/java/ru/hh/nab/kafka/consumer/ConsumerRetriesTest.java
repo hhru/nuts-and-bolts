@@ -32,12 +32,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   KafkaProducer retryProducer = new KafkaProducer() {
     @Override
     public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
-      try {
-        kafkaTestUtils.sendMessage(toBinaryRecord(record)).get(); //TODO Add sending ProducerRecord with JSON value to kafka-test-utils
-      } catch (InterruptedException | ExecutionException e) {
-        return CompletableFuture.failedFuture(e);
-      }
-      return CompletableFuture.completedFuture(null);
+      return sendToKafka(record);
     }
   };
 
@@ -65,6 +60,20 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
       assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
       verify(mockService, times(2)).accept(eq("first pancake"));
     });
+  }
+
+  private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
+    try {
+      kafkaTestUtils.sendMessage(toBinaryRecord(record)).get(); //TODO Add sending ProducerRecord with JSON value to kafka-test-utils
+    } catch (InterruptedException | ExecutionException e) {
+      return CompletableFuture.failedFuture(e);
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Test
+  void offsetsNotCommitedUntilRetryMessagesAreSent() {
+
   }
 
   private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {

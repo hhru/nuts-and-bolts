@@ -1,3 +1,9 @@
+-   name: 6.1.1
+    date: '2024-10-01T12:05:48.323207+03:00'
+    description: 1. Добавлены тэги partition & node_id у StatsD метрик для Kafka клиентов
+    instructions: ''
+    compatible: true
+
 -   name: 6.1.0
     date: '2024-09-19T14:26:07.924532+03:00'
     description: "1.Для метрик jdbc_pool.connection.total_usage_ms и jdbc_pool.connection.sampled_usage_ms\

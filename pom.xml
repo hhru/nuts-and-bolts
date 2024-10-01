@@ -11,7 +11,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>6.1.1</version>
+    <version>6.1.2-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 

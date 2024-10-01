@@ -1,13 +1,11 @@
 package ru.hh.nab.datasource;
 
 import javax.sql.DataSource;
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
@@ -29,10 +27,5 @@ public class DataSourceTestConfig {
   @Bean
   DataSource dataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
     return dataSourceFactory.create(DataSourceType.MASTER, false, fileSettings);
-  }
-
-  @Bean
-  StatsDSender statsDSender() {
-    return Mockito.mock(StatsDSender.class);
   }
 }

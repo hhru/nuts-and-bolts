@@ -1,3 +1,13 @@
+-   name: 6.2.0
+    date: '2024-10-01T12:50:22.640636+03:00'
+    description: "1. Новый API ru.hh.nab.metrics.factory.StatsDClientFactory#createNonBlockingClient\
+        \ для создания собственного StatsDSender.\r\n2. Теперь для отправки метрик\
+        \ используется единый StatsD клиент aka StatsDSender\r\n3. Обновлен API ru.hh.nab.kafka.util.ConfigProvider"
+    instructions: 1. При создании ConfigProvider требуется добавить дополнительный
+        аргумент StatsDSender, который можно получить из Spring контекста. Он(StatsDSender)
+        создается централизованно в NabProdConfig у nuts-and-bolts.
+    compatible: false
+
 -   name: 6.1.1
     date: '2024-10-01T12:05:48.323207+03:00'
     description: 1. Добавлены тэги partition & node_id у StatsD метрик для Kafka клиентов

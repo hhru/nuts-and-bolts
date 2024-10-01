@@ -1,4 +1,4 @@
-version: 6.1.0
+version: 6.1.1
 build_image: registry.pyn.ru/openjdk17-building:2024.05.01
 type: library
 build_method: mvn_build

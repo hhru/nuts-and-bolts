@@ -1,6 +1,5 @@
 package ru.hh.nab.kafka.util;
 
-import com.timgroup.statsd.NonBlockingStatsDClient;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,17 +19,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_BUFFER_POOL_SIZE_ENV;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_BUFFER_POOL_SIZE_PROPERTY;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_DEFAULT_PERIODIC_SEND_INTERVAL;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_HOST_ENV;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_HOST_PROPERTY;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_MAX_PACKET_SIZE_BYTES_ENV;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_PORT_ENV;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_PORT_PROPERTY;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_QUEUE_SIZE_ENV;
-import static ru.hh.nab.metrics.StatsDConstants.STATSD_QUEUE_SIZE_PROPERTY;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class ConfigProvider {
@@ -61,21 +49,18 @@ public class ConfigProvider {
   private final String serviceName;
   private final String kafkaClusterName;
   private final FileSettings fileSettings;
+  private final StatsDSender statsDSender;
 
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
       SERVICE_NAME,
-      STATSD_HOST_PROPERTY,
-      STATSD_PORT_PROPERTY,
-      STATSD_QUEUE_SIZE_PROPERTY,
-      STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY,
-      STATSD_BUFFER_POOL_SIZE_PROPERTY,
-      STATSD_DEFAULT_PERIODIC_SEND_INTERVAL
+      KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY
   );
 
-  public ConfigProvider(String serviceName, String kafkaClusterName, FileSettings fileSettings) {
+  public ConfigProvider(String serviceName, String kafkaClusterName, FileSettings fileSettings, StatsDSender statsDSender) {
     this.serviceName = serviceName;
     this.kafkaClusterName = kafkaClusterName;
     this.fileSettings = fileSettings;
+    this.statsDSender = statsDSender;
   }
 
   public String getServiceName() {
@@ -209,44 +194,13 @@ public class ConfigProvider {
         .orElseGet(KafkaStatsDReporter.class::getName);
     properties.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, metricReporters);
 
-    String host = ofNullable(fileSettings.getString(STATSD_HOST_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(STATSD_HOST_ENV)))
-        .orElse("localhost");
-    properties.put(STATSD_HOST_PROPERTY, host);
-
-    int port = ofNullable(fileSettings.getString(STATSD_PORT_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(STATSD_PORT_ENV)))
-        .map(Integer::parseInt)
-        .orElse(8125);
-    properties.put(STATSD_PORT_PROPERTY, port);
-
-    int queueSize = ofNullable(fileSettings.getString(STATSD_QUEUE_SIZE_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(STATSD_QUEUE_SIZE_ENV)))
-        .map(Integer::parseInt)
-        .orElse(10_000);
-    properties.put(STATSD_QUEUE_SIZE_PROPERTY, queueSize);
-
-    int maxPacketSizeBytes = ofNullable(fileSettings.getString(STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(STATSD_MAX_PACKET_SIZE_BYTES_ENV)))
-        .map(Integer::parseInt)
-        .orElse(NonBlockingStatsDClient.DEFAULT_UDP_MAX_PACKET_SIZE_BYTES);
-    properties.put(STATSD_MAX_PACKET_SIZE_BYTES_PROPERTY, maxPacketSizeBytes);
-
-    int bufferPoolSize = ofNullable(fileSettings.getString(STATSD_BUFFER_POOL_SIZE_PROPERTY))
-        .or(() -> ofNullable(System.getProperty(STATSD_BUFFER_POOL_SIZE_ENV)))
-        .map(Integer::parseInt)
-        .orElse(8);
-    properties.put(STATSD_BUFFER_POOL_SIZE_PROPERTY, bufferPoolSize);
-
-    int sendIntervalSeconds = ofNullable(fileSettings.getInteger(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL))
-        .orElse(StatsDSender.DEFAULT_SEND_INTERVAL_SECONDS);
-    properties.put(STATSD_DEFAULT_PERIODIC_SEND_INTERVAL, sendIntervalSeconds);
-
     // TODO Remove when we leave Okmeter monitoring
     // Okmeter doesn't provide precision better than once a minute
     properties.put(ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 60000);
     // Approximation, kafka defaults are 30000ms for sample window and 2 for num samples
     properties.put(ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 4);
+    // A workaround to support single instance of StatsD client
+    properties.put(KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY, this.statsDSender);
     return properties;
   }
 

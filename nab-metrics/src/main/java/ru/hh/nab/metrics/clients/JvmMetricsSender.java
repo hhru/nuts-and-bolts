@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.metrics;
+package ru.hh.nab.metrics.clients;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;

@@ -23,11 +23,9 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
-import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_SERVICE_ADDRESS_PROPERTY;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
-import ru.hh.nab.starter.server.jetty.JettySettingsConstants;
 
 public class ConsulService {
 
@@ -35,24 +33,8 @@ public class ConsulService {
 
   private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
   private static final int DEFAULT_WEIGHT = 100;
-  public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
 
-  public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
-  public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
-  public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
-  public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
-  public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
-  public static final String CONSUL_REGISTRATION_ENABLED_PROPERTY = "consul.registration.enabled";
-  public static final String CONSUL_CHECK_INTERVAL_PROPERTY = "consul.check.interval";
-  public static final String CONSUL_CHECK_TIMEOUT_PROPERTY = "consul.check.timeout";
-  public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
-  public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
-  public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
-  public static final String CONSUL_CHECK_PASSING = "consul.check.passing";
-  public static final String CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY = "consul.consistencyMode";
-  public static final String CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY = "consul.weightCache.watchSeconds";
-  public static final String CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
 
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
@@ -60,7 +42,7 @@ public class ConsulService {
 
   private final String serviceName;
   private final String serviceId;
-  private final String hostName;
+  private final String nodeName;
   private final boolean registrationEnabled;
   private final String weightPath;
   private final int sleepAfterDeregisterMillis;
@@ -73,53 +55,56 @@ public class ConsulService {
   public ConsulService(
       AgentClient agentClient,
       KeyValueClient kvClient,
-      FileSettings fileSettings,
+      String serviceName,
       String serviceVersion,
       String nodeName,
+      int applicationPort,
+      ConsulProperties consulProperties,
       @Nullable LogLevelOverrideExtension logLevelOverrideExtension
   ) {
-    int applicationPort = Integer.parseInt(fileSettings.getNotEmptyOrThrow(JettySettingsConstants.JETTY_PORT));
-    this.hostName = nodeName;
-    this.serviceName = fileSettings.getNotEmptyOrThrow(SERVICE_NAME);
-    this.serviceId = serviceName + '-' + this.hostName + '-' + applicationPort;
+    this.nodeName = nodeName;
+    this.serviceName = serviceName;
+    this.serviceId = serviceName + '-' + nodeName + '-' + applicationPort;
     this.agentClient = agentClient;
     this.kvClient = kvClient;
-    this.weightPath = String.format("host/%s/weight", this.hostName);
-    String resultingConsistencyMode = fileSettings.getString(
-        CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
-        fileSettings.getString(CONSUL_COMMON_CONSISTENCY_MODE_PROPERTY, ConsistencyMode.DEFAULT.name())
-    );
+    this.weightPath = String.format("host/%s/weight", nodeName);
+    String resultingConsistencyMode = Optional
+        .ofNullable(consulProperties.getWeightCache().getConsistencyMode())
+        .orElseGet(consulProperties::getConsistencyMode);
     this.consistencyMode = Stream
         .of(ConsistencyMode.values())
         .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
         .findAny()
         .orElse(ConsistencyMode.DEFAULT);
-    this.watchSeconds = fileSettings.getInteger(CONSUL_WEIGHT_CACHE_WATCH_INTERVAL_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
-    this.sleepAfterDeregisterMillis = fileSettings.getInteger(WAIT_AFTER_DEREGISTRATION_PROPERTY, 300);
-    Optional<String> address = resolveAddress(fileSettings);
-    var applicationHost = fileSettings.getString(CONSUL_CHECK_HOST_PROPERTY, address.orElse("127.0.0.1"));
+    this.watchSeconds = consulProperties.getWeightCache().getWatchSeconds();
+    this.sleepAfterDeregisterMillis = consulProperties.getWaitAfterDeregistrationMillis();
+    Optional<String> address = resolveAddress(consulProperties.getService().getAddress());
+    var applicationHost = Optional
+        .ofNullable(consulProperties.getCheck().getHost())
+        .or(() -> address)
+        .orElse("127.0.0.1");
 
-    var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
+    var tags = new ArrayList<>(consulProperties.getTags());
     if (logLevelOverrideExtension != null) {
       tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
     }
-    this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean(CONSUL_ENABLED_PROPERTY, true));
+    this.registrationEnabled = consulProperties.getRegistration().isEnabled();
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck
           .builder()
           .http("http://" + applicationHost + ":" + applicationPort + "/status")
-          .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
-          .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
-          .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))
-          .deregisterCriticalServiceAfter(fileSettings.getString(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "10m"))
-          .successBeforePassing(fileSettings.getInteger(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 1))
-          .failuresBeforeCritical(fileSettings.getInteger(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 1))
+          .status(Optional.ofNullable(consulProperties.getCheck().getPassing()).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
+          .interval(consulProperties.getCheck().getInterval())
+          .timeout(consulProperties.getCheck().getTimeout())
+          .deregisterCriticalServiceAfter(consulProperties.getDeregisterCritical().getTimeout())
+          .successBeforePassing(consulProperties.getCheck().getSuccessCount())
+          .failuresBeforeCritical(consulProperties.getCheck().getFailCount())
           .build();
 
       this.serviceTemplate = ImmutableRegistration
           .builder()
           .id(serviceId)
-          .name(fileSettings.getString(SERVICE_NAME))
+          .name(serviceName)
           .port(applicationPort)
           .address(address)
           .check(regCheck)
@@ -162,7 +147,7 @@ public class ConsulService {
 
   private Integer getWeightOrDefault(@Nullable String maybeWeight) {
     if (maybeWeight == null) {
-      LOGGER.info("No weight present for node:{}. Setting default value = {}", hostName, DEFAULT_WEIGHT);
+      LOGGER.info("No weight present for node:{}. Setting default value = {}", nodeName, DEFAULT_WEIGHT);
       return DEFAULT_WEIGHT;
     }
     return Integer.valueOf(maybeWeight);
@@ -207,19 +192,21 @@ public class ConsulService {
     }
   }
 
-  private static Optional<String> resolveAddress(FileSettings fileSettings) {
-    return Optional.ofNullable(fileSettings.getString(SERVICE_ADDRESS_PROPERTY)).map(addressValue -> {
-      if (AUTO_RESOLVE_ADDRESS_VALUE.equalsIgnoreCase(addressValue)) {
-        try {
-          return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-          throw new IllegalStateException(
-              SERVICE_ADDRESS_PROPERTY + " is set to " + AUTO_RESOLVE_ADDRESS_VALUE + ", but failed to resolve address", e
-          );
-        }
-      }
-      return addressValue;
-    });
+  private static Optional<String> resolveAddress(String serviceAddress) {
+    return Optional
+        .ofNullable(serviceAddress)
+        .map(addressValue -> {
+          if (AUTO_RESOLVE_ADDRESS_VALUE.equalsIgnoreCase(addressValue)) {
+            try {
+              return InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException e) {
+              throw new IllegalStateException(
+                  CONSUL_SERVICE_ADDRESS_PROPERTY + " is set to " + AUTO_RESOLVE_ADDRESS_VALUE + ", but failed to resolve address", e
+              );
+            }
+          }
+          return addressValue;
+        });
   }
 
   @Override

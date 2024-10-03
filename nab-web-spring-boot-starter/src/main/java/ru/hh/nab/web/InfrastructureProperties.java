@@ -13,6 +13,11 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class InfrastructureProperties {
 
+  public static final String SERVICE_NAME_PROPERTY = "serviceName";
+  public static final String NODE_NAME_PROPERTY = "nodeName";
+  public static final String DATACENTER_PROPERTY = "datacenter";
+  public static final String DATACENTERS_PROPERTY = "datacenters";
+
   @NotBlank
   private String serviceName;
 

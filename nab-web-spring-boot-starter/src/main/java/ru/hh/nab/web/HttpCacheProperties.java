@@ -8,8 +8,8 @@ import org.springframework.util.unit.DataUnit;
 @ConfigurationProperties(HttpCacheProperties.PREFIX)
 public class HttpCacheProperties {
 
-  static final String PREFIX = "http.cache";
-  static final String SIZE_PROPERTY = "sizeInMb";
+  public static final String PREFIX = "http.cache";
+  public static final String HTTP_CACHE_SIZE_PROPERTY = "http.cache.sizeInMb";
 
   private final DataSize size;
 

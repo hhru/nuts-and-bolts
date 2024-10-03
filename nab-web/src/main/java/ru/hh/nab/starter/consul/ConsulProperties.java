@@ -1,5 +1,6 @@
 package ru.hh.nab.starter.consul;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class ConsulProperties {
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
 
+  @Valid
   private final Http http = new Http();
   private final Client client = new Client();
   private final WeightCache weightCache = new WeightCache();

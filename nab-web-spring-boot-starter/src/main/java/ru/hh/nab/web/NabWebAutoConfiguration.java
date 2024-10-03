@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.util.unit.DataSize;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
@@ -122,7 +123,7 @@ public class NabWebAutoConfiguration {
   @MainProfile
   @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
   public FilterRegistrationBean<CacheFilter> cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
-    CacheFilter cacheFilter = new CacheFilter(serviceName, httpCacheProperties.getSize(), statsDSender);
+    CacheFilter cacheFilter = new CacheFilter(serviceName, DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
     FilterRegistrationBean<CacheFilter> registration = new FilterRegistrationBean<>(cacheFilter);
     registration.setName(CacheFilter.class.getName());
     registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));

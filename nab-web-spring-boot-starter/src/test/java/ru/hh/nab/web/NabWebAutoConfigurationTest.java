@@ -30,7 +30,9 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
+import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import static ru.hh.nab.profile.Profiles.MAIN;
 import ru.hh.nab.starter.consul.ConsulFetcher;
 import ru.hh.nab.starter.consul.ConsulProperties;
@@ -97,6 +99,7 @@ public class NabWebAutoConfigurationTest {
         .withPropertyValues(mainProfileProperty)
         .withPropertyValues(infrastructureProperties)
         .withPropertyValues(consulProperties)
+        .withPropertyValues(PROPERTY_TEMPLATE.formatted(NabMetricsConfiguration.METRICS_JVM_ENABLED_PROPERTY, true))
         .withPropertyValues(httpCacheProperties)
         .withBean(TestResource.class)
         .run(context -> {
@@ -120,7 +123,9 @@ public class NabWebAutoConfigurationTest {
 
           // metrics beans
           assertThat(context).hasSingleBean(StatsDSender.class);
+          assertThat(context).hasSingleBean(JvmMetricsSender.class);
           assertThat(context).hasBean(STATSD_CLIENT_BEAN_NAME).getBean(STATSD_CLIENT_BEAN_NAME).isInstanceOf(StatsDClient.class);
+          assertThat(context).hasSingleBean(StatsDProperties.class);
 
           // scheduling beans
           assertThat(context).hasSingleBean(ScheduledExecutorService.class);
@@ -189,6 +194,22 @@ public class NabWebAutoConfigurationTest {
         .withPropertyValues(consulProperties)
         .withUserConfiguration(TestConfiguration.class)
         .run(context -> assertThat(context).doesNotHaveBean(STATSD_CLIENT_BEAN_NAME));
+  }
+
+  @Test
+  public void testSpringContextDoesNotContainJvmMetricsSenderBeanWithFailedConditions() {
+    // when metrics.jvm.enabled=false
+    applicationContextRunner
+        .withPropertyValues(infrastructureProperties)
+        .withPropertyValues(PROPERTY_TEMPLATE.formatted(NabMetricsConfiguration.METRICS_JVM_ENABLED_PROPERTY, false))
+        .withUserConfiguration(TestConfiguration.class)
+        .run(context -> assertThat(context).doesNotHaveBean(JvmMetricsSender.class));
+
+    // when metrics.jvm.enabled property doesn't exist
+    applicationContextRunner
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
+        .run(context -> assertThat(context).doesNotHaveBean(JvmMetricsSender.class));
   }
 
   @Test

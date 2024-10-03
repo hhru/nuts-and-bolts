@@ -32,7 +32,7 @@ public class JvmMetricsSender {
   private final String threadCountMetricName;
   private final String loadedClassesCountMetricName;
 
-  private JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
+  public JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
     this.statsDSender = statsDSender;
     this.appTag = new Tag(Tag.APP_TAG_NAME, serviceName);
     this.memoryMXBean = ManagementFactory.getMemoryMXBean();
@@ -46,11 +46,8 @@ public class JvmMetricsSender {
     this.bufferPoolCapacityMetricName = "jvm.bufferPool.capacity";
     this.threadCountMetricName = "jvm.threads";
     this.loadedClassesCountMetricName = "jvm.loadedClasses";
-  }
 
-  public static void create(StatsDSender statsDSender, String serviceName) {
-    JvmMetricsSender jvmMetricsSender = new JvmMetricsSender(statsDSender, serviceName);
-    statsDSender.sendPeriodically(jvmMetricsSender::sendJvmMetrics);
+    statsDSender.sendPeriodically(this::sendJvmMetrics);
   }
 
   private void sendJvmMetrics() {

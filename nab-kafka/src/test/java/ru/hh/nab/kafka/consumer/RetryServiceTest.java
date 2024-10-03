@@ -95,10 +95,9 @@ class RetryServiceTest {
 
   @Test
   void testStopRetriesForSpecificException() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver
-        .<String>builder(RetryPolicy.fixedDelay(Duration.ofSeconds(10)))
-        .neverRetry(IllegalStateException.class)
-        .build());
+    RetryService<String> retryService = createRetryService(
+        (message, throwable) -> throwable instanceof IllegalStateException ? RetryPolicy.never() : RetryPolicy.fixedDelay(Duration.ofSeconds(10))
+    );
     retryService.retry(message(), new IllegalStateException());
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
     retryService.retry(message(), null);
@@ -107,10 +106,9 @@ class RetryServiceTest {
 
   @Test
   void testStopRetriesForSpecificMessage() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver
-        .<String>builder(RetryPolicy.fixedDelay(Duration.ofSeconds(10)))
-        .neverRetry(message -> message.value().equals("non-retriable"))
-        .build());
+    RetryService<String> retryService = createRetryService(
+        (message, throwable) -> message.value().equals("non-retriable") ? RetryPolicy.never() : RetryPolicy.fixedDelay(Duration.ofSeconds(10))
+    );
     retryService.retry(message("non-retriable"), null);
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
     retryService.retry(message(), null);

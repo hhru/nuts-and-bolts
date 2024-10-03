@@ -2,6 +2,7 @@ package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -17,6 +18,7 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabProjectInfoConfiguration;
 import ru.hh.nab.web.NabDeployInfoConfiguration;
 
@@ -40,8 +42,8 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  ConfigProvider configProvider(FileSettings fileSettings) {
-    return new ConfigProvider("service", "kafka", fileSettings);
+  ConfigProvider configProvider(FileSettings fileSettings, StatsDSender statsDSender) {
+    return new ConfigProvider("service", "kafka", fileSettings, statsDSender);
   }
 
   @Bean
@@ -55,7 +57,16 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  KafkaProducerFactory kafkaProducer(ConfigProvider configProvider, SerializerSupplier serializerSupplier, TestKafka testKafka) {
+  KafkaProducerFactory kafkaProducer(
+      ConfigProvider configProvider,
+      SerializerSupplier serializerSupplier,
+      TestKafka testKafka
+  ) {
     return new KafkaProducerFactory(configProvider, serializerSupplier, testKafka::getBootstrapServers);
+  }
+
+  @Bean
+  StatsDSender statsDSender() {
+    return Mockito.mock(StatsDSender.class);
   }
 }

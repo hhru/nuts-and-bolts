@@ -1,11 +1,10 @@
 package ru.hh.nab.web.jersey;
 
-import jakarta.ws.rs.Path;
+import java.util.Collection;
 import java.util.Collections;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
-import org.springframework.context.ApplicationContext;
 import ru.hh.nab.starter.exceptions.AnyExceptionMapper;
 import ru.hh.nab.starter.exceptions.CompletionExceptionMapper;
 import ru.hh.nab.starter.exceptions.ExecutionExceptionMapper;
@@ -16,21 +15,18 @@ import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
 import ru.hh.nab.starter.filters.ErrorAcceptFilter;
 import ru.hh.nab.starter.filters.ResourceInformationFilter;
-import ru.hh.nab.starter.jersey.MarshallerContextResolver;
 
 public class NabResourceConfigCustomizer implements ResourceConfigCustomizer {
 
-  private final ApplicationContext applicationContext;
+  private final Collection<Object> components;
 
-  public NabResourceConfigCustomizer(ApplicationContext applicationContext) {
-    this.applicationContext = applicationContext;
+  public NabResourceConfigCustomizer(Collection<Object> components) {
+    this.components = components;
   }
 
   @Override
   public void customize(ResourceConfig config) {
     config.addProperties(Collections.singletonMap(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE));
-
-    config.register(MarshallerContextResolver.class);
 
     config.register(AnyExceptionMapper.class);
     config.register(CompletionExceptionMapper.class);
@@ -45,13 +41,6 @@ public class NabResourceConfigCustomizer implements ResourceConfigCustomizer {
 
     config.register(ResourceInformationFilter.class);
 
-    registerEndpoints(config);
-  }
-
-  private void registerEndpoints(ResourceConfig config) {
-    applicationContext
-        .getBeansWithAnnotation(Path.class)
-        .values()
-        .forEach(config::register);
+    components.forEach(config::register);
   }
 }

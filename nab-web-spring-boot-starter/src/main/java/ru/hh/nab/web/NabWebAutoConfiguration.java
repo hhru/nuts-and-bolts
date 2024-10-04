@@ -3,7 +3,10 @@ package ru.hh.nab.web;
 import jakarta.inject.Named;
 import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -32,6 +35,7 @@ import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
+import ru.hh.nab.starter.jersey.MarshallerContextResolver;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
@@ -50,7 +54,10 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
 })
-@EnableConfigurationProperties(HttpCacheProperties.class)
+@EnableConfigurationProperties({
+    HttpCacheProperties.class,
+    JaxbProperties.class
+})
 public class NabWebAutoConfiguration {
 
   @Bean
@@ -78,8 +85,23 @@ public class NabWebAutoConfiguration {
 
   @Bean
   @ConditionalOnBean(ResourceConfig.class)
-  public ResourceConfigCustomizer nabResourceConfigCustomizer(ApplicationContext applicationContext) {
-    return new NabResourceConfigCustomizer(applicationContext);
+  public ResourceConfigCustomizer nabResourceConfigCustomizer(
+      ApplicationContext applicationContext,
+      InfrastructureProperties infrastructureProperties,
+      JaxbProperties jaxbProperties,
+      StatsDSender statsDSender
+  ) {
+    Collection<Object> beansWithPathAnnotation = applicationContext.getBeansWithAnnotation(Path.class).values();
+    MarshallerContextResolver marshallerContextResolver = new MarshallerContextResolver(
+        jaxbProperties.getContextsMaxCollectionSize(),
+        infrastructureProperties.getServiceName(),
+        statsDSender
+    );
+
+    List<Object> components = new ArrayList<>();
+    components.add(marshallerContextResolver);
+    components.addAll(beansWithPathAnnotation);
+    return new NabResourceConfigCustomizer(components);
   }
 
   @Bean

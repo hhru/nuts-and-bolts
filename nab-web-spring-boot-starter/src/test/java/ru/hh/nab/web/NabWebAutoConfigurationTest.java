@@ -149,6 +149,7 @@ public class NabWebAutoConfigurationTest {
               .isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasBean(CACHE_FILTER_BEAN_NAME).getBean(CACHE_FILTER_BEAN_NAME).isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasSingleBean(HttpCacheProperties.class);
+          assertThat(context).hasSingleBean(JaxbProperties.class);
         });
   }
 

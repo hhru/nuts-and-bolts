@@ -18,10 +18,11 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.StreamSupport;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
-import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.common.servlet.UriComponent;
+import ru.hh.nab.starter.annotation.NabWebFilter;
 
-public class JClientContextProviderFilter implements Filter, NabServletFilter {
+@NabWebFilter
+public class JClientContextProviderFilter implements Filter {
   private final HttpClientContextThreadLocalSupplier contextThreadLocalSupplier;
 
   public JClientContextProviderFilter(HttpClientContextThreadLocalSupplier contextThreadLocalSupplier) {

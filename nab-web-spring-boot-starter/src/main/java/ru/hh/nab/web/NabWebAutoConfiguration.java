@@ -1,6 +1,5 @@
 package ru.hh.nab.web;
 
-import jakarta.inject.Named;
 import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
 import java.util.ArrayList;
@@ -21,6 +20,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -28,8 +28,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.unit.DataSize;
-import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.consul.ConsulService;
@@ -38,10 +37,10 @@ import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.jersey.MarshallerContextResolver;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
-import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
-import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
-import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
+import ru.hh.nab.starter.server.jetty.ThreadPoolProxyFactory;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
+import ru.hh.nab.web.jetty.NabJettyServerCustomizer;
+import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for nab web components (servlets, filters, web server customizers and so on).
@@ -53,20 +52,20 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
     NabDeployInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
+
+    NabJettyWebServerFactoryCustomizer.class,
+    NabJettyServerCustomizer.class,
 })
 @EnableConfigurationProperties({
+    ExtendedServerProperties.class,
     HttpCacheProperties.class,
-    JaxbProperties.class
+    JaxbProperties.class,
 })
 public class NabWebAutoConfiguration {
 
   @Bean
-  public MonitoredQueuedThreadPool jettyThreadPool(
-      FileSettings fileSettings,
-      @Named(SERVICE_NAME) String serviceNameValue,
-      StatsDSender statsDSender
-  ) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
+  public ThreadPoolProxyFactory threadPoolProxyFactory(InfrastructureProperties infrastructureProperties, StatsDSender statsDSender) {
+    return new ThreadPoolProxyFactory(infrastructureProperties.getServiceName(), statsDSender);
   }
 
   @Bean
@@ -124,11 +123,15 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
+  public RequestContextFilter requestContextFilter() {
+    return new OrderedRequestContextFilter();
+  }
+
+  @Bean
   public FilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
     FilterRegistrationBean<RequestIdLoggingFilter> registration = new FilterRegistrationBean<>(new RequestIdLoggingFilter());
     registration.setName(RequestIdLoggingFilter.class.getName());
     registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
     return registration;
   }
 
@@ -137,7 +140,6 @@ public class NabWebAutoConfiguration {
     FilterRegistrationBean<CommonHeadersFilter> registration = new FilterRegistrationBean<>(new CommonHeadersFilter());
     registration.setName(CommonHeadersFilter.class.getName());
     registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
     return registration;
   }
 
@@ -149,7 +151,6 @@ public class NabWebAutoConfiguration {
     FilterRegistrationBean<CacheFilter> registration = new FilterRegistrationBean<>(cacheFilter);
     registration.setName(CacheFilter.class.getName());
     registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
     return registration;
   }
 

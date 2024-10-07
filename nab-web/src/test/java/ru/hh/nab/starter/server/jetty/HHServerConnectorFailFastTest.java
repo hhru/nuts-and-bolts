@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import jakarta.servlet.GenericServlet;
+import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,8 +17,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.jupiter.api.AfterAll;
@@ -27,9 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-import ru.hh.nab.metrics.TaggedSender;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.createServer;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
+import ru.hh.nab.metrics.StatsDSender;
 
 public class HHServerConnectorFailFastTest {
   private static final int ACCEPTORS = 1;
@@ -41,10 +44,12 @@ public class HHServerConnectorFailFastTest {
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
   private static final SimpleAsyncHTTPClient httpClient = new SimpleAsyncHTTPClient(executorService);
 
+  private static final StatsDSender statsDSender = mock(StatsDSender.class);
+  private static final String serviceName = "testService";
+
   private ThreadPool threadPool;
   private ControlledServlet controlledServlet;
   private Server server;
-  private static TaggedSender statsDSender = mock(TaggedSender.class);
 
   @BeforeEach
   public void beforeTest() {
@@ -91,7 +96,7 @@ public class HHServerConnectorFailFastTest {
 
   @Test
   public void testHHServerConnectorResetsNewIncomingConnectionIfLowOnThreads() throws Exception {
-    server.addConnector(new HHServerConnector(server, ACCEPTORS, SELECTORS, statsDSender));
+    server.addConnector(new HHServerConnector(server, ACCEPTORS, SELECTORS, statsDSender, serviceName));
     server.start();
     int serverPort = getPort(server);
 
@@ -121,7 +126,7 @@ public class HHServerConnectorFailFastTest {
         status = statusFuture.get();
       } catch (ExecutionException e) {
         Throwable cause = e.getCause();
-        assertTrue(cause instanceof SocketException || cause instanceof EOFException, "Unexpected exception " + cause);
+        assertTrue(cause instanceof SocketException || cause instanceof EOFException, () -> "Unexpected exception " + cause);
         failures++;
         continue;
       }
@@ -134,7 +139,26 @@ public class HHServerConnectorFailFastTest {
     assertTrue(failures > 0);
   }
 
-  static class ControlledServlet extends GenericServlet {
+  private Server createServer(ThreadPool threadPool, Servlet servlet) {
+    ServletHolder servletHolder = new ServletHolder("MainServlet", servlet);
+
+    ServletHandler servletHandler = new ServletHandler();
+    servletHandler.addServletWithMapping(servletHolder, "/*");
+
+    ServletContextHandler servletContextHandler = new ServletContextHandler();
+    servletContextHandler.setServletHandler(servletHandler);
+
+    Server server = new Server(threadPool);
+    server.setHandler(servletContextHandler);
+    server.setStopAtShutdown(true);
+    return server;
+  }
+
+  private int getPort(Server server) {
+    return ((NetworkConnector) server.getConnectors()[0]).getLocalPort();
+  }
+
+  private static class ControlledServlet extends GenericServlet {
 
     private final int responseCode;
 

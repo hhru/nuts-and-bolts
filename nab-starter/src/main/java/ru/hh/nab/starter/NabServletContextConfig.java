@@ -23,6 +23,7 @@ import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
+import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.StatusServletConfig;
@@ -57,6 +58,14 @@ public class NabServletContextConfig {
         webAppContext.getServletContext(),
         RequestIdLoggingFilter.class.getName(),
         RequestIdLoggingFilter.class,
+        Collections.emptyMap(),
+        EnumSet.allOf(DispatcherType.class),
+        DEFAULT_MAPPING
+    );
+    registerFilter(
+        webAppContext.getServletContext(),
+        SentryFilter.class.getName(),
+        SentryFilter.class,
         Collections.emptyMap(),
         EnumSet.allOf(DispatcherType.class),
         DEFAULT_MAPPING

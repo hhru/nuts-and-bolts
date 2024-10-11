@@ -1,3 +1,9 @@
+-   name: 6.2.1
+    date: '2024-10-11T15:27:09.771428+03:00'
+    description: Добавлен SentryFilter, в котором sentry traceId заменяется на rid
+    instructions: ''
+    compatible: true
+
 -   name: 6.2.0
     date: '2024-10-01T12:50:22.640636+03:00'
     description: "1. Новый API ru.hh.nab.metrics.factory.StatsDClientFactory#createNonBlockingClient\

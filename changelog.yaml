@@ -1,3 +1,9 @@
+-   name: 6.2.2
+    date: '2024-10-14T17:54:11.531385+03:00'
+    description: В SentryFilter ошибка о невалидном rid'е логируется с уровнем debug
+    instructions: ''
+    compatible: true
+
 -   name: 6.2.1
     date: '2024-10-11T15:27:09.771428+03:00'
     description: Добавлен SentryFilter, в котором sentry traceId заменяется на rid

@@ -24,13 +24,16 @@ public class SentryFilter extends OncePerRequestFilter {
       HttpServletResponse response,
       FilterChain filterChain
   ) throws ServletException, IOException {
+    // TODO: https://jira.hh.ru/browse/HH-233805
     String requestId = request.getHeader(RequestHeaders.REQUEST_ID);
     if (HubAdapter.getInstance().isEnabled() && requestId != null) {
       Sentry.configureScope(scope -> {
         try {
           scope.getPropagationContext().setTraceId(new SentryId(requestId));
         } catch (RuntimeException e) {
-          LOGGER.warn("Unable to set sentry trace id: {}", requestId, e);
+          // TODO: it's better to use warn/error log level, but there are too much invalid rids.
+          //  Fix log level to warn/error after https://jira.hh.ru/browse/PORTFOLIO-19764
+          LOGGER.debug("Unable to set sentry trace id: {}", requestId, e);
         }
       });
     }

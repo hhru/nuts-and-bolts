@@ -13,6 +13,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRegistration;
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -29,7 +30,7 @@ import ru.hh.nab.starter.servlet.StatusServletConfig;
 public class NabServletContextConfig {
 
   public static final String[] DEFAULT_MAPPING = {"/*"};
-
+  public static final String[] DEFAULT_SERVLET_NAMES = {};
 
   protected List<ServletContextListener> getListeners(WebApplicationContext rootCtx) {
     return Collections.emptyList();
@@ -58,7 +59,8 @@ public class NabServletContextConfig {
         RequestIdLoggingFilter.class,
         Collections.emptyMap(),
         EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING
+        DEFAULT_MAPPING,
+        DEFAULT_SERVLET_NAMES
     );
     registerFilter(
         webAppContext.getServletContext(),
@@ -66,7 +68,8 @@ public class NabServletContextConfig {
         SentryFilter.class,
         Collections.emptyMap(),
         EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING
+        DEFAULT_MAPPING,
+        DEFAULT_SERVLET_NAMES
     );
     registerFilter(
         webAppContext.getServletContext(),
@@ -74,20 +77,27 @@ public class NabServletContextConfig {
         CommonHeadersFilter.class,
         Collections.emptyMap(),
         EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING
+        DEFAULT_MAPPING,
+        DEFAULT_SERVLET_NAMES
     );
     rootCtx
         .getBeansOfType(NabServletFilter.class)
         .entrySet()
         .stream()
         .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
-        .forEach(entry -> registerFilter(webAppContext.getServletContext(), entry.getKey(), entry.getValue(),
-            EnumSet.allOf(DispatcherType.class), DEFAULT_MAPPING
+        .forEach(entry -> registerFilter(
+            webAppContext.getServletContext(),
+            entry.getKey(),
+            entry.getValue(),
+            EnumSet.allOf(DispatcherType.class),
+            DEFAULT_MAPPING,
+            DEFAULT_SERVLET_NAMES
         ));
     configureWebapp(webAppContext, rootCtx);
   }
 
-  protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) { }
+  protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
+  }
 
   protected String getContextPath() {
     return "/";
@@ -121,7 +131,8 @@ public class NabServletContextConfig {
     return Collections.unmodifiableList(servletConfigs);
   }
 
-  protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) { }
+  protected void configureServletContext(ServletContext servletContext, WebApplicationContext rootCtx) {
+  }
 
   private static void registerServlets(List<NabServletConfig> servletConfigs, ServletContext servletContext, WebApplicationContext rootCtx) {
     servletConfigs
@@ -131,7 +142,7 @@ public class NabServletContextConfig {
   }
 
   private static void registerServlet(NabServletConfig nabServletConfig, ServletContext servletContext, WebApplicationContext rootCtx) {
-    validateMappings(nabServletConfig.getMapping());
+    validateServletMappings(nabServletConfig.getMapping());
 
     Servlet servlet = nabServletConfig.createServlet(rootCtx);
     ServletRegistration.Dynamic dynamic = servletContext.addServlet(nabServletConfig.getName(), servlet);
@@ -143,9 +154,21 @@ public class NabServletContextConfig {
     dynamic.setAsyncSupported(Boolean.parseBoolean(nabServletConfig.getInitParameters().getOrDefault("async-supported", "true")));
   }
 
-  private static void validateMappings(String[] mappings) {
-    if (mappings == null || mappings.length == 0) {
+  private static void validateServletMappings(String[] mappings) {
+    if (ArrayUtils.isEmpty(mappings)) {
       throw new IllegalArgumentException("URL mapping must be present");
+    }
+  }
+
+  private static void validateFilterMappingsAndServletNames(String[] mappings, String[] servletNames) {
+    boolean mappingsAreEmpty = ArrayUtils.isEmpty(mappings);
+    boolean servletNamesAreEmpty = ArrayUtils.isEmpty(servletNames);
+
+    if (mappingsAreEmpty && servletNamesAreEmpty) {
+      throw new IllegalArgumentException("URL mapping or servlet names must be present");
+    }
+    if (!mappingsAreEmpty && !servletNamesAreEmpty) {
+      throw new IllegalArgumentException("URL mapping and servlet names are mutually exclusive");
     }
   }
 
@@ -155,13 +178,18 @@ public class NabServletContextConfig {
       Class<F> filterClass,
       Map<String, String> initParameters,
       EnumSet<DispatcherType> dispatcherTypes,
-      String... mappings
+      String[] mappings,
+      String[] servletNames
   ) {
-    validateMappings(mappings);
+    validateFilterMappingsAndServletNames(mappings, servletNames);
 
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filterClass);
     dynamic.setInitParameters(initParameters);
-    dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
+    if (ArrayUtils.isEmpty(mappings)) {
+      dynamic.addMappingForServletNames(dispatcherTypes, true, servletNames);
+    } else {
+      dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
+    }
     dynamic.setAsyncSupported(Boolean.parseBoolean(initParameters.getOrDefault("async-supported", "true")));
   }
 
@@ -170,23 +198,17 @@ public class NabServletContextConfig {
       String filterName,
       F filter,
       EnumSet<DispatcherType> dispatcherTypes,
-      String... mappings
+      String[] mappings,
+      String[] servletNames
   ) {
-    registerFilter(servletContext, filterName, filter, dispatcherTypes, true, mappings);
-  }
-
-  public static <F extends Filter> void registerFilter(
-      ServletContext servletContext,
-      String filterName,
-      F filter,
-      EnumSet<DispatcherType> dispatcherTypes,
-      boolean async,
-      String... mappings
-  ) {
-    validateMappings(mappings);
+    validateFilterMappingsAndServletNames(mappings, servletNames);
     FilterRegistration.Dynamic dynamic = servletContext.addFilter(filterName, filter);
-    dynamic.setAsyncSupported(async);
-    dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
+    dynamic.setAsyncSupported(true);
+    if (ArrayUtils.isEmpty(mappings)) {
+      dynamic.addMappingForServletNames(dispatcherTypes, true, servletNames);
+    } else {
+      dynamic.addMappingForUrlPatterns(dispatcherTypes, true, mappings);
+    }
   }
 
   public static void registerFilter(
@@ -194,13 +216,22 @@ public class NabServletContextConfig {
       String filterName,
       FilterHolder filterHolder,
       EnumSet<DispatcherType> dispatcherTypes,
-      String... mappings
+      String[] mappings,
+      String[] servletNames
   ) {
-    validateMappings(mappings);
+    validateFilterMappingsAndServletNames(mappings, servletNames);
     if (filterHolder.isInstance()) {
-      registerFilter(servletContext, filterName, filterHolder.getFilter(), dispatcherTypes, mappings);
+      registerFilter(servletContext, filterName, filterHolder.getFilter(), dispatcherTypes, mappings, servletNames);
     } else {
-      registerFilter(servletContext, filterName, filterHolder.getHeldClass(), filterHolder.getInitParameters(), dispatcherTypes, mappings);
+      registerFilter(
+          servletContext,
+          filterName,
+          filterHolder.getHeldClass(),
+          filterHolder.getInitParameters(),
+          dispatcherTypes,
+          mappings,
+          servletNames
+      );
     }
   }
 

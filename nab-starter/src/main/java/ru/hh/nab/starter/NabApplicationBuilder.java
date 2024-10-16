@@ -200,7 +200,8 @@ public final class NabApplicationBuilder {
           filterClass,
           getInitParameters(),
           getDispatcherTypes(),
-          getMappings()
+          getMappings(),
+          getServletNames()
       );
     }
   }
@@ -228,7 +229,8 @@ public final class NabApplicationBuilder {
           StringUtils.hasLength(filterName) ? filterName : filterHolder.getName(),
           filterHolder,
           getDispatcherTypes(),
-          getMappings()
+          getMappings(),
+          getServletNames()
       );
     }
   }
@@ -268,7 +270,8 @@ public final class NabApplicationBuilder {
           StringUtils.hasLength(filterName) ? filterName : filter.getClass().getName(),
           filter,
           getDispatcherTypes(),
-          getMappings()
+          getMappings(),
+          getServletNames()
       );
     }
   }
@@ -276,6 +279,7 @@ public final class NabApplicationBuilder {
   private abstract class AbstractFilterBuilder<IMPL extends AbstractFilterBuilder<IMPL>> {
 
     private String[] mappings;
+    private String[] servletNames;
     private String filterName;
     private EnumSet<DispatcherType> dispatcherTypes = EnumSet.allOf(DispatcherType.class);
 
@@ -285,6 +289,10 @@ public final class NabApplicationBuilder {
 
     String[] getMappings() {
       return mappings;
+    }
+
+    String[] getServletNames() {
+      return servletNames;
     }
 
     String getFilterName() {
@@ -312,6 +320,11 @@ public final class NabApplicationBuilder {
 
     public NabApplicationBuilder bindToRoot() {
       return bindTo(ROOT_MAPPING);
+    }
+
+    public NabApplicationBuilder bindToServlets(String... servletNames) {
+      this.servletNames = servletNames;
+      return acceptFilter(this);
     }
   }
 }

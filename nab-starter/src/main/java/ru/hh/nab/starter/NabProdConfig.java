@@ -6,9 +6,9 @@ import jakarta.inject.Named;
 import java.io.IOException;
 import java.util.Objects;
 import static java.util.Objects.requireNonNullElse;
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,11 +30,13 @@ import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.events.JettyEventListener;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
 import ru.hh.nab.starter.qualifier.Service;
-import static ru.hh.nab.starter.server.cache.HttpCacheFilterFactory.createCacheFilterHolder;
+import ru.hh.nab.starter.server.cache.CacheFilter;
 
 @Configuration
 @Import({NabCommonConfig.class})
 public class NabProdConfig {
+
+  public static final String RESPONSE_CACHE_SIZE_PROPERTY = "http.cache.sizeInMB";
 
   public static final String CONSUL_PORT_PROPERTY = "consul.http.port";
   public static final String CONSUL_HOST_PROPERTY = "consul.http.host";
@@ -52,9 +54,13 @@ public class NabProdConfig {
     return fromFilesInSettingsDir(PROPERTIES_FILE_NAME);
   }
 
+  @Nullable
   @Bean
-  FilterHolder cacheFilter(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
-    return createCacheFilterHolder(fileSettings, serviceName, statsDSender);
+  CacheFilter cacheFilter(FileSettings fileSettings, String serviceName, StatsDSender statsDSender) {
+    return Optional
+        .ofNullable(fileSettings.getInteger(RESPONSE_CACHE_SIZE_PROPERTY))
+        .map(cacheSize -> new CacheFilter(serviceName, cacheSize, statsDSender))
+        .orElse(null);
   }
 
   @Bean

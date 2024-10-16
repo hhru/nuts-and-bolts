@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -20,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.hh.nab.starter.NabApplicationBuilder;
 import static ru.hh.nab.starter.NabServletContextConfig.DEFAULT_MAPPING;
 import ru.hh.nab.starter.jersey.DefaultResourceConfig;
+import ru.hh.nab.starter.server.cache.CacheFilter;
 import ru.hh.nab.starter.spring.HierarchicalWebApplicationContext;
 
 public abstract class NabJerseyConfig implements NabServletConfig {
@@ -87,6 +89,9 @@ public abstract class NabJerseyConfig implements NabServletConfig {
     }
     springContext.setParent(rootCtx);
     springContext.refresh();
+    Optional
+        .ofNullable(springContext.getBeanProvider(CacheFilter.class).getIfAvailable())
+        .ifPresent(resourceConfig::register);
     springContext
         .getBeansWithAnnotation(jakarta.ws.rs.Path.class)
         .values()

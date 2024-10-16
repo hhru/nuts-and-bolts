@@ -2,7 +2,7 @@ package ru.hh.nab.starter.server.cache;
 
 import java.io.Serializable;
 
-class Header implements Serializable {
+public class Header implements Serializable {
   private static final long serialVersionUID = -1198547959156704720L;
 
   public final String header;

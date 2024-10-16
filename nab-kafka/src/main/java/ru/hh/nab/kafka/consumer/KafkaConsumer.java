@@ -29,8 +29,10 @@ public class KafkaConsumer<T> {
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-  private final BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
+  final KafkaConsumer<T> retryKafkaConsumer;
+  private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
+  private final RetryService<T> retryService;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
@@ -41,11 +43,15 @@ public class KafkaConsumer<T> {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
+      RetryService<T> retryService,
+      KafkaConsumer<T> retryKafkaConsumer,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider
+      AckProvider<T> ackProvider
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = retryService;
+    this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -63,11 +69,13 @@ public class KafkaConsumer<T> {
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider,
+      AckProvider<T> ackProvider,
       Duration checkNewPartitionsInterval
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = null;
+    this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -130,6 +138,9 @@ public class KafkaConsumer<T> {
       running = false;
       currentSpringKafkaContainer.stop(callback);
       stopPartitionsMonitoring();
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.stop();
+      }
     } finally {
       restartLock.unlock();
     }
@@ -164,7 +175,7 @@ public class KafkaConsumer<T> {
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.apply(this, consumer);
+    Ack<T> ack = ackProvider.createAck(this, consumer, retryService);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }

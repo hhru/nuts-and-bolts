@@ -1,46 +1,79 @@
 package ru.hh.nab.starter.server.cache;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import static java.util.Optional.ofNullable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Configuration;
+import javax.ws.rs.core.Context;
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.WriterInterceptor;
+import javax.ws.rs.ext.WriterInterceptorContext;
 import org.caffinitas.ohc.OHCache;
 import org.caffinitas.ohc.OHCacheBuilder;
 import org.caffinitas.ohc.OHCacheStats;
+import org.glassfish.jersey.internal.PropertiesDelegate;
+import org.glassfish.jersey.message.MessageBodyWorkers;
+import org.glassfish.jersey.message.internal.HeaderUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.nab.starter.jersey.NabPriorities;
 import static ru.hh.nab.starter.server.cache.CachedResponse.PLACEHOLDER;
 import static ru.hh.nab.starter.server.logging.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.starter.server.logging.RequestInfo.HIT;
 import static ru.hh.nab.starter.server.logging.RequestInfo.MISS;
 
-public class CacheFilter implements Filter {
+@Priority(NabPriorities.CACHE)
+public class CacheFilter implements ContainerRequestFilter, ContainerResponseFilter, WriterInterceptor {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CacheFilter.class);
   private static final int NO_CACHE = -1;
   private static final int STATS_UPDATE_RATE = 15;
 
-  private final OHCache<byte[], byte[]> ohCache;
+  private static final String REQUEST_KEY_PROPERTY = CacheFilter.class.getName() + ".requestKey";
+  private static final String CACHED_RESPONSE_STATE_PROPERTY = CacheFilter.class.getName() + ".cachedResponseState";
+  private static final String RESPONSE_STATUS_PROPERTY = CacheFilter.class.getName() + ".responseStatus";
+
+  private final OHCache<byte[], byte[]> cache;
   private final AtomicInteger cachedHits = new AtomicInteger(0);
   private final AtomicInteger cachedMisses = new AtomicInteger(0);
   private final AtomicInteger cachedPlaceholder = new AtomicInteger(0);
   private final AtomicInteger cachedBypass = new AtomicInteger(0);
 
+  @Inject
+  private HttpServletResponse servletResponse;
+
+  @Context
+  private MessageBodyWorkers messageBodyWorkers;
+
+  @Context
+  private PropertiesDelegate propertiesDelegate;
+
+  @Context
+  private Configuration configuration;
+
   public CacheFilter(String serviceName, int size, StatsDSender statsDSender) {
     Serializer serializer = new Serializer();
-    ohCache = OHCacheBuilder
+    cache = OHCacheBuilder
         .<byte[], byte[]>newBuilder()
         .capacity(size * 1024L * 1024L)
         .timeouts(true)
@@ -63,8 +96,8 @@ public class CacheFilter implements Filter {
     var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
 
     statsDSender.sendPeriodically(() -> {
-      OHCacheStats stats = ohCache.stats();
-      ohCache.resetStatistics();
+      OHCacheStats stats = cache.stats();
+      cache.resetStatistics();
 
       sender.sendCount(internalHitsMetricName, stats.getHitCount());
       sender.sendCount(internalMissesMetricName, stats.getMissCount());
@@ -84,22 +117,30 @@ public class CacheFilter implements Filter {
     }, STATS_UPDATE_RATE);
   }
 
-  private static byte[] getCacheKey(HttpServletRequest request) {
-    return (request.getMethod() + request.getRequestURI() + '?' + request.getQueryString() + request.getHeader("Accept")).getBytes();
+  private byte[] getCacheKey(ContainerRequestContext requestContext) {
+    String method = requestContext.getMethod();
+    String path = requestContext.getUriInfo().getRequestUri().getRawPath();
+    String rawQuery = Optional
+        .ofNullable(requestContext.getUriInfo().getRequestUri().getRawQuery())
+        .map(query -> '?' + query)
+        .orElse("");
+    String acceptHeader = Optional
+        .ofNullable(requestContext.getHeaderString("Accept"))
+        .map(header -> '#' + header)
+        .orElse("");
+    return (method + path + rawQuery + acceptHeader).getBytes();
   }
 
-  private static int getMaxAge(HttpServletResponse response) {
-    if (response.getStatus() != 200) {
-      return NO_CACHE;
-    }
-
-    String cacheHeaderValue = response.getHeader(CACHE_CONTROL);
-    if (cacheHeaderValue == null) {
+  private int getMaxAge(MultivaluedMap<String, String> headers) {
+    Optional<String> cacheHeaderValue = ofNullable(headers.get(CACHE_CONTROL))
+        .filter(cacheControlHeaderValues -> !cacheControlHeaderValues.isEmpty())
+        .map(cacheControlHeaderValues -> cacheControlHeaderValues.get(0));
+    if (cacheHeaderValue.isEmpty()) {
       return NO_CACHE;
     }
 
     try {
-      return CacheControl.valueOf(cacheHeaderValue).getMaxAge();
+      return CacheControl.valueOf(cacheHeaderValue.get()).getMaxAge();
     } catch (IllegalArgumentException e) {
       LOGGER.error("Invalid Cache-Control header value {}", cacheHeaderValue, e);
       return NO_CACHE;
@@ -107,52 +148,87 @@ public class CacheFilter implements Filter {
   }
 
   @Override
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
-      throws IOException, ServletException {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-    HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-
-    byte[] key = getCacheKey(httpServletRequest);
-    CachedResponse cachedResponse = CachedResponse.from(ohCache.get(key));
-
+  public void filter(ContainerRequestContext requestContext) throws IOException {
+    byte[] key = getCacheKey(requestContext);
+    CachedResponse cachedResponse = CachedResponse.from(cache.get(key));
+    requestContext.setProperty(REQUEST_KEY_PROPERTY, key);
     if (cachedResponse == null) {
-      filterChain.doFilter(servletRequest, servletResponse);
-
-      int maxAge = getMaxAge(httpServletResponse);
-      if (maxAge != NO_CACHE) {
-        servletRequest.setAttribute(CACHE_ATTRIBUTE, MISS);
-        cachedMisses.incrementAndGet();
-        ohCache.putIfAbsent(key, PLACEHOLDER, System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
-      } else {
-        cachedBypass.incrementAndGet();
-      }
+      requestContext.setProperty(CACHED_RESPONSE_STATE_PROPERTY, CachedResponseState.NOT_CACHED);
     } else if (cachedResponse.isPlaceholder()) {
-      CachingResponseWrapper responseWrapper = new CachingResponseWrapper(httpServletResponse);
+      requestContext.setProperty(CACHED_RESPONSE_STATE_PROPERTY, CachedResponseState.PLACEHOLDER_CACHED);
+    } else {
+      requestContext.setProperty(CACHED_RESPONSE_STATE_PROPERTY, CachedResponseState.CACHED);
+      requestContext.setProperty(CACHE_ATTRIBUTE, HIT);
+      cachedHits.incrementAndGet();
+      Response.ResponseBuilder responseBuilder = Response.status(cachedResponse.status);
+      cachedResponse.headers.forEach(header -> responseBuilder.header(header.header, header.value));
+      responseBuilder.entity(new ByteArrayInputStream(cachedResponse.body));
+      requestContext.abortWith(responseBuilder.build());
+    }
+  }
 
-      filterChain.doFilter(servletRequest, responseWrapper);
-      responseWrapper.flushBuffer();
+  @Override
+  public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    requestContext.setProperty(RESPONSE_STATUS_PROPERTY, responseContext.getStatus());
+  }
 
-      int maxAge = getMaxAge(httpServletResponse);
-      if (maxAge != NO_CACHE && !responseWrapper.hasError()) {
-        servletRequest.setAttribute(CACHE_ATTRIBUTE, MISS);
-        cachedPlaceholder.incrementAndGet();
-        CachedResponse response = CachedResponse.from(responseWrapper);
+  @Override
+  public void aroundWriteTo(WriterInterceptorContext context) throws IOException, WebApplicationException {
+    byte[] key = (byte[]) context.getProperty(REQUEST_KEY_PROPERTY);
+    CachedResponseState cachedResponseState = (CachedResponseState) context.getProperty(CACHED_RESPONSE_STATE_PROPERTY);
+    int responseStatus = (int) context.getProperty(RESPONSE_STATUS_PROPERTY);
 
-        ohCache.put(key, response.getSerialized(), System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
+    if (cachedResponseState == CachedResponseState.NOT_CACHED || cachedResponseState == CachedResponseState.PLACEHOLDER_CACHED) {
+      MultivaluedMap<String, String> headers = getHeaders(servletResponse, context);
+      int maxAge = getMaxAge(headers);
+      if (responseStatus == Response.Status.OK.getStatusCode() && maxAge > 0) {
+        context.setProperty(CACHE_ATTRIBUTE, MISS);
+        if (cachedResponseState == CachedResponseState.NOT_CACHED) {
+          // just cache placeholder and call next write interceptors
+          cachedMisses.incrementAndGet();
+          cache.putIfAbsent(key, PLACEHOLDER, System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
+          context.proceed();
+        } else {
+          // call next write interceptors and cache result after all interceptors made their work
+          CachingOutputStream cachingOutputStream = new CachingOutputStream(context.getOutputStream());
+          context.setOutputStream(cachingOutputStream);
+          context.proceed();
+          cachingOutputStream.flush();
+
+          cachedPlaceholder.incrementAndGet();
+          CachedResponse response = CachedResponse.from(responseStatus, headers, cachingOutputStream.getContentAsByteArray());
+          cache.put(key, response.getSerialized(), System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxAge));
+        }
       } else {
         cachedBypass.incrementAndGet();
+        context.proceed();
       }
     } else {
-      servletRequest.setAttribute(CACHE_ATTRIBUTE, HIT);
-      cachedHits.incrementAndGet();
-      httpServletResponse.setStatus(cachedResponse.status);
-      cachedResponse.headers.forEach(header -> httpServletResponse.addHeader(header.header, header.value));
-
-      httpServletResponse.setContentLength(cachedResponse.body.length);
-      ServletOutputStream outputStream = httpServletResponse.getOutputStream();
-      outputStream.write(cachedResponse.body);
-      outputStream.flush();
-      httpServletResponse.flushBuffer();
+      // write cached result to entity output stream without calling any write interceptors
+      messageBodyWorkers.writeTo(
+          context.getEntity(),
+          context.getType(),
+          context.getGenericType(),
+          context.getAnnotations(),
+          context.getMediaType(),
+          context.getHeaders(),
+          propertiesDelegate,
+          context.getOutputStream(),
+          List.of()
+      );
     }
+  }
+
+  private MultivaluedMap<String, String> getHeaders(HttpServletResponse servletResponse, WriterInterceptorContext context) {
+    MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+    servletResponse.getHeaderNames().forEach(
+        headerName -> headers.put(headerName, servletResponse.getHeaders(headerName).stream().toList())
+    );
+    headers.putAll(HeaderUtils.asStringHeaders(context.getHeaders(), configuration));
+    return headers;
+  }
+
+  private enum CachedResponseState {
+    NOT_CACHED, PLACEHOLDER_CACHED, CACHED
   }
 }

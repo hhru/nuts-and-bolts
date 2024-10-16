@@ -7,16 +7,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.ws.rs.core.MultivaluedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class CachedResponse implements Serializable {
+public class CachedResponse implements Serializable {
   private static final long serialVersionUID = 4535812629333313638L;
 
   private static final Set<String> EXCLUDE_HEADERS =
@@ -26,7 +26,7 @@ class CachedResponse implements Serializable {
           .collect(Collectors.toSet());
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CachedResponse.class);
-  static final byte[] PLACEHOLDER = new CachedResponse().getSerialized();
+  public static final byte[] PLACEHOLDER = new CachedResponse().getSerialized();
 
   public final int status;
   public final List<Header> headers;
@@ -60,17 +60,14 @@ class CachedResponse implements Serializable {
     return null;
   }
 
-  public static CachedResponse from(CachingResponseWrapper responseWrapper) {
-    List<Header> headers = new ArrayList<>();
-    for (String header : responseWrapper.getHeaderNames()) {
-      Collection<String> values = responseWrapper.getHeaders(header);
-
+  public static CachedResponse from(int status, MultivaluedMap<String, String> headers, byte[] serializedEntity) {
+    List<Header> headersList = new ArrayList<>();
+    headers.forEach((header, values) -> {
       if (header != null && values != null && !EXCLUDE_HEADERS.contains(header.toLowerCase())) {
-        values.stream().filter(Objects::nonNull).forEach(value -> headers.add(new Header(header, value)));
+        values.stream().filter(Objects::nonNull).forEach(value -> headersList.add(new Header(header, value)));
       }
-    }
-
-    return new CachedResponse(responseWrapper.getStatus(), headers, responseWrapper.getContentAsByteArray());
+    });
+    return new CachedResponse(status, headersList, serializedEntity);
   }
 
   public static CachedResponse from(byte[] data) {

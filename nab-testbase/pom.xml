@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>7.0.0.jakarta-rc2</version>
+        <version>7.0.0.jakarta-rc3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

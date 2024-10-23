@@ -4,6 +4,9 @@ import java.util.function.BiFunction;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 
+/**
+ * Decides what {@link RetryPolicy} to use for concrete message and processing error
+ * */
 @FunctionalInterface
 public interface RetryPolicyResolver<T> extends BiFunction<ConsumerRecord<String, T>, Throwable, RetryPolicy> {
 

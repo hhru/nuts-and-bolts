@@ -5,15 +5,21 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,17 +55,123 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   void retryOnceUsingSingleTopic() throws InterruptedException {
     doThrow(new RuntimeException()).doNothing().when(mockService).accept(anyString());
     kafkaTestUtils.sendMessage(topicName, "first pancake");
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      checkPartitionsAssigned();
+      verify(mockService, times(2)).accept(eq("first pancake"));
+    });
+    assertEquals(1, countMessagesInTopic(getDefaultRetryTopic()));
+  }
+
+  @Test
+  void retry3TimesUsingSingleTopic() throws InterruptedException {
+    doThrow(new RuntimeException(), new RuntimeException(), new RuntimeException()).doNothing().when(mockService).accept(anyString());
+    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      checkPartitionsAssigned();
+      verify(mockService, times(4)).accept(eq("first pancake"));
+    });
+    assertEquals(3, countMessagesInTopic(getDefaultRetryTopic()));
+  }
+
+  @Test
+  void retry3MessagesInARow() throws InterruptedException {
+    Stream.of("first pancake", "two left feet", "three know it").forEach(message -> {
+      doThrow(new RuntimeException()).doNothing().when(mockService).accept(eq(message));
+      kafkaTestUtils.sendMessage(topicName, message);
+    });
+    doNothing().when(mockService).accept(eq("four-letter word"));
+    kafkaTestUtils.sendMessage(topicName, "four-letter word");
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      checkPartitionsAssigned();
+      verify(mockService, times(2)).accept(eq("first pancake"));
+      verify(mockService, times(2)).accept(eq("two left feet"));
+      verify(mockService, times(2)).accept(eq("three know it"));
+      verify(mockService, times(1)).accept(eq("four-letter word"));
+    });
+    assertEquals(3, countMessagesInTopic(getDefaultRetryTopic()));
+  }
+
+  @Test
+  void retryFailsInConsumerWithAllPartitionsAssigned() throws InterruptedException {
+    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    AtomicBoolean exceptionThrown = new AtomicBoolean(false);
     consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
-        .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept))
-        .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(1))), true)
+        .withConsumeStrategy((messages, ack) -> {
+          try {
+            ack.retry(messages.get(0), null);
+          } catch (UnsupportedOperationException unsupported) {
+            exceptionThrown.set(true);
+          }
+        })
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .start();
     waitUntil(() -> {
       assertEquals(5, consumer.getAssignedPartitions().size());
-      assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
-      verify(mockService, times(2)).accept(eq("first pancake"));
+      assertTrue(exceptionThrown.get());
     });
+  }
+
+  @Test
+  void retryConsumerReadsFromRetryReceiveTopic() throws InterruptedException {
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      checkPartitionsAssigned();
+    });
+    kafkaTestUtils.sendMessage(getDefaultRetryTopic(), "retry message");
+    waitUntil(() -> {
+      verify(mockService, times(1)).accept(eq("retry message"));
+    });
+  }
+
+  @Test
+  void retryConsumerRestartsAlongWithMainConsumer() {
+    startConsumerWithRetries();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+    consumer.stop();
+    assertFalse(consumer.isRunning());
+    assertFalse(consumer.retryKafkaConsumer.isRunning());
+    consumer.start();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+  }
+
+  @Test
+  void retryConsumerStopsWithCallbackAlongWithMainConsumer() throws InterruptedException {
+    startConsumerWithRetries();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+    AtomicInteger callbackCalls = new AtomicInteger(0);
+    consumer.stop(callbackCalls::incrementAndGet);
+    waitUntil(() -> assertEquals(1, callbackCalls.get()));
+    assertFalse(consumer.isRunning());
+    assertFalse(consumer.retryKafkaConsumer.isRunning());
+  }
+
+  private void checkPartitionsAssigned() {
+    assertEquals(5, consumer.getAssignedPartitions().size());
+    assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
+  }
+
+  private void startConsumerWithRetries() {
+    ConsumeStrategy<String> consumeStrategy = ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept);
+    consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("testOperation")
+        .withConsumeStrategy(consumeStrategy)
+        .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(1))))
+        // reduce retry consumer sleep duration to speed-up tests
+        .withRetryConsumeStrategy(DefaultConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofSeconds(1)))
+        .start();
+  }
+
+  private String getDefaultRetryTopic() {
+    return topicName + "_service_testOperation_retry_receive";
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
@@ -69,11 +181,6 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
       return CompletableFuture.failedFuture(e);
     }
     return CompletableFuture.completedFuture(null);
-  }
-
-  @Test
-  void offsetsNotCommitedUntilRetryMessagesAreSent() {
-
   }
 
   private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {

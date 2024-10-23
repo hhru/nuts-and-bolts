@@ -40,6 +40,11 @@ class SimpleDelayedConsumeStrategyTest {
       Duration.ofSeconds(2),
       Clock.fixed(NOW, ZoneId.systemDefault())
   );
+  private final SimpleDelayedConsumeStrategy<Long> nestedStrategy = new SimpleDelayedConsumeStrategy<>(
+      strategy,
+      GET_READY_TIME.andThen(time -> time.minusSeconds(1)), // wrapping strategy takes messages as ready 1 second earlier than nested one
+      Duration.ofSeconds(1),
+      Clock.fixed(NOW, ZoneId.systemDefault()));
 
   @BeforeEach
   void setUp() {
@@ -87,6 +92,78 @@ class SimpleDelayedConsumeStrategyTest {
         myAck
     ));
     assertEquals(3, processedMessages.size());
+    verify(myAck, never()).acknowledge();
+    verify(myAck, only()).acknowledge(eq(processedMessages));
+  }
+
+  @Test
+  void nestedStrategySleep() {
+    // wrapping strategy sleeps
+    assertTimeout(Duration.ofMillis(1500), () -> nestedStrategy.onMessagesBatch(
+        messages(
+            NOW.toEpochMilli() + 1001,
+            NOW.toEpochMilli() + 2000
+        ),
+        myAck
+    ));
+    // nested strategy sleeps
+    assertTimeout(Duration.ofMillis(2500), () -> nestedStrategy.onMessagesBatch(
+        messages(
+            NOW.toEpochMilli() + 1,
+            NOW.toEpochMilli() + 1001
+        ),
+        myAck
+    ));
+    verify(myAck, never()).acknowledge();
+    verify(myAck, never()).acknowledge(anyCollection());
+  }
+
+  @Test
+  void nestedStrategyReadyMessages() {
+    assertTimeout(Duration.ofMillis(500), () -> strategy.onMessagesBatch(
+        messages(
+            NOW.toEpochMilli() - 1,
+            NOW.toEpochMilli() + 1,
+            NOW.toEpochMilli() + 2
+        ),
+        myAck
+    ));
+    assertEquals(1, processedMessages.size());
+    verify(myAck, never()).acknowledge();
+    verify(myAck, only()).acknowledge(eq(processedMessages));
+  }
+
+  @Test
+  void nestedStrategyAllMessages() {
+    assertTimeout(Duration.ofMillis(500), () -> strategy.onMessagesBatch(
+        messages(
+            NOW.toEpochMilli() - 3,
+            NOW.toEpochMilli() - 2,
+            NOW.toEpochMilli() - 1
+        ),
+        myAck
+    ));
+    assertEquals(3, processedMessages.size());
+    verify(myAck, never()).acknowledge();
+    verify(myAck, only()).acknowledge(eq(processedMessages));
+  }
+
+  @Test
+  void nestedInvertedStrategy() {
+    SimpleDelayedConsumeStrategy<Long> nestedInvertedStrategy = new SimpleDelayedConsumeStrategy<>(
+        strategy,
+        GET_READY_TIME.andThen(time -> time.plusSeconds(1)), // wrapping strategy takes messages as ready 1 second later than nested one
+        Duration.ofSeconds(1),
+        Clock.fixed(NOW, ZoneId.systemDefault()));
+    assertTimeout(Duration.ofMillis(500), () -> nestedInvertedStrategy.onMessagesBatch(
+        messages(
+            NOW.toEpochMilli() - 1001,
+            NOW.toEpochMilli() - 999,
+            NOW.toEpochMilli() - 1
+        ),
+        myAck
+    ));
+    assertEquals(1, processedMessages.size());
     verify(myAck, never()).acknowledge();
     verify(myAck, only()).acknowledge(eq(processedMessages));
   }

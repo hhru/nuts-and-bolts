@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.Optional;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 
-public record FixedDelay(Duration delay) implements RetryPolicy {
-  public FixedDelay {
+public record Fixed(Duration delay) implements RetryPolicy {
+  public Fixed {
     if (delay.isNegative()) {
       throw new IllegalArgumentException("Delay should be positive");
     }
@@ -20,10 +20,5 @@ public record FixedDelay(Duration delay) implements RetryPolicy {
     return Optional.of(history
         .lastFailTime()
         .plus(delay));
-  }
-
-  @Override
-  public boolean hasFixedDelay() {
-    return true;
   }
 }

@@ -9,9 +9,4 @@ public record Never() implements RetryPolicy {
   public Optional<Instant> getNextRetryTime(MessageProcessingHistory history) {
     return Optional.empty();
   }
-
-  @Override
-  public boolean hasFixedDelay() {
-    return false;
-  }
 }

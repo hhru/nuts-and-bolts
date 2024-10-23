@@ -25,9 +25,4 @@ public record Ttl(RetryPolicy base, Duration ttl) implements RetryPolicy {
             .creationTime()
             .plus(ttl)::isAfter);
   }
-
-  @Override
-  public boolean hasFixedDelay() {
-    return base.hasFixedDelay();
-  }
 }

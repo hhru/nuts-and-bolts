@@ -71,13 +71,14 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
       throw new UnsupportedOperationException("This Consumer has not been configured for retries");
     }
     CompletableFuture<?> retryFuture = retryService.retry(message, error);
-    consumingState.addRetryFuture(retryFuture);
+    consumingState.addRetryFuture(retryFuture, message);
     return retryFuture;
   }
 
   private void waitForRetriesToComplete() {
     try {
       consumingState.getAllBatchRetryFuturesAsOne().get();
+      AckUtils.getLatestOffsetForEachPartition(consumingState.getBatchRetryMessages()).forEach(consumingState::seekOffset);
     } catch (InterruptedException e) {
       throw new InterruptException(e);
     } catch (ExecutionException | CancellationException e) {

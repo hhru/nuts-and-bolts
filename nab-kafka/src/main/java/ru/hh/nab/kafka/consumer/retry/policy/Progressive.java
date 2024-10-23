@@ -18,11 +18,6 @@ public record Progressive(DelayByRetryNumber delayByRetryNumber) implements Retr
         .plus(delayByRetryNumber.getDelay(history.retryNumber())));
   }
 
-  @Override
-  public boolean hasFixedDelay() {
-    return false;
-  }
-
   @FunctionalInterface
   public interface DelayByRetryNumber {
     Duration getDelay(long retryNumber);

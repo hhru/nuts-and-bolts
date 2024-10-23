@@ -46,7 +46,7 @@ class RetryServiceTest {
 
   @Test
   void firstRetryAddsHeaders() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))));
+    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
 
     retryService.retry(message(), null);
@@ -62,7 +62,7 @@ class RetryServiceTest {
 
   @Test
   void nextRetryReplacesHeaders() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10))));
+    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
     ConsumerRecord<String, String> message = message();
     MessageProcessingHistory oldProcessingHistory = new MessageProcessingHistory(CREATION_TIME.plusSeconds(1), 9, NOW.minusSeconds(90));
     setMessageProcessingHistory(message.headers(), oldProcessingHistory);
@@ -83,7 +83,7 @@ class RetryServiceTest {
   @Test
   void testStopRetriesDueToPolicyLimits() {
     RetryService<String> retryService = createRetryService(
-        RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(10)).withRetryLimit(1)));
+        RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10)).withRetryLimit(1)));
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
     ConsumerRecord<String, String> message = message();
     setMessageProcessingHistory(message.headers(), processingHistory);
@@ -96,7 +96,7 @@ class RetryServiceTest {
   @Test
   void testStopRetriesForSpecificException() {
     RetryService<String> retryService = createRetryService(
-        (message, throwable) -> throwable instanceof IllegalStateException ? RetryPolicy.never() : RetryPolicy.fixedDelay(Duration.ofSeconds(10))
+        (message, throwable) -> throwable instanceof IllegalStateException ? RetryPolicy.never() : RetryPolicy.fixed(Duration.ofSeconds(10))
     );
     retryService.retry(message(), new IllegalStateException());
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
@@ -107,7 +107,7 @@ class RetryServiceTest {
   @Test
   void testStopRetriesForSpecificMessage() {
     RetryService<String> retryService = createRetryService(
-        (message, throwable) -> message.value().equals("non-retriable") ? RetryPolicy.never() : RetryPolicy.fixedDelay(Duration.ofSeconds(10))
+        (message, throwable) -> message.value().equals("non-retriable") ? RetryPolicy.never() : RetryPolicy.fixed(Duration.ofSeconds(10))
     );
     retryService.retry(message("non-retriable"), null);
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());

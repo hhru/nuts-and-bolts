@@ -3,7 +3,9 @@ package ru.hh.nab.kafka.consumer;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public interface Ack<T> {
 
@@ -73,15 +75,20 @@ public interface Ack<T> {
 
   /**
    * Schedule message for retry because of processing error or business logic decision.
-   * Time of retry is determined based on message itself, its {@link MessageProcessingHistory} and processing error details (if any).
-   * Implementation MAY move offsets to next after that message when (and if) it has been successfully scheduled for retry.
-   * Caller MAY use returned Future but is not required to wait for it to complete because next call to {@link #seek(ConsumerRecord)}
-   * or any of acknowledge(...) methods will do that.
+   * <p>
+   * Time of retry is determined by consumer configuration.
+   * <p>
+   * Caller MAY use returned Future but is not required to wait for it to complete because
+   * next call to {@link #seek(ConsumerRecord)} or any of acknowledge(...) methods will do that.
+   *
    * @param message Message that should be scheduled for retry
-   * @param error Exception that was the cause for retrying message. If there was no exception set to null
+   * @param error Exception that was the cause for retrying message. If there was no exception set to {@code null}
    *              or create custom exception with details that Ack needs to determine retry time correctly
    * @return Future that represents an async operation of scheduling the message for retry
    * @throws UnsupportedOperationException if implementation does not support retries
+   * @see ConsumerBuilder#withRetries(KafkaProducer, RetryPolicyResolver)
+   * @see RetryPolicyResolver
+   * @see RetryPolicy
    */
   CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error);
 }

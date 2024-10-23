@@ -17,9 +17,4 @@ public record Deadline(RetryPolicy base, Instant deadline) implements RetryPolic
         .getNextRetryTime(history)
         .filter(deadline::isAfter);
   }
-
-  @Override
-  public boolean hasFixedDelay() {
-    return base.hasFixedDelay();
-  }
 }

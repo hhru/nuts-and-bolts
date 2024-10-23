@@ -4,8 +4,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 
-public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progressive, RetryLimit, Ttl {
+/**
+ * Decides when (and if) a message should be retried based on its {@link MessageProcessingHistory}
+ *
+ * @see RetryPolicyResolver
+ * */
+public sealed interface RetryPolicy permits Deadline, Fixed, Never, Progressive, RetryLimit, Ttl {
 
   /**
    * Creates policy that never retries
@@ -15,15 +21,24 @@ public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progres
   }
 
   /**
-   * Creates policy that always decides to schedule retry at given <b>delay</b> after {@link MessageProcessingHistory#lastFailTime()}
+   * Creates policy that always schedules retry at given <b>delay</b> after {@link MessageProcessingHistory#lastFailTime()}.
+   * <p>
+   * Number and/or duration of retries may be limited by applying any combination of <b>with*</b> modifiers
+   *
+   * @see #withRetryLimit(long)
+   * @see #withTtl(Duration)
+   * @see #withDeadline(Instant)
    */
-  static FixedDelay fixedDelay(Duration delay) {
-    return new FixedDelay(delay);
+  static Fixed fixed(Duration delay) {
+    return new Fixed(delay);
   }
 
   /**
-   * Creates policy that schedules retry after delay that <b>delays</b> map holds for key {@link MessageProcessingHistory#retryNumber()}.
-   * If there is no value for retryNumber than <b>defaultDelay</b> is used
+   * Creates policy that schedules retry after delay that <b>delayByRetryNumber</b> returns for {@link MessageProcessingHistory#retryNumber()}
+   *
+   * @see #withRetryLimit(long)
+   * @see #withTtl(Duration)
+   * @see #withDeadline(Instant)
    */
   static Progressive progressive(Progressive.DelayByRetryNumber delayByRetryNumber) {
     return new Progressive(delayByRetryNumber);
@@ -39,7 +54,7 @@ public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progres
 
   /**
    * Creates modified policy that is based on this policy but stops retries after given deadline,
-   * that is, return value of this.getNextRetryTime() is after <b>deadline</b>
+   * that is, return value of {@link #getNextRetryTime(MessageProcessingHistory)} is after <b>deadline</b>
    */
   default Deadline withDeadline(Instant deadline) {
     return new Deadline(this, deadline);
@@ -47,7 +62,8 @@ public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progres
 
   /**
    * Creates modified policy that is based on this policy but stops retries when given TTL is reached for the message,
-   * that is, return value of this.getNextRetryTime() is after {@link MessageProcessingHistory#creationTime()} plus <b>ttl</b>
+   * that is, return value of {@link #getNextRetryTime(MessageProcessingHistory)}
+   * is after {@link MessageProcessingHistory#creationTime()} plus <b>ttl</b>
    */
   default Ttl withTtl(Duration ttl){
     return new Ttl(this, ttl);
@@ -59,5 +75,4 @@ public sealed interface RetryPolicy permits Deadline, FixedDelay, Never, Progres
    */
   Optional<Instant> getNextRetryTime(MessageProcessingHistory history);
 
-  boolean hasFixedDelay();
 }

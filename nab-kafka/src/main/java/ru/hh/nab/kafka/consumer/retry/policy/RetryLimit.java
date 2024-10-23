@@ -21,9 +21,4 @@ public record RetryLimit(RetryPolicy base, long limit) implements RetryPolicy {
   public Optional<Instant> getNextRetryTime(MessageProcessingHistory history) {
     return history.retryNumber() > limit ? Optional.empty() : base.getNextRetryTime(history);
   }
-
-  @Override
-  public boolean hasFixedDelay() {
-    return base.hasFixedDelay();
-  }
 }

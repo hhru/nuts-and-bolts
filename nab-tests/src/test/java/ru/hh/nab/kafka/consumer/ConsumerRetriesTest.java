@@ -5,10 +5,14 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,17 +53,80 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   void retryOnceUsingSingleTopic() throws InterruptedException {
     doThrow(new RuntimeException()).doNothing().when(mockService).accept(anyString());
     kafkaTestUtils.sendMessage(topicName, "first pancake");
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      assertEquals(5, consumer.getAssignedPartitions().size());
+      assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
+      verify(mockService, times(2)).accept(eq("first pancake"));
+    });
+  }
+
+  @Test
+  void retryFailsInConsumerWithAllPartitionsAssigned() throws InterruptedException {
+    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    AtomicBoolean exceptionThrown = new AtomicBoolean(false);
+    consumer = consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("testOperation")
+        .withConsumeStrategy((messages, ack) -> {
+          try {
+            ack.retry(messages.get(0), null);
+          } catch (UnsupportedOperationException unsupported) {
+            exceptionThrown.set(true);
+          }
+        })
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
+        .start();
+    waitUntil(() -> {
+      assertEquals(5, consumer.getAssignedPartitions().size());
+      assertTrue(exceptionThrown.get());
+    });
+  }
+
+  @Test
+  void retryConsumerReadsFromRetryReceiveTopic() throws InterruptedException {
+    startConsumerWithRetries();
+    waitUntil(() -> {
+      assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
+    });
+    kafkaTestUtils.sendMessage(topicName + "_testOperation_retry_receive", "retry message");
+    waitUntil(() -> {
+      verify(mockService, times(1)).accept(eq("retry message"));
+    });
+  }
+
+  @Test
+  void retryConsumerRestartsAlongWithMainConsumer() {
+    startConsumerWithRetries();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+    consumer.stop();
+    assertFalse(consumer.isRunning());
+    assertFalse(consumer.retryKafkaConsumer.isRunning());
+    consumer.start();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+  }
+
+  @Test
+  void retryConsumerStopsWithCallbackAlongWithMainConsumer() throws InterruptedException {
+    startConsumerWithRetries();
+    assertTrue(consumer.isRunning());
+    assertTrue(consumer.retryKafkaConsumer.isRunning());
+    AtomicInteger callbackCalls = new AtomicInteger(0);
+    consumer.stop(callbackCalls::incrementAndGet);
+    waitUntil(() -> assertEquals(1, callbackCalls.get()));
+    assertFalse(consumer.isRunning());
+    assertFalse(consumer.retryKafkaConsumer.isRunning());
+  }
+
+  private void startConsumerWithRetries() {
     consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
         .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept))
         .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(1))), true)
         .start();
-    waitUntil(() -> {
-      assertEquals(5, consumer.getAssignedPartitions().size());
-      assertEquals(5, consumer.retryKafkaConsumer.getAssignedPartitions().size());
-      verify(mockService, times(2)).accept(eq("first pancake"));
-    });
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
@@ -69,11 +136,6 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
       return CompletableFuture.failedFuture(e);
     }
     return CompletableFuture.completedFuture(null);
-  }
-
-  @Test
-  void offsetsNotCommitedUntilRetryMessagesAreSent() {
-
   }
 
   private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {

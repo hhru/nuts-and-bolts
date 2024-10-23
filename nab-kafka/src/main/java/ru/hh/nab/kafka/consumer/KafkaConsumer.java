@@ -19,10 +19,11 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
-public class KafkaConsumer<T> {
+public class KafkaConsumer<T> implements SmartLifecycle {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
   private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
@@ -87,6 +88,10 @@ public class KafkaConsumer<T> {
     createNewSpringContainer();
   }
 
+  public boolean isRunning() {
+    return running;
+  }
+
   public void start() {
     restartLock.lock();
     try {
@@ -97,6 +102,9 @@ public class KafkaConsumer<T> {
       currentSpringKafkaContainer.start();
       if (checkNewPartitionsInterval != null && this.assignedPartitions != null) {
         subscribeForAssignedPartitionsChange();
+      }
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.start();
       }
     } finally {
       restartLock.unlock();
@@ -129,23 +137,6 @@ public class KafkaConsumer<T> {
     );
   }
 
-  public void stop(Runnable callback) {
-    restartLock.lock();
-    try {
-      if (!running) {
-        return;
-      }
-      running = false;
-      currentSpringKafkaContainer.stop(callback);
-      stopPartitionsMonitoring();
-      if (retryKafkaConsumer != null) {
-        retryKafkaConsumer.stop();
-      }
-    } finally {
-      restartLock.unlock();
-    }
-  }
-
   public void stop() {
     restartLock.lock();
     try {
@@ -155,6 +146,9 @@ public class KafkaConsumer<T> {
       running = false;
       currentSpringKafkaContainer.stop();
       stopPartitionsMonitoring();
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.stop();
+      }
     } finally {
       restartLock.unlock();
     }

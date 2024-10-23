@@ -122,7 +122,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       KafkaConsumer<T> retryKafkaConsumer = null;
       if (usingRetries()) {
         retryService = new RetryService<>(retryProducer, getRetrySendTopicName(), retryPolicyResolver);
-        retryKafkaConsumer = buildAndStartRetryKafkaConsumer(retryService);
+        retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
       }
       return startKafkaConsumerForConsumerGroup(
           configProvider,
@@ -176,7 +176,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return kafkaConsumer;
   }
 
-  private KafkaConsumer<T> buildAndStartRetryKafkaConsumer(RetryService<T> retryService) {
+  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService) {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = getRetryReceiveTopicName();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
@@ -204,7 +204,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         springContainerProvider,
         ackProvider
     );
-    retryKafkaConsumer.start();
     return retryKafkaConsumer;
   }
 

@@ -6,6 +6,7 @@ import org.apache.kafka.common.header.Headers;
 import org.slf4j.Logger;
 import ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public interface ConsumerBuilder<T> {
@@ -34,7 +35,7 @@ public interface ConsumerBuilder<T> {
    * you may specify {@code useSingleRetryTopic=true} to send failed messages directly to <i>topicName_operationName_retry_receive</i> topic.
    * Retry consumer is already configured to consume retry messages only when they are ready for processing.
    */
-  ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, boolean useSingleRetryTopic);
+  ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, RetryTopics retryTopics);
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

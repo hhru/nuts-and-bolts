@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
@@ -125,7 +126,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
         .builder(topicName, String.class)
         .withOperationName("testOperation")
         .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept))
-        .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(1))), true)
+        .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixedDelay(Duration.ofSeconds(1))), RetryTopics.DEFAULT_SINGLE_TOPIC)
         .start();
   }
 

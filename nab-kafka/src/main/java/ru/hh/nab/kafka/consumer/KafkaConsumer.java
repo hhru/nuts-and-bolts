@@ -19,18 +19,21 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
-public class KafkaConsumer<T> {
+public class KafkaConsumer<T> implements SmartLifecycle {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
   private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-  private final BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider;
+  final KafkaConsumer<T> retryKafkaConsumer;
+  private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
+  private final RetryService<T> retryService;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
@@ -41,11 +44,15 @@ public class KafkaConsumer<T> {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
+      RetryService<T> retryService,
+      KafkaConsumer<T> retryKafkaConsumer,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider
+      AckProvider<T> ackProvider
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = retryService;
+    this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -63,11 +70,13 @@ public class KafkaConsumer<T> {
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
-      BiFunction<KafkaConsumer<T>, Consumer<?, ?>, Ack<T>> ackProvider,
+      AckProvider<T> ackProvider,
       Duration checkNewPartitionsInterval
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.retryService = null;
+    this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
@@ -77,6 +86,10 @@ public class KafkaConsumer<T> {
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     this.assignedPartitions = clusterMetadataProvider.getPartitionsInfo(consumerMetadata.getTopic());
     createNewSpringContainer();
+  }
+
+  public boolean isRunning() {
+    return running;
   }
 
   public void start() {
@@ -89,6 +102,9 @@ public class KafkaConsumer<T> {
       currentSpringKafkaContainer.start();
       if (checkNewPartitionsInterval != null && this.assignedPartitions != null) {
         subscribeForAssignedPartitionsChange();
+      }
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.start();
       }
     } finally {
       restartLock.unlock();
@@ -121,20 +137,6 @@ public class KafkaConsumer<T> {
     );
   }
 
-  public void stop(Runnable callback) {
-    restartLock.lock();
-    try {
-      if (!running) {
-        return;
-      }
-      running = false;
-      currentSpringKafkaContainer.stop(callback);
-      stopPartitionsMonitoring();
-    } finally {
-      restartLock.unlock();
-    }
-  }
-
   public void stop() {
     restartLock.lock();
     try {
@@ -144,6 +146,9 @@ public class KafkaConsumer<T> {
       running = false;
       currentSpringKafkaContainer.stop();
       stopPartitionsMonitoring();
+      if (retryKafkaConsumer != null) {
+        retryKafkaConsumer.stop();
+      }
     } finally {
       restartLock.unlock();
     }
@@ -164,7 +169,7 @@ public class KafkaConsumer<T> {
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.apply(this, consumer);
+    Ack<T> ack = ackProvider.createAck(this, consumer, retryService);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }

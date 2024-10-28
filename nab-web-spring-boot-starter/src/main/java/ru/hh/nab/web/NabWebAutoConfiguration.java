@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -35,6 +36,7 @@ import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
+import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.jersey.MarshallerContextResolver;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
@@ -100,6 +102,9 @@ public class NabWebAutoConfiguration {
 
     List<Object> components = new ArrayList<>();
     components.add(marshallerContextResolver);
+    Optional
+        .ofNullable(applicationContext.getBeanProvider(CacheFilter.class).getIfAvailable())
+        .ifPresent(components::add);
     components.addAll(beansWithPathAnnotation);
     return new NabResourceConfigCustomizer(components);
   }
@@ -133,6 +138,15 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
+  public FilterRegistrationBean<SentryFilter> sentryFilter() {
+    FilterRegistrationBean<SentryFilter> registration = new FilterRegistrationBean<>(new SentryFilter());
+    registration.setName(SentryFilter.class.getName());
+    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+    registration.setMatchAfter(true);
+    return registration;
+  }
+
+  @Bean
   public FilterRegistrationBean<CommonHeadersFilter> commonHeadersFilter() {
     FilterRegistrationBean<CommonHeadersFilter> registration = new FilterRegistrationBean<>(new CommonHeadersFilter());
     registration.setName(CommonHeadersFilter.class.getName());
@@ -144,13 +158,8 @@ public class NabWebAutoConfiguration {
   @Bean
   @MainProfile
   @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
-  public FilterRegistrationBean<CacheFilter> cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
-    CacheFilter cacheFilter = new CacheFilter(serviceName, DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
-    FilterRegistrationBean<CacheFilter> registration = new FilterRegistrationBean<>(cacheFilter);
-    registration.setName(CacheFilter.class.getName());
-    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
-    return registration;
+  public CacheFilter cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
+    return new CacheFilter(serviceName, DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
   }
 
   /**

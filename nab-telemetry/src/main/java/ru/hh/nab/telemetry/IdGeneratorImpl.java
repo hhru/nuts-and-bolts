@@ -27,6 +27,7 @@ public class IdGeneratorImpl implements IdGenerator {
 
   @Override
   public String generateTraceId() {
+    // TODO: https://jira.hh.ru/browse/HH-233805
     List<String> requestIdHolder = getRequestIdHolder();
     if (requestIdHolder == null || requestIdHolder.isEmpty()) {
       LOGGER.debug("unavailable requestId");

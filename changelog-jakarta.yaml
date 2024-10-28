@@ -1,3 +1,9 @@
+-   name: 7.0.0.jakarta-rc2
+    date: '2024-10-22T16:15:00.000000+03:00'
+    description: "Исправлен баг с инжектом org.hibernate.Session"
+    instructions: ""
+    compatible: true
+
 -   name: 5.4.0.jakarta-rc2
     date: '2024-09-04T15:20:00.000000+03:00'
     description: "Исправлен дефект записи логов в stdout"

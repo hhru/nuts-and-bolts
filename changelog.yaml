@@ -1,3 +1,31 @@
+-   name: 7.0.0
+    date: '2024-10-16T15:44:20.944213+03:00'
+    description: 'CacheFilter переписан на Jax-Rs, и ему задан приоритет 750. Также
+        в NabApplicationBuilder добавлен api, позволяющий забиндидить фильтр на определенный
+        сервлет: для этого при регистрации фильтра вместо методов bindTo и bindToRoot
+        необходимо использовать метод bindToServlets'
+    instructions: Если в вашем сервисе используются не-jersey сервлеты (например,
+        DispatcherServlet из spring-webmvc) и их ответы нужно кешировать, то необходимо
+        либо переписать все ручки на jersey, либо добавить свою реализацию CacheFilter
+        (можно скопипастить старую реализацию из наба) и подключить её к не-jersey
+        сервлетам с помощью вызова метода bindToServlets. Если в сервисе есть jersey
+        фильтры, у которых приоритет (указывается в аннотации @Priority) <= 750 и
+        которые должны выполняться после CacheFilter, необходимо для таких фильтров
+        указать приоритет > 750
+    compatible: false
+
+-   name: 6.2.2
+    date: '2024-10-14T17:54:11.531385+03:00'
+    description: В SentryFilter ошибка о невалидном rid'е логируется с уровнем debug
+    instructions: ''
+    compatible: true
+
+-   name: 6.2.1
+    date: '2024-10-11T15:27:09.771428+03:00'
+    description: Добавлен SentryFilter, в котором sentry traceId заменяется на rid
+    instructions: ''
+    compatible: true
+
 -   name: 6.2.0
     date: '2024-10-01T12:50:22.640636+03:00'
     description: "1. Новый API ru.hh.nab.metrics.factory.StatsDClientFactory#createNonBlockingClient\

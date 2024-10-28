@@ -48,6 +48,7 @@ import static ru.hh.nab.web.InfrastructureProperties.DATACENTERS_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.SERVICE_NAME_PROPERTY;
+import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 public class NabWebAutoConfigurationTest {
 
@@ -64,6 +65,7 @@ public class NabWebAutoConfigurationTest {
   private static final String REQUEST_ID_LOGGING_FILTER_BEAN_NAME = "requestIdLoggingFilter";
   private static final String COMMON_HEADERS_FILTER_BEAN_NAME = "commonHeadersFilter";
   private static final String SENTRY_FILTER_BEAN_NAME = "sentryFilter";
+  private static final String REQUEST_CONTEXT_FILTER_BEAN_NAME = "requestContextFilter";
   private static final String DEFAULT_RESOURCE_CONFIG_BEAN_NAME = "defaultResourceConfig";
 
   private final String mainProfileProperty = PROPERTY_TEMPLATE.formatted("spring.profiles.active", MAIN);
@@ -132,6 +134,7 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).hasSingleBean(ScheduledExecutorService.class);
 
           // web beans
+          assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
           assertThat(context).hasSingleBean(MonitoredQueuedThreadPool.class);
           assertThat(context).hasSingleBean(ServiceRegistrator.class);
           assertThat(context)
@@ -149,6 +152,10 @@ public class NabWebAutoConfigurationTest {
               .getBean(COMMON_HEADERS_FILTER_BEAN_NAME)
               .isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasBean(SENTRY_FILTER_BEAN_NAME).getBean(SENTRY_FILTER_BEAN_NAME).isInstanceOf(FilterRegistrationBean.class);
+          assertThat(context)
+              .hasBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
+              .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
+              .isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
           assertThat(context).hasSingleBean(HttpCacheProperties.class);
           assertThat(context).hasSingleBean(JaxbProperties.class);

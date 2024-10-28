@@ -32,6 +32,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.ResourceHelper;
 
@@ -256,8 +257,8 @@ public class TelemetryTest {
           true
       );
 
-      FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>();
-      registration.setFilter(telemetryFilter);
+      FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>(telemetryFilter);
+      registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
       return registration;
     }
   }

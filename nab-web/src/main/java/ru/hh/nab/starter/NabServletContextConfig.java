@@ -19,16 +19,11 @@ public class NabServletContextConfig {
    * org.eclipse.jetty.servlet.FilterHolder#initialize() will be called by the container later
    */
   void preConfigureWebApp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
-    webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
     configureWebapp(webAppContext, rootCtx);
   }
 
   protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {
-  }
-
-  protected String getContextPath() {
-    return "/";
   }
 
   protected ClassLoader getClassLoader() {

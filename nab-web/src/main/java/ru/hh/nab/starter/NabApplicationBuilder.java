@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 public final class NabApplicationBuilder {
@@ -18,18 +17,12 @@ public final class NabApplicationBuilder {
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
   private final List<BiConsumer<WebAppContext, WebApplicationContext>> servletContextHandlerConfigurers;
 
-  private String contextPath;
   private ClassLoader classLoader;
 
   NabApplicationBuilder() {
     listenerProviders = new ArrayList<>();
     servletContextConfigurers = new ArrayList<>();
     servletContextHandlerConfigurers = new ArrayList<>();
-  }
-
-  public NabApplicationBuilder setContextPath(String contextPath) {
-    this.contextPath = contextPath;
-    return this;
   }
 
   public NabApplicationBuilder setClassLoader(ClassLoader classLoader) {
@@ -78,11 +71,6 @@ public final class NabApplicationBuilder {
           return super.getClassLoader();
         }
         return classLoader;
-      }
-
-      @Override
-      protected String getContextPath() {
-        return StringUtils.hasLength(contextPath) ? contextPath : super.getContextPath();
       }
 
       @Override

@@ -17,17 +17,10 @@ public final class NabApplicationBuilder {
   private final List<BiConsumer<ServletContext, WebApplicationContext>> servletContextConfigurers;
   private final List<BiConsumer<WebAppContext, WebApplicationContext>> servletContextHandlerConfigurers;
 
-  private ClassLoader classLoader;
-
   NabApplicationBuilder() {
     listenerProviders = new ArrayList<>();
     servletContextConfigurers = new ArrayList<>();
     servletContextHandlerConfigurers = new ArrayList<>();
-  }
-
-  public NabApplicationBuilder setClassLoader(ClassLoader classLoader) {
-    this.classLoader = classLoader;
-    return this;
   }
 
   // LISTENER
@@ -64,14 +57,6 @@ public final class NabApplicationBuilder {
 
   public NabApplication build() {
     return new NabApplication(new NabServletContextConfig() {
-
-      @Override
-      protected ClassLoader getClassLoader() {
-        if (classLoader == null) {
-          return super.getClassLoader();
-        }
-        return classLoader;
-      }
 
       @Override
       protected void configureWebapp(WebAppContext webAppContext, WebApplicationContext rootCtx) {

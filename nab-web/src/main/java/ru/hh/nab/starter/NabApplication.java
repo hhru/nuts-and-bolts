@@ -4,7 +4,6 @@ import jakarta.servlet.ServletContextEvent;
 import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Properties;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public final class NabApplication {
   public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
-      ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
+      ServletContextHandler jettyWebAppContext = createWebAppContextHandler(List.of(webAppInitializer));
       return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
     } catch (Exception e) {
       return logErrorAndExit(e, false);

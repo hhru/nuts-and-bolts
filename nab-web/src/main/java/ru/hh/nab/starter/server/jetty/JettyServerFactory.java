@@ -13,7 +13,6 @@ import org.eclipse.jetty.util.URIUtil;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.PORT;
-import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.SESSION_MANAGER_ENABLED;
 import ru.hh.nab.starter.servlet.WebAppInitializer;
 
 public final class JettyServerFactory {
@@ -23,7 +22,7 @@ public final class JettyServerFactory {
       List<WebAppInitializer> webAppInitializer
   ) {
     FileSettings jettySettings = fileSettings.getSubSettings(JETTY);
-    ServletContextHandler contextHandler = createWebAppContextHandler(jettySettings, webAppInitializer);
+    ServletContextHandler contextHandler = createWebAppContextHandler(webAppInitializer);
     return new JettyServer(jettySettings, contextHandler);
   }
 
@@ -41,9 +40,8 @@ public final class JettyServerFactory {
     }
   }
 
-  public static ServletContextHandler createWebAppContextHandler(FileSettings jettySettings, List<WebAppInitializer> webAppInitializer) {
-    boolean sessionEnabled = jettySettings.getBoolean(SESSION_MANAGER_ENABLED, Boolean.FALSE);
-    return new JettyWebAppContext(webAppInitializer, sessionEnabled);
+  public static ServletContextHandler createWebAppContextHandler(List<WebAppInitializer> webAppInitializer) {
+    return new JettyWebAppContext(webAppInitializer);
   }
 
   private JettyServerFactory() {

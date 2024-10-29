@@ -11,8 +11,8 @@ import ru.hh.nab.starter.servlet.WebAppInitializer;
 final class JettyWebAppContext extends WebAppContext {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyWebAppContext.class);
 
-  JettyWebAppContext(List<WebAppInitializer> webAppInitializers, boolean sessionEnabled) {
-    super(null, null, null, null, null, null, sessionEnabled ? SESSIONS : 0);
+  JettyWebAppContext(List<WebAppInitializer> webAppInitializers) {
+    super();
     this.addEventListener(new BeforeStartListener(webAppInitializers));
     this.setConfigurations(new Configuration[]{});
     setThrowUnavailableOnStartupException(true);

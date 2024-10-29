@@ -13,7 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 //mostly copy of SpringJUnitWebConfig
-@ExtendWith({SpringExtensionWithFailFast.class, NabTestServerExtension.class})
+@ExtendWith(SpringExtensionWithFailFast.class)
 @ContextConfiguration
 @WebAppConfiguration
 @Documented

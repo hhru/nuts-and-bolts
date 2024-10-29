@@ -48,6 +48,7 @@ import static ru.hh.nab.web.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.SERVICE_NAME_PROPERTY;
 import ru.hh.nab.web.jetty.MonitoredQueuedThreadPoolFactory;
+import ru.hh.nab.web.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 public class NabWebAutoConfigurationTest {
@@ -135,6 +136,7 @@ public class NabWebAutoConfigurationTest {
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
+          assertThat(context).hasSingleBean(NabJettyServerCustomizer.class);
           assertThat(context).hasSingleBean(MonitoredQueuedThreadPoolFactory.class);
           assertThat(context).hasSingleBean(ServiceRegistrator.class);
           assertThat(context)
@@ -157,6 +159,7 @@ public class NabWebAutoConfigurationTest {
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
+          assertThat(context).hasSingleBean(ExtendedServerProperties.class);
           assertThat(context).hasSingleBean(HttpCacheProperties.class);
           assertThat(context).hasSingleBean(JaxbProperties.class);
         });

@@ -41,6 +41,7 @@ import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.jetty.MonitoredQueuedThreadPoolFactory;
+import ru.hh.nab.web.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 /**
@@ -55,8 +56,10 @@ import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
     NabTaskSchedulingConfiguration.class,
 
     NabJettyWebServerFactoryCustomizer.class,
+    NabJettyServerCustomizer.class,
 })
 @EnableConfigurationProperties({
+    ExtendedServerProperties.class,
     HttpCacheProperties.class,
     JaxbProperties.class,
 })

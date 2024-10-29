@@ -5,7 +5,6 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
@@ -17,11 +16,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createWebAppContextHandler;
@@ -85,10 +79,8 @@ public final class NabApplication {
       boolean directlyUseAsWebAppRoot
   ) {
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
-    StatsDSender sender = baseContext.getBean(StatsDSender.class);
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
-    TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
-    return JettyServerFactory.create(fileSettings, appSender, List.of(webAppInitializer));
+    return JettyServerFactory.create(fileSettings, List.of(webAppInitializer));
   }
 
   public static NabApplicationBuilder builder() {

@@ -14,7 +14,6 @@ import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.PORT;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.STOP_TIMEOUT_SIZE;
-import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
@@ -27,7 +26,6 @@ public final class JettyServer {
   JettyServer(FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
     server = new Server();
-    configureRequestLogger();
     configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
     handlerCollection = null;
@@ -38,7 +36,6 @@ public final class JettyServer {
   JettyServer(FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollectionForTestRun) {
     this.jettySettings = jettySettings;
     server = new Server();
-    configureRequestLogger();
     configureStopTimeout();
     this.servletContextHandler = null;
     handlerCollection = mutableHandlerCollectionForTestRun;
@@ -81,10 +78,6 @@ public final class JettyServer {
 
   public boolean isRunning() {
     return server.isRunning();
-  }
-
-  private void configureRequestLogger() {
-    server.setRequestLog(new StructuredRequestLogger());
   }
 
   private void configureStopTimeout() {

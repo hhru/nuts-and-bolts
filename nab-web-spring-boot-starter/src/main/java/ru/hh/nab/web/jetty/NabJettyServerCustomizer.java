@@ -13,6 +13,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.starter.server.jetty.HHServerConnector;
+import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 import ru.hh.nab.web.ExtendedServerProperties;
 import ru.hh.nab.web.InfrastructureProperties;
 
@@ -36,6 +37,7 @@ public class NabJettyServerCustomizer implements JettyServerCustomizer {
   @Override
   public void customize(Server server) {
     configureConnectors(server);
+    configureRequestLogger(server);
   }
 
   private void configureConnectors(Server server) {
@@ -75,5 +77,9 @@ public class NabJettyServerCustomizer implements JettyServerCustomizer {
         );
       }
     }
+  }
+
+  private void configureRequestLogger(Server server) {
+    server.setRequestLog(new StructuredRequestLogger());
   }
 }

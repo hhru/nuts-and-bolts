@@ -42,12 +42,12 @@ import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERT
 import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.cache.CacheFilter;
-import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 import static ru.hh.nab.web.HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.DATACENTERS_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.SERVICE_NAME_PROPERTY;
+import ru.hh.nab.web.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 public class NabWebAutoConfigurationTest {
@@ -135,7 +135,7 @@ public class NabWebAutoConfigurationTest {
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
-          assertThat(context).hasSingleBean(MonitoredQueuedThreadPool.class);
+          assertThat(context).hasSingleBean(MonitoredQueuedThreadPoolFactory.class);
           assertThat(context).hasSingleBean(ServiceRegistrator.class);
           assertThat(context)
               .hasBean(DEFAULT_RESOURCE_CONFIG_BEAN_NAME)

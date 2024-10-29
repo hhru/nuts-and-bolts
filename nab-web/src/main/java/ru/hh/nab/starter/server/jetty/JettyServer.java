@@ -10,7 +10,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
@@ -38,9 +37,9 @@ public final class JettyServer {
   private final ServletContextHandler servletContextHandler;
   private final ContextHandlerCollection handlerCollection;
 
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender taggedSender, ServletContextHandler servletContextHandler) {
+  JettyServer(FileSettings jettySettings, TaggedSender taggedSender, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
-    server = new Server(threadPool);
+    server = new Server();
     this.taggedSender = taggedSender;
     configureConnector();
     configureRequestLogger();
@@ -51,10 +50,10 @@ public final class JettyServer {
   }
 
   //ContextHandlerCollection несет доп. логику по маршрутизации внутри коллекции. Поэтому не заменяем ServletContextHandler на него
-  JettyServer(ThreadPool threadPool, FileSettings jettySettings, TaggedSender taggedSender,
+  JettyServer(FileSettings jettySettings, TaggedSender taggedSender,
               ContextHandlerCollection mutableHandlerCollectionForTestRun) {
     this.jettySettings = jettySettings;
-    server = new Server(threadPool);
+    server = new Server();
     this.taggedSender = taggedSender;
     configureConnector();
     configureRequestLogger();

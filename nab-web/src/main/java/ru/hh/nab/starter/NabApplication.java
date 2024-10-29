@@ -8,7 +8,6 @@ import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -86,11 +85,10 @@ public final class NabApplication {
       boolean directlyUseAsWebAppRoot
   ) {
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
-    ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
     StatsDSender sender = baseContext.getBean(StatsDSender.class);
     WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, directlyUseAsWebAppRoot);
     TaggedSender appSender = new TaggedSender(sender, Set.of(new Tag(APP_TAG_NAME, baseContext.getBean(SERVICE_NAME, String.class))));
-    return JettyServerFactory.create(fileSettings, threadPool, appSender, List.of(webAppInitializer));
+    return JettyServerFactory.create(fileSettings, appSender, List.of(webAppInitializer));
   }
 
   public static NabApplicationBuilder builder() {

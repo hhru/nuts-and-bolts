@@ -1,17 +1,10 @@
 package ru.hh.nab.starter;
 
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletContextListener;
-import java.util.Collections;
-import java.util.List;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.web.context.WebApplicationContext;
 
 public class NabServletContextConfig {
-
-  protected List<ServletContextListener> getListeners(WebApplicationContext rootCtx) {
-    return Collections.emptyList();
-  }
 
   /**
    * should be called before server doStart() is called

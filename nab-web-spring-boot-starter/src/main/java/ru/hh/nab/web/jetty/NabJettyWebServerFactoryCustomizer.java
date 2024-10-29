@@ -19,17 +19,20 @@ public class NabJettyWebServerFactoryCustomizer implements WebServerFactoryCusto
   private final MonitoredQueuedThreadPoolFactory monitoredQueuedThreadPoolFactory;
   private final ServerProperties serverProperties;
   private final ExtendedServerProperties extendedServerProperties;
+  private final List<Configuration> webAppConfigurations;
 
   public NabJettyWebServerFactoryCustomizer(
       ListableBeanFactory beanFactory,
       MonitoredQueuedThreadPoolFactory monitoredQueuedThreadPoolFactory,
       ServerProperties serverProperties,
-      ExtendedServerProperties extendedServerProperties
+      ExtendedServerProperties extendedServerProperties,
+      List<Configuration> webAppConfigurations
   ) {
     this.beanFactory = beanFactory;
     this.monitoredQueuedThreadPoolFactory = monitoredQueuedThreadPoolFactory;
     this.serverProperties = serverProperties;
     this.extendedServerProperties = extendedServerProperties;
+    this.webAppConfigurations = webAppConfigurations;
   }
 
   @Override
@@ -64,6 +67,7 @@ public class NabJettyWebServerFactoryCustomizer implements WebServerFactoryCusto
     webAppConfigurations.add(
         new SecurityConfiguration(extendedServerProperties.getServlet().getSecurity().isEnabled())
     );
+    webAppConfigurations.addAll(this.webAppConfigurations);
     factory.addConfigurations(webAppConfigurations.toArray(Configuration[]::new));
   }
 }

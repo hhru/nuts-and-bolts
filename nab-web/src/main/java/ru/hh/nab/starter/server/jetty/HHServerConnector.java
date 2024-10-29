@@ -3,7 +3,6 @@ package ru.hh.nab.starter.server.jetty;
 import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.SelectorManager;
@@ -20,19 +19,12 @@ import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
 
 /**
- * ServerConnector that:<br/>
- * - immediately closes new incoming connections if there is no idle thread in the main thread pool;<br/>
- * - waits for current requests to end before completing shutdown;<br/>
+ * ServerConnector that immediately closes new incoming connections if there is no idle thread in the main thread pool
  */
 public final class HHServerConnector extends ServerConnector {
   public static final String LOW_ON_THREADS_METRIC_NAME = "service.low.on.threads";
   private final TaggedSender statsDSender;
   private static final Logger logger = LoggerFactory.getLogger(HHServerConnector.class);
-
-  public HHServerConnector(Server server, TaggedSender statsDSender) {
-    super(server);
-    this.statsDSender = statsDSender;
-  }
 
   public HHServerConnector(Server server, int acceptors, int selectors, StatsDSender statsDSender, String serviceName) {
     super(server, acceptors, selectors);
@@ -57,15 +49,6 @@ public final class HHServerConnector extends ServerConnector {
   @Override
   protected SelectorManager newSelectorManager(Executor executor, Scheduler scheduler, int selectors) {
     return new FailFastServerConnectorManager(executor, scheduler, selectors);
-  }
-
-  @Override
-  public CompletableFuture<Void> shutdown() {
-    super.shutdown();
-
-    CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();
-    new ChannelsReadyChecker(shutdownFuture, this::getConnectedEndPoints, getScheduler()).run();
-    return shutdownFuture;
   }
 
   private TaggedSender createTaggedSender(StatsDSender statsDSender, String serviceName) {

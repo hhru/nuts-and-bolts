@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import jakarta.servlet.GenericServlet;
+import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,8 +17,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.junit.jupiter.api.AfterAll;
@@ -28,8 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import ru.hh.nab.metrics.StatsDSender;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.createServer;
-import static ru.hh.nab.starter.server.jetty.HHServerConnectorTestUtils.getPort;
 
 public class HHServerConnectorFailFastTest {
   private static final int ACCEPTORS = 1;
@@ -123,7 +126,7 @@ public class HHServerConnectorFailFastTest {
         status = statusFuture.get();
       } catch (ExecutionException e) {
         Throwable cause = e.getCause();
-        assertTrue(cause instanceof SocketException || cause instanceof EOFException, "Unexpected exception " + cause);
+        assertTrue(cause instanceof SocketException || cause instanceof EOFException, () -> "Unexpected exception " + cause);
         failures++;
         continue;
       }
@@ -136,7 +139,26 @@ public class HHServerConnectorFailFastTest {
     assertTrue(failures > 0);
   }
 
-  static class ControlledServlet extends GenericServlet {
+  private Server createServer(ThreadPool threadPool, Servlet servlet) {
+    ServletHolder servletHolder = new ServletHolder("MainServlet", servlet);
+
+    ServletHandler servletHandler = new ServletHandler();
+    servletHandler.addServletWithMapping(servletHolder, "/*");
+
+    ServletContextHandler servletContextHandler = new ServletContextHandler();
+    servletContextHandler.setServletHandler(servletHandler);
+
+    Server server = new Server(threadPool);
+    server.setHandler(servletContextHandler);
+    server.setStopAtShutdown(true);
+    return server;
+  }
+
+  private int getPort(Server server) {
+    return ((NetworkConnector) server.getConnectors()[0]).getLocalPort();
+  }
+
+  private static class ControlledServlet extends GenericServlet {
 
     private final int responseCode;
 

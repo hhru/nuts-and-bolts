@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.starter.exceptions.ConsulServiceException;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.PORT;
-import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.STOP_TIMEOUT_SIZE;
 
 public final class JettyServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(JettyServer.class);
@@ -26,7 +25,6 @@ public final class JettyServer {
   JettyServer(FileSettings jettySettings, ServletContextHandler servletContextHandler) {
     this.jettySettings = jettySettings;
     server = new Server();
-    configureStopTimeout();
     this.servletContextHandler = servletContextHandler;
     handlerCollection = null;
     server.setHandler(servletContextHandler);
@@ -36,7 +34,6 @@ public final class JettyServer {
   JettyServer(FileSettings jettySettings, ContextHandlerCollection mutableHandlerCollectionForTestRun) {
     this.jettySettings = jettySettings;
     server = new Server();
-    configureStopTimeout();
     this.servletContextHandler = null;
     handlerCollection = mutableHandlerCollectionForTestRun;
     server.setHandler(mutableHandlerCollectionForTestRun);
@@ -79,11 +76,6 @@ public final class JettyServer {
   public boolean isRunning() {
     return server.isRunning();
   }
-
-  private void configureStopTimeout() {
-    server.setStopTimeout(jettySettings.getInteger(STOP_TIMEOUT_SIZE, 5_000));
-  }
-
 
   private Optional<ServerConnector> getServerConnector() {
     Connector[] connectors = server.getConnectors();

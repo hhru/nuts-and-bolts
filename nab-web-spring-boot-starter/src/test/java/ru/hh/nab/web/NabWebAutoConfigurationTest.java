@@ -60,6 +60,7 @@ public class NabWebAutoConfigurationTest {
   private static final String TEST_NODE_NAME = "test-host";
   private static final String TEST_DATACENTER_NAME = "test-dc1";
   private static final List<String> TEST_DATACENTER_NAMES = List.of("test-dc1", "test-dc2");
+  private static final int TEST_PORT = 0;
 
   private static final String STATSD_CLIENT_BEAN_NAME = "statsDClient";
   private static final String STATUS_SERVLET_BEAN_NAME = "statusServlet";
@@ -95,7 +96,11 @@ public class NabWebAutoConfigurationTest {
         when(buildProperties.getVersion()).thenReturn(TEST_SERVICE_VERSION);
         return buildProperties;
       })
-      .withBean(ServerProperties.class, () -> mock(ServerProperties.class));
+      .withBean(ServerProperties.class, () -> {
+        ServerProperties serverProperties = new ServerProperties();
+        serverProperties.setPort(TEST_PORT);
+        return serverProperties;
+      });
 
   @Test
   public void testSpringContextContainsAllBeans() {

@@ -112,7 +112,6 @@ public final class NabApplication {
         @Override
         public void contextInitialized(ServletContextEvent event) {
           super.contextInitialized(event);
-          servletContextConfig.onWebAppStarted(event.getServletContext(), targetCtx);
         }
 
         @Override

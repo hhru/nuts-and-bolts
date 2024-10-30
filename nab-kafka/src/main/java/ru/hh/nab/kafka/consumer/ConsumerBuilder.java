@@ -75,8 +75,6 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withLogger(Logger logger);
 
-  ConsumerBuilder<T> withAckProvider(AckProvider<T> ackProvider);
-
   /**
    * Consumer будет включен в consumer-group: одновременно одна партиция топика не будет обрабатываться больше чем одним consumer-ом.
    * @return this

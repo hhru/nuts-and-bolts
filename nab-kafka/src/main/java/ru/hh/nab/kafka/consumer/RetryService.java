@@ -14,9 +14,8 @@ import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
-
 /**
- * Provides retries implementation and message processing history to {@link ru.hh.nab.kafka.consumer.Ack}.
+ * Provides retries implementation to {@link ru.hh.nab.kafka.consumer.Ack}.
  */
 class RetryService<T> {
 

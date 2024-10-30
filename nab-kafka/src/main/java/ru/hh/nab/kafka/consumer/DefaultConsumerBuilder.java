@@ -68,7 +68,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, RetryTopics retryTopics) {
+  public DefaultConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, RetryTopics retryTopics) {
     this.retryProducer = retryProducer;
     this.retryPolicyResolver = retryPolicyResolver;
     this.retryTopics = retryTopics;
@@ -76,7 +76,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withRetryConsumeStrategy(ConsumeStrategy<T> retryConsumeStrategy) {
+  public DefaultConsumerBuilder<T> withRetryConsumeStrategy(ConsumeStrategy<T> retryConsumeStrategy) {
     this.retryConsumeStrategy = retryConsumeStrategy;
     return this;
   }
@@ -88,34 +88,28 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public DefaultConsumerBuilder<T> withAckProvider(AckProvider<T> ackProvider) {
-    this.ackProvider = ackProvider;
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withConsumerGroup() {
+  public DefaultConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
-    withAckProvider(KafkaInternalTopicAck::new);
+    this.ackProvider = KafkaInternalTopicAck::new;
     return this;
   }
 
   @Override
-  public ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
+  public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    withAckProvider((kafkaConsumer, nativeKafkaConsumer, retryService) -> new InMemorySeekOnlyAck<>(kafkaConsumer));
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> new InMemorySeekOnlyAck<>(kafkaConsumer);
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     return this;
   }
 
   @Override
-  public ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition) {
+  public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition) {
     return withAllPartitionsAssigned(seekPosition, Duration.ofMinutes(5));
   }
 
   @Override
-  public ConsumerBuilder<T> withClientId(String clientId) {
+  public DefaultConsumerBuilder<T> withClientId(String clientId) {
     this.clientId = clientId;
     return this;
   }

@@ -2,7 +2,6 @@ package ru.hh.nab.testbase.kafka;
 
 import java.time.Duration;
 import org.slf4j.Logger;
-import ru.hh.nab.kafka.consumer.AckProvider;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerBuilder;
 import ru.hh.nab.kafka.consumer.KafkaConsumer;
@@ -40,11 +39,6 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public ConsumerBuilder<T> withLogger(Logger logger) {
-    return this;
-  }
-
-  @Override
-  public ConsumerBuilder<T> withAckProvider(AckProvider<T> ackProvider) {
     return this;
   }
 

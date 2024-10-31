@@ -50,7 +50,8 @@ public abstract class KafkaConsumerTestbase {
         .builder(topicName, messageClass)
         .withOperationName(operation)
         .withConsumeStrategy(consumerMock)
-        .start();
+        .build();
+    consumer.start();
     await()
         .atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertEquals(5, consumer.getAssignedPartitions().size()));

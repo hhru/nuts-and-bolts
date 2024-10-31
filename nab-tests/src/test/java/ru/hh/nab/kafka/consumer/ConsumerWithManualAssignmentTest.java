@@ -46,7 +46,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
@@ -68,7 +69,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
     Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
 
@@ -91,7 +93,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer1.start();
     startedConsumers.add(consumer1);
 
     KafkaConsumer<String> consumer2 = consumerFactory
@@ -102,7 +105,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages2.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer2.start();
     startedConsumers.add(consumer2);
     Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
 
@@ -128,7 +132,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
@@ -152,7 +157,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
               ack.seek(m);
             })
         )
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
@@ -175,7 +181,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
               processedMessages.add(m.value());
               ack.acknowledge(m);
             }))
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
@@ -197,7 +204,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages.add(m.value()));
           ack.acknowledge(messages);
         })
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(30);
@@ -228,7 +236,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           }
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer.start();
     startedConsumers.add(consumer);
     assertTrue(errorOccuredLatch.await(3, TimeUnit.SECONDS));
 
@@ -250,7 +259,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer1.start();
     startedConsumers.add(consumer1);
 
     KafkaConsumer<String> consumer2 = consumerFactory
@@ -263,7 +273,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
             ack.seek(m);
           });
         })
-        .start();
+        .build();
+    consumer2.start();
     startedConsumers.add(consumer2);
     assertEquals(5, consumer1.getAssignedPartitions().size());
     assertEquals(5, consumer2.getAssignedPartitions().size());
@@ -302,7 +313,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer1.start();
     startedConsumers.add(consumer1);
 
     KafkaConsumer<String> consumer2 = consumerFactory
@@ -315,7 +327,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
             ack.seek(m);
           });
         })
-        .start();
+        .build();
+    consumer2.start();
     startedConsumers.add(consumer2);
     Thread.sleep(1000);
 
@@ -355,7 +368,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
           messages.forEach(m -> processedMessages1.add(m.value()));
           ack.acknowledge();
         })
-        .start();
+        .build();
+    consumer1.start();
     startedConsumers.add(consumer1);
 
     Executors.newSingleThreadExecutor().submit(() -> {

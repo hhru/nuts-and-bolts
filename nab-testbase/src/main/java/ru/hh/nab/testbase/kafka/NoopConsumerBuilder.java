@@ -58,7 +58,7 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public KafkaConsumer<T> start() {
+  public KafkaConsumer<T> build() {
     return new NoopKafkaConsumer<>();
   }
 }

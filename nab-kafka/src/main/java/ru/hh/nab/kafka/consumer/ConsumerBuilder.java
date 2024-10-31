@@ -94,5 +94,5 @@ public interface ConsumerBuilder<T> {
 
   ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition);
 
-  KafkaConsumer<T> start();
+  KafkaConsumer<T> build();
 }

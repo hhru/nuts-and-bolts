@@ -115,7 +115,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public KafkaConsumer<T> start() {
+  public KafkaConsumer<T> build() {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
@@ -131,7 +131,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         retryService = new RetryService<>(retryProducer, retryTopics.retrySendTopic(), retryPolicyResolver);
         retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
       }
-      return startKafkaConsumerForConsumerGroup(
+      return buildKafkaConsumerForConsumerGroup(
           configProvider,
           springConsumerFactory,
           consumerMetadata,
@@ -139,14 +139,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
           retryKafkaConsumer
       );
     }
-    return startKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
+    return buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
   }
 
   private boolean usingRetries() {
     return retryPolicyResolver != null;
   }
 
-  private KafkaConsumer<T> startKafkaConsumerForConsumerGroup(
+  private KafkaConsumer<T> buildKafkaConsumerForConsumerGroup(
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
@@ -162,17 +162,15 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
-    KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
+    return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         retryService,
         retryKafkaConsumer,
         springContainerProvider,
-        ackProvider
+        ackProvider,
+        logger
     );
-    kafkaConsumer.start();
-    logger.info("Subscribed for {}, consumer group id {}", topicName, consumerMetadata.getConsumerGroupId());
-    return kafkaConsumer;
   }
 
   private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService) {
@@ -189,15 +187,15 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
     ConsumeStrategy<T> retryReceiveConsumeStrategy = getRetryReceiveConsumeStrategy();
-    KafkaConsumer<T> retryKafkaConsumer = new KafkaConsumer<>(
+    return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, retryReceiveConsumeStrategy),
         retryService,
         null, // retry consumer has no retry consumer
         springContainerProvider,
-        ackProvider
+        ackProvider,
+        logger
     );
-    return retryKafkaConsumer;
   }
 
   private ConsumeStrategy<T> getRetryReceiveConsumeStrategy() {
@@ -225,7 +223,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     );
   }
 
-  private KafkaConsumer<T> startKafkaConsumerForAllPartitions(
+  private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
   ) {
     if (usingRetries()) {
@@ -245,18 +243,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
-    KafkaConsumer<T> kafkaConsumer = new KafkaConsumer<>(
+    return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         springContainerProvider,
         consumerFactory.getTopicPartitionsMonitoring(),
         consumerFactory.getClusterMetadataProvider(),
         ackProvider,
+        logger,
         checkNewPartitionsInterval
     );
-    kafkaConsumer.start();
-    logger.info("Subscribed {} for all partitions, operation={}", topicName, consumerMetadata.getOperation());
-    return kafkaConsumer;
   }
 
 

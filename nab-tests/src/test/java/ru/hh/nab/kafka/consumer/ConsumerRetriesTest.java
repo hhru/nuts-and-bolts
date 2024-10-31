@@ -109,7 +109,8 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
           }
         })
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
-        .start();
+        .build();
+    consumer.start();
     waitUntil(() -> {
       assertEquals(5, consumer.getAssignedPartitions().size());
       assertTrue(exceptionThrown.get());
@@ -167,7 +168,8 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
         .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(1))))
         // reduce retry consumer sleep duration to speed-up tests
         .withRetryConsumeStrategy(DefaultConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofSeconds(1)))
-        .start();
+        .build();
+    consumer.start();
   }
 
   private String getDefaultRetryTopic() {

@@ -24,7 +24,8 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> implements SmartLifecycle {
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+  private static final Logger DEFAULT_LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+  private final Logger logger;
   private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
   private final ConsumerMetadata consumerMetadata;
@@ -47,13 +48,15 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       RetryService<T> retryService,
       KafkaConsumer<T> retryKafkaConsumer,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
-      AckProvider<T> ackProvider
+      AckProvider<T> ackProvider,
+      Logger logger
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.retryService = retryService;
     this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
+    this.logger = logger;
     this.consumerConsumingState = new ConsumerConsumingState<>();
 
     this.springContainerProvider = springContainerProvider;
@@ -71,10 +74,12 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
       AckProvider<T> ackProvider,
+      Logger logger,
       Duration checkNewPartitionsInterval
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.logger = logger;
     this.retryService = null;
     this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
@@ -106,9 +111,18 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       if (retryKafkaConsumer != null) {
         retryKafkaConsumer.start();
       }
+      if (readingAllPartitions()) {
+        logger.info("Subscribed for {}, reading all partitions, operation={}", consumerMetadata.getTopic(), consumerMetadata.getOperation());
+      } else {
+        logger.info("Subscribed for {}, consumer group id {}", consumerMetadata.getTopic(), consumerMetadata.getConsumerGroupId());
+      }
     } finally {
       restartLock.unlock();
     }
+  }
+
+  private boolean readingAllPartitions() {
+    return springContainerForPartitionsProvider != null;
   }
 
   private void subscribeForAssignedPartitionsChange() {
@@ -148,6 +162,11 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       stopPartitionsMonitoring();
       if (retryKafkaConsumer != null) {
         retryKafkaConsumer.stop();
+      }
+      if (readingAllPartitions()) {
+        logger.info("Stopped kafka consumer for all partitions of {}, operation={}", consumerMetadata.getTopic(), consumerMetadata.getOperation());
+      } else {
+        logger.info("Stopped kafka consumer for {} with consumer group id {}", consumerMetadata.getTopic(), consumerMetadata.getConsumerGroupId());
       }
     } finally {
       restartLock.unlock();

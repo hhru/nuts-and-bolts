@@ -15,8 +15,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>nab-common</artifactId>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-web-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>

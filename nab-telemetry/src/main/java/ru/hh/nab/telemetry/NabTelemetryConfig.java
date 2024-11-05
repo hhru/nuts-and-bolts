@@ -16,6 +16,7 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import jakarta.inject.Named;
 import java.util.concurrent.TimeUnit;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
@@ -24,6 +25,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
+import ru.hh.nab.common.servlet.ServletFilterPriorities;
 
 @Configuration
 public class NabTelemetryConfig {
@@ -111,11 +113,19 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
-    return new TelemetryFilter(
+  FilterRegistrationBean<TelemetryFilter> telemetryFilter(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      FileSettings fileSettings
+  ) {
+    TelemetryFilter filter = new TelemetryFilter(
         openTelemetry.getTracer("nab"),
         telemetryPropagator,
-        fileSettings.getBoolean("opentelemetry.enabled", false));
+        fileSettings.getBoolean("opentelemetry.enabled", false)
+    );
+    FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>(filter);
+    registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
+    return registration;
   }
 
   @Bean
@@ -125,8 +135,10 @@ public class NabTelemetryConfig {
       HttpClientContextThreadLocalSupplier contextSupplier,
       FileSettings fileSettings
   ) {
-    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
-        telemetryPropagator);
+    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(
+        openTelemetry.getTracer("jclient"),
+        telemetryPropagator
+    );
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
       contextSupplier.register(new ContextStorage());
       contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);

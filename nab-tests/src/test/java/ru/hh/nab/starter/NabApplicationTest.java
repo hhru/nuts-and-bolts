@@ -10,7 +10,6 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
-import org.eclipse.jetty.servlet.DefaultServlet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -141,18 +140,6 @@ public class NabApplicationTest {
     );
     assertEquals("consulClient", exception.getBeanName());
     assertTrue(exception.getMessage().contains("Error connecting to Consul"));
-  }
-
-  @Test
-  @ExpectSystemExitWithStatus(1)
-  public void runShouldFailOnServletMappingConflict() {
-    NabApplication
-        .builder()
-        .addServlet(ctx -> new DefaultServlet())
-        .setServletName("conflictingServlet")
-        .bindTo("/status")
-        .build()
-        .run(NabTestConfig.class);
   }
 
   @Test

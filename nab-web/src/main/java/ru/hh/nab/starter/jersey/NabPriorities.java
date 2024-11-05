@@ -1,13 +1,15 @@
 package ru.hh.nab.starter.jersey;
 
-
 import jakarta.ws.rs.Priorities;
+import ru.hh.nab.common.servlet.ServletFilterPriorities;
 
 /**
  * Nab-specific priority constants
  * Extend {@link jakarta.ws.rs.Priorities} with custom priority levels
+ * <p>
+ * Jax-rs filters are invoked after servlet filters (see servlet filter priorities in {@link ServletFilterPriorities})
  */
-public class NabPriorities  {
+public class NabPriorities {
 
   /**
    * Observability filter/interceptor priority.

@@ -1,11 +1,9 @@
 package ru.hh.nab.web;
 
 import jakarta.inject.Named;
-import jakarta.servlet.DispatcherType;
 import jakarta.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -28,13 +26,17 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.Ordered;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.filters.CommonHeadersFilter;
+import ru.hh.nab.starter.filters.NabRequestContextFilter;
 import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
 import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.jersey.MarshallerContextResolver;
@@ -44,6 +46,7 @@ import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThrea
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
+import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for nab web components (servlets, filters, web server customizers and so on).
@@ -55,6 +58,8 @@ import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
     NabDeployInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
+
+    NabJettyWebServerFactoryCustomizer.class,
 })
 @EnableConfigurationProperties({
     HttpCacheProperties.class,
@@ -110,56 +115,60 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
-  public ServletRegistrationBean<ServletContainer> statusServlet(InfrastructureProperties infrastructureProperties, BuildProperties buildProperties) {
+  public ServletRegistrationBean<ServletContainer> statusServlet(
+      InfrastructureProperties infrastructureProperties,
+      BuildProperties buildProperties
+  ) {
     StatusResource statusResource = new StatusResource(
         infrastructureProperties.getServiceName(),
         buildProperties.getVersion(),
         infrastructureProperties::getUpTime
     );
-    ResourceConfig statusResourceConfig = new ResourceConfig();
-    statusResourceConfig.register(statusResource);
-
     ServletRegistrationBean<ServletContainer> registration = new ServletRegistrationBean<>(
-        new ServletContainer(statusResourceConfig),
+        new ServletContainer(new ResourceConfig().register(statusResource)),
         "/status"
     );
-    registration.setName("status");
-    registration.setLoadOnStartup(0);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return registration;
   }
 
   @Bean
   public FilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
     FilterRegistrationBean<RequestIdLoggingFilter> registration = new FilterRegistrationBean<>(new RequestIdLoggingFilter());
-    registration.setName(RequestIdLoggingFilter.class.getName());
-    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
+    registration.setOrder(ServletFilterPriorities.SYSTEM_LOGGING);
     return registration;
   }
 
   @Bean
   public FilterRegistrationBean<SentryFilter> sentryFilter() {
     FilterRegistrationBean<SentryFilter> registration = new FilterRegistrationBean<>(new SentryFilter());
-    registration.setName(SentryFilter.class.getName());
-    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
+    registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
     return registration;
   }
 
   @Bean
   public FilterRegistrationBean<CommonHeadersFilter> commonHeadersFilter() {
     FilterRegistrationBean<CommonHeadersFilter> registration = new FilterRegistrationBean<>(new CommonHeadersFilter());
-    registration.setName(CommonHeadersFilter.class.getName());
-    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-    registration.setMatchAfter(true);
+    registration.setOrder(ServletFilterPriorities.SYSTEM_HEADER_DECORATOR);
+    return registration;
+  }
+
+  @Bean
+  public FilterRegistrationBean<RequestContextFilter> requestContextFilter() {
+    FilterRegistrationBean<RequestContextFilter> registration = new FilterRegistrationBean<>(new NabRequestContextFilter());
+    registration.setOrder(ServletFilterPriorities.SYSTEM_HEADER_DECORATOR);
     return registration;
   }
 
   @Bean
   @MainProfile
   @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
-  public CacheFilter cacheFilter(HttpCacheProperties httpCacheProperties, String serviceName, StatsDSender statsDSender) {
-    return new CacheFilter(serviceName, DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
+  public CacheFilter cacheFilter(
+      InfrastructureProperties infrastructureProperties,
+      HttpCacheProperties httpCacheProperties,
+      StatsDSender statsDSender
+  ) {
+    return new CacheFilter(infrastructureProperties.getServiceName(), DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
   }
 
   /**

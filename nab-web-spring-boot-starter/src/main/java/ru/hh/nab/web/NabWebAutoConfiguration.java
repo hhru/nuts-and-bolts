@@ -1,6 +1,5 @@
 package ru.hh.nab.web;
 
-import jakarta.inject.Named;
 import jakarta.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,8 +28,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
-import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.profile.MainProfile;
@@ -42,10 +39,9 @@ import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.jersey.MarshallerContextResolver;
 import ru.hh.nab.starter.resource.StatusResource;
 import ru.hh.nab.starter.server.cache.CacheFilter;
-import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
-import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
-import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 import ru.hh.nab.web.jersey.NabResourceConfigCustomizer;
+import ru.hh.nab.web.jetty.MonitoredQueuedThreadPoolFactory;
+import ru.hh.nab.web.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 /**
@@ -60,20 +56,21 @@ import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
     NabTaskSchedulingConfiguration.class,
 
     NabJettyWebServerFactoryCustomizer.class,
+    NabJettyServerCustomizer.class,
 })
 @EnableConfigurationProperties({
+    ExtendedServerProperties.class,
     HttpCacheProperties.class,
-    JaxbProperties.class
+    JaxbProperties.class,
 })
 public class NabWebAutoConfiguration {
 
   @Bean
-  public MonitoredQueuedThreadPool jettyThreadPool(
-      FileSettings fileSettings,
-      @Named(SERVICE_NAME) String serviceNameValue,
+  public MonitoredQueuedThreadPoolFactory monitoredQueuedThreadPoolFactory(
+      InfrastructureProperties infrastructureProperties,
       StatsDSender statsDSender
-  ) throws Exception {
-    return createJettyThreadPool(fileSettings.getSubSettings(JETTY), serviceNameValue, statsDSender);
+  ) {
+    return new MonitoredQueuedThreadPoolFactory(infrastructureProperties.getServiceName(), statsDSender);
   }
 
   @Bean

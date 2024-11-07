@@ -18,7 +18,6 @@ import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
 import static ru.hh.nab.starter.PropertyFiles.PROPERTIES_FILE_NAME;
 import static ru.hh.nab.starter.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
 import ru.hh.nab.starter.consul.ConsulService;
-import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.logging.StructuredRequestLogger;
 
 public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
@@ -102,9 +101,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.springframework.kafka", Level.WARN, false, List.of(libraries, sentry));
-    createLogger(context, NabApplication.class, Level.INFO, false, service, sentry);
     createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
-    createLogger(context, JettyServer.class, Level.INFO, false, service, sentry);
     createLogger(context, "org.eclipse.jetty.server", Level.INFO, false, List.of(service, sentry));
 
     var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));

@@ -1,6 +1,5 @@
 package ru.hh.nab.starter;
 
-import com.ginsberg.junit.exit.ExpectSystemExitWithStatus;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
@@ -142,12 +141,6 @@ public class NabApplicationTest {
     assertTrue(exception.getMessage().contains("Error connecting to Consul"));
   }
 
-  @Test
-  @ExpectSystemExitWithStatus(1)
-  public void runShouldFailOnContextRefreshFail() {
-    NabApplication.runWebApp(new NabServletContextConfig(), NabTestConfig.class, BrokenCtx.class);
-  }
-
   @XmlRootElement
   private static final class Project {
     @XmlAttribute
@@ -156,14 +149,6 @@ public class NabApplicationTest {
     private String version;
     @XmlElement
     private long uptime;
-  }
-
-  @Configuration
-  public static class BrokenCtx {
-    @Bean
-    String failedBean() {
-      throw new RuntimeException("failed to load bean");
-    }
   }
 
   @Configuration

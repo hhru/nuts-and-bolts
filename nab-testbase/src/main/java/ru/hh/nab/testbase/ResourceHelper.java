@@ -12,15 +12,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import static org.eclipse.jetty.util.URIUtil.HTTP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import ru.hh.nab.starter.server.jetty.JettyServer;
 
 public class ResourceHelper {
   private final int serverPort;
   private final Client client;
-
-  public ResourceHelper(JettyServer jettyServer) {
-    this(jettyServer.getPort());
-  }
 
   public ResourceHelper(int serverPort) {
     this.serverPort = serverPort;

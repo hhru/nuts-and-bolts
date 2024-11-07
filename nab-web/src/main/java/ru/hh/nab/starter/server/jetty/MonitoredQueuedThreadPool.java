@@ -15,8 +15,14 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max totalThreads = new Max(0);
   private final Max maxThreads = new Max(0);
 
-  public MonitoredQueuedThreadPool(int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue,
-                                   String poolName, StatsDSender statsDSender) {
+  public MonitoredQueuedThreadPool(
+      int maxThreads,
+      int minThreads,
+      int idleTimeout,
+      BlockingQueue<Runnable> queue,
+      String poolName,
+      StatsDSender statsDSender
+  ) {
     super(maxThreads, minThreads, idleTimeout, -1, queue, null);
     setName("qtp_" + poolName + "_" + hashCode());
 

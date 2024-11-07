@@ -42,12 +42,13 @@ import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERT
 import static ru.hh.nab.starter.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
 import ru.hh.nab.starter.consul.ConsulService;
 import ru.hh.nab.starter.server.cache.CacheFilter;
-import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 import static ru.hh.nab.web.HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.DATACENTERS_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.InfrastructureProperties.SERVICE_NAME_PROPERTY;
+import ru.hh.nab.web.jetty.MonitoredQueuedThreadPoolFactory;
+import ru.hh.nab.web.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.jetty.NabJettyWebServerFactoryCustomizer;
 
 public class NabWebAutoConfigurationTest {
@@ -59,6 +60,7 @@ public class NabWebAutoConfigurationTest {
   private static final String TEST_NODE_NAME = "test-host";
   private static final String TEST_DATACENTER_NAME = "test-dc1";
   private static final List<String> TEST_DATACENTER_NAMES = List.of("test-dc1", "test-dc2");
+  private static final int TEST_PORT = 0;
 
   private static final String STATSD_CLIENT_BEAN_NAME = "statsDClient";
   private static final String STATUS_SERVLET_BEAN_NAME = "statusServlet";
@@ -94,7 +96,11 @@ public class NabWebAutoConfigurationTest {
         when(buildProperties.getVersion()).thenReturn(TEST_SERVICE_VERSION);
         return buildProperties;
       })
-      .withBean(ServerProperties.class, () -> mock(ServerProperties.class));
+      .withBean(ServerProperties.class, () -> {
+        ServerProperties serverProperties = new ServerProperties();
+        serverProperties.setPort(TEST_PORT);
+        return serverProperties;
+      });
 
   @Test
   public void testSpringContextContainsAllBeans() {
@@ -135,7 +141,8 @@ public class NabWebAutoConfigurationTest {
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
-          assertThat(context).hasSingleBean(MonitoredQueuedThreadPool.class);
+          assertThat(context).hasSingleBean(NabJettyServerCustomizer.class);
+          assertThat(context).hasSingleBean(MonitoredQueuedThreadPoolFactory.class);
           assertThat(context).hasSingleBean(ServiceRegistrator.class);
           assertThat(context)
               .hasBean(DEFAULT_RESOURCE_CONFIG_BEAN_NAME)
@@ -157,6 +164,7 @@ public class NabWebAutoConfigurationTest {
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .isInstanceOf(FilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
+          assertThat(context).hasSingleBean(ExtendedServerProperties.class);
           assertThat(context).hasSingleBean(HttpCacheProperties.class);
           assertThat(context).hasSingleBean(JaxbProperties.class);
         });

@@ -2,108 +2,48 @@ package ru.hh.nab.starter.server.jetty;
 
 import java.io.IOException;
 import java.nio.channels.SelectableChannel;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.SelectorManager;
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.annotation.Name;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.Scheduler;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
 
 /**
- * ServerConnector that:<br/>
- * - immediately closes new incoming connections if there is no idle thread in the main thread pool;<br/>
- * - waits for current requests to end before completing shutdown;<br/>
+ * ServerConnector that immediately closes new incoming connections if there is no idle thread in the main thread pool
  */
 public final class HHServerConnector extends ServerConnector {
   public static final String LOW_ON_THREADS_METRIC_NAME = "service.low.on.threads";
   private final TaggedSender statsDSender;
   private static final Logger logger = LoggerFactory.getLogger(HHServerConnector.class);
 
-  public HHServerConnector(@Name("server") Server server, TaggedSender statsDSender) {
-    super(server);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      @Name("acceptors") int acceptors,
-      @Name("selectors") int selectors,
-      TaggedSender statsDSender
-  ) {
+  public HHServerConnector(Server server, int acceptors, int selectors, StatsDSender statsDSender, String serviceName) {
     super(server, acceptors, selectors);
-    this.statsDSender = statsDSender;
+    this.statsDSender = createTaggedSender(statsDSender, serviceName);
   }
 
   public HHServerConnector(
-      @Name("server") Server server,
-      @Name("acceptors") int acceptors,
-      @Name("selectors") int selectors,
-      TaggedSender statsDSender,
-      @Name("factories") ConnectionFactory... factories
-  ) {
-    super(server, acceptors, selectors, factories);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      TaggedSender statsDSender,
-      @Name("factories") ConnectionFactory... factories
-  ) {
-    super(server, factories);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
-      TaggedSender statsDSender
-  ) {
-    super(server, sslContextFactory);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      @Name("acceptors") int acceptors,
-      @Name("selectors") int selectors,
-      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
-      TaggedSender statsDSender
-  ) {
-    super(server, acceptors, selectors, sslContextFactory);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
-      TaggedSender statsDSender,
-      @Name("factories") ConnectionFactory... factories
-  ) {
-    super(server, sslContextFactory, factories);
-    this.statsDSender = statsDSender;
-  }
-
-  public HHServerConnector(
-      @Name("server") Server server,
-      @Name("executor") Executor executor,
-      @Name("scheduler") Scheduler scheduler,
-      @Name("bufferPool") ByteBufferPool bufferPool,
-      @Name("acceptors") int acceptors,
-      @Name("selectors") int selectors,
-      TaggedSender statsDSender,
-      @Name("factories") ConnectionFactory... factories
+      Server server,
+      Executor executor,
+      Scheduler scheduler,
+      ByteBufferPool bufferPool,
+      int acceptors,
+      int selectors,
+      StatsDSender statsDSender,
+      String serviceName,
+      ConnectionFactory... factories
   ) {
     super(server, executor, scheduler, bufferPool, acceptors, selectors, factories);
-    this.statsDSender = statsDSender;
+    this.statsDSender = createTaggedSender(statsDSender, serviceName);
   }
 
   @Override
@@ -111,13 +51,8 @@ public final class HHServerConnector extends ServerConnector {
     return new FailFastServerConnectorManager(executor, scheduler, selectors);
   }
 
-  @Override
-  public CompletableFuture<Void> shutdown() {
-    super.shutdown();
-
-    CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();
-    new ChannelsReadyChecker(shutdownFuture, this::getConnectedEndPoints, getScheduler()).run();
-    return shutdownFuture;
+  private TaggedSender createTaggedSender(StatsDSender statsDSender, String serviceName) {
+    return new TaggedSender(statsDSender, Set.of(new Tag(APP_TAG_NAME, serviceName)));
   }
 
   private class FailFastServerConnectorManager extends ServerConnectorManager {
@@ -129,9 +64,8 @@ public final class HHServerConnector extends ServerConnector {
     @Override
     public void accept(SelectableChannel channel) {
       Executor executor = getExecutor();
-      if (executor instanceof QueuedThreadPool) {
-        QueuedThreadPool queuedThreadPool = (QueuedThreadPool) executor;
-        if (queuedThreadPool.isLowOnThreads()) {
+      if (executor instanceof ThreadPool threadPool) {
+        if (threadPool.isLowOnThreads()) {
           statsDSender.sendCount(LOW_ON_THREADS_METRIC_NAME, 1);
           logger.warn("low on threads, closing accepted socket");
           try {

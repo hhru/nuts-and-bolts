@@ -1,2 +1,2 @@
-ru.hh.nab.web.NabWebAutoConfiguration
-ru.hh.nab.logging.NabLoggingAutoConfiguration
+ru.hh.nab.web.starter.configuration.NabWebAutoConfiguration
+ru.hh.nab.web.starter.logging.NabLoggingAutoConfiguration

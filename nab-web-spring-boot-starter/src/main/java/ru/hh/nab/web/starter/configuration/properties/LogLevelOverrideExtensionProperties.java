@@ -1,5 +1,4 @@
-package ru.hh.nab.web.starter.logging;
-
+package ru.hh.nab.web.starter.configuration.properties;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;

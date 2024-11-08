@@ -41,6 +41,8 @@ import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
 import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
 import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
+import ru.hh.nab.web.logging.LogLevelOverrideApplier;
+import ru.hh.nab.web.logging.LogLevelOverrideExtension;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import static ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY;
@@ -50,6 +52,7 @@ import static ru.hh.nab.web.starter.configuration.properties.InfrastructurePrope
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.SERVICE_NAME_PROPERTY;
 import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
+import ru.hh.nab.web.starter.configuration.properties.LogLevelOverrideExtensionProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -116,6 +119,7 @@ public class NabWebAutoConfigurationTest {
         .withPropertyValues(PROPERTY_TEMPLATE.formatted(NabMetricsConfiguration.METRICS_JVM_ENABLED_PROPERTY, true))
         .withPropertyValues(httpCacheProperties)
         .withBean(TestResource.class)
+        .withBean("logLevelOverrideExtensionBean", LogLevelOverrideExtension.class, () -> mock(LogLevelOverrideExtension.class))
         .run(context -> {
           // deploy info beans
           assertThat(context).hasBean(SERVICE_NAME).getBean(SERVICE_NAME).isInstanceOf(String.class).hasToString(TEST_SERVICE_NAME);
@@ -143,6 +147,10 @@ public class NabWebAutoConfigurationTest {
 
           // scheduling beans
           assertThat(context).hasSingleBean(ScheduledExecutorService.class);
+
+          // logging beans
+          assertThat(context).hasSingleBean(LogLevelOverrideApplier.class);
+          assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
@@ -236,7 +244,19 @@ public class NabWebAutoConfigurationTest {
   }
 
   @Test
-  public void testSpringContextDoesNotContainServiceRegistrarBeanWithFailedConditions() {
+  public void testSpringContextDoesNotContainLoggingBeansWithFailedConditions() {
+    // when LogLevelOverrideExtension bean doesn't exist
+    applicationContextRunner
+        .withPropertyValues(infrastructureProperties)
+        .withUserConfiguration(TestConfiguration.class)
+        .run(context -> {
+          assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class);
+          assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class);
+        });
+  }
+
+  @Test
+  public void testSpringContextDoesNotContainServiceDiscoveryInitializerBeanWithFailedConditions() {
     // without main profile
     applicationContextRunner
         .withPropertyValues(infrastructureProperties)

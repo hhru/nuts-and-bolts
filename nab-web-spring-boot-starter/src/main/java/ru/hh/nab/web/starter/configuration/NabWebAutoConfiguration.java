@@ -59,6 +59,7 @@ import ru.hh.nab.web.starter.profile.MainProfile;
     NabDeployInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
+    NabLoggingConfiguration.class,
 
     NabJettyWebServerFactoryCustomizer.class,
     NabJettyServerCustomizer.class,

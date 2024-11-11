@@ -5,9 +5,9 @@ import com.timgroup.statsd.StatsDClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.web.NabDeployInfoConfiguration;
-import ru.hh.nab.web.NabMetricsConfiguration;
-import ru.hh.nab.web.NabTaskSchedulingConfiguration;
+import ru.hh.nab.web.starter.configuration.NabDeployInfoConfiguration;
+import ru.hh.nab.web.starter.configuration.NabMetricsConfiguration;
+import ru.hh.nab.web.starter.configuration.NabTaskSchedulingConfiguration;
 
 @Configuration
 @Import({

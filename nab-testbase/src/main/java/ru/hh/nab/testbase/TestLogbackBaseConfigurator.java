@@ -14,7 +14,7 @@ import java.util.Set;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
-import static ru.hh.nab.starter.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
+import static ru.hh.nab.web.logging.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
 
 public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 

@@ -20,7 +20,7 @@ import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabProjectInfoConfiguration;
-import ru.hh.nab.web.NabDeployInfoConfiguration;
+import ru.hh.nab.web.starter.configuration.NabDeployInfoConfiguration;
 
 @Configuration
 @Import({

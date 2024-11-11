@@ -30,10 +30,10 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import static ru.hh.nab.starter.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
 import ru.hh.nab.testbase.listeners.dto.ResultStatus;
 import ru.hh.nab.testbase.listeners.dto.StandType;
 import ru.hh.nab.testbase.listeners.dto.TestExecResult;
+import static ru.hh.nab.web.logging.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
 
 public class TestExecutorListener implements TestExecutionListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestExecutorListener.class);
@@ -198,7 +198,8 @@ public class TestExecutorListener implements TestExecutionListener {
   }
 
   private String getDbUrl() {
-    return String.format("jdbc:postgresql://%s:%s/%s",
+    return String.format(
+        "jdbc:postgresql://%s:%s/%s",
         getEnvOrDefault("TEST_DB_HOST", "jenkins.pyn.ru"),
         getEnvOrDefault("TEST_DB_PORT", "5432"),
         getEnvOrDefault("TEST_DB_NAME", "at_stats")

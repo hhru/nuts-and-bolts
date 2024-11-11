@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
@@ -173,7 +174,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   }
 
   private String getDefaultRetryTopic() {
-    return topicName + "_service_testOperation_retry_receive";
+    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("service", topicName, "testOperation"));
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {

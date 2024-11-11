@@ -24,7 +24,10 @@ public record RetryTopics(String retrySendTopic, String retryReceiveTopic) {
    * topicName_serviceName_operationName<b>_retry_send</b>
    * */
   public static String defaultRetrySendTopic(ConsumerMetadata consumerMetadata) {
-    return DEFAULT_RETRY_SEND_TOPIC.formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation());
+    return DEFAULT_RETRY_SEND_TOPIC
+        .formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation())
+        .toLowerCase()
+        .replace('-', '_');
   }
 
   /**
@@ -32,7 +35,10 @@ public record RetryTopics(String retrySendTopic, String retryReceiveTopic) {
    * topicName_serviceName_operationName<b>_retry_receive</b>
    * */
   public static String defaultRetryReceiveTopic(ConsumerMetadata consumerMetadata) {
-    return DEFAULT_RETRY_RECEIVE_TOPIC.formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation());
+    return DEFAULT_RETRY_RECEIVE_TOPIC
+        .formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation())
+        .toLowerCase()
+        .replace('-', '_');
   }
 
   /**

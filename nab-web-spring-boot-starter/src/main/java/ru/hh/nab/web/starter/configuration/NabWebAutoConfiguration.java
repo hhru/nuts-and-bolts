@@ -82,7 +82,7 @@ public class NabWebAutoConfiguration {
   @Bean
   @MainProfile
   @ConditionalOnBean(ConsulService.class)
-  public ServiceDiscoveryInitializer serviceRegistrator(ConsulService consulService) {
+  public ServiceDiscoveryInitializer serviceDiscoveryInitializer(ConsulService consulService) {
     return new ServiceDiscoveryInitializer(consulService);
   }
 

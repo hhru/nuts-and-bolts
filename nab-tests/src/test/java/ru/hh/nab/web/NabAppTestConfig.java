@@ -66,7 +66,7 @@ public class NabAppTestConfig {
   }
 
   @Bean
-  ServiceDiscoveryInitializer serviceRegistrator(ConsulService consulService) {
+  ServiceDiscoveryInitializer serviceDiscoveryInitializer(ConsulService consulService) {
     return new ServiceDiscoveryInitializer(consulService);
   }
 }

@@ -18,13 +18,11 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> implements SmartLifecycle {
-  private static final Logger DEFAULT_LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
   private final Logger logger;
   private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();

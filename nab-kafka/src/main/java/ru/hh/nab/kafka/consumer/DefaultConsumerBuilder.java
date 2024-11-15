@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -114,6 +115,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public KafkaConsumer<T> build() {
+    requireNonNull(messageClass, "messageClass is required"); // this would fail later with not very helpful error message
+    requireNonNull(consumeStrategy, "consumeStrategy is required"); // duplicate check in KafkaConsumer because strategy is wrapped by this builder
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);

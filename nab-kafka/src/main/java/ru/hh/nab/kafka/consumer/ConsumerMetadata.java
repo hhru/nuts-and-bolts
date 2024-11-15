@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.StringJoiner;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
@@ -14,9 +15,9 @@ public class ConsumerMetadata {
   private final List<Tag> tags;
 
   public ConsumerMetadata(String serviceName, String topic, String operation) {
-    this.serviceName = serviceName;
-    this.topic = topic;
-    this.operation = operation;
+    this.serviceName = requireNonNull(serviceName, "serviceName is required");
+    this.topic = requireNonNull(topic, "topic is required");
+    this.operation = operation != null ? operation : "";
     this.tags = List.of(
         new Tag(APP_TAG_NAME, serviceName),
         new Tag("topic", topic),

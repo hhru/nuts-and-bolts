@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
+import java.time.Instant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider;
@@ -61,7 +62,7 @@ public interface ConsumerBuilder<T> {
    * Specifies custom {@link ConsumeStrategy} for retries.
    * <p>
    * Requirements: custom strategy MUST consume retry messages only when they are ready for processing.
-   * This can be done using {@link DefaultConsumerBuilder#decorateForDelayedRetry(ConsumeStrategy, Duration)}.
+   * This can be done using {@link #decorateForDelayedRetry(ConsumeStrategy, Duration)}.
    * <p>
    * By default, retry consumer uses the same strategy as main and decorates it as mentioned above.
    * <p>
@@ -72,6 +73,20 @@ public interface ConsumerBuilder<T> {
    * @see HeadersMessageMetadataProvider
    * */
   ConsumerBuilder<T> withRetryConsumeStrategy(ConsumeStrategy<T> retryConsumeStrategy);
+
+  /**
+   * Decorate consume strategy to process messages only when they are ready for retry.
+   *
+   * @see  HeadersMessageMetadataProvider#getNextRetryTime
+   * @see SimpleDelayedConsumeStrategy
+   * */
+  static <T> SimpleDelayedConsumeStrategy<T> decorateForDelayedRetry(ConsumeStrategy<T> delegate, Duration sleepIfNotReadyDuration) {
+    return new SimpleDelayedConsumeStrategy<>(
+        delegate,
+        message -> HeadersMessageMetadataProvider.getNextRetryTime(message.headers()).orElse(Instant.EPOCH),
+        sleepIfNotReadyDuration
+    );
+  }
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

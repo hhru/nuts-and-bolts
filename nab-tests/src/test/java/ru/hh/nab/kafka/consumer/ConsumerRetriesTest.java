@@ -168,7 +168,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
         .withConsumeStrategy(consumeStrategy)
         .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(1))))
         // reduce retry consumer sleep duration to speed-up tests
-        .withRetryConsumeStrategy(DefaultConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofSeconds(1)))
+        .withRetryConsumeStrategy(ConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofSeconds(1)))
         .build();
     consumer.start();
   }

@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,7 +17,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.FileSettings;
-import ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.producer.KafkaProducer;
@@ -206,21 +204,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return consumeStrategy;
     }
     long pollTimeout = consumerFactory.configProvider.getNabConsumerSettings(topicName).getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS);
-    return decorateForDelayedRetry(consumeStrategy, Duration.ofMillis(pollTimeout * 9 / 10));
-  }
-
-  /**
-   * Decorate consume strategy to process messages only when they are ready for retry.
-   *
-   * @see  HeadersMessageMetadataProvider#getNextRetryTime
-   * @see SimpleDelayedConsumeStrategy
-   * */
-  public static <T> SimpleDelayedConsumeStrategy<T> decorateForDelayedRetry(ConsumeStrategy<T> delegate, Duration sleepIfNotReadyDuration) {
-    return new SimpleDelayedConsumeStrategy<>(
-        delegate,
-        message -> HeadersMessageMetadataProvider.getNextRetryTime(message.headers()).orElse(Instant.EPOCH),
-        sleepIfNotReadyDuration
-    );
+    return ConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofMillis(pollTimeout * 9 / 10));
   }
 
   private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(

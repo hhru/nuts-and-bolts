@@ -3,6 +3,7 @@ package ru.hh.nab.starter;
 import io.sentry.Sentry;
 import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -54,32 +55,32 @@ public final class NabApplication {
   }
 
   public JettyServer run(Class<?>... configs) {
+    long startTime = System.nanoTime();
     AnnotationConfigWebApplicationContext aggregateCtx = new AnnotationConfigWebApplicationContext();
     try {
       aggregateCtx.register(configs);
       aggregateCtx.refresh();
-      return run(aggregateCtx);
+      return run(aggregateCtx, startTime);
     } catch (Exception e) {
       return logErrorAndExit(e, true);
     }
   }
 
-  public JettyServer run(WebApplicationContext baseContext) {
-    return run(baseContext, false, true);
+  public JettyServer run(WebApplicationContext baseContext, long startTimeInNanos) {
+    return run(baseContext, false, true, startTimeInNanos);
   }
 
   /**
-   *
    * @param directlyUseAsWebAppRoot if this context used directly it gets no initialization by initializing listener
    * {@link ContextLoader#configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext, javax.servlet.ServletContext)}
    */
-  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError) {
+  public JettyServer run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot, boolean exitOnError, long startTimeInNanos) {
     try {
       configureLogger(baseContext);
       configureSentry(baseContext);
       JettyServer jettyServer = createJettyServer(baseContext, directlyUseAsWebAppRoot);
       jettyServer.start();
-      logStartupInfo(baseContext);
+      logStartupInfo(baseContext, Duration.ofNanos(System.nanoTime() - startTimeInNanos));
       return jettyServer;
     } catch (Exception e) {
       return logErrorAndExit(e, exitOnError);
@@ -89,7 +90,6 @@ public final class NabApplication {
   public JettyServer runOnTestServer(JettyServerFactory.JettyTestServer testServer, WebApplicationContext baseContext, boolean raiseIfServerInited) {
     try {
       configureLogger(baseContext);
-      logStartupInfo(baseContext);
       WebAppInitializer webAppInitializer = createWebAppInitializer(servletContextConfig, baseContext, false);
       ServletContextHandler jettyWebAppContext = createWebAppContextHandler(new FileSettings(new Properties()), List.of(webAppInitializer));
       return testServer.loadServerIfNeeded(jettyWebAppContext, raiseIfServerInited);
@@ -106,9 +106,11 @@ public final class NabApplication {
     );
   }
 
-  private JettyServer createJettyServer(WebApplicationContext baseContext,
-                                boolean directlyUseAsWebAppRoot,
-                                WebAppInitializer extwebAppInitializer){
+  private JettyServer createJettyServer(
+      WebApplicationContext baseContext,
+      boolean directlyUseAsWebAppRoot,
+      WebAppInitializer extwebAppInitializer
+  ) {
     FileSettings fileSettings = baseContext.getBean(FileSettings.class);
     ThreadPool threadPool = baseContext.getBean(ThreadPool.class);
     StatsDSender sender = baseContext.getBean(StatsDSender.class);
@@ -142,9 +144,16 @@ public final class NabApplication {
     getLogLevelOverrideExtension(context).ifPresent(extension -> new LogLevelOverrideApplier().run(extension, context.getBean(FileSettings.class)));
   }
 
-  private static void logStartupInfo(ApplicationContext context) {
+  private static void logStartupInfo(ApplicationContext context, Duration timeTakenToStartup) {
     AppMetadata appMetadata = context.getBean(AppMetadata.class);
-    LOGGER.info("Started {} PID={} (version={})", appMetadata.getServiceName(), getCurrentPid(), appMetadata.getVersion());
+    LOGGER.info(
+        "Started {} PID={} (version={}) in {} seconds (process running for {})",
+        appMetadata.getServiceName(),
+        getCurrentPid(),
+        appMetadata.getVersion(),
+        timeTakenToStartup.toMillis() / 1000.0,
+        ManagementFactory.getRuntimeMXBean().getUptime() / 1000.0
+    );
   }
 
   private static String getCurrentPid() {
@@ -176,9 +185,11 @@ public final class NabApplication {
     }
   }
 
-  private static WebAppInitializer createWebAppInitializer(NabServletContextConfig servletContextConfig,
-                                                           WebApplicationContext baseCtx,
-                                                           boolean directWebappRoot) {
+  private static WebAppInitializer createWebAppInitializer(
+      NabServletContextConfig servletContextConfig,
+      WebApplicationContext baseCtx,
+      boolean directWebappRoot
+  ) {
     WebApplicationContext targetCtx = directWebappRoot ? baseCtx : createChildWebAppCtx(baseCtx);
     return webApp -> {
       servletContextConfig.preConfigureWebApp(webApp, baseCtx);

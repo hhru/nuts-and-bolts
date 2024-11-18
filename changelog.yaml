@@ -1,3 +1,30 @@
+-   name: 8.0.0
+    date: '2024-11-18T19:35:48.114744+03:00'
+    description: "1. KafkaConsumer теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\
+        \ см. доку к этому методу. [Пример в ConsumerRetriesTest](https://github.com/hhru/nuts-and-bolts/blob/e3fd6b52fc0e97905bcc7f10838693264ae6c099/nab-tests/src/test/java/ru/hh/nab/kafka/consumer/ConsumerRetriesTest.java#L169).\
+        \  \r\n1. KafkaConsumer теперь корректно стартует и останавливается Spring\
+        \ контекстом, если создан как самостоятельный bean.\r\n1.  Удален SimpleKafkaConsumer.\r\
+        \n1. Удален метод ConsumerBuilder::withAckProvider."
+    instructions: "1. Заменяем `kafkaConsumerFactory.subscribe(...)` на `kafkaConsumerFactory.builder(...).build().start()`\r\
+        \nбыло\r\n```java\r\nkafkaConsumerFactory.subscribe(\r\n    topicName,\r\n\
+        \    operationName,\r\n    Message.class,\r\n    this::processMessages\r\n\
+        );\r\n```\r\nстало\r\n```java\r\n kafkaConsumerFactory\r\n     .builder(topicName,\
+        \ Message.class)\r\n     .withOperationName(operationName)\r\n     .withConsumeStrategy(this::processMessages)\r\
+        \n     .build()\r\n     .start();\r\n```\r\n2. Заменяем SimpleKafkaConsumer\
+        \ на `kafkaConsumerFactory.builder(...).build().start()`. Можно выставить\
+        \ консумер бином в контекст, тогда старт/стоп он вызовет сам.\r\nбыло\r\n\
+        ```java\r\npublic class SomeMessageProcessor extends SimpleKafkaConsumer<Message>\
+        \ {\r\n  @Inject\r\n  public SomeMessageProcessor(@KafkaTasks KafkaConsumerFactory\
+        \ kafkaTasksConsumerFactory) {\r\n    super(\r\n        kafkaTasksConsumerFactory,\r\
+        \n        topicName,\r\n        operationName,\r\n        ConsumeStrategy::atLeastOnceWithBatchAck,\r\
+        \n        Message.class\r\n    );\r\n```\r\nстало\r\n```java\r\npublic class\
+        \ SomeMessageProcessor {\r\n  @Bean\r\n  public KafkaConsumer<Message> buildKafkaConsumer(@KafkaTasks\
+        \ KafkaConsumerFactory kafkaTasksConsumerFactory) {\r\n    return kafkaTasksConsumerFactory\r\
+        \n        .builder(topicName, Message.class)\r\n        .withOperationName(operationName)\r\
+        \n        .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(this::process))\r\
+        \n        .build();\r\n  }\r\n```"
+    compatible: false
+
 -   name: 7.0.0
     date: '2024-10-16T15:44:20.944213+03:00'
     description: 'CacheFilter переписан на Jax-Rs, и ему задан приоритет 750. Также
@@ -5,15 +32,14 @@
         сервлет: для этого при регистрации фильтра вместо методов bindTo и bindToRoot
         необходимо использовать метод bindToServlets'
     instructions: Если в вашем сервисе используются не-jersey сервлеты (например,
-        DispatcherServlet из spring-webmvc) и их ответы нужно кешировать 
-        (в конфиге сервиса есть настройка http.cache.sizeInMB), то необходимо
-        либо переписать все ручки на jersey, либо добавить свою реализацию CacheFilter
-        (можно скопипастить старую реализацию из наба) и подключить её к не-jersey
-        сервлетам с помощью вызова метода bindToServlets. Чтобы посмотреть, какие сервлеты 
-        регистрируются, можно сделать поиск по addServlet. Если в сервисе есть jersey
-        фильтры, у которых приоритет (указывается в аннотации @Priority) <= 750 и
-        которые должны выполняться после CacheFilter, необходимо для таких фильтров
-        указать приоритет > 750
+        DispatcherServlet из spring-webmvc) и их ответы нужно кешировать (в конфиге
+        сервиса есть настройка http.cache.sizeInMB), то необходимо либо переписать
+        все ручки на jersey, либо добавить свою реализацию CacheFilter (можно скопипастить
+        старую реализацию из наба) и подключить её к не-jersey сервлетам с помощью
+        вызова метода bindToServlets. Чтобы посмотреть, какие сервлеты регистрируются,
+        можно сделать поиск по addServlet. Если в сервисе есть jersey фильтры, у которых
+        приоритет (указывается в аннотации @Priority) <= 750 и которые должны выполняться
+        после CacheFilter, необходимо для таких фильтров указать приоритет > 750
     compatible: false
 
 -   name: 6.2.2

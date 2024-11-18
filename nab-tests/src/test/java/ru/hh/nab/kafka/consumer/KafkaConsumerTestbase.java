@@ -1,13 +1,19 @@
 package ru.hh.nab.kafka.consumer;
 
 import jakarta.inject.Inject;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.NewPartitions;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +50,8 @@ public abstract class KafkaConsumerTestbase {
         .builder(topicName, messageClass)
         .withOperationName(operation)
         .withConsumeStrategy(consumerMock)
-        .start();
+        .build();
+    consumer.start();
     await()
         .atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertEquals(5, consumer.getAssignedPartitions().size()));
@@ -63,5 +70,19 @@ public abstract class KafkaConsumerTestbase {
 
   protected void waitUntil(Runnable assertion) throws InterruptedException {
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(assertion::run);
+  }
+
+  protected long countMessagesInTopic(String topic) {
+    try (AdminClient adminClient = kafkaTestUtils.getAdminClient()) {
+      List<TopicPartitionInfo> partitions = adminClient.describeTopics(List.of(topic)).values().get(topic).get().partitions();
+      Map<TopicPartition, OffsetSpec> topicPartitionOffsetSpecs = partitions
+          .stream()
+          .map(TopicPartitionInfo::partition)
+          .collect(toMap(partition -> new TopicPartition(topic, partition), partition -> OffsetSpec.latest()));
+      Collection<ListOffsetsResult.ListOffsetsResultInfo> offsets = adminClient.listOffsets(topicPartitionOffsetSpecs).all().get().values();
+      return offsets.stream().map(ListOffsetsResult.ListOffsetsResultInfo::offset).reduce(Long::sum).orElse(0L);
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

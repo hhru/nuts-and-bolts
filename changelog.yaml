@@ -1,3 +1,9 @@
+-   name: 8.0.1
+    date: '2024-11-19T19:49:31.496450+03:00'
+    description: В HibernateTestBase подключается SpringExtensionWithFailFast
+    instructions: ''
+    compatible: true
+
 -   name: 8.0.0
     date: '2024-11-18T19:35:48.114744+03:00'
     description: "1. KafkaConsumer теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\

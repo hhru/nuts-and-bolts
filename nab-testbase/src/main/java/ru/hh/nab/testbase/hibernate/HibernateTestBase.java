@@ -4,13 +4,13 @@ import javax.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
+import ru.hh.nab.testbase.extensions.SpringExtensionWithFailFast;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(SpringExtensionWithFailFast.class)
 public abstract class HibernateTestBase {
   @Inject
   protected SessionFactory sessionFactory;

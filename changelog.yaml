@@ -6,7 +6,8 @@
 
 -   name: 8.0.0
     date: '2024-11-18T19:35:48.114744+03:00'
-    description: "1. KafkaConsumer теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\
+    description: "Читабельный ченджлог смотри в changelog.md.\r\n
+        \ 1. KafkaConsumer теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\
         \ см. доку к этому методу. [Пример в ConsumerRetriesTest](https://github.com/hhru/nuts-and-bolts/blob/e3fd6b52fc0e97905bcc7f10838693264ae6c099/nab-tests/src/test/java/ru/hh/nab/kafka/consumer/ConsumerRetriesTest.java#L169).\
         \  \r\n1. KafkaConsumer теперь корректно стартует и останавливается Spring\
         \ контекстом, если создан как самостоятельный bean.\r\n1.  Удален SimpleKafkaConsumer.\r\

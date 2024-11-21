@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 import ru.hh.nab.web.jersey.resolver.ObjectMapperContextResolver;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

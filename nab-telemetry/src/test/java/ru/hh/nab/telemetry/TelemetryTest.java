@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest {

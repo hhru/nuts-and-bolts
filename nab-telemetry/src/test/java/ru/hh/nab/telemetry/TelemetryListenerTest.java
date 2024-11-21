@@ -41,7 +41,7 @@ import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryListenerTest {

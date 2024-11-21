@@ -34,7 +34,7 @@ import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 import static ru.hh.nab.web.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase;
+package ru.hh.nab.testbase.web;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;

@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.jersey.application-path=/test")
 public class ResourceInformationFilterTest {

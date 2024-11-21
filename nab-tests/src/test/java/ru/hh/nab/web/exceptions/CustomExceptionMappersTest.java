@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.ResourceHelper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomExceptionMappersTest {

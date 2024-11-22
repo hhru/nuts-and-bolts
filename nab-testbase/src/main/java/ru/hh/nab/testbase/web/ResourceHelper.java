@@ -10,14 +10,24 @@ import jakarta.ws.rs.core.UriBuilder;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Supplier;
 import static org.eclipse.jetty.util.URIUtil.HTTP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.core.env.Environment;
 
 public class ResourceHelper {
-  private final int serverPort;
+  private final Supplier<Integer> serverPort;
   private final Client client;
 
   public ResourceHelper(int serverPort) {
+    this(() -> serverPort);
+  }
+
+  public ResourceHelper(Environment environment) {
+    this(() -> environment.getRequiredProperty("local.server.port", Integer.class));
+  }
+
+  private ResourceHelper(Supplier<Integer> serverPort) {
     this.serverPort = serverPort;
     this.client = getClientBuilder().build();
   }
@@ -27,15 +37,15 @@ public class ResourceHelper {
   }
 
   public String baseUrl() {
-    return getServerAddress(serverPort).toString();
+    return getServerAddress(serverPort.get()).toString();
   }
 
   public String baseUrl(String protocol) {
-    return getServerAddress(protocol, serverPort).toString();
+    return getServerAddress(protocol, serverPort.get()).toString();
   }
 
   public int port() {
-    return serverPort;
+    return serverPort.get();
   }
 
   public void assertGet(String url, String expectedResponse) {

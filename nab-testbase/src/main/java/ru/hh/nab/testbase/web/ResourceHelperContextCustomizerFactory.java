@@ -28,6 +28,8 @@ public class ResourceHelperContextCustomizerFactory implements ContextCustomizer
         RootBeanDefinition definition = new RootBeanDefinition(
             ResourceHelper.class,
             BeanDefinition.SCOPE_SINGLETON,
+            // When ResourceHelper is created environment doesn't contain property local.server.port here (it will be added to environment later).
+            // So we can't pass server port to ResourceHelper. That's we pass Supplier here.
             () -> new ResourceHelper(() -> context.getEnvironment().getRequiredProperty("local.server.port", Integer.class))
         );
         registry.registerBeanDefinition(ResourceHelper.class.getName(), definition);

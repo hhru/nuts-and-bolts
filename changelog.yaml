@@ -1,3 +1,13 @@
+-   name: 9.0.0
+    date: '2024-11-22T18:11:53.148589+03:00'
+    description: Добавлено логирование времени старта приложения
+    instructions: В методы NabApplication#run(WebApplicationContext baseContext) и
+        NabApplication#run(WebApplicationContext baseContext, boolean directlyUseAsWebAppRoot,
+        boolean exitOnError) добавлен еще один аргумент startTimeInNanos. Поэтому
+        если в сервисе используются данные методы - необходимо также передавать время
+        старта приложения в наносекундах
+    compatible: false
+
 -   name: 8.0.1
     date: '2024-11-19T19:49:31.496450+03:00'
     description: В HibernateTestBase подключается SpringExtensionWithFailFast
@@ -6,8 +16,8 @@
 
 -   name: 8.0.0
     date: '2024-11-18T19:35:48.114744+03:00'
-    description: "Читабельный ченджлог смотри в changelog.md.\r\n
-        \ 1. KafkaConsumer теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\
+    description: "Читабельный ченджлог смотри в changelog.md.\r\n  1. KafkaConsumer\
+        \ теперь умеет в ретраи. TLDR: используйте `ConsumerBuilder::withRetries`,\
         \ см. доку к этому методу. [Пример в ConsumerRetriesTest](https://github.com/hhru/nuts-and-bolts/blob/e3fd6b52fc0e97905bcc7f10838693264ae6c099/nab-tests/src/test/java/ru/hh/nab/kafka/consumer/ConsumerRetriesTest.java#L169).\
         \  \r\n1. KafkaConsumer теперь корректно стартует и останавливается Spring\
         \ контекстом, если создан как самостоятельный bean.\r\n1.  Удален SimpleKafkaConsumer.\r\

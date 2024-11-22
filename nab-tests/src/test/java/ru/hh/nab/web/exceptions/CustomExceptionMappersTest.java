@@ -14,25 +14,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CustomExceptionMappersTest {
+public class CustomExceptionMappersTest extends WebTestBase {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
-
-  private final ResourceHelper resourceHelper;
-
-  public CustomExceptionMappersTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
 
   @Test
   public void testCustomExceptionMappers() throws IOException {

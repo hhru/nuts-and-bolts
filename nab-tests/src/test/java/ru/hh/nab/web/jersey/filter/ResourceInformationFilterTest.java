@@ -17,22 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.common.mdc.MDC;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.jersey.application-path=/test")
-public class ResourceInformationFilterTest {
-
-  private final ResourceHelper resourceHelper;
-
-  public ResourceInformationFilterTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
+public class ResourceInformationFilterTest extends WebTestBase {
 
   @Test
   public void testResourceName() {

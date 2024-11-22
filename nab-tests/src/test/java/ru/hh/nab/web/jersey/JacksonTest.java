@@ -6,22 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 import ru.hh.nab.web.jersey.resolver.ObjectMapperContextResolver;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class JacksonTest {
-
-  private final ResourceHelper resourceHelper;
-
-  public JacksonTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
+public class JacksonTest extends WebTestBase {
 
   @Test
   public void testJacksonJaxb() {

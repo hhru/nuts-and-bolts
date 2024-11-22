@@ -7,21 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 import ru.hh.nab.web.http.RequestHeaders;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class RequestIdLoggingFilterTest {
-
-  private final ResourceHelper resourceHelper;
-
-  public RequestIdLoggingFilterTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
+public class RequestIdLoggingFilterTest extends WebTestBase {
 
   @Test
   public void testRequestId() {

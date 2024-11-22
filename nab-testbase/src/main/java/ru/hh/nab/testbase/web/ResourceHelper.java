@@ -13,7 +13,6 @@ import java.net.URISyntaxException;
 import java.util.function.Supplier;
 import static org.eclipse.jetty.util.URIUtil.HTTP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.springframework.core.env.Environment;
 
 public class ResourceHelper {
   private final Supplier<Integer> serverPort;
@@ -23,11 +22,7 @@ public class ResourceHelper {
     this(() -> serverPort);
   }
 
-  public ResourceHelper(Environment environment) {
-    this(() -> environment.getRequiredProperty("local.server.port", Integer.class));
-  }
-
-  private ResourceHelper(Supplier<Integer> serverPort) {
+  public ResourceHelper(Supplier<Integer> serverPort) {
     this.serverPort = serverPort;
     this.client = getClientBuilder().build();
   }

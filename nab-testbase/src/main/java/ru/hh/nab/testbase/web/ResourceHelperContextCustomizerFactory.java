@@ -28,7 +28,7 @@ public class ResourceHelperContextCustomizerFactory implements ContextCustomizer
         RootBeanDefinition definition = new RootBeanDefinition(
             ResourceHelper.class,
             BeanDefinition.SCOPE_SINGLETON,
-            () -> new ResourceHelper(context.getEnvironment())
+            () -> new ResourceHelper(() -> context.getEnvironment().getRequiredProperty("local.server.port", Integer.class))
         );
         registry.registerBeanDefinition(ResourceHelper.class.getName(), definition);
       }

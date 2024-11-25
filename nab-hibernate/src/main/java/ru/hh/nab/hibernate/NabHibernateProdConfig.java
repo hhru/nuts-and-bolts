@@ -1,9 +1,7 @@
 package ru.hh.nab.hibernate;
 
 import jakarta.inject.Named;
-import jakarta.persistence.EntityManager;
 import java.util.Properties;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +40,5 @@ public class NabHibernateProdConfig {
         entityManagerFactoryRegistry.getEntityManagerFactories(SessionFactory.class),
         statsDSender
     );
-  }
-
-  @Bean
-  Session session(EntityManager entityManager) {
-    return (Session) entityManager;
   }
 }

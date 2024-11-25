@@ -27,6 +27,7 @@ import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.postgresql.Driver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
@@ -38,7 +39,7 @@ import ru.hh.nab.testbase.listeners.dto.TestExecResult;
 public class TestExecutorListener implements TestExecutionListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestExecutorListener.class);
   private static final String SERVICE_NAME_PROPERTY_FILE = NabCommonConfig.TEST_PROPERTIES_FILE_NAME;
-  private static final String DRIVER_NAME = "org.postgresql.Driver";
+  private static final String DRIVER_NAME = Driver.class.getName();
   private static final String LAUNCH_DATA_SQL = "insert into unit_tests_launch_info (server_name, service_name, " +
       "branch_name, unique_launch_id, start_time, end_time) VALUES ('%s', '%s', '%s', %s, '%s', '%s') returning unit_tests_launch_info_id";
   private static final String RUN_DATA_SQL = "INSERT INTO unit_tests_stats (unit_tests_launch_info_id, class_name, test_name, " +

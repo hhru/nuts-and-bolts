@@ -10,23 +10,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ServletTest {
-
-  private  final ResourceHelper resourceHelper;
-
-  public ServletTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
+public class ServletTest extends WebTestBase {
 
   @Test
   public void testServlet() {

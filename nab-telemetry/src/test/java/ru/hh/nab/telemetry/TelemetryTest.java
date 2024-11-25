@@ -26,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -34,17 +33,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class TelemetryTest {
+public class TelemetryTest extends WebTestBase {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
-
-  private final ResourceHelper resourceHelper;
-
-  public TelemetryTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
 
   @BeforeEach
   public void setUp() {

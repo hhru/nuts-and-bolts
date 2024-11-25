@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,19 +33,13 @@ import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 import static ru.hh.nab.web.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class NabExceptionMappersTest {
+public class NabExceptionMappersTest extends WebTestBase {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
-
-  private final ResourceHelper resourceHelper;
-
-  public NabExceptionMappersTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
 
   @Test
   public void testNabExceptionMappers() throws IOException {

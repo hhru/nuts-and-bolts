@@ -30,7 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.jclient.common.DefaultRequestStrategy;
@@ -41,21 +40,15 @@ import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
 import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
+import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class TelemetryListenerTest {
+public class TelemetryListenerTest extends WebTestBase {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 
   private static OpenTelemetry telemetry;
   private static HttpClientContext httpClientContext;
   private static HttpClientFactory httpClientFactory;
-
-  private final ResourceHelper resourceHelper;
-
-  public TelemetryListenerTest(@LocalServerPort int serverPort) {
-    this.resourceHelper = new ResourceHelper(serverPort);
-  }
 
   @BeforeAll
   public static void init() {

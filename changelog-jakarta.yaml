@@ -1,3 +1,9 @@
+-   name: 9.0.0.jakarta-rc3
+    date: '2024-11-25T20:15:00.000000+03:00'
+    description: В nab-testbase подключен postgresql драйвер
+    instructions: ''
+    compatible: true
+
 -   name: 9.0.0.jakarta-rc2
     date: '2024-11-25T20:00:00.000000+03:00'
     description: Session бин объявляется в NabHibernateCommonConfig

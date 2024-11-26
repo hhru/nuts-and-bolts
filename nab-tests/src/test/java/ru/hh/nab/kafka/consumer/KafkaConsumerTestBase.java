@@ -17,7 +17,7 @@ import static ru.hh.nab.common.util.ExceptionUtils.getOrThrow;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
 @SpringBootTest(classes = KafkaTestConfig.class)
-public abstract class KafkaConsumerTestbase {
+public abstract class KafkaConsumerTestBase {
 
   @Inject
   protected TestKafkaWithJsonMessages kafkaTestUtils;

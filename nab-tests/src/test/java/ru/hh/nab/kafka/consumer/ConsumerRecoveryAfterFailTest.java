@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
+public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestBase {
   private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
   private List<String> processedMessages;
   private KafkaConsumer<String> consumer;

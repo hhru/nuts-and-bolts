@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
-public class ClusterMetadataProviderTest extends KafkaConsumerTestbase {
+public class ClusterMetadataProviderTest extends KafkaConsumerTestBase {
 
 
   @Test

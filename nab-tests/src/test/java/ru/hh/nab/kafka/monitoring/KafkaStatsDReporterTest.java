@@ -18,12 +18,10 @@ import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.KafkaConsumer;
-import ru.hh.nab.kafka.consumer.KafkaConsumerTestbase;
+import ru.hh.nab.kafka.consumer.KafkaConsumerTestBase;
 import ru.hh.nab.kafka.consumer.TopicConsumerMock;
 import static ru.hh.nab.kafka.monitoring.KafkaStatsDReporter.ReporterTag.CLIENT_ID;
 import static ru.hh.nab.kafka.monitoring.KafkaStatsDReporter.ReporterTag.NODE_ID;
@@ -33,8 +31,7 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaProducerFactory;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 
-@SpringBootTest(classes = KafkaTestConfig.class)
-class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
+class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
   private TopicConsumerMock<String> consumerMock;
   private KafkaConsumer<String> consumer;
 

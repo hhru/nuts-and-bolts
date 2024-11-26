@@ -5,7 +5,7 @@ import java.util.Properties;
 import static ru.hh.nab.common.properties.PropertiesUtils.SETTINGS_DIR_PROPERTY;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 
-public class NabStarterTestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
+public class NabWebTestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate {
 
   @Override
   protected Properties createLoggingProperties() {

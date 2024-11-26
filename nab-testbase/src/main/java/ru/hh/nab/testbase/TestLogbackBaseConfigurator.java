@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import static ru.hh.nab.common.properties.PropertiesUtils.SETTINGS_DIR_PROPERTY;
 import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import static ru.hh.nab.web.logging.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
@@ -20,7 +19,6 @@ public class TestLogbackBaseConfigurator extends NabLoggingConfiguratorTemplate 
 
   @Override
   protected Properties createLoggingProperties() {
-    System.setProperty(SETTINGS_DIR_PROPERTY, ".");
     Properties properties = createProperties();
     setPropertyIfNotSet(properties, "log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
     setPropertyIfNotSet(properties, "log.dir", "target/logs");

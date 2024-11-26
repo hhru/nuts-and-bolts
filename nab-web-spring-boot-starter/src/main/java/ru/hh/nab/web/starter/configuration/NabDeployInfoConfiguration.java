@@ -1,16 +1,13 @@
 package ru.hh.nab.web.starter.configuration;
 
 import jakarta.inject.Named;
-import java.util.Arrays;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
-import java.util.Properties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
@@ -18,6 +15,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
+import ru.hh.nab.web.starter.util.EnvironmentUtils;
 
 @Configuration
 @EnableConfigurationProperties(InfrastructureProperties.class)
@@ -55,15 +53,6 @@ public class NabDeployInfoConfiguration {
 
   @Bean
   public FileSettings fileSettings(ConfigurableEnvironment environment) {
-    Properties properties = new Properties();
-    environment
-        .getPropertySources()
-        .stream()
-        .filter(source -> source instanceof EnumerablePropertySource<?>)
-        .map(source -> ((EnumerablePropertySource<?>) source).getPropertyNames())
-        .flatMap(Arrays::stream)
-        .distinct()
-        .forEach(propertyName -> properties.setProperty(propertyName, environment.getProperty(propertyName)));
-    return new FileSettings(properties);
+    return new FileSettings(EnvironmentUtils.getProperties(environment));
   }
 }

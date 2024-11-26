@@ -19,14 +19,10 @@ import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.NabProjectInfoConfiguration;
-import ru.hh.nab.web.starter.configuration.NabDeployInfoConfiguration;
+import ru.hh.nab.testbase.NabTestConfig;
 
 @Configuration
-@Import({
-    NabProjectInfoConfiguration.class,
-    NabDeployInfoConfiguration.class
-})
+@Import(NabTestConfig.class)
 public class KafkaTestConfig {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

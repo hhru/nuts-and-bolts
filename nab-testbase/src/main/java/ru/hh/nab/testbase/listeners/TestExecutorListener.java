@@ -2,7 +2,6 @@ package ru.hh.nab.testbase.listeners;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
@@ -29,15 +27,13 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.starter.NabCommonConfig;
 import ru.hh.nab.testbase.listeners.dto.ResultStatus;
 import ru.hh.nab.testbase.listeners.dto.StandType;
 import ru.hh.nab.testbase.listeners.dto.TestExecResult;
 
 public class TestExecutorListener implements TestExecutionListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestExecutorListener.class);
-  private static final String SERVICE_NAME_PROPERTY_FILE = NabCommonConfig.TEST_PROPERTIES_FILE_NAME;
+  private static final String SERVICE_NAME_PROPERTY = "serviceName";
   private static final String DRIVER_NAME = "org.postgresql.Driver";
   private static final String LAUNCH_DATA_SQL = "insert into unit_tests_launch_info (server_name, service_name, " +
       "branch_name, unique_launch_id, start_time, end_time) VALUES ('%s', '%s', '%s', %s, '%s', '%s') returning unit_tests_launch_info_id";
@@ -64,14 +60,14 @@ public class TestExecutorListener implements TestExecutionListener {
   public void testPlanExecutionFinished(TestPlan testPlan) {
     StandType standType = getStandType();
     Connection connection = getNewConnection();
-    String serviceName = (String) loadProperties().get(SERVICE_NAME);
-    if (connection == null || standType == null || serviceName == null || serviceName.length() == 0) {
+    Optional<String> serviceName = testPlan.getConfigurationParameters().get(SERVICE_NAME_PROPERTY).filter(name -> !name.isEmpty());
+    if (connection == null || standType == null || serviceName.isEmpty()) {
       return;
     }
     try (PreparedStatement preparedStatement = connection.prepareStatement(RUN_DATA_SQL);
          Statement statement = connection.createStatement()) {
       connection.setAutoCommit(false);
-      int launchId = sendLaunchDataAndGetId(serviceName, statement);
+      int launchId = sendLaunchDataAndGetId(serviceName.get(), statement);
       sendExecutionData(preparedStatement, launchId);
       connection.commit();
       connection.setAutoCommit(true);
@@ -233,16 +229,6 @@ public class TestExecutorListener implements TestExecutionListener {
       }
     }
     return hostName;
-  }
-
-  public Properties loadProperties() {
-    Properties prop = new Properties();
-    try (InputStream inputStream = this.getClass().getResourceAsStream("/" + SERVICE_NAME_PROPERTY_FILE)) {
-      prop.load(inputStream);
-    } catch (IOException e) {
-      LOGGER.warn("Fail to read '{}' properties file", SERVICE_NAME_PROPERTY_FILE, e);
-    }
-    return prop;
   }
 
   private String getEnvOrDefault(String env, String def) {

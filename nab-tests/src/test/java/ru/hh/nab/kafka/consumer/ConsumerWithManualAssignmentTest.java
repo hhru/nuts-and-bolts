@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
-public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
+public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
   private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
 
   private List<KafkaConsumer<?>> startedConsumers = new ArrayList<>();

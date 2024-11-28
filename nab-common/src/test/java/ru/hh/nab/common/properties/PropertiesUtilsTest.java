@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static ru.hh.nab.common.properties.PropertiesUtils.DEFAULT_DEV_FILE_EXT;
-import static ru.hh.nab.common.properties.PropertiesUtils.SETINGS_DIR_PROPERTY;
+import static ru.hh.nab.common.properties.PropertiesUtils.SETTINGS_DIR_PROPERTY;
 import static ru.hh.nab.common.properties.PropertiesUtils.fromFilesInSettingsDir;
 
 public class PropertiesUtilsTest {
@@ -20,14 +20,14 @@ public class PropertiesUtilsTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    System.setProperty(SETINGS_DIR_PROPERTY, TMP_DIR);
+    System.setProperty(SETTINGS_DIR_PROPERTY, TMP_DIR);
     propertiesFile = Files.createTempFile(TEST_FILE_PREFIX, "");
     devPropertiesFile = Files.createFile(Paths.get(propertiesFile.toString() + DEFAULT_DEV_FILE_EXT));
   }
 
   @AfterEach
   public void tearDown() throws Exception {
-    System.clearProperty(SETINGS_DIR_PROPERTY);
+    System.clearProperty(SETTINGS_DIR_PROPERTY);
     Files.deleteIfExists(propertiesFile);
     Files.deleteIfExists(devPropertiesFile);
   }
@@ -62,14 +62,14 @@ public class PropertiesUtilsTest {
   public void testSetSystemPropertyIfAbsent() {
     String testValue = "tmp";
 
-    System.clearProperty(SETINGS_DIR_PROPERTY);
+    System.clearProperty(SETTINGS_DIR_PROPERTY);
 
-    PropertiesUtils.setSystemPropertyIfAbsent(SETINGS_DIR_PROPERTY, testValue);
+    PropertiesUtils.setSystemPropertyIfAbsent(SETTINGS_DIR_PROPERTY, testValue);
 
-    assertEquals(testValue, System.getProperty(SETINGS_DIR_PROPERTY));
+    assertEquals(testValue, System.getProperty(SETTINGS_DIR_PROPERTY));
 
-    PropertiesUtils.setSystemPropertyIfAbsent(SETINGS_DIR_PROPERTY, "some new value");
+    PropertiesUtils.setSystemPropertyIfAbsent(SETTINGS_DIR_PROPERTY, "some new value");
 
-    assertEquals(testValue, System.getProperty(SETINGS_DIR_PROPERTY));
+    assertEquals(testValue, System.getProperty(SETTINGS_DIR_PROPERTY));
   }
 }

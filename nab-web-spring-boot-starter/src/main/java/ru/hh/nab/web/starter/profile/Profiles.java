@@ -7,11 +7,6 @@ public final class Profiles {
    */
   public static final String MAIN = "main";
 
-  /**
-   * test profile is necessary for unit tests
-   */
-  public static final String TEST = "test";
-
   private Profiles() {
   }
 }

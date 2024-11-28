@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class KafkaConsumerFactoryTest extends KafkaConsumerTestbase {
+public class KafkaConsumerFactoryTest extends KafkaConsumerTestBase {
   private TopicConsumerMock<String> consumerMock;
   private KafkaConsumer<String> consumer;
 

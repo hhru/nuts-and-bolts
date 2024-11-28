@@ -1,3 +1,10 @@
+-   name: 9.0.1
+    date: '2024-11-28T13:39:00.861592+03:00'
+    description: Вернули удаленный в 9.0.0 метод ConsumerBuilder::start с пометкой
+        deprecated
+    instructions: ''
+    compatible: true
+
 -   name: 9.0.0
     date: '2024-11-22T18:11:53.148589+03:00'
     description: Добавлено логирование времени старта приложения

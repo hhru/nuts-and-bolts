@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContextException;
@@ -25,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.common.servlet.SystemFilter;
-import ru.hh.nab.web.NabAppTestConfig;
+import ru.hh.nab.web.NabWebTestConfig;
 
 public class RegistrationValidatorTest {
 
@@ -91,8 +90,7 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabAppTestConfig.class)
-  @EnableAutoConfiguration
+  @Import(NabWebTestConfig.class)
   public static class ValidServletConfiguration {
     @Bean
     ServletRegistrationBean<HttpServlet> servlet1() {
@@ -106,8 +104,7 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabAppTestConfig.class)
-  @EnableAutoConfiguration
+  @Import(NabWebTestConfig.class)
   public static class ConflictingServletConfiguration {
 
     private static final String CONFLICTING_URL = "/conflict";
@@ -128,8 +125,7 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabAppTestConfig.class)
-  @EnableAutoConfiguration
+  @Import(NabWebTestConfig.class)
   public static class ValidFilterConfiguration {
     @Bean
     FilterRegistrationBean<TestFilter> testFilter() {
@@ -147,8 +143,7 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabAppTestConfig.class)
-  @EnableAutoConfiguration
+  @Import(NabWebTestConfig.class)
   public static class InvalidApplicationFilterOrderConfiguration {
     @Bean
     FilterRegistrationBean<TestFilter> testFilter() {
@@ -159,8 +154,7 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabAppTestConfig.class)
-  @EnableAutoConfiguration
+  @Import(NabWebTestConfig.class)
   public static class InvalidSystemFilterOrderConfiguration {
     @Bean
     FilterRegistrationBean<TestSystemFilter> testSystemFilter() {

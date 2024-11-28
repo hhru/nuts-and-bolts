@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@SpringBootTest(classes = DataSourceTestConfig.class)
+@SpringBootTest(classes = DataSourceTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class JdbcTemplateTest {
   @Inject
   private DataSource dataSource;

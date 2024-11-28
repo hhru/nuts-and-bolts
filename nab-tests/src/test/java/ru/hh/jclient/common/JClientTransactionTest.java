@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.LongAdder;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
@@ -22,17 +20,13 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.jclient.NabJClientConfig;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
 import ru.hh.nab.jpa.JpaTestConfig;
 
-@SpringBootTest(
-    classes = {JpaTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
-)
+@SpringBootTest(classes = {JpaTestConfig.class, NabJClientConfig.class}, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class JClientTransactionTest {
   private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
   private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(
@@ -114,7 +108,7 @@ public class JClientTransactionTest {
   }
 
   @Test
-  public void testLogSkipsDefaultPackages() throws Exception {
+  public void testLogSkipsDefaultPackages() {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
@@ -128,19 +122,5 @@ public class JClientTransactionTest {
     callInTxStatistics.forEach((stack, counter) -> assertFalse(
         stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
     ));
-  }
-
-  @Configuration
-  static class TestConfig {
-
-    @Bean
-    ScheduledExecutorService scheduledExecutorService() {
-      return Executors.newScheduledThreadPool(1);
-    }
-
-    @Bean
-    String serviceName() {
-      return "test";
-    }
   }
 }

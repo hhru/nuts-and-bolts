@@ -16,7 +16,6 @@ import org.hibernate.Session;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -28,8 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
@@ -38,8 +36,7 @@ import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
 import ru.hh.nab.metrics.StatsDSender;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class)
+@SpringJUnitConfig(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class)
 public class NabSessionFactoryBuilderFactoryTest {
 
   private static Connection connection;

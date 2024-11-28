@@ -22,7 +22,7 @@ import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import static ru.hh.nab.common.util.ExceptionUtils.getOrThrow;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
-@SpringBootTest(classes = KafkaTestConfig.class)
+@SpringBootTest(classes = KafkaTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public abstract class KafkaConsumerTestBase {
 
   @Inject

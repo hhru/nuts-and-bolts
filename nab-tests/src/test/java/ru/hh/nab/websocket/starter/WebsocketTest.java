@@ -10,18 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    classes = {NabWebTestConfig.class, TestEndpoint.class},
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 public class WebsocketTest extends WebTestBase {
 
   @Test
@@ -54,14 +54,5 @@ public class WebsocketTest extends WebTestBase {
 
   private void waitUntil(Runnable assertion) {
     await().atMost(3, TimeUnit.SECONDS).untilAsserted(assertion::run);
-  }
-
-  @Configuration
-  @EnableAutoConfiguration
-  @Import({
-      NabTestConfig.class,
-      TestEndpoint.class,
-  })
-  public static class WebsocketCtx {
   }
 }

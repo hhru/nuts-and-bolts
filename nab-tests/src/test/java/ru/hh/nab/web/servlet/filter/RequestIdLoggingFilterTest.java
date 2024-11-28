@@ -5,15 +5,12 @@ import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 import ru.hh.nab.web.http.RequestHeaders;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = NabWebTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RequestIdLoggingFilterTest extends WebTestBase {
 
   @Test
@@ -35,11 +32,5 @@ public class RequestIdLoggingFilterTest extends WebTestBase {
 
     assertEquals(OK.getStatusCode(), response.getStatus());
     assertNull(response.getHeaderString(RequestHeaders.REQUEST_ID));
-  }
-
-  @Configuration
-  @EnableAutoConfiguration
-  @Import(NabTestConfig.class)
-  public static class TestConfiguration {
   }
 }

@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
@@ -51,6 +50,7 @@ import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.jpa.MappingConfig;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
@@ -58,7 +58,8 @@ import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
     classes = {
         JpaTestConfig.class,
         DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
-    }
+    },
+    webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 public class DataSourceSwitchingTest extends JpaTestBase {
 
@@ -295,18 +296,12 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
   @Configuration
   static class DataSourceSwitchingTestConfig {
-    static final String SERVICE_NAME_VALUE = "test-service";
-
-    @Bean
-    StatsDSender statsDSender() {
-      return mock(StatsDSender.class);
-    }
 
     @Bean
     DataSourceFactory dataSourceFactory(StatsDSender statsDSender, DatabaseSwitcher databaseSwitcher) {
       return new EmbeddedPostgresDataSourceFactory(
-          new NabMetricsTrackerFactoryProvider(SERVICE_NAME_VALUE, statsDSender),
-          new HealthCheckHikariDataSourceFactory(SERVICE_NAME_VALUE, statsDSender) {
+          new NabMetricsTrackerFactoryProvider(NabTestConfig.TEST_SERVICE_NAME, statsDSender),
+          new HealthCheckHikariDataSourceFactory(NabTestConfig.TEST_SERVICE_NAME, statsDSender) {
             @Override
             public HikariDataSource create(HikariConfig hikariConfig) {
               return spy(super.create(hikariConfig));
@@ -448,12 +443,6 @@ public class DataSourceSwitchingTest extends JpaTestBase {
         // empty
       }
       return dataSource;
-    }
-
-    @Named(SERVICE_NAME)
-    @Bean(SERVICE_NAME)
-    String serviceName() {
-      return SERVICE_NAME_VALUE;
     }
   }
 

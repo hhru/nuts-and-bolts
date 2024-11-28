@@ -35,7 +35,7 @@ import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = TelemetryTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest extends WebTestBase {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 

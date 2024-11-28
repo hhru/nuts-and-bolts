@@ -23,20 +23,20 @@ import org.hibernate.exception.JDBCConnectionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
 import ru.hh.nab.common.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    classes = {NabWebTestConfig.class, NabExceptionMappersTest.TestResource.class},
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 public class NabExceptionMappersTest extends WebTestBase {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -179,14 +179,5 @@ public class NabExceptionMappersTest extends WebTestBase {
         //
       }
     };
-  }
-
-  @Configuration
-  @EnableAutoConfiguration
-  @Import({
-      NabTestConfig.class,
-      TestResource.class,
-  })
-  public static class TestConfiguration {
   }
 }

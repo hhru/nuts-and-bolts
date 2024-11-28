@@ -110,4 +110,14 @@ public interface ConsumerBuilder<T> {
   ConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition);
 
   KafkaConsumer<T> build();
+
+  /**
+   * @deprecated Use {@link #build()} and then {@link KafkaConsumer#start()}
+   * */
+  @Deprecated(forRemoval = true)
+  default KafkaConsumer<T> start() {
+    KafkaConsumer<T> consumer = build();
+    consumer.start();
+    return consumer;
+  }
 }

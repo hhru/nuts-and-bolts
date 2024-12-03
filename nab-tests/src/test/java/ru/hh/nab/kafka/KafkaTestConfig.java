@@ -26,10 +26,14 @@ import ru.hh.nab.testbase.NabTestConfig;
 public class KafkaTestConfig {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final TestKafkaWithJsonMessages TEST_KAFKA = KafkaTestUtils.startKafkaWithJsonMessages(
+      OBJECT_MAPPER,
+      Map.of("num.partitions", "5")
+  );
 
   @Bean
   public TestKafkaWithJsonMessages testKafka() {
-    return KafkaTestUtils.startKafkaWithJsonMessages(OBJECT_MAPPER, Map.of("num.partitions", "5"));
+    return TEST_KAFKA;
   }
 
   @Bean

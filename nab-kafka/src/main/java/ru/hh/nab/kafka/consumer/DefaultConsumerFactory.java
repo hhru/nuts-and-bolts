@@ -70,46 +70,10 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   @Override
-  public <T> KafkaConsumer<T> subscribe(String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy) {
-    return builder(topicName, messageClass)
-        .withOperationName(operationName)
-        .withConsumeStrategy(consumeStrategy)
-        .start();
-  }
-
-  @Override
-  public <T> KafkaConsumer<T> subscribe(
-      String topicName,
-      String operationName,
-      Class<T> messageClass,
-      ConsumeStrategy<T> consumeStrategy,
-      Logger logger
-  ) {
-    return builder(topicName, messageClass)
-        .withLogger(logger)
-        .withOperationName(operationName)
-        .withConsumeStrategy(consumeStrategy)
-        .start();
-  }
-
-  @Override
-  public <T> KafkaConsumer<T> subscribe(
-      String clientId, String topicName, String operationName, Class<T> messageClass, ConsumeStrategy<T> consumeStrategy, Logger logger
-  ) {
-    return builder(topicName, messageClass)
-        .withLogger(logger)
-        .withOperationName(operationName)
-        .withConsumeStrategy(consumeStrategy)
-        .withClientId(clientId)
-        .start();
-  }
-
-  @Override
   public <T> ConsumerBuilder<T> builder(String topicName, Class<T> messageClass) {
     return new DefaultConsumerBuilder<>(this, topicName, messageClass)
         .withLogger(factoryLogger);
   }
-
 
   public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerMetadata consumerMetadata, ConsumeStrategy<T> consumeStrategy) {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerMetadata, consumeStrategy);

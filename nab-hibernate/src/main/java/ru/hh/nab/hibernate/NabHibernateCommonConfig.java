@@ -1,5 +1,7 @@
 package ru.hh.nab.hibernate;
 
+import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -19,6 +21,11 @@ import ru.hh.nab.jpa.NabJpaCommonConfig;
     EventListenerRegistryPropagator.class,
 })
 public class NabHibernateCommonConfig {
+
+  @Bean
+  Session session(EntityManager entityManager) {
+    return (Session) entityManager;
+  }
 
   @Bean
   ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {

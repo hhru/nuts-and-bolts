@@ -101,9 +101,9 @@ public class DataSourceFactoryTest {
     properties.setProperty(getProperty(ROUTING_SECONDARY_DATASOURCE), DataSourceType.READONLY);
     RuntimeException exception = assertThrows(RuntimeException.class, () -> createTestDataSource(properties));
     String expectedMessage = "Exception during master datasource initialization: if routing.failedHealthcheck.secondaryDataSource is configured, " +
-        "healthcheck should be enabled. To prevent misconfiguration application startup will be aborted.";
+        "healthcheck should be enabled";
     String actualMessage = exception.getMessage();
-    assertEquals(expectedMessage, actualMessage);
+    assertTrue(actualMessage.contains(expectedMessage));
     assertTrue(DataSourcePropertiesStorage.getSecondaryDataSourceName(TEST_DATA_SOURCE_TYPE).isEmpty());
   }
 

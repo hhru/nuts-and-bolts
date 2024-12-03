@@ -9,15 +9,25 @@ import com.zaxxer.hikari.util.PropertyElf;
 import static com.zaxxer.hikari.util.UtilityElf.createInstance;
 import jakarta.annotation.Nullable;
 import static java.lang.Integer.parseInt;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.servlet.UriComponent;
 import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
@@ -35,6 +45,8 @@ import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 
 public class DataSourceFactory {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceFactory.class);
   private static final int HIKARI_MIN_VALIDATION_TIMEOUT_MS = 250;
 
   private final MetricsTrackerFactoryProvider<?> metricsTrackerFactoryProvider;
@@ -79,51 +91,72 @@ public class DataSourceFactory {
   }
 
   public DataSource create(HikariConfig hikariConfig, FileSettings dataSourceSettings, boolean isReadonly) {
-    boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
-    if (sendStats && metricsTrackerFactoryProvider != null) {
-      hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
-    }
-
-    FileSettings healthCheckSettings = dataSourceSettings.getSubSettings(HEALTHCHECK_SETTINGS_PREFIX);
-    boolean healthCheckEnabled = healthCheckSettings.getBoolean(HEALTHCHECK_ENABLED, false);
-    String secondaryDataSource = dataSourceSettings.getString(ROUTING_SECONDARY_DATASOURCE);
-    if (!healthCheckEnabled && secondaryDataSource != null) {
-      throw new RuntimeException(String.format(
-          "Exception during %s datasource initialization: if %s is configured, healthcheck should be enabled. " +
-              "To prevent misconfiguration application startup will be aborted.", hikariConfig.getPoolName(), ROUTING_SECONDARY_DATASOURCE
-      ));
-    }
-
     String dataSourceName = hikariConfig.getPoolName();
-    DataSource originalDataSource = Optional.ofNullable(hikariConfig.getDataSource()).orElseGet(() -> createOriginalDataSource(hikariConfig));
-    DataSource namedDataSource = new NamedDataSource(dataSourceName, originalDataSource);
-    DataSource telemetryDataSource = openTelemetryJdbcExtension == null ? namedDataSource : openTelemetryJdbcExtension.wrap(namedDataSource);
-    hikariConfig.setDataSource(telemetryDataSource);
-
-    DataSource hikariDataSource;
-    if (healthCheckHikariDataSourceFactory != null && healthCheckEnabled) {
-      hikariConfig.setHealthCheckRegistry(new HealthCheckRegistry());
-      hikariConfig.setHealthCheckProperties(healthCheckSettings.getProperties());
-      hikariDataSource = healthCheckHikariDataSourceFactory.create(hikariConfig);
-    } else {
-      hikariDataSource = new HikariDataSource(hikariConfig);
-    }
-
-    String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
-    if (statementTimeoutMsVal != null) {
-      int statementTimeoutMs = parseInt(statementTimeoutMsVal);
-      if (statementTimeoutMs > 0) {
-        hikariDataSource = new StatementTimeoutDataSource(hikariDataSource, statementTimeoutMs);
+    try {
+      boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
+      if (sendStats && metricsTrackerFactoryProvider != null) {
+        hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
       }
+
+      FileSettings healthCheckSettings = dataSourceSettings.getSubSettings(HEALTHCHECK_SETTINGS_PREFIX);
+      boolean healthCheckEnabled = healthCheckSettings.getBoolean(HEALTHCHECK_ENABLED, false);
+      String secondaryDataSource = dataSourceSettings.getString(ROUTING_SECONDARY_DATASOURCE);
+      if (!healthCheckEnabled && secondaryDataSource != null) {
+        throw new RuntimeException(String.format(
+            "Exception during %s datasource initialization: if %s is configured, healthcheck should be enabled. " +
+                "To prevent misconfiguration application startup will be aborted.", hikariConfig.getPoolName(), ROUTING_SECONDARY_DATASOURCE
+        ));
+      }
+
+      DataSource originalDataSource = Optional.ofNullable(hikariConfig.getDataSource()).orElseGet(() -> createOriginalDataSource(hikariConfig));
+      DataSource namedDataSource = new NamedDataSource(dataSourceName, originalDataSource);
+      DataSource telemetryDataSource = openTelemetryJdbcExtension == null ? namedDataSource : openTelemetryJdbcExtension.wrap(namedDataSource);
+      hikariConfig.setDataSource(telemetryDataSource);
+
+      DataSource hikariDataSource;
+      if (healthCheckHikariDataSourceFactory != null && healthCheckEnabled) {
+        hikariConfig.setHealthCheckRegistry(new HealthCheckRegistry());
+        hikariConfig.setHealthCheckProperties(healthCheckSettings.getProperties());
+        hikariDataSource = healthCheckHikariDataSourceFactory.create(hikariConfig);
+      } else {
+        hikariDataSource = new HikariDataSource(hikariConfig);
+      }
+
+      String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
+      if (statementTimeoutMsVal != null) {
+        int statementTimeoutMs = parseInt(statementTimeoutMsVal);
+        if (statementTimeoutMs > 0) {
+          hikariDataSource = new StatementTimeoutDataSource(hikariDataSource, statementTimeoutMs);
+        }
+      }
+
+      checkDataSource(hikariDataSource, dataSourceName);
+      DataSourcePropertiesStorage.registerPropertiesFor(
+          hikariConfig.getPoolName(),
+          new DataSourcePropertiesStorage.DataSourceProperties(!isReadonly, secondaryDataSource)
+      );
+
+      return hikariDataSource;
+    } catch (RuntimeException e) {
+      RuntimeException dataSourceCreationException = e;
+      Matcher matcher = Pattern.compile("jdbc:(.*)").matcher(hikariConfig.getJdbcUrl());
+      if (matcher.find()) {
+        URI uri = URI.create(matcher.group(1));
+        Map<String, List<String>> queryParams = UriComponent.decodeQuery(uri.getQuery(), false, false);
+        String host = uri.getHost();
+        String user = Optional
+            .ofNullable(queryParams.get("user"))
+            .map(Collection::stream)
+            .flatMap(Stream::findFirst)
+            .or(() -> Optional.ofNullable(hikariConfig.getUsername()))
+            .orElse("unknown");
+
+        dataSourceCreationException = new RuntimeException("%s. %s@%s (%s)".formatted(e.getMessage(), user, host, dataSourceName));
+        dataSourceCreationException.addSuppressed(e);
+      }
+      LOGGER.error(dataSourceCreationException.getMessage(), dataSourceCreationException);
+      throw dataSourceCreationException;
     }
-
-    checkDataSource(hikariDataSource, dataSourceName);
-    DataSourcePropertiesStorage.registerPropertiesFor(
-        hikariConfig.getPoolName(),
-        new DataSourcePropertiesStorage.DataSourceProperties(!isReadonly, secondaryDataSource)
-    );
-
-    return hikariDataSource;
   }
 
   protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
@@ -166,11 +199,9 @@ public class DataSourceFactory {
     if (dsClassName != null) {
       result = createInstance(dsClassName, DataSource.class);
       PropertyElf.setTargetFromProperties(result, dataSourceProperties);
-    }
-    else if (jdbcUrl != null) {
+    } else if (jdbcUrl != null) {
       result = new DriverDataSource(jdbcUrl, driverClassName, dataSourceProperties, username, password);
-    }
-    else if (dataSourceJNDI != null) {
+    } else if (dataSourceJNDI != null) {
       try {
         var ic = new InitialContext();
         result = (DataSource) ic.lookup(dataSourceJNDI);

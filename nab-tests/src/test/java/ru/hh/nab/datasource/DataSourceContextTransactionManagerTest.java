@@ -20,7 +20,7 @@ import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@SpringBootTest(classes = JpaTestConfig.class)
+@SpringBootTest(classes = JpaTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataSourceContextTransactionManagerTest extends JpaTestBase {
   private TestEntity existingTestEntity;
 

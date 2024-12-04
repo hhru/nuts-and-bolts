@@ -20,7 +20,7 @@ import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSource
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.testbase.transaction.TransactionTestBase;
 
-@SpringBootTest(classes = DataSourceTestConfig.class)
+@SpringBootTest(classes = DataSourceTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataSourceContextTest extends TransactionTestBase {
 
   @Inject

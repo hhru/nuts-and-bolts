@@ -6,7 +6,6 @@ import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Map;
-import java.util.Properties;
 import javax.sql.DataSource;
 import org.aspectj.lang.ProceedingJoinPoint;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +33,10 @@ import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSource
 import ru.hh.nab.jpa.JpaTestConfig;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@SpringBootTest(classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class})
+@SpringBootTest(
+    classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class},
+    webEnvironment = SpringBootTest.WebEnvironment.NONE
+)
 public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
 
   private static final String WRITABLE_DATASOURCE = "writable";
@@ -196,27 +198,13 @@ public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
   static class AspectConfig {
 
     @Bean
-    DataSource readOnlyDataSource(DataSourceFactory dataSourceFactory, FileSettings readOnlySettings) {
-      return dataSourceFactory.create(DataSourceType.READONLY, true, readOnlySettings);
+    DataSource readOnlyDataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
+      return dataSourceFactory.create(DataSourceType.READONLY, true, fileSettings);
     }
 
     @Bean
-    FileSettings readOnlySettings() {
-      Properties properties = new Properties();
-      properties.setProperty(DataSourceType.READONLY + ".pool.maximumPoolSize", "2");
-      return new FileSettings(properties);
-    }
-
-    @Bean
-    DataSource writableDataSource(DataSourceFactory dataSourceFactory, FileSettings writableSettings) {
-      return dataSourceFactory.create(WRITABLE_DATASOURCE, false, writableSettings);
-    }
-
-    @Bean
-    FileSettings writableSettings() {
-      Properties properties = new Properties();
-      properties.setProperty(WRITABLE_DATASOURCE + ".pool.maximumPoolSize", "2");
-      return new FileSettings(properties);
+    DataSource writableDataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
+      return dataSourceFactory.create(WRITABLE_DATASOURCE, false, fileSettings);
     }
 
     @Bean

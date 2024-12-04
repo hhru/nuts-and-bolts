@@ -16,12 +16,12 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web-spring-boot-starter</artifactId>
+            <artifactId>nab-common</artifactId>
         </dependency>
-
+        <!-- TODO: remove spring-boot dependency when spring beans configuration will be moved to separate starter -->
         <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
         </dependency>
 
         <dependency>
@@ -30,10 +30,6 @@
             <version>${jclient.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>

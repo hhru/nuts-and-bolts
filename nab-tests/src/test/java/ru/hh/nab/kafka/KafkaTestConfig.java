@@ -2,7 +2,6 @@ package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -63,10 +62,5 @@ public class KafkaTestConfig {
       TestKafka testKafka
   ) {
     return new KafkaProducerFactory(configProvider, serializerSupplier, testKafka::getBootstrapServers);
-  }
-
-  @Bean
-  StatsDSender statsDSender() {
-    return Mockito.mock(StatsDSender.class);
   }
 }

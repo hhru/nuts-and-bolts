@@ -12,17 +12,16 @@ import java.io.IOException;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = CustomExceptionMappersTest.CustomExceptionMapperConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomExceptionMappersTest extends WebTestBase {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -53,10 +52,10 @@ public class CustomExceptionMappersTest extends WebTestBase {
   }
 
   @Configuration
-  @EnableAutoConfiguration
   @Import({
-      NabTestConfig.class,
+      NabWebTestConfig.class,
       CustomExceptionSerializer.class,
+      TestResource.class,
   })
   public static class CustomExceptionMapperConfig {
 
@@ -108,10 +107,5 @@ public class CustomExceptionMappersTest extends WebTestBase {
     public Response any() {
       throw new RuntimeException("Any exception");
     }
-  }
-
-  @Configuration
-  @Import(TestResource.class)
-  static class SpringCtxForJersey {
   }
 }

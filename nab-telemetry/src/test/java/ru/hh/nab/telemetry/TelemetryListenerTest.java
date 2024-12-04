@@ -42,7 +42,7 @@ import ru.hh.jclient.common.Uri;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryListenerTest extends WebTestBase {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 

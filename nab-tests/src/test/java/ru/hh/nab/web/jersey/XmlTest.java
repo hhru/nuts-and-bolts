@@ -3,14 +3,11 @@ package ru.hh.nab.web.jersey;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = {NabWebTestConfig.class, TestResource.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class XmlTest extends WebTestBase {
 
   @Test
@@ -35,14 +32,5 @@ public class XmlTest extends WebTestBase {
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dto><string>\n</string></dto>",
         response.readEntity(String.class)
     );
-  }
-
-  @Configuration
-  @EnableAutoConfiguration
-  @Import({
-      NabTestConfig.class,
-      TestResource.class,
-  })
-  public static class TestConfiguration {
   }
 }

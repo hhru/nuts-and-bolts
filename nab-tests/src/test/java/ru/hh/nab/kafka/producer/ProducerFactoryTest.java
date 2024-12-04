@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
-@SpringBootTest(classes = KafkaTestConfig.class)
+@SpringBootTest(classes = KafkaTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class ProducerFactoryTest {
 
   @Inject

@@ -7,6 +7,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+/**
+ * @deprecated
+ * Import all necessary files from settingsDir through spring.config.import parameter in application.properties file.
+ * All properties will be added to spring Environment.
+ */
+@Deprecated(forRemoval = true)
 public class PropertiesUtils {
   public static final String SETTINGS_DIR_PROPERTY = "settingsDir";
   static final String DEFAULT_DEV_FILE_EXT = ".dev";

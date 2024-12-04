@@ -15,16 +15,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.jersey.application-path=/test")
+@SpringBootTest(
+    classes = {NabWebTestConfig.class, ResourceInformationFilterTest.TestResource.class},
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "spring.jersey.application-path=/test"
+)
 public class ResourceInformationFilterTest extends WebTestBase {
 
   @Test
@@ -59,6 +60,7 @@ public class ResourceInformationFilterTest extends WebTestBase {
       assertTrue(MDC.getController().isPresent());
       return MDC.getController().get();
     }
+
     @GET
     @Path("/context/{name}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -69,14 +71,5 @@ public class ResourceInformationFilterTest extends WebTestBase {
       result.put(RequestAttributes.HTTP_ROUTE, request.getAttribute(RequestAttributes.HTTP_ROUTE));
       return Response.ok().entity(result).build();
     }
-  }
-
-  @Configuration
-  @EnableAutoConfiguration
-  @Import({
-      NabTestConfig.class,
-      TestResource.class,
-  })
-  public static class TestConfiguration {
   }
 }

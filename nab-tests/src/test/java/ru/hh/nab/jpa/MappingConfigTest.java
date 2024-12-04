@@ -13,7 +13,7 @@ import ru.hh.nab.jpa.model.TestEntity;
 import ru.hh.nab.jpa.model.test.PackageScanEntity;
 import ru.hh.nab.testbase.jpa.JpaTestBase;
 
-@SpringBootTest(classes = JpaTestConfig.class)
+@SpringBootTest(classes = JpaTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class MappingConfigTest extends JpaTestBase {
 
   @Inject

@@ -9,16 +9,15 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = SkippableFilterTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SkippableFilterTest extends WebTestBase {
 
   @Test
@@ -46,9 +45,8 @@ public class SkippableFilterTest extends WebTestBase {
   }
 
   @Configuration
-  @EnableAutoConfiguration
-  @Import(NabTestConfig.class)
-  public static class FilterApplicationOverride {
+  @Import(NabWebTestConfig.class)
+  public static class TestConfiguration {
 
     @Bean
     public FilterRegistrationBean<AddHeaderSkippableFilter> addHeaderSkippableFilter() {

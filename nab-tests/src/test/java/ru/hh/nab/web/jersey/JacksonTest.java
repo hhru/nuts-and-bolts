@@ -4,16 +4,15 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.NabWebTestConfig;
 import ru.hh.nab.web.jersey.resolver.ObjectMapperContextResolver;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = JacksonTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class JacksonTest extends WebTestBase {
 
   @Test
@@ -35,9 +34,8 @@ public class JacksonTest extends WebTestBase {
   }
 
   @Configuration
-  @EnableAutoConfiguration
   @Import({
-      NabTestConfig.class,
+      NabWebTestConfig.class,
       TestResource.class,
   })
   public static class TestConfiguration {

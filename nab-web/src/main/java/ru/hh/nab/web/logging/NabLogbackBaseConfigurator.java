@@ -103,6 +103,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "org.springframework.kafka", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
     createLogger(context, "org.eclipse.jetty.server", Level.INFO, false, List.of(service, sentry));
+    createLogger(context, "org.springframework.boot.diagnostics.LoggingFailureAnalysisReporter", "OFF", false, List.of());
 
     var jClientTransactionalCheck = createAppender(context, "jclient-tx", () -> new HhMultiAppender(true));
     createLogger(context, "ru.hh.nab.jclient.checks.TransactionalCheck", Level.WARN, false, List.of(jClientTransactionalCheck));

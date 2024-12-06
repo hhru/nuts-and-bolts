@@ -25,6 +25,18 @@ import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
 
 public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
+
+  public static final String MIN_SIZE_PROPERTY = "minSize";
+  public static final String MAX_SIZE_PROPERTY = "maxSize";
+  public static final String QUEUE_SIZE_PROPERTY = "queueSize";
+  public static final String KEEP_ALIVE_TIME_SEC_PROPERTY = "keepAliveTimeSec";
+  public static final String LONG_TASK_DURATION_MS_PROPERTY = "longTaskDurationMs";
+  public static final String MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY = "monitoring.taskDuration.histogramSize";
+  public static final String MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY = "monitoring.taskDuration.histogramCompactionRatio";
+  public static final String MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY = "monitoring.taskExecutionStartLag.histogramSize";
+  public static final String MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY =
+      "monitoring.taskExecutionStartLag.histogramCompactionRatio";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitoredThreadPoolExecutor.class);
   private static final ThreadFactory DEFAULT_THREAD_FACTORY = defaultThreadFactory();
 
@@ -115,17 +127,19 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       String serviceName,
       RejectedExecutionHandler rejectedExecutionHandler
   ) {
-    int coreThreads = ofNullable(threadPoolSettings.getInteger("minSize")).orElse(4);
-    int maxThreads = ofNullable(threadPoolSettings.getInteger("maxSize")).orElse(16);
-    int queueSize = ofNullable(threadPoolSettings.getInteger("queueSize")).orElse(maxThreads);
-    int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger("keepAliveTimeSec")).orElse(60);
-    Integer longTaskDurationMs = threadPoolSettings.getInteger("longTaskDurationMs");
-    int taskDurationHistogramSize = ofNullable(threadPoolSettings.getInteger("monitoring.taskDuration.histogramSize")).orElse(512);
+    int coreThreads = ofNullable(threadPoolSettings.getInteger(MIN_SIZE_PROPERTY)).orElse(4);
+    int maxThreads = ofNullable(threadPoolSettings.getInteger(MAX_SIZE_PROPERTY)).orElse(16);
+    int queueSize = ofNullable(threadPoolSettings.getInteger(QUEUE_SIZE_PROPERTY)).orElse(maxThreads);
+    int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger(KEEP_ALIVE_TIME_SEC_PROPERTY)).orElse(60);
+    Integer longTaskDurationMs = threadPoolSettings.getInteger(LONG_TASK_DURATION_MS_PROPERTY);
+    int taskDurationHistogramSize = ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY)).orElse(512);
     int taskDurationHistogramCompactionRatio =
-        ofNullable(threadPoolSettings.getInteger("monitoring.taskDuration.histogramCompactionRatio")).orElse(1);
-    int taskExecutionStartLagHistogramSize = ofNullable(threadPoolSettings.getInteger("monitoring.taskExecutionStartLag.histogramSize")).orElse(512);
+        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY)).orElse(1);
+    int taskExecutionStartLagHistogramSize =
+        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY)).orElse(512);
     int taskExecutionStartLagHistogramCompactionRatio =
-        ofNullable(threadPoolSettings.getInteger("monitoring.taskExecutionStartLag.histogramCompactionRatio")).orElse(1);
+        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY))
+            .orElse(1);
 
     var count = new AtomicLong(0);
     ThreadFactory threadFactory = r -> {

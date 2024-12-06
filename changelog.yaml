@@ -1,3 +1,10 @@
+-   name: 9.1.0
+    date: '2024-12-06T16:35:13.387669+03:00'
+    description: В MonitoredThreadPoolExecutor добавлены константы с названиями пропертей,
+        используемых для конфигурации MonitoredThreadPoolExecutor'а
+    instructions: ''
+    compatible: true
+
 -   name: 9.0.2
     date: '2024-12-03T16:17:42.506076+03:00'
     description: Добавлено логирование ошибки, возникающей при создании объекта датасорса,

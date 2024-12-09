@@ -1,3 +1,9 @@
+-   name: 9.2.0
+    date: '2024-12-09T18:53:22.730128+03:00'
+    description: Обновление jclient до 4.1.0
+    instructions: ''
+    compatible: true
+
 -   name: 9.1.0
     date: '2024-12-06T16:35:13.387669+03:00'
     description: В MonitoredThreadPoolExecutor добавлены константы с названиями пропертей,

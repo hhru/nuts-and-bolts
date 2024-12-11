@@ -1,8 +1,11 @@
 package ru.hh.nab.kafka.monitoring;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import static java.util.Optional.ofNullable;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.apache.kafka.common.Metric;
@@ -17,19 +20,51 @@ import ru.hh.nab.metrics.Tag;
 
 public class KafkaStatsDReporter implements MetricsReporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
+  static final Set<String> CRITICAL_METRICS = Set.of(
+      "consumer-metrics.last-poll-seconds-ago",
+
+      "consumer-fetch-manager-metrics.records-lag",
+      "consumer-fetch-manager-metrics.records-consumed-rate",
+      "consumer-fetch-manager-metrics.records-per-request-avg",
+      "consumer-fetch-manager-metrics.fetch-rate",
+      "consumer-fetch-manager-metrics.fetch-latency-max",
+      "consumer-fetch-manager-metrics.fetch-throttle-time-max",
+      "consumer-fetch-manager-metrics.bytes-consumed-rate",
+
+      "consumer-coordinator-metrics.commit-latency-max",
+      "consumer-coordinator-metrics.assigned-partitions",
+      "consumer-coordinator-metrics.commit-rate",
+      "consumer-coordinator-metrics.last-rebalance-seconds-ago",
+      "consumer-coordinator-metrics.last-heartbeat-seconds-ago",
+
+      "producer-metrics.request-latency-avg",
+      "producer-metrics.requests-in-flight",
+      "producer-metrics.batch-size-max",
+      "producer-metrics.records-per-request-avg",
+      "producer-metrics.record-queue-time-avg",
+      "producer-metrics.compression-rate-avg",
+      "producer-metrics.produce-throttle-time-max",
+
+      "producer-topic-metrics.record-send-rate",
+      "producer-topic-metrics.record-retry-rate",
+      "producer-topic-metrics.record-error-rate"
+  );
+
+  public static final String METRICS_ENABLED = "metrics.enabled";
+  public static final String METRICS_SEND_ALL = "metrics.send-all";
   public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
 
   private String serviceName;
   private StatsDSender statsDSender;
+  private boolean isSendAll;
+  private Set<String> enabledMetrics;
 
   protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
 
   @Override
   public void init(List<KafkaMetric> metrics) {
     for (KafkaMetric metric : metrics) {
-      MetricName metricName = metric.metricName();
-      recordedMetrics.put(metricName, metric);
-      LOGGER.debug("Added metric %s on initialization step".formatted(createMetricName(metricName)));
+      recordMetric(metric);
     }
 
     statsDSender.sendPeriodically(() -> {
@@ -67,9 +102,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
   @Override
   public void metricChange(KafkaMetric metric) {
-    MetricName metricName = metric.metricName();
-    recordedMetrics.put(metricName, metric);
-    LOGGER.debug("Added metric %s".formatted(createMetricName(metricName)));
+    recordMetric(metric);
   }
 
   @Override
@@ -86,6 +119,14 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
   @Override
   public void configure(Map<String, ?> configs) {
+    this.isSendAll = ofNullable(configs.get(METRICS_SEND_ALL)).map(value -> Boolean.parseBoolean(value.toString())).orElse(false);
+    String metrics = ofNullable(configs.get(METRICS_ENABLED)).map(Object::toString).orElse("");
+    this.enabledMetrics = new HashSet<>();
+    if (!metrics.isEmpty() && !metrics.isBlank()) {
+      this.enabledMetrics.addAll(Arrays.asList(metrics.split(",")));
+    }
+    this.enabledMetrics.addAll(CRITICAL_METRICS);
+
     this.serviceName = ofNullable(configs.get(SERVICE_NAME)).map(Object::toString).orElseThrow();
     // A workaround to support a single instance of StatsD client, see ru.hh.nab.kafka.util.ConfigProvider
     this.statsDSender = (StatsDSender) configs.get(STATSD_INSTANCE_PROPERTY);
@@ -93,6 +134,15 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
   private static String createMetricName(MetricName metricName) {
     return String.format("%s.%s", metricName.group(), metricName.name());
+  }
+
+  private void recordMetric(KafkaMetric metric) {
+    String name = createMetricName(metric.metricName());
+    if (isSendAll || enabledMetrics.contains(name)) {
+      MetricName metricName = metric.metricName();
+      recordedMetrics.put(metricName, metric);
+      LOGGER.debug("Added metric %s".formatted(createMetricName(metricName)));
+    }
   }
 
   public enum ReporterTag {

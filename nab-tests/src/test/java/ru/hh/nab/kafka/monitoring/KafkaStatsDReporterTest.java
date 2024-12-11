@@ -214,6 +214,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
       String clusterName = "kafka";
       // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
       String prefix = "%s.common".formatted(clusterName);
+      serviceProperties.put(prefix + "." + KafkaStatsDReporter.METRICS_SEND_ALL, Boolean.TRUE.toString());
       serviceProperties.put(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class.getName());
       return new ConfigProvider("service", clusterName, new FileSettings(serviceProperties), statsDSender);
     }

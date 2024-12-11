@@ -1,3 +1,12 @@
+-   name: 10.0.0
+    date: '2024-12-11T18:43:26.760524+03:00'
+    description: Удален TestExecutorListener
+    instructions: Удалить из файла org.junit.platform.launcher.TestExecutionListener,
+        который лежит в директории test/resources/META_INF/services, строчку 'ru.hh.nab.testbase.listeners.TestExecutorListener'.
+        Если в данном файле больше не указаны никакие имплементации org.junit.platform.launcher.TestExecutionListener
+        - необходимо удалить файл целиком
+    compatible: false
+
 -   name: 9.2.0
     date: '2024-12-09T18:53:22.730128+03:00'
     description: Обновление jclient до 4.1.0

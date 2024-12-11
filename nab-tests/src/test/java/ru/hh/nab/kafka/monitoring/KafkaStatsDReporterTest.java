@@ -1,14 +1,17 @@
 package ru.hh.nab.kafka.monitoring;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.Metric;
@@ -47,8 +50,31 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
   @Inject
   private KafkaProducerFactory producerFactory;
 
-  private static final String DEFAULT_METRIC_GROUP = "consumer-metrics";
-  private static final String DEFAULT_METRIC_NAME = "outgoing-byte-total";
+  private static final MetricName CONSUMER_METRICS_OUTGOING_BYTE_TOTAL =
+      new MetricName("outgoing-byte-total", "consumer-metrics", "", Collections.emptyMap());
+  private static final MetricName CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE =
+      new MetricName("incoming-byte-rate", "consumer-node-metrics", "", Collections.emptyMap());
+  private static final MetricName CONSUMER_COORDINATOR_METRICS_ASSIGNED_PARTITIONS =
+      new MetricName("assigned-partitions", "consumer-coordinator-metrics", "", Collections.emptyMap());
+  private static final MetricName CONSUMER_FETCH_MANAGER_METRICS_PREFERRED_READ_REPLICA =
+      new MetricName("preferred-read-replica", "consumer-fetch-manager-metrics", "", Collections.emptyMap());
+  private static final MetricName PRODUCER_METRICS_BUFFER_TOTAL_BYTES =
+      new MetricName("buffer-total-bytes", "producer-metrics", "", Collections.emptyMap());
+  private static final MetricName PRODUCER_NODE_METRICS_INCOMING_BYTE_RATE =
+      new MetricName("incoming-byte-rate", "producer-node-metrics", "", Collections.emptyMap());
+  private static final MetricName PRODUCER_TOPIC_METRICS_BYTE_RATE =
+      new MetricName("byte-rate", "producer-topic-metrics", "", Collections.emptyMap());
+
+  private static final Set<MetricName> ENABLED_METRICS = Set.of(
+      CONSUMER_METRICS_OUTGOING_BYTE_TOTAL,
+      CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE,
+      CONSUMER_COORDINATOR_METRICS_ASSIGNED_PARTITIONS,
+      CONSUMER_FETCH_MANAGER_METRICS_PREFERRED_READ_REPLICA,
+      PRODUCER_METRICS_BUFFER_TOTAL_BYTES,
+      PRODUCER_NODE_METRICS_INCOMING_BYTE_RATE,
+      PRODUCER_TOPIC_METRICS_BYTE_RATE
+  );
+
   private static final AtomicReference<ConcurrentMap<MetricName, Metric>> observedMetrics = new AtomicReference<>();
 
   @BeforeEach
@@ -93,7 +119,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
     String payload = UUID.randomUUID().toString();
     kafkaTestUtils.sendMessage(topicName, payload);
 
-    var observedMetric = getObservedMetric(DEFAULT_METRIC_NAME, DEFAULT_METRIC_GROUP);
+    var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     Assertions.assertNotEquals((double) observedMetric.metricValue(), 0, 0.1);
   }
 
@@ -107,7 +133,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
     String payload = UUID.randomUUID().toString();
     kafkaTestUtils.sendMessage(topicName, payload);
 
-    var observedMetric = getObservedMetric(DEFAULT_METRIC_NAME, DEFAULT_METRIC_GROUP);
+    var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     double earliestObservedValue = (double) observedMetric.metricValue();
     Assertions.assertNotEquals(earliestObservedValue, 0, 0.1);
     kafkaTestUtils.sendMessage(topicName, payload);
@@ -134,18 +160,14 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
       Assertions.fail("Client must send message to receive metrics.", e);
     }
 
-    var observedMetric = getObservedMetric("buffer-total-bytes", "producer-metrics");
+    var observedMetric = getObservedMetric(PRODUCER_METRICS_BUFFER_TOTAL_BYTES);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
 
-    var nodeMetricGroup = "producer-node-metrics";
-    var nodeMetricName = "incoming-byte-rate";
-    observedMetric = getObservedMetric(nodeMetricName, nodeMetricGroup);
+    observedMetric = getObservedMetric(PRODUCER_NODE_METRICS_INCOMING_BYTE_RATE);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getKafkaTag()));
 
-    var topicMetricGroup = "producer-topic-metrics";
-    var topicMetricName = "byte-rate";
-    observedMetric = getObservedMetric(topicMetricName, topicMetricGroup);
+    observedMetric = getObservedMetric(PRODUCER_TOPIC_METRICS_BYTE_RATE);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getKafkaTag()));
   }
@@ -160,41 +182,57 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
     String payload = UUID.randomUUID().toString();
     kafkaTestUtils.sendMessage(topicName, payload);
 
-    var observedMetric = getObservedMetric(DEFAULT_METRIC_NAME, DEFAULT_METRIC_GROUP);
+    var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
 
-    var nodeMetricGroup = "consumer-node-metrics";
-    var nodeMetricName = "incoming-byte-rate";
-    observedMetric = getObservedMetric(nodeMetricName, nodeMetricGroup);
+    observedMetric = getObservedMetric(CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getKafkaTag()));
 
-    var coordinatorMetricGroup = "consumer-coordinator-metrics";
-    var coordinatorMetricName = "assigned-partitions";
-    observedMetric = getObservedMetric(coordinatorMetricName, coordinatorMetricGroup);
+    observedMetric = getObservedMetric(CONSUMER_COORDINATOR_METRICS_ASSIGNED_PARTITIONS);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
 
-    var fetchManagerMetricGroup = "consumer-fetch-manager-metrics";
-    var fetchManagerMetricName = "preferred-read-replica";
-    observedMetric = getObservedMetric(fetchManagerMetricName, fetchManagerMetricGroup);
+    observedMetric = getObservedMetric(CONSUMER_FETCH_MANAGER_METRICS_PREFERRED_READ_REPLICA);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getKafkaTag()));
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(PARTITION.getKafkaTag()));
   }
 
-  private static Metric getObservedMetric(String metricName, String metricGroup) {
-    ConcurrentMap<MetricName, Metric> metrics = observedMetrics.get();
-    Metric metric = metrics
-        .entrySet()
+  /**
+   * Verifies that only enabled metrics are sent
+   */
+  @Test
+  public void sendOnlyEnabledMetrics() {
+    consumer = startMessagesConsumer(String.class, consumerMock);
+
+    String payload = UUID.randomUUID().toString();
+    kafkaTestUtils.sendMessage(topicName, payload);
+
+
+    Set<String> enabledMetricsNames = ENABLED_METRICS
         .stream()
-        .filter(entry -> {
-          MetricName key = entry.getKey();
-          return key.name().equals(metricName) && key.group().equals(metricGroup);
-        })
-        .map(Map.Entry::getValue)
-        .findFirst()
-        .orElseThrow();
-    return Objects.requireNonNull(metric, "Initialize kafka client before using metrics");
+        .map(KafkaStatsDReporter::createMetricName)
+        .collect(Collectors.toSet());
+
+    ConcurrentMap<MetricName, Metric> observedMetrics = KafkaStatsDReporterTest.observedMetrics.get();
+    for (MetricName metricName : observedMetrics.keySet()) {
+      String originalName = KafkaStatsDReporter.createMetricName(metricName);
+      Assertions.assertTrue(enabledMetricsNames.contains(originalName) || KafkaStatsDReporter.CRITICAL_METRICS.contains(originalName));
+    }
+  }
+
+  private static Metric getObservedMetric(MetricName searchedMetricName) {
+    ConcurrentMap<MetricName, Metric> metrics = observedMetrics.get();
+
+    String nameToSearch = KafkaStatsDReporter.createMetricName(searchedMetricName);
+    for (MetricName originalMetricName : metrics.keySet()) {
+      String originalName = KafkaStatsDReporter.createMetricName(originalMetricName);
+      if (originalName.equals(nameToSearch)) {
+        return Objects.requireNonNull(metrics.get(originalMetricName), "Initialize kafka client before using metrics");
+      }
+    }
+
+    throw new RuntimeException("Metric [%s] was not found.".formatted(nameToSearch));
   }
 
   // Public visibility and default constructor is necessary for kafka client
@@ -214,6 +252,12 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestbase {
       String clusterName = "kafka";
       // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
       String prefix = "%s.common".formatted(clusterName);
+      serviceProperties.put(prefix + "." + KafkaStatsDReporter.METRICS_ALLOWED,
+          ENABLED_METRICS
+              .stream()
+              .map(KafkaStatsDReporter::createMetricName)
+              .collect(Collectors.joining(","))
+      );
       serviceProperties.put(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class.getName());
       return new ConfigProvider("service", clusterName, new FileSettings(serviceProperties), statsDSender);
     }

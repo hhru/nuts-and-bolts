@@ -132,7 +132,8 @@ public class KafkaStatsDReporter implements MetricsReporter {
     this.statsDSender = (StatsDSender) configs.get(STATSD_INSTANCE_PROPERTY);
   }
 
-  private static String createMetricName(MetricName metricName) {
+  // Visible only for tests
+  static String createMetricName(MetricName metricName) {
     return String.format("%s.%s", metricName.group(), metricName.name());
   }
 

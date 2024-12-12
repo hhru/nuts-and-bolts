@@ -30,11 +30,11 @@ public class KafkaProducerFactory {
       SerializerSupplier serializerSupplier,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
-    validateConfig(configProvider, bootstrapServersSupplier, serializerSupplier);
     this.producerName = DEFAULT_PRODUCER_NAME;
     this.configProvider = configProvider;
     this.serializerSupplier = serializerSupplier;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
+    validateConfig(configProvider, bootstrapServersSupplier, serializerSupplier);
   }
 
   private void validateConfig(

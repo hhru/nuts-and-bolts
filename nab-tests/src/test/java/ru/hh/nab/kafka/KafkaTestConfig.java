@@ -44,8 +44,9 @@ public class KafkaTestConfig {
   @Service
   Properties serviceProperties() throws IOException {
     Properties properties = createProperties(TEST_PROPERTIES_FILE_NAME);
-    // see ConfigProvider#COMMON_CONFIG_TEMPLATE
-    properties.put("kafka.common.%s".formatted(CommonClientConfigs.CLIENT_ID_CONFIG), UUID.randomUUID().toString());
+    // see ConfigProvider#DEFAULT_CONSUMER_CONFIG_TEMPLATE and ConfigProvider#PRODUCER_CONFIG_TEMPLATE
+    properties.put("kafka.producer.default.%s".formatted(CommonClientConfigs.CLIENT_ID_CONFIG), UUID.randomUUID().toString());
+    properties.put("kafka.consumer.default.%s".formatted(CommonClientConfigs.CLIENT_ID_CONFIG), UUID.randomUUID().toString());
     return properties;
   }
 

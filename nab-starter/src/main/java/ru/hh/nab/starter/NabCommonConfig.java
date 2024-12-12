@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
@@ -26,7 +27,6 @@ import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 @Configuration
 public class NabCommonConfig {
-  private static final String NODE_NAME_ENV = "NODE_NAME";
 
   public static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";
 
@@ -49,12 +49,7 @@ public class NabCommonConfig {
   @Named(NODE_NAME)
   @Bean(NODE_NAME)
   String nodeName(FileSettings fileSettings) {
-    return ofNullable(System.getenv(NODE_NAME_ENV))
-        .orElseGet(
-            () -> ofNullable(fileSettings.getString(NODE_NAME))
-                .filter(Predicate.not(String::isEmpty))
-                .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)))
-        );
+    return PropertiesUtils.getNodeName(fileSettings);
   }
 
   @Bean

@@ -177,7 +177,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   }
 
   private String getDefaultRetryTopic() {
-    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("service", topicName, "testOperation"));
+    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("random-node", "service", topicName, "testOperation"));
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
@@ -189,7 +189,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     return CompletableFuture.completedFuture(null);
   }
 
-  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {
+  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record) {
     try {
       return new ProducerRecord<>(
           record.topic(),

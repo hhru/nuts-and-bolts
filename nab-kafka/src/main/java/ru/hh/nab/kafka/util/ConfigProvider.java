@@ -17,6 +17,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.metrics.StatsDSender;
@@ -46,12 +48,14 @@ public class ConfigProvider {
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
   public static final String CONCURRENCY = "concurrency";
 
+  private final String nodeName;
   private final String serviceName;
   private final String kafkaClusterName;
   private final FileSettings fileSettings;
   private final StatsDSender statsDSender;
 
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
+      NODE_NAME,
       SERVICE_NAME,
       KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY,
       KafkaStatsDReporter.METRICS_ALLOWED,
@@ -59,10 +63,15 @@ public class ConfigProvider {
   );
 
   public ConfigProvider(String serviceName, String kafkaClusterName, FileSettings fileSettings, StatsDSender statsDSender) {
+    this.nodeName = PropertiesUtils.getNodeName(fileSettings);
     this.serviceName = serviceName;
     this.kafkaClusterName = kafkaClusterName;
     this.fileSettings = fileSettings;
     this.statsDSender = statsDSender;
+  }
+
+  public String getNodeName() {
+    return nodeName;
   }
 
   public String getServiceName() {
@@ -187,6 +196,7 @@ public class ConfigProvider {
 
   private Map<String, Object> getCommonProperties() {
     Map<String, Object> properties = getConfigAsMap(String.format(COMMON_CONFIG_TEMPLATE, kafkaClusterName));
+    properties.put(NODE_NAME, nodeName);
     properties.put(SERVICE_NAME, serviceName);
 
     String metricReporters = ofNullable(properties.get(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG))

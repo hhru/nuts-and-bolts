@@ -7,6 +7,7 @@ import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 class RetryTopicsTest {
 
   static final ConsumerMetadata CONSUMER_METADATA = new ConsumerMetadata(
+      "random-node",
       "service-with-retries",
       "mainTopic",
       "FizzBuzzProcessing");

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -51,6 +52,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.topicName = topicName;
     this.messageClass = messageClass;
     this.consumerFactory = consumerFactory;
+    Map<String, Object> consumerConfig = consumerFactory.getConfigProvider().getConsumerConfig(this.topicName);
+    this.clientId = Optional.ofNullable(consumerConfig.get(CommonClientConfigs.CLIENT_ID_CONFIG)).map(Object::toString).orElse(null);
     withConsumerGroup();
   }
 
@@ -115,16 +118,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public KafkaConsumer<T> build() {
+    ConfigProvider configProvider = consumerFactory.getConfigProvider();
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getNodeName(), configProvider.getServiceName(), topicName, operationName);
     if (this.clientId == null) {
-      Map<String, Object> consumerConfig = consumerFactory.getConfigProvider().getConsumerConfig(this.topicName);
-      this.clientId = consumerConfig.get(CommonClientConfigs.CLIENT_ID_CONFIG).toString();
+      this.clientId = consumerMetadata.getClientId();
     }
     requireNonNull(clientId, "client id is required");
     requireNonNull(messageClass, "messageClass is required"); // this would fail later with not very helpful error message
     requireNonNull(consumeStrategy, "consumeStrategy is required"); // duplicate check in KafkaConsumer because strategy is wrapped by this builder
-    ConfigProvider configProvider = consumerFactory.getConfigProvider();
+
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
-    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
     if (useConsumerGroup) {
       RetryService<T> retryService = null;
       KafkaConsumer<T> retryKafkaConsumer = null;
@@ -183,7 +186,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
-    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(
+        configProvider.getNodeName(), configProvider.getServiceName(), retryReceiveTopicName, "");
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
           configProvider,

@@ -196,7 +196,7 @@ public class ConfigProvider {
 
     String metricsSendAll = ofNullable(properties.get(KafkaStatsDReporter.METRICS_SEND_ALL))
         .map(Object::toString)
-        .orElse("");
+        .orElseGet(Boolean.FALSE::toString);
     properties.put(KafkaStatsDReporter.METRICS_SEND_ALL, metricsSendAll);
 
     String enabledMetrics = ofNullable(properties.get(KafkaStatsDReporter.METRICS_ENABLED))

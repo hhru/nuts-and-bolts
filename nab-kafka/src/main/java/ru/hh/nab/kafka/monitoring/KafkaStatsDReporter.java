@@ -1,6 +1,5 @@
 package ru.hh.nab.kafka.monitoring;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +122,10 @@ public class KafkaStatsDReporter implements MetricsReporter {
     String metrics = ofNullable(configs.get(METRICS_ENABLED)).map(Object::toString).orElse("");
     this.enabledMetrics = new HashSet<>();
     if (!metrics.isEmpty() && !metrics.isBlank()) {
-      this.enabledMetrics.addAll(Arrays.asList(metrics.split(",")));
+      String[] rawMetricNames = metrics.split(",");
+      for (String rawMetricName : rawMetricNames) {
+        this.enabledMetrics.add(rawMetricName.trim());
+      }
     }
     this.enabledMetrics.addAll(CRITICAL_METRICS);
 

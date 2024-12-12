@@ -1,3 +1,9 @@
+-   name: 10.0.1
+    date: '2024-12-12T14:25:33.737177+03:00'
+    description: удалил резолв хоста для трейсинга
+    instructions: ''
+    compatible: true
+
 -   name: 10.0.0
     date: '2024-12-11T18:43:26.760524+03:00'
     description: Удален TestExecutorListener

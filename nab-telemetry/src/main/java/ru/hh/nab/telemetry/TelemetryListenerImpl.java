@@ -11,8 +11,6 @@ import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_STATUS_CODE;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +61,7 @@ public class TelemetryListenerImpl implements RequestDebug {
 
 
     builder.setAttribute("http.request.cloud.region", context.getDestinationDatacenter());
-    String destHost = context.getDestinationHost() == null ? getHostFromUri(request.getUri()) : context.getDestinationHost();
-    builder.setAttribute("destination.address", destHost);
+    builder.setAttribute("destination.address", context.getDestinationHost() == null ? UNKNOWN : context.getDestinationHost());
 
     span = builder.startSpan();
     LOGGER.trace("span started : {}", span);
@@ -123,15 +120,4 @@ public class TelemetryListenerImpl implements RequestDebug {
   public void onProcessingFinished() {
   }
 
-  private String getHostFromUri(Uri uri) {
-    String host = uri.getHost();
-    if (host == null || host.isBlank()) {
-      return UNKNOWN;
-    }
-    try {
-      return InetAddress.getByName(host).getHostName();
-    } catch (UnknownHostException e) {
-      return UNKNOWN;
-    }
-  }
 }

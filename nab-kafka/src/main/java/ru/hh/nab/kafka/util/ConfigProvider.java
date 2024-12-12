@@ -75,7 +75,6 @@ public class ConfigProvider {
 
   public Map<String, Object> getConsumerConfig(String topicName) {
     Map<String, Object> consumerConfig = new HashMap<>();
-    consumerConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);
     consumerConfig.putAll(getAllConsumerConfigs(topicName));
     removeNabProperties(consumerConfig);
 
@@ -175,7 +174,6 @@ public class ConfigProvider {
 
   public Map<String, Object> getProducerConfig(String producerName) {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put(ProducerConfig.CLIENT_ID_CONFIG, serviceName);
     producerConfig.putAll(getCommonProperties());
     producerConfig.putAll(getDefaultProducerProperties(producerName));
 

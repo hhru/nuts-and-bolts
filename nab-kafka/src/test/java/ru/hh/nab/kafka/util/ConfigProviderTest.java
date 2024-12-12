@@ -37,13 +37,6 @@ public class ConfigProviderTest {
   }
 
   @Test
-  public void shouldContainServiceNameSetting() {
-    var result = createConfigProvider(createFileSettings(Map.of())).getConsumerConfig("ignored");
-
-    assertEquals(SERVICE_NAME, result.get(ConsumerConfig.CLIENT_ID_CONFIG));
-  }
-
-  @Test
   public void shouldReturnConsumerDefaultSetting() {
     String testValue = "value";
     FileSettings fileSettings = createFileSettings(Map.of(

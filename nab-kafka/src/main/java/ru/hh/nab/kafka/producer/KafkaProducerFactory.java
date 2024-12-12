@@ -13,6 +13,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 
 public class KafkaProducerFactory {
 
+  protected final String producerName;
   protected final ConfigProvider configProvider;
   private final SerializerSupplier serializerSupplier;
   private final Supplier<String> bootstrapServersSupplier;
@@ -30,22 +31,26 @@ public class KafkaProducerFactory {
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
     validateConfig(configProvider, bootstrapServersSupplier, serializerSupplier);
+    this.producerName = DEFAULT_PRODUCER_NAME;
     this.configProvider = configProvider;
     this.serializerSupplier = serializerSupplier;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
   }
 
-  private static void validateConfig(
+  private void validateConfig(
       ConfigProvider configProvider,
       Supplier<String> bootstrapServersSupplier,
       SerializerSupplier serializerSupplier
   ) {
-    Map<String, Object> producerConfig = configProvider.getProducerConfig(DEFAULT_PRODUCER_NAME);
+    Map<String, Object> producerConfig = configProvider.getProducerConfig(this.producerName);
     if ((bootstrapServersSupplier == null) == isNullOrBlankString(producerConfig, CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG)) {
       throw new IllegalArgumentException("Either specify 'bootstrap.servers' in config or provide bootstrapServersSupplier to this factory");
     }
     if (isNullOrBlankString(producerConfig, CommonClientConfigs.SECURITY_PROTOCOL_CONFIG)) {
       throw new IllegalArgumentException("Required config '" + CommonClientConfigs.SECURITY_PROTOCOL_CONFIG + "' is missing");
+    }
+    if (isNullOrBlankString(producerConfig, CommonClientConfigs.CLIENT_ID_CONFIG)) {
+      throw new IllegalArgumentException("Required config '" + CommonClientConfigs.CLIENT_ID_CONFIG + "' is missing. ");
     }
     Objects.requireNonNull(serializerSupplier);
   }

@@ -2,11 +2,11 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
@@ -115,6 +115,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public KafkaConsumer<T> build() {
+    if (this.clientId == null) {
+      Map<String, Object> consumerConfig = consumerFactory.getConfigProvider().getConsumerConfig(this.topicName);
+      this.clientId = consumerConfig.get(CommonClientConfigs.CLIENT_ID_CONFIG).toString();
+    }
+    requireNonNull(clientId, "client id is required");
     requireNonNull(messageClass, "messageClass is required"); // this would fail later with not very helpful error message
     requireNonNull(consumeStrategy, "consumeStrategy is required"); // duplicate check in KafkaConsumer because strategy is wrapped by this builder
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
@@ -289,7 +294,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private void addCommonContainerProperties(
       GenericMessageListener<?> messageListener, ContainerProperties containerProperties, FileSettings nabConsumerSettings
   ) {
-    containerProperties.setClientId(Optional.ofNullable(clientId).orElseGet(() -> UUID.randomUUID().toString()));
+    containerProperties.setClientId(clientId);
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
     containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));

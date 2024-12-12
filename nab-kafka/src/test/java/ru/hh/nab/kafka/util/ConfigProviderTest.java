@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.util;
 import com.timgroup.statsd.NoOpStatsDClient;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
@@ -34,13 +36,6 @@ public class ConfigProviderTest {
     var result = createConfigProvider(fileSettings).getConsumerConfig("ignored");
 
     assertEquals(testValue, result.get(CONSUMER_TEST_KEY));
-  }
-
-  @Test
-  public void shouldContainServiceNameSetting() {
-    var result = createConfigProvider(createFileSettings(Map.of())).getConsumerConfig("ignored");
-
-    assertEquals(SERVICE_NAME, result.get(ConsumerConfig.CLIENT_ID_CONFIG));
   }
 
   @Test
@@ -177,6 +172,7 @@ public class ConfigProviderTest {
 
   private static FileSettings createFileSettings(Map<String, Object> props) {
     Properties properties = new Properties();
+    properties.put(NODE_NAME, UUID.randomUUID().toString());
     properties.putAll(props);
     return new FileSettings(properties);
   }

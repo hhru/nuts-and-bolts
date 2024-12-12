@@ -17,6 +17,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.nab.metrics.StatsDSender;
@@ -46,21 +48,30 @@ public class ConfigProvider {
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
   public static final String CONCURRENCY = "concurrency";
 
+  private final String nodeName;
   private final String serviceName;
   private final String kafkaClusterName;
   private final FileSettings fileSettings;
   private final StatsDSender statsDSender;
 
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
+      NODE_NAME,
       SERVICE_NAME,
-      KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY
+      KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY,
+      KafkaStatsDReporter.METRICS_ALLOWED,
+      KafkaStatsDReporter.METRICS_SEND_ALL
   );
 
   public ConfigProvider(String serviceName, String kafkaClusterName, FileSettings fileSettings, StatsDSender statsDSender) {
+    this.nodeName = PropertiesUtils.getNodeName(fileSettings);
     this.serviceName = serviceName;
     this.kafkaClusterName = kafkaClusterName;
     this.fileSettings = fileSettings;
     this.statsDSender = statsDSender;
+  }
+
+  public String getNodeName() {
+    return nodeName;
   }
 
   public String getServiceName() {
@@ -73,7 +84,6 @@ public class ConfigProvider {
 
   public Map<String, Object> getConsumerConfig(String topicName) {
     Map<String, Object> consumerConfig = new HashMap<>();
-    consumerConfig.put(ConsumerConfig.CLIENT_ID_CONFIG, serviceName);
     consumerConfig.putAll(getAllConsumerConfigs(topicName));
     removeNabProperties(consumerConfig);
 
@@ -173,7 +183,6 @@ public class ConfigProvider {
 
   public Map<String, Object> getProducerConfig(String producerName) {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put(ProducerConfig.CLIENT_ID_CONFIG, serviceName);
     producerConfig.putAll(getCommonProperties());
     producerConfig.putAll(getDefaultProducerProperties(producerName));
 
@@ -187,12 +196,23 @@ public class ConfigProvider {
 
   private Map<String, Object> getCommonProperties() {
     Map<String, Object> properties = getConfigAsMap(String.format(COMMON_CONFIG_TEMPLATE, kafkaClusterName));
+    properties.put(NODE_NAME, nodeName);
     properties.put(SERVICE_NAME, serviceName);
 
     String metricReporters = ofNullable(properties.get(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG))
         .map(Object::toString)
         .orElseGet(KafkaStatsDReporter.class::getName);
     properties.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, metricReporters);
+
+    String metricsSendAll = ofNullable(properties.get(KafkaStatsDReporter.METRICS_SEND_ALL))
+        .map(Object::toString)
+        .orElseGet(Boolean.FALSE::toString);
+    properties.put(KafkaStatsDReporter.METRICS_SEND_ALL, metricsSendAll);
+
+    String enabledMetrics = ofNullable(properties.get(KafkaStatsDReporter.METRICS_ALLOWED))
+        .map(Object::toString)
+        .orElse("");
+    properties.put(KafkaStatsDReporter.METRICS_ALLOWED, enabledMetrics);
 
     // TODO Remove when we leave Okmeter monitoring
     // Okmeter doesn't provide precision better than once a minute

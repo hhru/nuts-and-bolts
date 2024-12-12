@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,8 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestbase {
     assertDoesNotThrow(() -> consumerFactory
         .builder(topicName, Object.class)
         .withConsumeStrategy(CONSUME_STRATEGY)
+        .withClientId(UUID.randomUUID().toString())
+        .withOperationName(UUID.randomUUID().toString())
         .build()
         .start());
   }
@@ -21,6 +24,8 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestbase {
   void failToBuildConsumerWithoutTopic() {
     assertThrows(NullPointerException.class, () -> consumerFactory
         .builder(null, Object.class)
+        .withClientId(UUID.randomUUID().toString())
+        .withOperationName(UUID.randomUUID().toString())
         .withConsumeStrategy(CONSUME_STRATEGY)
         .build());
   }
@@ -29,6 +34,8 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestbase {
   void failToBuildConsumerWithoutMessageClass() {
     assertThrows(NullPointerException.class, () -> consumerFactory
         .builder(topicName, null)
+        .withClientId(UUID.randomUUID().toString())
+        .withOperationName(UUID.randomUUID().toString())
         .withConsumeStrategy(CONSUME_STRATEGY)
         .build());
   }
@@ -37,7 +44,19 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestbase {
   void failToBuildConsumerWithoutConsumeStrategy() {
     assertThrows(NullPointerException.class, () -> consumerFactory
         .builder(topicName, Object.class)
+        .withClientId(UUID.randomUUID().toString())
+        .withOperationName(UUID.randomUUID().toString())
         .build());
+  }
+
+  @Test
+  void failToBuildConsumerWithoutOperationName() {
+    assertThrows(NullPointerException.class, () -> consumerFactory
+        .builder(topicName, Object.class)
+        .withConsumeStrategy(CONSUME_STRATEGY)
+        .withClientId(UUID.randomUUID().toString())
+        .build()
+        .start());
   }
 
   @Test

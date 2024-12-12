@@ -8,21 +8,27 @@ import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
 public class ConsumerMetadata {
 
+  private final String nodeName;
   private final String serviceName;
   private final String topic;
   private final String operation;
 
   private final List<Tag> tags;
 
-  public ConsumerMetadata(String serviceName, String topic, String operation) {
+  public ConsumerMetadata(String nodeName, String serviceName, String topic, String operation) {
+    this.nodeName = requireNonNull(nodeName, "nodeName is required");
     this.serviceName = requireNonNull(serviceName, "serviceName is required");
     this.topic = requireNonNull(topic, "topic is required");
-    this.operation = operation != null ? operation : "";
+    this.operation = requireNonNull(operation, "operation is required");
     this.tags = List.of(
         new Tag(APP_TAG_NAME, serviceName),
         new Tag("topic", topic),
         new Tag("operation", operation)
     );
+  }
+
+  public String getNodeName() {
+    return nodeName;
   }
 
   public String getServiceName() {
@@ -39,6 +45,13 @@ public class ConsumerMetadata {
 
   public List<Tag> toMetricTags() {
     return tags;
+  }
+
+  public String getClientId() {
+    return new StringJoiner("__")
+        .add(nodeName)
+        .add(getConsumerGroupId())
+        .toString();
   }
 
   public String getConsumerGroupId() {

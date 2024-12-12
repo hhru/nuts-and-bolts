@@ -49,6 +49,7 @@ public abstract class KafkaConsumerTestbase {
     KafkaConsumer<T> consumer = consumerFactory
         .builder(topicName, messageClass)
         .withOperationName(operation)
+        .withClientId(UUID.randomUUID().toString())
         .withConsumeStrategy(consumerMock)
         .build();
     consumer.start();

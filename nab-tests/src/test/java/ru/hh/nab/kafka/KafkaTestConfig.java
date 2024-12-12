@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +43,11 @@ public class KafkaTestConfig {
   @Bean
   @Service
   Properties serviceProperties() throws IOException {
-    return createProperties(TEST_PROPERTIES_FILE_NAME);
+    Properties properties = createProperties(TEST_PROPERTIES_FILE_NAME);
+    // see ConfigProvider#DEFAULT_CONSUMER_CONFIG_TEMPLATE and ConfigProvider#PRODUCER_CONFIG_TEMPLATE
+    properties.put("kafka.producer.default.%s".formatted(CommonClientConfigs.CLIENT_ID_CONFIG), UUID.randomUUID().toString());
+    properties.put("kafka.consumer.default.%s".formatted(CommonClientConfigs.CLIENT_ID_CONFIG), UUID.randomUUID().toString());
+    return properties;
   }
 
   @Bean

@@ -5,11 +5,24 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import static java.util.Optional.ofNullable;
 import java.util.Properties;
+import java.util.function.Predicate;
+import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 
 public class PropertiesUtils {
+  private static final String NODE_NAME_ENV = "NODE_NAME";
   public static final String SETINGS_DIR_PROPERTY = "settingsDir";
   static final String DEFAULT_DEV_FILE_EXT = ".dev";
+
+  public static String getNodeName(FileSettings fileSettings) {
+    return ofNullable(System.getenv(NODE_NAME_ENV))
+        .orElseGet(
+            () -> ofNullable(fileSettings.getString(NODE_NAME))
+                .filter(Predicate.not(String::isEmpty))
+                .orElseThrow(() -> new RuntimeException(String.format("'%s' property is not found in file settings", NODE_NAME)))
+        );
+  }
 
   public static Properties fromFilesInSettingsDir(String fileName) throws IOException {
     return fromFilesInSettingsDir(fileName, fileName + DEFAULT_DEV_FILE_EXT);

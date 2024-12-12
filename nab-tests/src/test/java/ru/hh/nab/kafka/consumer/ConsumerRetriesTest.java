@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -102,6 +103,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
+        .withClientId(UUID.randomUUID().toString())
         .withConsumeStrategy((messages, ack) -> {
           try {
             ack.retry(messages.get(0), null);
@@ -165,6 +167,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")
+        .withClientId(UUID.randomUUID().toString())
         .withConsumeStrategy(consumeStrategy)
         .withRetries(retryProducer, RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(1))))
         // reduce retry consumer sleep duration to speed-up tests
@@ -174,7 +177,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   }
 
   private String getDefaultRetryTopic() {
-    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("service", topicName, "testOperation"));
+    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("random-node", "service", topicName, "testOperation"));
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
@@ -186,7 +189,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     return CompletableFuture.completedFuture(null);
   }
 
-  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {
+  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record) {
     try {
       return new ProducerRecord<>(
           record.topic(),

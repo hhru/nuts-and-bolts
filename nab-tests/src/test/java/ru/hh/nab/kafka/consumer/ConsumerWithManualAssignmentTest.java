@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -38,9 +39,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
@@ -61,9 +60,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
@@ -85,9 +82,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     Set<String> processedMessages2 = new LinkedHashSet<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer1 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer1 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
@@ -97,9 +92,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     consumer1.start();
     startedConsumers.add(consumer1);
 
-    KafkaConsumer<String> consumer2 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer2 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages2.add(m.value()));
@@ -124,9 +117,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
@@ -147,9 +138,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
@@ -172,9 +161,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
@@ -196,9 +183,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages = new ArrayList<>();
     List<String> firstMessagesBatch = putMessagesIntoKafka(77);
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages.add(m.value()));
@@ -222,9 +207,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     CountDownLatch errorOccuredLatch = new CountDownLatch(1);
     int messagesToProcessBeforeError = 10;
 
-    KafkaConsumer<String> consumer = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
           for (int i = 0; i < messages.size(); i++) {
@@ -251,9 +234,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages2 = new ArrayList<>();
     putMessagesIntoKafka(40);
 
-    KafkaConsumer<String> consumer1 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer1 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
@@ -263,9 +244,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     consumer1.start();
     startedConsumers.add(consumer1);
 
-    KafkaConsumer<String> consumer2 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer2 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> {
@@ -305,9 +284,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     List<String> processedMessages1 = new ArrayList<>();
     List<String> processedMessages2 = new ArrayList<>();
 
-    KafkaConsumer<String> consumer1 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer1 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
@@ -317,9 +294,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
     consumer1.start();
     startedConsumers.add(consumer1);
 
-    KafkaConsumer<String> consumer2 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer2 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> {
@@ -360,9 +335,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
   public void testAddNewPartitionsDuringProcessing() throws InterruptedException, ExecutionException, JsonProcessingException {
     List<String> processedMessages1 = new ArrayList<>();
 
-    KafkaConsumer<String> consumer1 = consumerFactory
-        .builder(topicName, String.class)
-        .withOperationName("read_messages")
+    KafkaConsumer<String> consumer1 = createDefaultBuilder()
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofMillis(500))
         .withConsumeStrategy((messages, ack) -> {
           messages.forEach(m -> processedMessages1.add(m.value()));
@@ -382,6 +355,13 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestbase {
       putMessagesIntoKafka(10, i);
     }
     waitUntil(() -> assertEquals(500 + (10 * 6), processedMessages1.size()));
+  }
+
+  private ConsumerBuilder<String> createDefaultBuilder() {
+    return consumerFactory
+        .builder(topicName, String.class)
+        .withOperationName("read_messages")
+        .withClientId(UUID.randomUUID().toString());
   }
 
   private List<String> putMessagesIntoKafka(int count) {

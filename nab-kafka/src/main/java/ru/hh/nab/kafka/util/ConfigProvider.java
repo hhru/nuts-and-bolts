@@ -54,7 +54,7 @@ public class ConfigProvider {
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
       SERVICE_NAME,
       KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY,
-      KafkaStatsDReporter.METRICS_ENABLED,
+      KafkaStatsDReporter.METRICS_ALLOWED,
       KafkaStatsDReporter.METRICS_SEND_ALL
   );
 
@@ -199,10 +199,10 @@ public class ConfigProvider {
         .orElseGet(Boolean.FALSE::toString);
     properties.put(KafkaStatsDReporter.METRICS_SEND_ALL, metricsSendAll);
 
-    String enabledMetrics = ofNullable(properties.get(KafkaStatsDReporter.METRICS_ENABLED))
+    String enabledMetrics = ofNullable(properties.get(KafkaStatsDReporter.METRICS_ALLOWED))
         .map(Object::toString)
         .orElse("");
-    properties.put(KafkaStatsDReporter.METRICS_ENABLED, enabledMetrics);
+    properties.put(KafkaStatsDReporter.METRICS_ALLOWED, enabledMetrics);
 
     // TODO Remove when we leave Okmeter monitoring
     // Okmeter doesn't provide precision better than once a minute

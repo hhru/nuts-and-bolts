@@ -49,7 +49,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
       "producer-topic-metrics.record-error-rate"
   );
 
-  public static final String METRICS_ENABLED = "metrics.enabled";
+  public static final String METRICS_ALLOWED = "metrics.allowed";
   public static final String METRICS_SEND_ALL = "metrics.send-all";
   public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
 
@@ -119,7 +119,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
   @Override
   public void configure(Map<String, ?> configs) {
     this.isSendAll = ofNullable(configs.get(METRICS_SEND_ALL)).map(value -> Boolean.parseBoolean(value.toString())).orElse(false);
-    String metrics = ofNullable(configs.get(METRICS_ENABLED)).map(Object::toString).orElse("");
+    String metrics = ofNullable(configs.get(METRICS_ALLOWED)).map(Object::toString).orElse("");
     this.enabledMetrics = new HashSet<>();
     if (!metrics.isEmpty() && !metrics.isBlank()) {
       String[] rawMetricNames = metrics.split(",");
@@ -142,9 +142,8 @@ public class KafkaStatsDReporter implements MetricsReporter {
   private void recordMetric(KafkaMetric metric) {
     String name = createMetricName(metric.metricName());
     if (isSendAll || enabledMetrics.contains(name)) {
-      MetricName metricName = metric.metricName();
-      recordedMetrics.put(metricName, metric);
-      LOGGER.debug("Added metric %s".formatted(createMetricName(metricName)));
+      recordedMetrics.put(metric.metricName(), metric);
+      LOGGER.debug("Added metric %s".formatted(name));
     }
   }
 

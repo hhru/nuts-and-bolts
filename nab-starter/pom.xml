@@ -158,15 +158,8 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <exclusions>
-                <!-- Jackson databind registers modules via classpath scan. All modules incompatible with jakarta must be removed. -->
-                <exclusion>
-                        <groupId>com.fasterxml.jackson.module</groupId>
-                        <artifactId>jackson-module-jaxb-annotations</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+            <artifactId>jackson-jakarta-rs-json-provider</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>

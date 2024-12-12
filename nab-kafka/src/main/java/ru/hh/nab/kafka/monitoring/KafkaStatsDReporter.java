@@ -56,7 +56,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
   private String serviceName;
   private StatsDSender statsDSender;
   private boolean isSendAll;
-  private Set<String> enabledMetrics;
+  private Set<String> allowedMetrics;
 
   protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
 
@@ -82,10 +82,10 @@ public class KafkaStatsDReporter implements MetricsReporter {
             Tag partitionTag = createTag(tags, ReporterTag.PARTITION);
 
             statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
-            LOGGER.debug("Sent gauge value %s for metric %s".formatted(value.toString(), name));
+            LOGGER.debug("Sent gauge value {} for metric {}", value, name);
           } else {
             statsDSender.sendSetValue(name, metricValue.toString(), serviceNameTag, nodeIdTag, clientIdTag);
-            LOGGER.debug("Sent set value %s for metric %s".formatted(value.toString(), name));
+            LOGGER.debug("Sent set value {} for metric {}", value, name);
           }
         } catch (Exception e) {
           LOGGER.error("Skipping metric %s".formatted(key), e);
@@ -108,7 +108,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
   public void metricRemoval(KafkaMetric metric) {
     MetricName metricName = metric.metricName();
     recordedMetrics.remove(metricName);
-    LOGGER.debug("Removed metric %s".formatted(createMetricName(metricName)));
+    LOGGER.debug("Removed metric {}", createMetricName(metricName));
   }
 
   @Override
@@ -120,14 +120,14 @@ public class KafkaStatsDReporter implements MetricsReporter {
   public void configure(Map<String, ?> configs) {
     this.isSendAll = ofNullable(configs.get(METRICS_SEND_ALL)).map(value -> Boolean.parseBoolean(value.toString())).orElse(false);
     String metrics = ofNullable(configs.get(METRICS_ALLOWED)).map(Object::toString).orElse("");
-    this.enabledMetrics = new HashSet<>();
+    this.allowedMetrics = new HashSet<>();
     if (!metrics.isEmpty() && !metrics.isBlank()) {
       String[] rawMetricNames = metrics.split(",");
       for (String rawMetricName : rawMetricNames) {
-        this.enabledMetrics.add(rawMetricName.trim());
+        this.allowedMetrics.add(rawMetricName.trim());
       }
     }
-    this.enabledMetrics.addAll(CRITICAL_METRICS);
+    this.allowedMetrics.addAll(CRITICAL_METRICS);
 
     this.serviceName = ofNullable(configs.get(SERVICE_NAME)).map(Object::toString).orElseThrow();
     // A workaround to support a single instance of StatsD client, see ru.hh.nab.kafka.util.ConfigProvider
@@ -141,9 +141,9 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
   private void recordMetric(KafkaMetric metric) {
     String name = createMetricName(metric.metricName());
-    if (isSendAll || enabledMetrics.contains(name)) {
+    if (isSendAll || allowedMetrics.contains(name)) {
       recordedMetrics.put(metric.metricName(), metric);
-      LOGGER.debug("Added metric %s".formatted(name));
+      LOGGER.debug("Added metric {}", name);
     }
   }
 

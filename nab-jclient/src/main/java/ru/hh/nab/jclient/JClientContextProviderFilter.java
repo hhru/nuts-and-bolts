@@ -18,10 +18,9 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.StreamSupport;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
-import ru.hh.nab.common.servlet.SystemFilter;
 import ru.hh.nab.common.servlet.UriComponent;
 
-public class JClientContextProviderFilter implements Filter, SystemFilter {
+public class JClientContextProviderFilter implements Filter {
   private final HttpClientContextThreadLocalSupplier contextThreadLocalSupplier;
 
   public JClientContextProviderFilter(HttpClientContextThreadLocalSupplier contextThreadLocalSupplier) {

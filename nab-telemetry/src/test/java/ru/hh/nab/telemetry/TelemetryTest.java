@@ -26,14 +26,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.common.servlet.ServletFilterPriorities;
+import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
+import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 @SpringBootTest(classes = TelemetryTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest extends WebTestBase {
@@ -233,7 +233,7 @@ public class TelemetryTest extends WebTestBase {
     }
 
     @Bean
-    public FilterRegistrationBean<TelemetryFilter> telemetryFilter() {
+    public SystemFilterRegistrationBean<TelemetryFilter> telemetryFilter() {
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
           .builder()
           .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
@@ -250,8 +250,8 @@ public class TelemetryTest extends WebTestBase {
           true
       );
 
-      FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>(telemetryFilter);
-      registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
+      SystemFilterRegistrationBean<TelemetryFilter> registration = new SystemFilterRegistrationBean<>(telemetryFilter);
+      registration.setOrder(ServletSystemFilterPriorities.SYSTEM_OBSERVABILITY);
       return registration;
     }
   }

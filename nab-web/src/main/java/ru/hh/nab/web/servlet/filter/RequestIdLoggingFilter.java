@@ -7,10 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.hh.nab.common.mdc.MDC;
-import ru.hh.nab.common.servlet.SystemFilter;
 import ru.hh.nab.web.http.RequestHeaders;
 
-public final class RequestIdLoggingFilter extends OncePerRequestFilter implements SystemFilter {
+public final class RequestIdLoggingFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(HttpServletRequest request,

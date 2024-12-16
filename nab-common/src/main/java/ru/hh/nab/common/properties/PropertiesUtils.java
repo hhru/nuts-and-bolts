@@ -7,20 +7,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-/**
- * @deprecated
- * Import all necessary files from settingsDir through spring.config.import parameter in application.properties file.
- * All properties will be added to spring Environment.
- */
-@Deprecated(forRemoval = true)
 public class PropertiesUtils {
   public static final String SETTINGS_DIR_PROPERTY = "settingsDir";
   static final String DEFAULT_DEV_FILE_EXT = ".dev";
 
+  /**
+   * @deprecated
+   * Import all necessary files from settingsDir through spring.config.import parameter in application.properties file.
+   * All properties will be added to spring Environment.
+   */
+  @Deprecated(forRemoval = true)
   public static Properties fromFilesInSettingsDir(String fileName) throws IOException {
     return fromFilesInSettingsDir(fileName, fileName + DEFAULT_DEV_FILE_EXT);
   }
 
+  /**
+   * @deprecated
+   * Import all necessary files from settingsDir through spring.config.import parameter in application.properties file.
+   * All properties will be added to spring Environment.
+   */
+  @Deprecated(forRemoval = true)
   public static Properties fromFilesInSettingsDir(String fileName, String devFileName) throws IOException {
     final String settingsDir = System.getProperty(SETTINGS_DIR_PROPERTY, ".");
     final Properties properties = new Properties();

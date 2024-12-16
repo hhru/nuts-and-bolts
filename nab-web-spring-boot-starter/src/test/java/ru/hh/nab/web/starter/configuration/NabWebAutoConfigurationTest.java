@@ -16,7 +16,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.bind.validation.BindValidationException;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +57,7 @@ import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
 import static ru.hh.nab.web.starter.profile.Profiles.MAIN;
+import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 public class NabWebAutoConfigurationTest {
 
@@ -166,16 +166,16 @@ public class NabWebAutoConfigurationTest {
           assertThat(context)
               .hasBean(REQUEST_ID_LOGGING_FILTER_BEAN_NAME)
               .getBean(REQUEST_ID_LOGGING_FILTER_BEAN_NAME)
-              .isInstanceOf(FilterRegistrationBean.class);
+              .isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context)
               .hasBean(COMMON_HEADERS_FILTER_BEAN_NAME)
               .getBean(COMMON_HEADERS_FILTER_BEAN_NAME)
-              .isInstanceOf(FilterRegistrationBean.class);
-          assertThat(context).hasBean(SENTRY_FILTER_BEAN_NAME).getBean(SENTRY_FILTER_BEAN_NAME).isInstanceOf(FilterRegistrationBean.class);
+              .isInstanceOf(SystemFilterRegistrationBean.class);
+          assertThat(context).hasBean(SENTRY_FILTER_BEAN_NAME).getBean(SENTRY_FILTER_BEAN_NAME).isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context)
               .hasBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
-              .isInstanceOf(FilterRegistrationBean.class);
+              .isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
           assertThat(context).hasSingleBean(ExtendedServerProperties.class);
           assertThat(context).hasSingleBean(HttpCacheProperties.class);

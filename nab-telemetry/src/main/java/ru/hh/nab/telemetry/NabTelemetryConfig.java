@@ -16,7 +16,6 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import jakarta.inject.Named;
 import java.util.concurrent.TimeUnit;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
@@ -25,7 +24,8 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
-import ru.hh.nab.common.servlet.ServletFilterPriorities;
+import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
+import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 @Configuration
 public class NabTelemetryConfig {
@@ -113,7 +113,7 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  FilterRegistrationBean<TelemetryFilter> telemetryFilter(
+  SystemFilterRegistrationBean<TelemetryFilter> telemetryFilter(
       OpenTelemetry openTelemetry,
       TelemetryPropagator telemetryPropagator,
       FileSettings fileSettings
@@ -123,8 +123,8 @@ public class NabTelemetryConfig {
         telemetryPropagator,
         fileSettings.getBoolean("opentelemetry.enabled", false)
     );
-    FilterRegistrationBean<TelemetryFilter> registration = new FilterRegistrationBean<>(filter);
-    registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
+    SystemFilterRegistrationBean<TelemetryFilter> registration = new SystemFilterRegistrationBean<>(filter);
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_OBSERVABILITY);
     return registration;
   }
 

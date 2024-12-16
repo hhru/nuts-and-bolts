@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -28,14 +27,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
-import ru.hh.nab.common.servlet.ServletFilterPriorities;
+import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
-import ru.hh.nab.web.servlet.filter.NabRequestContextFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
 import ru.hh.nab.web.servlet.filter.SentryFilter;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
@@ -48,6 +46,7 @@ import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
 import ru.hh.nab.web.starter.profile.MainProfile;
+import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for nab web components (servlets, filters, web server customizers and so on).
@@ -136,30 +135,30 @@ public class NabWebAutoConfiguration {
   }
 
   @Bean
-  public FilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
-    FilterRegistrationBean<RequestIdLoggingFilter> registration = new FilterRegistrationBean<>(new RequestIdLoggingFilter());
-    registration.setOrder(ServletFilterPriorities.SYSTEM_LOGGING);
+  public SystemFilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
+    SystemFilterRegistrationBean<RequestIdLoggingFilter> registration = new SystemFilterRegistrationBean<>(new RequestIdLoggingFilter());
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_LOGGING);
     return registration;
   }
 
   @Bean
-  public FilterRegistrationBean<SentryFilter> sentryFilter() {
-    FilterRegistrationBean<SentryFilter> registration = new FilterRegistrationBean<>(new SentryFilter());
-    registration.setOrder(ServletFilterPriorities.SYSTEM_OBSERVABILITY);
+  public SystemFilterRegistrationBean<SentryFilter> sentryFilter() {
+    SystemFilterRegistrationBean<SentryFilter> registration = new SystemFilterRegistrationBean<>(new SentryFilter());
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_OBSERVABILITY);
     return registration;
   }
 
   @Bean
-  public FilterRegistrationBean<CommonHeadersFilter> commonHeadersFilter() {
-    FilterRegistrationBean<CommonHeadersFilter> registration = new FilterRegistrationBean<>(new CommonHeadersFilter());
-    registration.setOrder(ServletFilterPriorities.SYSTEM_HEADER_DECORATOR);
+  public SystemFilterRegistrationBean<CommonHeadersFilter> commonHeadersFilter() {
+    SystemFilterRegistrationBean<CommonHeadersFilter> registration = new SystemFilterRegistrationBean<>(new CommonHeadersFilter());
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_HEADER_DECORATOR);
     return registration;
   }
 
   @Bean
-  public FilterRegistrationBean<RequestContextFilter> requestContextFilter() {
-    FilterRegistrationBean<RequestContextFilter> registration = new FilterRegistrationBean<>(new NabRequestContextFilter());
-    registration.setOrder(ServletFilterPriorities.SYSTEM_HEADER_DECORATOR);
+  public SystemFilterRegistrationBean<RequestContextFilter> requestContextFilter() {
+    SystemFilterRegistrationBean<RequestContextFilter> registration = new SystemFilterRegistrationBean<>(new RequestContextFilter());
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_HEADER_DECORATOR);
     return registration;
   }
 

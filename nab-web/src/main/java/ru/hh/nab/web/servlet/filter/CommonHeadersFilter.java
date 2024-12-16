@@ -8,11 +8,10 @@ import java.io.IOException;
 import static java.util.Optional.ofNullable;
 import org.springframework.web.filter.OncePerRequestFilter;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
-import ru.hh.nab.common.servlet.SystemFilter;
 import ru.hh.nab.web.http.RequestContext;
 import ru.hh.nab.web.http.RequestHeaders;
 
-public final class CommonHeadersFilter extends OncePerRequestFilter implements SystemFilter {
+public final class CommonHeadersFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(HttpServletRequest request,

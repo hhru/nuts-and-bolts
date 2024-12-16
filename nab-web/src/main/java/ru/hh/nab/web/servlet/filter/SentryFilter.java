@@ -11,10 +11,9 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.hh.nab.common.servlet.SystemFilter;
 import ru.hh.nab.web.http.RequestHeaders;
 
-public class SentryFilter extends OncePerRequestFilter implements SystemFilter {
+public class SentryFilter extends OncePerRequestFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SentryFilter.class);
 

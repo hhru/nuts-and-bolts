@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import java.util.function.Supplier;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;
@@ -21,9 +20,10 @@ import ru.hh.jclient.common.util.storage.MDCStorage;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DEFAULT_HTTP_CLIENT_CONTEXT_SUPPLIER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.common.servlet.ServletFilterPriorities;
+import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
+import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 @Configuration
 public class NabJClientConfig {
@@ -87,10 +87,10 @@ public class NabJClientConfig {
   }
 
   @Bean
-  FilterRegistrationBean<JClientContextProviderFilter> jClientContextProviderFilter(HttpClientContextThreadLocalSupplier contextSupplier) {
+  SystemFilterRegistrationBean<JClientContextProviderFilter> jClientContextProviderFilter(HttpClientContextThreadLocalSupplier contextSupplier) {
     JClientContextProviderFilter filter = new JClientContextProviderFilter(contextSupplier);
-    FilterRegistrationBean<JClientContextProviderFilter> registration = new FilterRegistrationBean<>(filter);
-    registration.setOrder(ServletFilterPriorities.SYSTEM_HEADER_DECORATOR);
+    SystemFilterRegistrationBean<JClientContextProviderFilter> registration = new SystemFilterRegistrationBean<>(filter);
+    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_HEADER_DECORATOR);
     return registration;
   }
 }

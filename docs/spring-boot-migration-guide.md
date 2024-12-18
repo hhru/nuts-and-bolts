@@ -311,10 +311,10 @@
     При конфигурации бина `FilterRegistrationBean` нужно иметь в виду, что дефолтное значение dispatcherTypes в набе и спринг буте отличается. В набе
     по дефолту `dispatcherTypes=EnumSet.allOf(DispatcherType.class)`. В спринг буте:
 
-    - Если класс фильтра наследуется от `org.springframework.web.filter.OncePerRequestFilter`, то по
-      дефолту `dispatcherTypes=EnumSet.allOf(DispatcherType.class)`
-    - Если класс фильтра НЕ наследуется от `org.springframework.web.filter.OncePerRequestFilter`, то по
-      дефолту `dispatcherTypes=EnumSet.of(DispatcherType.REQUEST)`
+    - Если класс фильтра наследуется
+      от [OncePerRequestFilter](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/web/filter/OncePerRequestFilter.html),
+      то по дефолту `dispatcherTypes=EnumSet.allOf(DispatcherType.class)`
+    - Если класс фильтра НЕ наследуется от `OncePerRequestFilter`, то по дефолту `dispatcherTypes=EnumSet.of(DispatcherType.REQUEST)`
 
     Было:
 
@@ -697,7 +697,7 @@
     }
     ```
 
-27. Поправить импорты (оставшиеся в набе классы переехали в другие пакеты):
+27. Поправить импорты (часть классов из `nab-starter` переехала в `nab-web`):
 
     - `ru.hh.nab.starter.consul` -> `ru.hh.nab.web.consul`
     - `ru.hh.nab.starter.exceptions` -> `ru.hh.nab.web.exceptions`

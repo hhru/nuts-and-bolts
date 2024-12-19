@@ -21,7 +21,12 @@
 
 3. Вместо зависимости `nab-websocket` подключить `nab-websocket-spring-boot-starter`.
 
-4. В помнике сервиса подключить плагин `spring-boot-maven-plugin`.
+4. В помнике сервиса подключить плагин `spring-boot-maven-plugin`. Плагин генерит файл `build-info.properties`, который содержит различную информацию
+   о билде, и кладет его в директорию `target/classes/META-INF`. Значение всех пропертей из файла `build-info.properties` в коде можно получить с
+   помощью бина [BuildProperties](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/info/BuildProperties.html).
+
+   <details>
+        <summary>Пример подключения</summary>
 
    ```xml
    <build>
@@ -35,8 +40,10 @@
        </plugins>
    </build>
    ```
+   </details>
 
-   Плагин генерит файл `build-info.properties` и кладет его в директорию `target/classes/META-INF`. Данный файл содержит различную информацию о билде.
+   <details>
+        <summary>Пример содержимого файла build-info.properties</summary>
 
     ```properties
     build.artifact=hh-app-service
@@ -45,10 +52,14 @@
     build.time=2024-12-06T12\:10\:40.426Z
     build.version=1.0.0-SNAPSHOT
     ```
+   </details>
 
-   При необходимости можно добавить кастомные проперти в конфигурацию плагина, они также будут добавлены в файл `build-info.properties` (
-   подробнее о конфигурации плагина можно почитать в
-   документации [10.1. spring-boot:build-info](https://docs.spring.io/spring-boot/docs/3.1.0/maven-plugin/reference/htmlsingle/#goals-build-info)).
+   <details>
+        <summary>Как добавить кастомные проперти в файл build-info.properties</summary>
+
+   Чтобы добавить кастомные проперти в файл `build-info.properties`, необходимо перечислить их в конфигурации плагина в `additionalProperties`.
+   Подробнее о конфигурации плагина можно почитать в
+   документации [10.1. spring-boot:build-info](https://docs.spring.io/spring-boot/docs/3.1.0/maven-plugin/reference/htmlsingle/#goals-build-info).
 
     ```xml
     <build>
@@ -68,9 +79,7 @@
         </plugins>
     </build>
     ```
-
-   Значение всех пропертей из файла `build-info.properties` в коде можно получить с помощью
-   бина [BuildProperties](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/info/BuildProperties.html).
+   </details>
 
 ### Код
 
@@ -86,14 +95,21 @@
       использования ничего делать не нужно). Все проперти из перечисленных файлов будут добавлены в спринговый `Environment`.
     - `spring.profiles.active` - нужно активировать профиль `main`
 
+   <details>
+        <summary>Пример</summary>
+
    ```properties
    spring.config.import=file:${settingsDir}/service.properties,file:${settingsDir}/hibernate.properties,file:${settingsDir}/db-settings.properties
    spring.profiles.active=main
    ```
+   </details>
 
 3. На main class вашего приложения повесить аннотацию `@NabApplication`. Данная аннотация - это по большей части
    копипаста [@SpringBootApplication](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/autoconfigure/SpringBootApplication.html).
    Единственное отличие заключается в том, что при использовании `@NabApplication` не работает component scan.
+
+   <details>
+        <summary>Пример</summary>
 
    ```java
    @NabApplication
@@ -103,10 +119,14 @@
      }
    }
    ```
+   </details>
 
 4. На main class вашего приложения повесить аннотацию `@Import` и указать в ней `HhAppCommonConfig.class` и `HhAppProdConfig.class`. Причем необходимо
    явно указывать оба config класса, даже несмотря на то, что `HhAppCommonConfig` импортируется в `HhAppProdConfig`. В противном случае могут падать
    тесты, так как не поднимется контекст.
+
+   <details>
+        <summary>Пример</summary>
 
    ```java
    @NabApplication
@@ -120,6 +140,7 @@
      }
    }
    ```
+   </details>
 
    [//]: # (TODO: Вообще хотелось бы уйти от этих Common и Prod конфигов в сервисах, как будто лучше раскладывать бины по @Configuration классам по логическому признаку. Возможно это получится сделать после того, когда во всех либах выпилим Common и Prod конфиги. Нужно пересмотреть данный пункт после финализации всех работ)
 
@@ -127,6 +148,9 @@
    использовать [SpringApplication](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/SpringApplication.html) / [SpringApplicationBuilder](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/builder/SpringApplicationBuilder.html).
    Более подробную информацию можно посмотреть в
    документации [1. SpringApplication](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.spring-application).
+
+   <details>
+        <summary>Пример</summary>
 
    ```java
    @NabApplication
@@ -140,9 +164,13 @@
      }
    }
    ```
+   </details>
 
 6. Для конфигурации context path вместо вызова метода `NabApplicationBuilder.setContextPath` добавить настройку `server.servlet.context-path`
    в `application.properties`.
+
+   <details>
+        <summary>Пример</summary>
 
    Было:
 
@@ -157,12 +185,11 @@
      }
    }
    ```
-
    Стало:
-
     ```properties
     server.servlet.context-path=/hh-app
     ```
+   </details>
 
 7. Для конфигурации [WebAppContext](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/WebAppContext.html) вместо вызова
    метода `NabApplicationBuilder.configureWebapp`
@@ -170,6 +197,9 @@
    и добавить бин в контекст спринга. При реализации `Configuration` можно наследоваться
    от [AbstractConfiguration](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/AbstractConfiguration.html), чтобы не реализовывать все
    методы.
+
+   <details>
+        <summary>Пример</summary>
 
    Было:
 
@@ -207,12 +237,16 @@
    public class HhAppCommonConfig {
    }
    ```
+   </details>
 
 8. Для
    конфигурации [ServletContext](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContext.html)
    вместо вызова метода `NabApplicationBuilder.onWebAppStarted`
    реализовать [ServletContextInitializer](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/ServletContextInitializer.html)
    и добавить бин в контекст спринга.
+
+   <details>
+        <summary>Пример</summary>
 
    Было:
 
@@ -249,11 +283,15 @@
    public class HhAppCommonConfig {
    }
    ```
+   </details>
 
 9. Для
    регистрации [ServletContextListener](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContextListener.html)
    вместо вызова метода `NabApplicationBuilder.addListener`/`NabApplicationBuilder.addListenerBean` добавить в контекст спринга
    бин `ServletContextListener`.
+
+   <details>
+        <summary>Пример</summary>
 
    Было:
 
@@ -279,9 +317,13 @@
    public class HhAppCommonConfig {
    }
    ```
+   </details>
 
 10. Для регистрации сервлета вместо вызова метода `NabApplicationBuilder.addServlet` добавить в контекст спринга
     бин [ServletRegistrationBean](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/ServletRegistrationBean.html).
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -312,6 +354,7 @@
       }
     }
     ```
+    </details>
 
 11. Для регистрации фильтра вместо вызова
     метода `NabApplicationBuilder.addFilter`/`NabApplicationBuilder.addFilterBean`/`NabApplicationBuilder.addFilterHolderBean` добавить в контекст
@@ -324,6 +367,9 @@
       от [OncePerRequestFilter](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/web/filter/OncePerRequestFilter.html),
       то по дефолту `dispatcherTypes=EnumSet.allOf(DispatcherType.class)`
     - Если класс фильтра НЕ наследуется от `OncePerRequestFilter`, то по дефолту `dispatcherTypes=EnumSet.of(DispatcherType.REQUEST)`
+
+    <details>
+        <summary>Пример 1</summary>
 
     Было:
 
@@ -369,6 +415,10 @@
       }
     }
     ```
+    </details>
+
+    <details>
+        <summary>Пример 2</summary>
 
     Было:
 
@@ -403,12 +453,16 @@
       }
     }
     ```
+    </details>
 
     Также следует иметь в виду, что в набе фильтры отрабатывали в том порядке, в котором они регистрировались. В спринг буте у всех фильтров,
     зарегистрированных с помощью `FilterRegistrationBean`, `order=Ordered.LOWEST_PRECEDENCE`, и нет никаких гарантий касательно того, в каком порядке
     будут отрабатывать зарегистрированные фильтры. Если требуется, чтобы фильтры гарантированно отрабатывали в определенном порядке, тогда необходимо
     явно настроить порядок с помощью метода `FilterRegistrationBean.setOrder`. При настройке order можно использовать константы
     из `ru.hh.nab.common.servlet.ServletFilterPriorities`.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -450,6 +504,7 @@
       }
     }
     ```
+    </details>
 
 12. Для конфигурации jersey вместо вызова методов `NabApplicationBuilder.configureJersey`:
 
@@ -458,6 +513,9 @@
       зарегистрировать в нем все необходимые ресурсы. Для конфигурации application path вместо вызова метода `bindTo` повесить на добавленный класс
       аннотацию [@ApplicationPath](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/applicationpath)
     - добавить бин в контекст спринга
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -503,6 +561,7 @@
     public class HhAppCommonConfig {
     }
     ```
+    </details>
 
 13. В `@Configuration` классах удалить импорт `NabCommonConfig.class` и `NabProdConfig.class`.
 
@@ -510,6 +569,9 @@
     бин [Environment](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/core/env/Environment.html) / [ConfigurableEnvironment](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/core/env/ConfigurableEnvironment.html) (
     в том числе в тестах). В наб также добавлен утилитный класс `EnvironmentUtils`, позволяющий получить необходимые настройки в
     виде `Properties`, `Map`, `List`, получить настройки по префиксу и т.д.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -538,6 +600,7 @@
       return new Object();
     }
     ```
+    </details>
 
     Также для получения настроек можно
     использовать [@Value](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/beans/factory/annotation/Value.html)
@@ -546,6 +609,9 @@
     документации [2. Externalized Configuration](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.external-config).
 
 15. Вместо бинов `String serviceName`, `String nodeName`, `String datacenter` использовать бин `InfrastructureProperties` (в том числе в тестах).
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -571,12 +637,16 @@
       return new Object();
     }
     ```
+    </details>
 
 16. Вместо бина `Properties serviceProperties` (удален) использовать бины `InfrastructureProperties` и `Environment`/`ConfigurableEnvironment` (в том
     числе в тестах):
 
     - `InfrastructureProperties` - если требуется получить serviceName / nodeName / datacenter / datacenters
     - `Environment`/`ConfigurableEnvironment` - для получения остальных настроек
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -605,10 +675,14 @@
       return new Object();
     }
     ```
+    </details>
 
     Если в вашем сервисе делается оверрайд бина `Properties serviceProperties`, его также необходимо удалить (в том числе в тестах).
 
 17. Вместо бина `Properties projectProperties` (удален) использовать бин `BuildProperties`.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -633,10 +707,14 @@
       return new Object();
     }
     ```
+    </details>
 
     Если в вашем сервисе делается оверрайд бина `Properties projectProperties`, его также необходимо удалить (в том числе в тестах).
 
 18. Вместо бина `AppMetadata` (удален) использовать бины `InfrastructureProperties` и `BuildProperties`.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -661,6 +739,7 @@
       return new Object();
     }
     ```
+    </details>
 
     Если в вашем сервисе делается оверрайд бина `AppMetadata`, его также необходимо удалить (в том числе в тестах).
 
@@ -669,7 +748,8 @@
     перечисленных файлов будут добавлены в спринговый `Environment`. Далее их можно получать в коде, используя предоставляемые спрингом
     механизмы. `Properties` бины, при создании которых вызывается метод `PropertiesUtils.fromFilesInSettingsDir`, также необходимо удалить.
 
-    Пример бина, который необходимо удалить:
+    <details>
+        <summary>Пример бина, который необходимо удалить</summary>
 
     ```java
     @Bean
@@ -677,10 +757,14 @@
       return PropertiesUtils.fromFilesInSettingsDir("db-settings.properties");
     }
     ```
+    </details>
 
 20. На класс `HhAppProdConfig` повесить аннотацию `@Profile(Profiles.MAIN)` или `@MainProfile`. Таким образом, "prod" бины будут созданы только в том
     случае, если активирован профиль `main`. Подробнее почитать о профилях можно в
     документации [3. Profiles](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.profiles).
+
+    <details>
+        <summary>Пример</summary>
 
     ```java
     @Configuration
@@ -688,6 +772,7 @@
     public class HhAppProdConfig {
     }
     ```
+    </details>
 
     [//]: # (TODO: если после финализации всех работ получится избавиться в сервисах от Common и Prod конфигов, необходимо поправить данный пункт - если в импортах не будет никаких Prod конфигов из либ, то аннотацию можно не вешать на весь класс)
 
@@ -697,6 +782,9 @@
 22. В классе, который указан в файле `src/main/resources/META-INF/services/ch.qos.logback.classic.spi.Configurator`, сконфигурировать логгер для main
     class'а, указав для него уровень логирования `INFO`.
 
+    <details>
+        <summary>Пример</summary>
+
     ```java
     public class HhAppLogbackConfigurator extends NabLogbackBaseConfigurator {
       @Override
@@ -705,8 +793,12 @@
       }
     }
     ```
+    </details>
 
 23. Поправить импорты (часть классов из `nab-starter` переехала в `nab-web`):
+
+    <details>
+        <summary>Список изменившихся пакетов</summary>
 
     - `ru.hh.nab.starter.consul` -> `ru.hh.nab.web.consul`
     - `ru.hh.nab.starter.exceptions` -> `ru.hh.nab.web.exceptions`
@@ -714,12 +806,13 @@
     - `ru.hh.nab.starter.server` -> `ru.hh.nab.web.http`
     - `ru.hh.nab.starter.server.logging` -> `ru.hh.nab.web.http`
     - `ru.hh.nab.starter.server.cache` -> `ru.hh.nab.web.jersey.filter.cache`
-    - `ru.hh.nab.starter.filters` -> сервлетные фильтры переехали в `ru.hh.nab.web.servlet.filter`; джерсевые переехали
+    - `ru.hh.nab.starter.filters` -> сервлетные фильтры переехали в `ru.hh.nab.web.servlet.filter`; джерсевые фильтры переехали
       в `ru.hh.nab.web.jersey.filter`
-    - `ru.hh.nab.starter.jersey` -> все классы, кроме `NabPriorities`, переехали в `ru.hh.nab.web.jersey.resolver`; `NabPriorities` переехал
+    - `ru.hh.nab.starter.jersey` -> все классы, кроме `NabPriorities`, переехали в `ru.hh.nab.web.jersey.resolver`; класс `NabPriorities` переехал
       в `ru.hh.nab.web.jersey`
     - `ru.hh.nab.starter.server.logging` -> `ru.hh.nab.web.jetty`
     - `ru.hh.nab.starter.logging` + класс `NabLogbackBaseConfigurator` -> `ru.hh.nab.web.logging`
+    </details>
 
 24. Поправить юнит тесты.
 
@@ -731,6 +824,9 @@
     Для инжекта `ResourceHelper` вместо аннотации `@NabTestServer` использовать аннотацию `@Inject`.
 
     Удалить класс, имплементирующий интерфейс `OverrideNabApplication`.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -762,18 +858,26 @@
       protected ResourceHelper resourceHelper;
     }
     ```
+    </details>
 
     Также можно унаследоваться от класса `WebTestBase`, тогда `@ExtendWith(SpringExtensionWithFailFast.class)` и инжект `ResourceHelper` можно
     удалить.
+
+    <details>
+        <summary>Пример</summary>
 
     ```java
     @SpringBootTest(classes = TestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
     public abstract class HhAppTestBase extends WebTestBase {
     }
     ```
+    </details>
 
     Если аннотация `@NabJunitWebConfig` висела на классе `HhAppTestBase`, и в этом классе больше ничего нет (как показано в примере выше), то его
     можно удалить, а аннотацию `@SpringBootTest` повесить на тестовые классы, которые от него наследуются.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -791,9 +895,13 @@
       // tests
     }
     ```
+    </details>
 
     На класс `TestConfig` вместо аннотации `@Configuration` повесить аннотацию `@TestConfiguration`. Также из аннотации `@Import` можно
     удалить `HhAppCommonConfig.class`. В импорте данного класса нет необходимости, так как он уже импортируется в main class'е приложения.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -819,10 +927,14 @@
       // beans
     }
     ```
+    </details>
 
     В `src/test/resources` добавить файл `application.properties` и скопипастить в него все проперти (кроме `log.*`) из `service-test.properties`.
     Если в файле `service-test.properties` нет никаких `log.*` пропертей, то можно просто переименовать его в `application.properties`. Далее в
     файле `application.properties` необходимо переименовать настройки.
+
+    <details>
+        <summary>Список настроек, которые нужно переименовать</summary>
 
     - `serviceName` -> `spring.application.name`
     - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
@@ -843,10 +955,14 @@
     - `jetty.responseHeaderSize` -> `server.jetty.max-http-response-header-size`
     - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
     - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
+    </details>
 
     Часть настроек с дефолтными значениями подтягивается из nab-testbase (если в вашем `TestConfig` классе импортится `NabTestConfig`), и данные
     настройки добавляются в спринговый `Environment`. Если в ваших тестах не требуется оверрайд данных настроек, то их можно удалить
-    из `application.properties`. Список настроек, которые подтягиваются из nab-testbase:
+    из `application.properties`.
+
+    <details>
+        <summary>Список настроек, которые подтягиваются из nab-testbase</summary>
 
     ```properties
     spring.application.name=testService
@@ -871,9 +987,13 @@
     kafka.consumer.default.nab_setting.backoff.initial.interval=1
     kafka.consumer.default.nab_setting.backoff.max.interval=1
     ```
+    </details>
 
     Также следует проанализировать остальные настройки в `application.properties` на предмет их необходимости. Возможно, часть настроек (например,
     связанных с конфигурацией сервера) можно удалить.
+
+    <details>
+        <summary>Пример</summary>
 
     Было:
 
@@ -905,6 +1025,7 @@
     hh.app.foo=foo
     hh.app.bar=bar
     ```
+    </details>
 
     Более подробную информацию о написании тестов в спринг бут приложениях можно почитать в
     документации [8.3. Testing Spring Boot Applications](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.testing.spring-boot-applications).
@@ -912,6 +1033,9 @@
 ### Конфиги
 
 1. Переименовать настройки в файле `service.properties`.
+
+    <details>
+        <summary>Список настроек, которые нужно переименовать</summary>
 
     - `serviceName` -> `spring.application.name`
     - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
@@ -932,6 +1056,7 @@
     - `jetty.responseHeaderSize` -> `server.jetty.max-http-response-header-size`
     - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
     - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
+    </details>
 
 2. Удалить настройку `jetty.session-manager.enabled` из файла `service.properties`.
 
@@ -949,9 +1074,14 @@
 
 Если при разработке вашего сервиса вам потребуется включить какие-то автоконфигурации, которые выключены на уровне наба, вы можете сделать это,
 добавив файл `ru.hh.nab.web.starter.autoconfigure.AutoConfigurationWhitelist.imports` в директорию `src/main/resources/META-INF/spring` и перечислив в
-нем необходимые вам автоконфигурации. Пример:
+нем необходимые вам автоконфигурации.
+
+<details>
+    <summary>Пример</summary>
 
 ```
 org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration
 ```
+
+</details>

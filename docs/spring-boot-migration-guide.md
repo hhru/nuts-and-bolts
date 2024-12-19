@@ -717,7 +717,7 @@
     - `ru.hh.nab.starter.server.logging` -> `ru.hh.nab.web.jetty`
     - `ru.hh.nab.starter.logging` + класс `NabLogbackBaseConfigurator` -> `ru.hh.nab.web.logging`
 
-28. Переименовать следующие настройки в конфиге сервиса в репе deploy:
+28. Переименовать следующие настройки в файле `service.properties`:
 
     - `serviceName` -> `spring.application.name`
     - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
@@ -739,7 +739,7 @@
     - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
     - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
 
-29. Удалить настройку `jetty.session-manager.enabled` в конфиге сервиса в репе deploy.
+29. Удалить настройку `jetty.session-manager.enabled` из файла `service.properties`.
 
 30. Поправить юнит тесты.
 

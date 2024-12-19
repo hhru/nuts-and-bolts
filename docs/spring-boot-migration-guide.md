@@ -3,6 +3,8 @@
 [//]: # (TODO: Версия указана для того, чтобы было проще дорабатывать инструкцию при выпуске последующих "alpha" версий. Необходимо удалить указание версии наба после выпуска финальной версии)
 Инструкция актуальна для версии наба 10.1.0.jakarta-rc1.spring-boot-rc1.
 
+### pom.xml
+
 1. Обновить `common-pom` до версии `2.1.0.jakarta-rc3.spring-boot-rc1` или выше. В enforcer добавлено правило для проверки того, что в сервис не
    тянутся никакие tomcat зависимости. Если сборка проходит успешно, то ничего делать не нужно. Если сборка падает из-за того, что в ваш сервис все же
    тянутся какие-то tomcat зависимости, необходимо их удалить.
@@ -70,11 +72,13 @@
    Значение всех пропертей из файла `build-info.properties` в коде можно получить с помощью
    бина [BuildProperties](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/info/BuildProperties.html).
 
-5. Из `src/main/resources` удалить файл `project.properties`, вместо него теперь генерится `build-info.properties`. Если `project.properties` содержит
-   проперти, которые по дефолту не добавляются в `build-info.properties`, необходимо эти проперти перечислить в
-   конфигурации `spring-boot-maven-plugin` (см. п.4).
+### Код
 
-6. В `src/main/resources` добавить файл `application.properties` со следующими пропертями:
+1. Из `src/main/resources` удалить файл `project.properties`, вместо него теперь генерится `build-info.properties`. Если `project.properties` содержит
+   проперти, которые по дефолту не добавляются в `build-info.properties`, необходимо эти проперти перечислить в
+   конфигурации `spring-boot-maven-plugin`.
+
+2. В `src/main/resources` добавить файл `application.properties` со следующими пропертями:
 
     - `spring.config.import` - нужно через `,` перечислить все `*.properties` файлы из deploy репозитория, необходимые для работы вашего
       сервиса (`service.properties`, `hibernate.properties`, `db-settings.properties` и т.д.). При указании пути к файлу необходимо использовать
@@ -87,7 +91,7 @@
    spring.profiles.active=main
    ```
 
-7. На main class вашего приложения повесить аннотацию `@NabApplication`. Данная аннотация - это по большей части
+3. На main class вашего приложения повесить аннотацию `@NabApplication`. Данная аннотация - это по большей части
    копипаста [@SpringBootApplication](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/autoconfigure/SpringBootApplication.html).
    Единственное отличие заключается в том, что при использовании `@NabApplication` не работает component scan.
 
@@ -100,7 +104,7 @@
    }
    ```
 
-8. На main class вашего приложения повесить аннотацию `@Import` и указать в ней `HhAppCommonConfig.class` и `HhAppProdConfig.class`. Причем необходимо
+4. На main class вашего приложения повесить аннотацию `@Import` и указать в ней `HhAppCommonConfig.class` и `HhAppProdConfig.class`. Причем необходимо
    явно указывать оба config класса, даже несмотря на то, что `HhAppCommonConfig` импортируется в `HhAppProdConfig`. В противном случае могут падать
    тесты, так как не поднимется контекст.
 
@@ -119,7 +123,7 @@
 
    [//]: # (TODO: Вообще хотелось бы уйти от этих Common и Prod конфигов в сервисах, как будто лучше раскладывать бины по @Configuration классам по логическому признаку. Возможно это получится сделать после того, когда во всех либах выпилим Common и Prod конфиги. Нужно пересмотреть данный пункт после финализации всех работ)
 
-9. В методе `main` для старта приложения вместо `NabApplication`/`NabApplicationBuilder`
+5. В методе `main` для старта приложения вместо `NabApplication`/`NabApplicationBuilder`
    использовать [SpringApplication](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/SpringApplication.html) / [SpringApplicationBuilder](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/builder/SpringApplicationBuilder.html).
    Более подробную информацию можно посмотреть в
    документации [1. SpringApplication](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.spring-application).
@@ -137,146 +141,146 @@
    }
    ```
 
-10. Для конфигурации context path вместо вызова метода `NabApplicationBuilder.setContextPath` добавить настройку `server.servlet.context-path`
-    в `application.properties`.
+6. Для конфигурации context path вместо вызова метода `NabApplicationBuilder.setContextPath` добавить настройку `server.servlet.context-path`
+   в `application.properties`.
 
-    Было:
+   Было:
 
-    ```java
-    public class HhApp {
-      public static void main(String[] args) {
-        NabApplication
-            .builder()
-            .setContextPath("/hh-app")
-            .build()
-            .run(HhAppProdConfig.class);
-      }
-    }
+   ```java
+   public class HhApp {
+     public static void main(String[] args) {
+       NabApplication
+           .builder()
+           .setContextPath("/hh-app")
+           .build()
+           .run(HhAppProdConfig.class);
+     }
+   }
+   ```
+
+   Стало:
+
+    ```properties
+    server.servlet.context-path=/hh-app
     ```
 
-    Стало:
+7. Для конфигурации [WebAppContext](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/WebAppContext.html) вместо вызова
+   метода `NabApplicationBuilder.configureWebapp`
+   реализовать [Configuration](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/Configuration.html)
+   и добавить бин в контекст спринга. При реализации `Configuration` можно наследоваться
+   от [AbstractConfiguration](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/AbstractConfiguration.html), чтобы не реализовывать все
+   методы.
 
-     ```properties
-     server.servlet.context-path=/hh-app
-     ```
+   Было:
 
-11. Для конфигурации [WebAppContext](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/WebAppContext.html) вместо вызова
-    метода `NabApplicationBuilder.configureWebapp`
-    реализовать [Configuration](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/Configuration.html)
-    и добавить бин в контекст спринга. При реализации `Configuration` можно наследоваться
-    от [AbstractConfiguration](https://javadoc.jetty.org/jetty-11/org/eclipse/jetty/webapp/AbstractConfiguration.html), чтобы не реализовывать все
-    методы.
+   ```java
+   public class HhApp {
+     public static void main(String[] args) {
+       NabApplication
+           .builder()
+           .configureWebapp(((webAppContext, applicationContext) -> {
+             ...
+           }))
+           .build()
+           .run(HhAppProdConfig.class);
+     }
+   }
+   ```
 
-    Было:
+   Стало:
 
-    ```java
-    public class HhApp {
-      public static void main(String[] args) {
-        NabApplication
-            .builder()
-            .configureWebapp(((webAppContext, applicationContext) -> {
-              ...
-            }))
-            .build()
-            .run(HhAppProdConfig.class);
-      }
-    }
-    ```
-
-    Стало:
-
-    ```java
-    public class WebAppConfiguration extends AbstractConfiguration {
+   ```java
+   public class WebAppConfiguration extends AbstractConfiguration {
     
-      @Override
-      public void configure(WebAppContext context) {
-        ...
-      }
-    }
-    ```
+     @Override
+     public void configure(WebAppContext context) {
+       ...
+     }
+   }
+   ```
 
-    ```java
-    @Configuration
-    @Import({
-        WebAppConfiguration.class,
-    })
-    public class HhAppCommonConfig {
-    }
-    ```
+   ```java
+   @Configuration
+   @Import({
+       WebAppConfiguration.class,
+   })
+   public class HhAppCommonConfig {
+   }
+   ```
 
-12. Для
-    конфигурации [ServletContext](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContext.html)
-    вместо вызова метода `NabApplicationBuilder.onWebAppStarted`
-    реализовать [ServletContextInitializer](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/ServletContextInitializer.html)
-    и добавить бин в контекст спринга.
+8. Для
+   конфигурации [ServletContext](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContext.html)
+   вместо вызова метода `NabApplicationBuilder.onWebAppStarted`
+   реализовать [ServletContextInitializer](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/ServletContextInitializer.html)
+   и добавить бин в контекст спринга.
 
-    Было:
+   Было:
 
-    ```java
-    public class HhApp {
-      public static void main(String[] args) {
-        NabApplication
-            .builder()
-            .onWebAppStarted((servletContext, applicationContext) -> {
-              ...
-            })
-            .build()
-            .run(HhAppProdConfig.class);
-      }
-    }
-    ```
+   ```java
+   public class HhApp {
+     public static void main(String[] args) {
+       NabApplication
+           .builder()
+           .onWebAppStarted((servletContext, applicationContext) -> {
+             ...
+           })
+           .build()
+           .run(HhAppProdConfig.class);
+     }
+   }
+   ```
 
-    Стало:
+   Стало:
 
-    ```java
-    public class SomeServletContextInitializer implements ServletContextInitializer {
-      @Override
-      public void onStartup(ServletContext servletContext) {
-        ...
-      }
-    }
-    ```
+   ```java
+   public class SomeServletContextInitializer implements ServletContextInitializer {
+     @Override
+     public void onStartup(ServletContext servletContext) {
+       ...
+     }
+   }
+   ```
 
-    ```java
-    @Configuration
-    @Import({
-        SomeServletContextInitializer.class,
-    })
-    public class HhAppCommonConfig {
-    }
-    ```
+   ```java
+   @Configuration
+   @Import({
+       SomeServletContextInitializer.class,
+   })
+   public class HhAppCommonConfig {
+   }
+   ```
 
-13. Для
-    регистрации [ServletContextListener](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContextListener.html)
-    вместо вызова метода `NabApplicationBuilder.addListener`/`NabApplicationBuilder.addListenerBean` добавить в контекст спринга
-    бин `ServletContextListener`.
+9. Для
+   регистрации [ServletContextListener](https://javadoc.io/doc/jakarta.servlet/jakarta.servlet-api/6.0.0/jakarta.servlet/jakarta/servlet/ServletContextListener.html)
+   вместо вызова метода `NabApplicationBuilder.addListener`/`NabApplicationBuilder.addListenerBean` добавить в контекст спринга
+   бин `ServletContextListener`.
 
-    Было:
+   Было:
 
-    ```java
-    public class HhApp {
-      public static void main(String[] args) {
-        NabApplication
-            .builder()
-            .addListener(new HhAppServletContextListener())
-            .build()
-            .run(HhAppProdConfig.class);
-      }
-    }
-    ```
+   ```java
+   public class HhApp {
+     public static void main(String[] args) {
+       NabApplication
+           .builder()
+           .addListener(new HhAppServletContextListener())
+           .build()
+           .run(HhAppProdConfig.class);
+     }
+   }
+   ```
 
-    Стало:
+   Стало:
 
-    ```java
-    @Configuration
-    @Import({
-        HhAppServletContextListener.class,
-    })
-    public class HhAppCommonConfig {
-    }
-    ```
+   ```java
+   @Configuration
+   @Import({
+       HhAppServletContextListener.class,
+   })
+   public class HhAppCommonConfig {
+   }
+   ```
 
-14. Для регистрации сервлета вместо вызова метода `NabApplicationBuilder.addServlet` добавить в контекст спринга
+10. Для регистрации сервлета вместо вызова метода `NabApplicationBuilder.addServlet` добавить в контекст спринга
     бин [ServletRegistrationBean](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/ServletRegistrationBean.html).
 
     Было:
@@ -309,7 +313,7 @@
     }
     ```
 
-15. Для регистрации фильтра вместо вызова
+11. Для регистрации фильтра вместо вызова
     метода `NabApplicationBuilder.addFilter`/`NabApplicationBuilder.addFilterBean`/`NabApplicationBuilder.addFilterHolderBean` добавить в контекст
     спринга
     бин [FilterRegistrationBean](https://docs.spring.io/spring-boot/docs/3.1.0/api/org/springframework/boot/web/servlet/FilterRegistrationBean.html).
@@ -447,7 +451,7 @@
     }
     ```
 
-16. Для конфигурации jersey вместо вызова методов `NabApplicationBuilder.configureJersey`:
+12. Для конфигурации jersey вместо вызова методов `NabApplicationBuilder.configureJersey`:
 
     - добавить класс, который наследуется
       от [ResourceConfig](https://www.javadoc.io/doc/org.glassfish.jersey.core/jersey-server/3.1.0/org/glassfish/jersey/server/ResourceConfig.html) и
@@ -500,9 +504,9 @@
     }
     ```
 
-17. В `@Configuration` классах удалить импорт `NabCommonConfig.class` и `NabProdConfig.class`.
+13. В `@Configuration` классах удалить импорт `NabCommonConfig.class` и `NabProdConfig.class`.
 
-18. Вместо бина `FileSettings` (помечен как deprecated) использовать
+14. Вместо бина `FileSettings` (помечен как deprecated) использовать
     бин [Environment](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/core/env/Environment.html) / [ConfigurableEnvironment](https://docs.spring.io/spring-framework/docs/6.0.9/javadoc-api/org/springframework/core/env/ConfigurableEnvironment.html) (
     в том числе в тестах). В наб также добавлен утилитный класс `EnvironmentUtils`, позволяющий получить необходимые настройки в
     виде `Properties`, `Map`, `List`, получить настройки по префиксу и т.д.
@@ -541,7 +545,7 @@
     Подробнее можно почитать в
     документации [2. Externalized Configuration](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.external-config).
 
-19. Вместо бинов `String serviceName`, `String nodeName`, `String datacenter` использовать бин `InfrastructureProperties` (в том числе в тестах).
+15. Вместо бинов `String serviceName`, `String nodeName`, `String datacenter` использовать бин `InfrastructureProperties` (в том числе в тестах).
 
     Было:
 
@@ -568,11 +572,11 @@
     }
     ```
 
-20. Вместо бина `Properties serviceProperties` (удален) использовать бины `InfrastructureProperties` и `Environment`/`ConfigurableEnvironment` (в том
+16. Вместо бина `Properties serviceProperties` (удален) использовать бины `InfrastructureProperties` и `Environment`/`ConfigurableEnvironment` (в том
     числе в тестах):
 
     - `InfrastructureProperties` - если требуется получить serviceName / nodeName / datacenter / datacenters
-    - `Environment`/`ConfigurableEnvironment` (см. п.18) - для получения остальных настроек
+    - `Environment`/`ConfigurableEnvironment` - для получения остальных настроек
 
     Было:
 
@@ -604,7 +608,7 @@
 
     Если в вашем сервисе делается оверрайд бина `Properties serviceProperties`, его также необходимо удалить (в том числе в тестах).
 
-21. Вместо бина `Properties projectProperties` (удален) использовать бин `BuildProperties`.
+17. Вместо бина `Properties projectProperties` (удален) использовать бин `BuildProperties`.
 
     Было:
 
@@ -632,7 +636,7 @@
 
     Если в вашем сервисе делается оверрайд бина `Properties projectProperties`, его также необходимо удалить (в том числе в тестах).
 
-22. Вместо бина `AppMetadata` (удален) использовать бины `InfrastructureProperties` и `BuildProperties`.
+18. Вместо бина `AppMetadata` (удален) использовать бины `InfrastructureProperties` и `BuildProperties`.
 
     Было:
 
@@ -660,10 +664,10 @@
 
     Если в вашем сервисе делается оверрайд бина `AppMetadata`, его также необходимо удалить (в том числе в тестах).
 
-23. Удалить получение пропертей из файла с помощью метода `PropertiesUtils.fromFilesInSettingsDir` (помечен как deprecated).
-    Необходимые `*.properties` файлы должны быть перечислены в `application.properties` в настройке `spring.config.import` (см. п.6). Все проперти из
-    перечисленных файлов будут добавлены в спринговый `Environment`. Далее их можно получать в коде, используя предоставляемые спрингом механизмы (см.
-    п.18). `Properties` бины, при создании которых вызывается метод `PropertiesUtils.fromFilesInSettingsDir`, также необходимо удалить.
+19. Удалить получение пропертей из файла с помощью метода `PropertiesUtils.fromFilesInSettingsDir` (помечен как deprecated).
+    Необходимые `*.properties` файлы должны быть перечислены в `application.properties` в настройке `spring.config.import`. Все проперти из
+    перечисленных файлов будут добавлены в спринговый `Environment`. Далее их можно получать в коде, используя предоставляемые спрингом
+    механизмы. `Properties` бины, при создании которых вызывается метод `PropertiesUtils.fromFilesInSettingsDir`, также необходимо удалить.
 
     Пример бина, который необходимо удалить:
 
@@ -674,7 +678,7 @@
     }
     ```
 
-24. На класс `HhAppProdConfig` повесить аннотацию `@Profile(Profiles.MAIN)` или `@MainProfile`. Таким образом, "prod" бины будут созданы только в том
+20. На класс `HhAppProdConfig` повесить аннотацию `@Profile(Profiles.MAIN)` или `@MainProfile`. Таким образом, "prod" бины будут созданы только в том
     случае, если активирован профиль `main`. Подробнее почитать о профилях можно в
     документации [3. Profiles](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.profiles).
 
@@ -687,10 +691,10 @@
 
     [//]: # (TODO: если после финализации всех работ получится избавиться в сервисах от Common и Prod конфигов, необходимо поправить данный пункт - если в импортах не будет никаких Prod конфигов из либ, то аннотацию можно не вешать на весь класс)
 
-25. Удалить вызов метода `NabWebsocketConfigurator.configureWebsocket`, теперь для работы вебсокетов достаточно
-    подключить `nab-websocket-spring-boot-starter` (см. п.3).
+21. Удалить вызов метода `NabWebsocketConfigurator.configureWebsocket`, теперь для работы вебсокетов достаточно
+    подключить `nab-websocket-spring-boot-starter`.
 
-26. В классе, который указан в файле `src/main/resources/META-INF/services/ch.qos.logback.classic.spi.Configurator`, сконфигурировать логгер для main
+22. В классе, который указан в файле `src/main/resources/META-INF/services/ch.qos.logback.classic.spi.Configurator`, сконфигурировать логгер для main
     class'а, указав для него уровень логирования `INFO`.
 
     ```java
@@ -702,7 +706,7 @@
     }
     ```
 
-27. Поправить импорты (часть классов из `nab-starter` переехала в `nab-web`):
+23. Поправить импорты (часть классов из `nab-starter` переехала в `nab-web`):
 
     - `ru.hh.nab.starter.consul` -> `ru.hh.nab.web.consul`
     - `ru.hh.nab.starter.exceptions` -> `ru.hh.nab.web.exceptions`
@@ -717,31 +721,7 @@
     - `ru.hh.nab.starter.server.logging` -> `ru.hh.nab.web.jetty`
     - `ru.hh.nab.starter.logging` + класс `NabLogbackBaseConfigurator` -> `ru.hh.nab.web.logging`
 
-28. Переименовать следующие настройки в файле `service.properties`:
-
-    - `serviceName` -> `spring.application.name`
-    - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
-    - `consul.wait.after.deregistration.millis` -> `consul.wait-after-deregistration-millis`
-    - `statsd.queue.size` -> `statsd.queue-size`
-    - `statsd.buffer.pool.size` -> `statsd.buffer-pool-size`
-    - `jetty.host` -> `server.address`
-    - `jetty.port` -> `server.port`
-    - `jetty.maxThreads` -> `server.jetty.threads.max`
-    - `jetty.minThreads` -> `server.jetty.threads.min`
-    - `jetty.queueSize` -> `server.jetty.threads.max-queue-capacity`
-    - `jetty.threadPoolIdleTimeoutMs` -> `server.jetty.threads.idle-timeout`
-    - `jetty.acceptors` -> `server.jetty.threads.acceptors`
-    - `jetty.selectors` -> `server.jetty.threads.selectors`
-    - `jetty.connectionIdleTimeoutMs` -> `server.jetty.connection-idle-timeout`
-    - `jetty.acceptQueueSize` -> `server.jetty.accept-queue-size`
-    - `jetty.requestHeaderSize` -> `server.max-http-request-header-size`
-    - `jetty.responseHeaderSize` -> `server.jetty.max-http-response-header-size`
-    - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
-    - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
-
-29. Удалить настройку `jetty.session-manager.enabled` из файла `service.properties`.
-
-30. Поправить юнит тесты.
+24. Поправить юнит тесты.
 
     Вместо аннотации `@NabJunitWebConfig(TestConfig.class)` использовать:
 
@@ -813,7 +793,7 @@
     ```
 
     На класс `TestConfig` вместо аннотации `@Configuration` повесить аннотацию `@TestConfiguration`. Также из аннотации `@Import` можно
-    удалить `HhAppCommonConfig.class`. В импорте данного класса нет необходимости, так как он уже импортируется в main class'е приложения (см. п.8).
+    удалить `HhAppCommonConfig.class`. В импорте данного класса нет необходимости, так как он уже импортируется в main class'е приложения.
 
     Было:
 
@@ -842,7 +822,27 @@
 
     В `src/test/resources` добавить файл `application.properties` и скопипастить в него все проперти (кроме `log.*`) из `service-test.properties`.
     Если в файле `service-test.properties` нет никаких `log.*` пропертей, то можно просто переименовать его в `application.properties`. Далее в
-    файле `application.properties` необходимо переименовать некоторые настройки (см. п.28).
+    файле `application.properties` необходимо переименовать настройки.
+
+    - `serviceName` -> `spring.application.name`
+    - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
+    - `consul.wait.after.deregistration.millis` -> `consul.wait-after-deregistration-millis`
+    - `statsd.queue.size` -> `statsd.queue-size`
+    - `statsd.buffer.pool.size` -> `statsd.buffer-pool-size`
+    - `jetty.host` -> `server.address`
+    - `jetty.port` -> `server.port`
+    - `jetty.maxThreads` -> `server.jetty.threads.max`
+    - `jetty.minThreads` -> `server.jetty.threads.min`
+    - `jetty.queueSize` -> `server.jetty.threads.max-queue-capacity`
+    - `jetty.threadPoolIdleTimeoutMs` -> `server.jetty.threads.idle-timeout`
+    - `jetty.acceptors` -> `server.jetty.threads.acceptors`
+    - `jetty.selectors` -> `server.jetty.threads.selectors`
+    - `jetty.connectionIdleTimeoutMs` -> `server.jetty.connection-idle-timeout`
+    - `jetty.acceptQueueSize` -> `server.jetty.accept-queue-size`
+    - `jetty.requestHeaderSize` -> `server.max-http-request-header-size`
+    - `jetty.responseHeaderSize` -> `server.jetty.max-http-response-header-size`
+    - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
+    - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
 
     Часть настроек с дефолтными значениями подтягивается из nab-testbase (если в вашем `TestConfig` классе импортится `NabTestConfig`), и данные
     настройки добавляются в спринговый `Environment`. Если в ваших тестах не требуется оверрайд данных настроек, то их можно удалить
@@ -873,7 +873,7 @@
     ```
 
     Также следует проанализировать остальные настройки в `application.properties` на предмет их необходимости. Возможно, часть настроек (например,
-    связанных с конфигурацией сервера) тоже можно удалить.
+    связанных с конфигурацией сервера) можно удалить.
 
     Было:
 
@@ -909,8 +909,34 @@
     Более подробную информацию о написании тестов в спринг бут приложениях можно почитать в
     документации [8.3. Testing Spring Boot Applications](https://docs.spring.io/spring-boot/docs/3.1.0/reference/html/features.html#features.testing.spring-boot-applications).
 
-31. После миграции на Spring Boot немного увеличивается потребление метаспейса (приблизительно на 10-15 мб). В связи с этим необходимо удостовериться,
-    что у приложения есть запас метаспейса. Если запаса нет - рекомендуется увеличить размер метаспейса.
+### Конфиги
+
+1. Переименовать настройки в файле `service.properties`.
+
+    - `serviceName` -> `spring.application.name`
+    - `http.cache.sizeInMB` -> `http.cache.sizeInMb`
+    - `consul.wait.after.deregistration.millis` -> `consul.wait-after-deregistration-millis`
+    - `statsd.queue.size` -> `statsd.queue-size`
+    - `statsd.buffer.pool.size` -> `statsd.buffer-pool-size`
+    - `jetty.host` -> `server.address`
+    - `jetty.port` -> `server.port`
+    - `jetty.maxThreads` -> `server.jetty.threads.max`
+    - `jetty.minThreads` -> `server.jetty.threads.min`
+    - `jetty.queueSize` -> `server.jetty.threads.max-queue-capacity`
+    - `jetty.threadPoolIdleTimeoutMs` -> `server.jetty.threads.idle-timeout`
+    - `jetty.acceptors` -> `server.jetty.threads.acceptors`
+    - `jetty.selectors` -> `server.jetty.threads.selectors`
+    - `jetty.connectionIdleTimeoutMs` -> `server.jetty.connection-idle-timeout`
+    - `jetty.acceptQueueSize` -> `server.jetty.accept-queue-size`
+    - `jetty.requestHeaderSize` -> `server.max-http-request-header-size`
+    - `jetty.responseHeaderSize` -> `server.jetty.max-http-response-header-size`
+    - `jetty.outputBufferSize` -> `server.jetty.output-buffer-size`
+    - `jetty.stopTimeoutMs` -> `spring.lifecycle.timeout-per-shutdown-phase`
+
+2. Удалить настройку `jetty.session-manager.enabled` из файла `service.properties`.
+
+3. После миграции на Spring Boot немного увеличивается потребление метаспейса (приблизительно на 10-15 мб). В связи с этим необходимо удостовериться,
+   что у приложения есть запас метаспейса. Если запаса нет - рекомендуется увеличить размер метаспейса.
 
 [//]: # (TODO: поизучать какие еще есть настройки в буте для конфигурации веб приложений: webAppContext, servletContext, jettyServer и тд. Возможно в буте есть настройки, которых не было в набе, и в сервисах мб можно будет удалить какие-то куски кода)
 

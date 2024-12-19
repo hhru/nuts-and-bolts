@@ -1,0 +1,70 @@
+- name: 10.1.0.jakarta-rc1.spring-boot-rc1
+  date: '2025-01-01T00:00:00.000000+03:00'
+  description: "
+    1. Удален модуль nab-starter. Вместе с ним удалены следующие классы:
+        - NabApplication
+        - NabApplicationBuilder
+        - NabCommonConfig
+        - NabProdConfig
+        - AppMetadata
+        - NabServletContextConfig
+        - DefaultResourceConfig
+        - NabJerseyConfig
+        - NabServletConfig
+        - StatusServletConfig
+        - Service
+        - StatusResource
+        - JettyServer
+        - JettyServerFactory
+        - JettyWebAppContext
+        - JettySettingsConstants
+        - JettyBeforeStopEvent
+        - JettyStartedEvent
+        - JettyEventListener
+        - JettyLifeCycleListener
+        - JettyServerException
+        - ChannelsReadyChecker
+        - HHServerConnector
+        - WebAppInitializer
+        - HierarchicalWebApplicationContext
+       Все классы, кроме перечисленных выше, переехали из nab-starter в новый модуль nab-web. При этом изменились пакеты:
+        - все классы из `ru.hh.nab.starter.consul` переехали в `ru.hh.nab.web.consul`
+        - все классы из `ru.hh.nab.starter.exceptions` переехали в `ru.hh.nab.web.exceptions`
+        - все классы из `ru.hh.nab.starter.http` переехали в `ru.hh.nab.web.http`
+        - все классы из `ru.hh.nab.starter.server` переехали в `ru.hh.nab.web.http`
+        - все классы из `ru.hh.nab.starter.server.logging` переехали в `ru.hh.nab.web.http`
+        - все классы из `ru.hh.nab.starter.server.cache` переехали в `ru.hh.nab.web.jersey.filter.cache`
+        - сервлетные фильтры из `ru.hh.nab.starter.filters` переехали в `ru.hh.nab.web.servlet.filter`
+        - джерсевые фильтры из `ru.hh.nab.starter.filters` переехали в `ru.hh.nab.web.jersey.filter`
+        - все классы из `ru.hh.nab.starter.jersey`, кроме `NabPriorities`, переехали в `ru.hh.nab.web.jersey.resolver` 
+        - класс NabPriorities переехал в `ru.hh.nab.web.jersey`
+        - все классы из `ru.hh.nab.starter.server.logging` переехали в `ru.hh.nab.web.jetty`
+        - все классы из `ru.hh.nab.starter.logging` переехали в `ru.hh.nab.web.logging`
+        - класс NabLogbackBaseConfigurator переехал в `ru.hh.nab.web.logging`
+    2. Добавлен модуль nab-web-spring-boot-starter, который содержит: 
+       - необходимые кастомизации для спринг бута 
+       - автоконфигурации общеплатформенных бинов (бины serviceProperties, projectProperties и AppMetadata - удалены)
+       - аннотацию @MainProfile, которая может быть использована в сервисах для того, чтобы пометить бины, 
+         которые должны быть созданы только при активации профиля main.
+       - класс EnvironmentUtils с различными утилитными методами, которые могут быть использованы в сервисах 
+         для получения настроек из спрингового Environment'а. 
+    3. Удален модуль nab-websocket. Ему на смену добавлен nab-websocket-spring-boot-starter, 
+       который содержит автоконфигурацию бинов, необходимых для работы вебсокетов.
+    4. В модуле nab-common:
+        - класс FileSettings помечен как deprecated
+        - метод PropertiesUtils.fromFilesInSettingsDir помечен как deprecated
+        - в NamedQualifier добавлены константы SERVICE_VERSION и DATACENTERS
+        - добавлен класс ServletFilterPriorities, который содержит константные значения, которые могут быть использованы 
+          в сервисах при регистрации сервлетных фильтров, чтобы упорядочить их
+    5. В модуле nab-testbase: 
+        - удалены аннотации @NabJunitWebConfig и @NabTestServer
+        - удален интерфейс OverrideNabApplication
+        - ResourceHelper переехал в пакет ru.hh.nab.testbase.web. Также у него изменен конструктор
+        - добавлен класс WebTestBase, в котором подключается SpringExtensionWithFailFast и инжектится ResourceHelper. 
+          В сервисах можно наследовать тестовые классы от WebTestBase  
+        - в NabTestConfig добавлен импорт базовых настроек, которые будут добавлены в спринговый Environment. 
+          При необходимости в сервисах можно переопределить значение этих настроек     
+    6. Удален модуль nab-example.   
+  "
+  instructions: 'Смотри инструкцию по миграции на Spring Boot в docs/spring-boot-migration-guide.md'
+  compatible: false

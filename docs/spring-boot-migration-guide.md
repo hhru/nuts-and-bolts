@@ -442,10 +442,13 @@
     }
     ```
 
-16. Для конфигурации jersey вместо вызова методов `NabApplicationBuilder.configureJersey` добавить в контекст спринга
-    бин [ResourceConfig](https://www.javadoc.io/doc/org.glassfish.jersey.core/jersey-server/3.1.0/org/glassfish/jersey/server/ResourceConfig.html) и
-    зарегистрировать в нем все необходимые ресурсы. Для конфигурации application path вместо вызова метода `bindTo`/`bindToRoot` добавить
-    настройку `spring.jersey.application-path` в `application.properties`.
+16. Для конфигурации jersey вместо вызова методов `NabApplicationBuilder.configureJersey`:
+
+    - добавить класс, который наследуется
+      от [ResourceConfig](https://www.javadoc.io/doc/org.glassfish.jersey.core/jersey-server/3.1.0/org/glassfish/jersey/server/ResourceConfig.html) и
+      зарегистрировать в нем все необходимые ресурсы. Для конфигурации application path вместо вызова метода `bindTo` повесить на добавленный класс
+      аннотацию [@ApplicationPath](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/applicationpath)
+    - добавить бин в контекст спринга
 
     Было:
 
@@ -470,6 +473,7 @@
     Стало:
 
     ```java
+    @ApplicationPath("/rs")
     public class HhAppJerseyConfig extends ResourceConfig {
     
       public HhAppJerseyConfig(BarResource barResource) {
@@ -489,10 +493,6 @@
     })
     public class HhAppCommonConfig {
     }
-    ```
-
-    ```properties
-    spring.jersey.application-path=/rs/*
     ```
 
 17. В `@Configuration` классах выпилить импорт `NabCommonConfig.class` и `NabProdConfig.class`.

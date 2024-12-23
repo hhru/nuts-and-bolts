@@ -107,12 +107,6 @@
             <version>0.7.4</version>
         </dependency>
 
-        <!--sentry-->
-        <dependency>
-            <groupId>io.sentry</groupId>
-            <artifactId>sentry</artifactId>
-        </dependency>
-
         <!--Testing-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.sentry;
+package ru.hh.nab.sentry.starter;
 
 import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;

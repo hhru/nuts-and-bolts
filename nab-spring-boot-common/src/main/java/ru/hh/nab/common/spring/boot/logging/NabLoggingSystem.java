@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.logging;
+package ru.hh.nab.common.spring.boot.logging;
 
 import java.util.Collections;
 import java.util.List;

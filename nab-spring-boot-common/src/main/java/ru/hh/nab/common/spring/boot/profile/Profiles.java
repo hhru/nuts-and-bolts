@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.profile;
+package ru.hh.nab.common.spring.boot.profile;
 
 public final class Profiles {
 

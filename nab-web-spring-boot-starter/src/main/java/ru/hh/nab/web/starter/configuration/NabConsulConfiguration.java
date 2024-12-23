@@ -14,6 +14,7 @@ import ru.hh.consul.Consul;
 import ru.hh.consul.HealthClient;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.util.Address;
+import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.consul.ConsulFetcher;
 import ru.hh.nab.web.consul.ConsulMetricsTracker;
@@ -21,7 +22,6 @@ import ru.hh.nab.web.consul.ConsulProperties;
 import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
-import ru.hh.nab.web.starter.profile.MainProfile;
 
 @Configuration
 @MainProfile

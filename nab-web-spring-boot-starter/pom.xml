@@ -18,6 +18,10 @@
             <artifactId>nab-web</artifactId>
         </dependency>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-spring-boot-common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jersey</artifactId>
             <exclusions>

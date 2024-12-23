@@ -1,6 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=ru.hh.nab.web.starter.autoconfigure.AutoConfigurationPropertiesEnvironmentPostProcessor
-org.springframework.boot.logging.LoggingSystemFactory=ru.hh.nab.web.starter.logging.NabLoggingSystem.Factory
 org.springframework.context.ApplicationListener=ru.hh.nab.web.starter.sentry.SentryInitializer
-org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=ru.hh.nab.web.starter.autoconfigure.NestedAutoConfigurationImportFilter
-org.springframework.boot.diagnostics.FailureAnalyzer=ru.hh.nab.web.starter.exception.NabFailureAnalyzer
-org.springframework.boot.diagnostics.FailureAnalysisReporter=ru.hh.nab.web.starter.exception.NabFailureAnalysisReporter

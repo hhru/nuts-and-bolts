@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.util;
+package ru.hh.nab.common.spring.boot.env;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1073,8 +1073,8 @@
 включенных автоконфигураций можно посмотреть на странице [Spring Boot Auto Configurations](spring-boot-auto-configurations.md).
 
 Если при разработке вашего сервиса вам потребуется включить какие-то автоконфигурации, которые выключены на уровне наба, вы можете сделать это,
-добавив файл `ru.hh.nab.web.starter.autoconfigure.AutoConfigurationWhitelist.imports` в директорию `src/main/resources/META-INF/spring` и перечислив в
-нем необходимые вам автоконфигурации.
+добавив файл `ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationWhitelist.imports` в директорию `src/main/resources/META-INF/spring` и
+перечислив в нем необходимые вам автоконфигурации.
 
 <details>
     <summary>Пример</summary>

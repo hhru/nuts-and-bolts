@@ -29,6 +29,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
+import static ru.hh.nab.common.spring.boot.profile.Profiles.MAIN;
 import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
@@ -56,7 +57,6 @@ import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
-import static ru.hh.nab.web.starter.profile.Profiles.MAIN;
 import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 public class NabWebAutoConfigurationTest {

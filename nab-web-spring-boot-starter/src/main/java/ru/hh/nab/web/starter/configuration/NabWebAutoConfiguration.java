@@ -55,7 +55,7 @@ import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 @PropertySource("classpath:nab-web.properties")
 @Import({
     NabConsulConfiguration.class,
-    NabDeployInfoConfiguration.class,
+    NabInfrastructureInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
     NabLoggingConfiguration.class,

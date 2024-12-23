@@ -19,7 +19,7 @@ import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 
 @Configuration
 @EnableConfigurationProperties(InfrastructureProperties.class)
-public class NabDeployInfoConfiguration {
+public class NabInfrastructureInfoConfiguration {
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)

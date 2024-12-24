@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
-import ru.hh.nab.web.starter.configuration.NabDeployInfoConfiguration;
+import ru.hh.nab.web.starter.configuration.NabInfrastructureInfoConfiguration;
 import ru.hh.nab.web.starter.configuration.NabMetricsConfiguration;
 import ru.hh.nab.web.starter.configuration.NabTaskSchedulingConfiguration;
 
@@ -19,7 +19,7 @@ import ru.hh.nab.web.starter.configuration.NabTaskSchedulingConfiguration;
     "classpath:kafka-testbase.properties"
 })
 @Import({
-    NabDeployInfoConfiguration.class,
+    NabInfrastructureInfoConfiguration.class,
     NabMetricsConfiguration.class,
     NabTaskSchedulingConfiguration.class,
 })

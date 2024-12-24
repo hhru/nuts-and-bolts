@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.autoconfigure;
+package ru.hh.nab.common.spring.boot.autoconfigure;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,7 +11,7 @@ import org.springframework.context.EnvironmentAware;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
 
 @Order(HIGHEST_PRECEDENCE)
 public class NestedAutoConfigurationImportFilter implements AutoConfigurationImportFilter, EnvironmentAware {

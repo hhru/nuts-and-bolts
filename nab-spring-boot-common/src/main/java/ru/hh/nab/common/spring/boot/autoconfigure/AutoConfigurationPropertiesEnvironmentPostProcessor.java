@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.autoconfigure;
+package ru.hh.nab.common.spring.boot.autoconfigure;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,8 +16,8 @@ import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
 
 /**
  * Environment post processor which is responsible for calculation of autoconfiguration blacklist and registration of property source with auto

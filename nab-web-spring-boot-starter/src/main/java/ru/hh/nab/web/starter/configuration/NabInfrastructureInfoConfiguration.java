@@ -14,12 +14,12 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.DATACENTERS;
 import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
+import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
-import ru.hh.nab.web.starter.util.EnvironmentUtils;
 
 @Configuration
 @EnableConfigurationProperties(InfrastructureProperties.class)
-public class NabDeployInfoConfiguration {
+public class NabInfrastructureInfoConfiguration {
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)

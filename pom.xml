@@ -17,7 +17,6 @@
     <modules>
         <module>nab-common</module>
         <module>nab-web</module>
-        <module>nab-web-spring-boot-starter</module>
         <module>nab-data-source</module>
         <module>nab-jpa</module>
         <module>nab-hibernate</module>
@@ -30,6 +29,8 @@
         <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
+        <module>nab-spring-boot-common</module>
+        <module>nab-web-spring-boot-starter</module>
         <module>nab-websocket-spring-boot-starter</module>
     </modules>
 
@@ -49,11 +50,6 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-web</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-web-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -109,6 +105,16 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-spring-boot-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-web-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

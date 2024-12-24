@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.autoconfigure;
+package ru.hh.nab.common.spring.boot.autoconfigure;
 
 import static java.lang.String.join;
 import static java.util.Arrays.asList;
@@ -14,21 +14,14 @@ import static org.mockito.Mockito.mock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
-import org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration;
-import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
-import org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
-import static ru.hh.nab.web.starter.autoconfigure.AutoConfigurationPropertiesEnvironmentPostProcessor.SPRING_PACKAGE;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationProperties.EXCLUDE_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationProperties.EXCLUDE_NESTED_AUTOCONFIGURATION_PROPERTY;
+import static ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationPropertiesEnvironmentPostProcessor.SPRING_PACKAGE;
 
 public class AutoConfigurationPropertiesEnvironmentPostProcessorTest {
 
@@ -38,14 +31,14 @@ public class AutoConfigurationPropertiesEnvironmentPostProcessorTest {
       );
 
   private final List<String> whitelistedSpringAutoConfigurations = List.of(
-      ConfigurationPropertiesAutoConfiguration.class.getName(),
-      LifecycleAutoConfiguration.class.getName(),
-      PropertyPlaceholderAutoConfiguration.class.getName(),
-      ProjectInfoAutoConfiguration.class.getName(),
-      JerseyAutoConfiguration.class.getName(),
-      EmbeddedWebServerFactoryCustomizerAutoConfiguration.class.getName(),
-      ServletWebServerFactoryAutoConfiguration.class.getName(),
-      WebSocketServletAutoConfiguration.class.getName()
+      "org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration",
+      "org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration",
+      "org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration",
+      "org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration",
+      "org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration",
+      "org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration",
+      "org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration",
+      "org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration"
   );
 
   private final List<String> blacklistedAutoConfigurations = ImportCandidates

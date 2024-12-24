@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.exception;
+package ru.hh.nab.common.spring.boot.diagnostics;
 
 import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;

@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.autoconfigure;
+package ru.hh.nab.common.spring.boot.autoconfigure;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.exception;
+package ru.hh.nab.common.spring.boot.diagnostics;
 
 import static java.text.MessageFormat.format;
 import java.time.LocalDateTime;

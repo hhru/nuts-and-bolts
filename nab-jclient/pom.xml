@@ -18,14 +18,10 @@
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
         </dependency>
-        <!-- TODO: remove spring-boot dependency when spring beans configuration will be moved to separate starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-        </dependency>
+        <!-- TODO: remove nab-spring-boot-common dependency when spring beans configuration will be moved to separate starter -->
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web-spring-boot-starter</artifactId>
+            <artifactId>nab-spring-boot-common</artifactId>
         </dependency>
 
         <dependency>

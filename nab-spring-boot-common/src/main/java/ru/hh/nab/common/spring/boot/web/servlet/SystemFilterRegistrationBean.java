@@ -1,4 +1,4 @@
-package ru.hh.nab.web.starter.servlet;
+package ru.hh.nab.common.spring.boot.web.servlet;
 
 import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

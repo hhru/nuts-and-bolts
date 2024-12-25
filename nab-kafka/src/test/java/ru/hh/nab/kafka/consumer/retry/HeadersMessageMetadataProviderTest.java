@@ -9,8 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getNextRetryTime;
+import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getRetryReceiveTopic;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setNextRetryTime;
+import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setRetryReceiveTopic;
 
 class HeadersMessageMetadataProviderTest {
   static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS);
@@ -30,5 +32,13 @@ class HeadersMessageMetadataProviderTest {
     assertTrue(getNextRetryTime(headers).isEmpty());
     setNextRetryTime(headers, NOW);
     assertEquals(NOW, getNextRetryTime(headers).get());
+  }
+
+  @Test
+  void retryReceiveTopic() {
+    Headers headers = new RecordHeaders();
+    assertTrue(getRetryReceiveTopic(headers).isEmpty());
+    setRetryReceiveTopic(headers, new RetryTopics("sendTopic", "receiveTopic"));
+    assertEquals("receiveTopic", getRetryReceiveTopic(headers).get());
   }
 }

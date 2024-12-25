@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
-import ru.hh.nab.web.servlet.filter.SentryFilter;
+import ru.hh.nab.sentry.SentryFilter;
 
 @AutoConfiguration
 public class NabSentryAutoConfiguration {

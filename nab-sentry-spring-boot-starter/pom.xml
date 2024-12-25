@@ -16,16 +16,17 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.sentry</groupId>
-            <artifactId>sentry</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web</artifactId>
+            <artifactId>nab-sentry</artifactId>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-spring-boot-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -31,9 +31,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
+import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.testbase.NabTestConfig;
 import ru.hh.nab.testbase.web.WebTestBase;
-import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 @SpringBootTest(classes = TelemetryTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest extends WebTestBase {

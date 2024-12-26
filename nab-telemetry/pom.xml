@@ -14,10 +14,10 @@
     <name>nuts'n'bolts telemetry</name>
 
     <dependencies>
-        <!-- TODO: remove spring-boot dependency when spring beans configuration will be moved to separate starter -->
+        <!-- TODO: remove nab-spring-boot-common dependency when spring beans configuration will be moved to separate starter -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-spring-boot-common</artifactId>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>

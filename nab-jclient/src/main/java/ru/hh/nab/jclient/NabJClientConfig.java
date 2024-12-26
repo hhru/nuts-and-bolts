@@ -21,9 +21,9 @@ import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.DEFAULT_HTTP_CLIENT_CONTEXT_SUPPLIER;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
+import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
-import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 @Configuration
 public class NabJClientConfig {

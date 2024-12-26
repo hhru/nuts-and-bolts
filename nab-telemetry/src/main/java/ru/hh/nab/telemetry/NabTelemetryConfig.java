@@ -25,7 +25,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.NODE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
-import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
+import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 
 @Configuration
 public class NabTelemetryConfig {

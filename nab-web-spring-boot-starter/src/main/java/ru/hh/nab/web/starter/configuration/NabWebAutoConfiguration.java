@@ -29,6 +29,7 @@ import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import ru.hh.nab.common.spring.boot.profile.MainProfile;
+import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
@@ -46,7 +47,6 @@ import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
 import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
-import ru.hh.nab.web.starter.servlet.SystemFilterRegistrationBean;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for nab web components (servlets, filters, web server customizers and so on).

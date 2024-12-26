@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.nab.common.properties.FileSettings;
@@ -102,6 +103,7 @@ public class ConfigProvider {
 
   private Map<String, Object> getAllConsumerConfigs(String topicName) {
     Map<String, Object> consumerConfig = new HashMap<>();
+    consumerConfig.put(ENABLE_AUTO_COMMIT_CONFIG, false);
     consumerConfig.putAll(getCommonProperties());
     consumerConfig.putAll(getDefaultConsumerProperties());
     consumerConfig.putAll(getTopicOverriddenConsumerProperties(topicName));

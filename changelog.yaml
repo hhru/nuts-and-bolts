@@ -1,3 +1,9 @@
+-   name: 10.1.2
+    date: '2024-12-26T19:10:07.154811+03:00'
+    description: Исправлен баг в StructuredRequestLogger
+    instructions: ''
+    compatible: true
+
 -   name: 10.1.1
     date: '2024-12-26T16:25:51.439203+03:00'
     description: По-умолчанию всегда выставляем в nab-kafka `enable.auto.commit=false`

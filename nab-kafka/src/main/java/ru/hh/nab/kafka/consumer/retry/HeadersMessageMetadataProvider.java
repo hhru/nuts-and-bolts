@@ -32,6 +32,7 @@ public class HeadersMessageMetadataProvider {
   public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-retry-message-processing-history";
   public static final String HEADER_NEXT_RETRY_TIME = "x-retry-next-retry-time";
   public static final String HEADER_RETRY_RECEIVE_TOPIC = "x-retry-receive-topic";
+  public static final String HEADER_SIGNATURE = "x-retry-signature";
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .registerModule(new JavaTimeModule());
@@ -107,5 +108,14 @@ public class HeadersMessageMetadataProvider {
     headers
         .remove(HEADER_RETRY_RECEIVE_TOPIC)
         .add(HEADER_RETRY_RECEIVE_TOPIC, headerValue);
+  }
+
+  /**
+   * Store message signature to message headers
+   * */
+  public static void setMessageSignature(Headers headers, byte[] signature) {
+    headers
+        .remove(HEADER_SIGNATURE)
+        .add(HEADER_SIGNATURE, signature);
   }
 }

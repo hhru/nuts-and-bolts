@@ -8,11 +8,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setMessageProcessingHistory;
+import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setMessageSignature;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setNextRetryTime;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setRetryReceiveTopic;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
+import ru.hh.nab.kafka.consumer.retry.SignatureHandler;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
@@ -26,6 +28,8 @@ class RetryService<T> {
   protected final RetryTopics retryTopics;
   protected final Clock clock;
 
+  protected final SignatureHandler<T> signatureHandler;
+
   public RetryService(KafkaProducer retryProducer, RetryTopics retryTopics, RetryPolicyResolver<T> retryPolicyResolver) {
     this(retryProducer, retryTopics, retryPolicyResolver, Clock.systemDefaultZone());
   }
@@ -35,6 +39,7 @@ class RetryService<T> {
     this.retryTopics = Objects.requireNonNull(retryTopics);
     this.retryPolicyResolver = Objects.requireNonNull(retryPolicyResolver);
     this.clock = clock;
+    this.signatureHandler = null;
   }
 
   CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
@@ -50,6 +55,9 @@ class RetryService<T> {
 
   protected CompletableFuture<?> retry(ConsumerRecord<String, T> message, Instant retryTime, MessageProcessingHistory updatedProcessingHistory) {
     ProducerRecord<String, T> retryRecord = new ProducerRecord<>(retryTopics.retrySendTopic(), null,  message.key(), message.value());
+    if (signatureHandler != null) {
+      setMessageSignature(retryRecord.headers(), signatureHandler.signMessage(message.value()));
+    }
     setMessageProcessingHistory(retryRecord.headers(), updatedProcessingHistory);
     setNextRetryTime(retryRecord.headers(), retryTime);
     if (!retryTopics.isSingleTopic()) {

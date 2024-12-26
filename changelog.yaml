@@ -1,3 +1,10 @@
+-   name: 10.1.1
+    date: '2024-12-26T16:25:51.439203+03:00'
+    description: По-умолчанию всегда выставляем в nab-kafka `enable.auto.commit=false`
+        для consumer. Значение может быть переопределено через конфиг сервиса.
+    instructions: ''
+    compatible: true
+
 -   name: 10.1.0
     date: '2024-12-13T15:18:18.904335+03:00'
     description: "* Добавлена новая опция metrics.allowed, которая отвечает за перечень\

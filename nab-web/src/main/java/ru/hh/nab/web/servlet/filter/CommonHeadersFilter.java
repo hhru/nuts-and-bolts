@@ -8,15 +8,17 @@ import java.io.IOException;
 import static java.util.Optional.ofNullable;
 import org.springframework.web.filter.OncePerRequestFilter;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
+import ru.hh.nab.common.constants.RequestHeaders;
 import ru.hh.nab.web.http.RequestContext;
-import ru.hh.nab.web.http.RequestHeaders;
 
 public final class CommonHeadersFilter extends OncePerRequestFilter {
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain
+  ) throws ServletException, IOException {
 
     var source = request.getHeader(RequestHeaders.REQUEST_SOURCE);
     var isLoadTesting = request.getHeader(RequestHeaders.LOAD_TESTING) != null;

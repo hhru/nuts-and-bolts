@@ -37,7 +37,6 @@ import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
-import ru.hh.nab.web.servlet.filter.SentryFilter;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
@@ -138,13 +137,6 @@ public class NabWebAutoConfiguration {
   public SystemFilterRegistrationBean<RequestIdLoggingFilter> requestIdLoggingFilter() {
     SystemFilterRegistrationBean<RequestIdLoggingFilter> registration = new SystemFilterRegistrationBean<>(new RequestIdLoggingFilter());
     registration.setOrder(ServletSystemFilterPriorities.SYSTEM_LOGGING);
-    return registration;
-  }
-
-  @Bean
-  public SystemFilterRegistrationBean<SentryFilter> sentryFilter() {
-    SystemFilterRegistrationBean<SentryFilter> registration = new SystemFilterRegistrationBean<>(new SentryFilter());
-    registration.setOrder(ServletSystemFilterPriorities.SYSTEM_OBSERVABILITY);
     return registration;
   }
 

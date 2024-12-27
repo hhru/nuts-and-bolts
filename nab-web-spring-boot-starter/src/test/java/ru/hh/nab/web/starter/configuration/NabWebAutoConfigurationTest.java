@@ -74,7 +74,6 @@ public class NabWebAutoConfigurationTest {
   private static final String STATUS_SERVLET_BEAN_NAME = "statusServlet";
   private static final String REQUEST_ID_LOGGING_FILTER_BEAN_NAME = "requestIdLoggingFilter";
   private static final String COMMON_HEADERS_FILTER_BEAN_NAME = "commonHeadersFilter";
-  private static final String SENTRY_FILTER_BEAN_NAME = "sentryFilter";
   private static final String REQUEST_CONTEXT_FILTER_BEAN_NAME = "requestContextFilter";
   private static final String DEFAULT_RESOURCE_CONFIG_BEAN_NAME = "defaultResourceConfig";
 
@@ -171,7 +170,6 @@ public class NabWebAutoConfigurationTest {
               .hasBean(COMMON_HEADERS_FILTER_BEAN_NAME)
               .getBean(COMMON_HEADERS_FILTER_BEAN_NAME)
               .isInstanceOf(SystemFilterRegistrationBean.class);
-          assertThat(context).hasBean(SENTRY_FILTER_BEAN_NAME).getBean(SENTRY_FILTER_BEAN_NAME).isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context)
               .hasBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)

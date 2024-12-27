@@ -9,34 +9,24 @@
         <version>10.1.0.jakarta-rc1.spring-boot-rc2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>nab-sentry-spring-boot-starter</artifactId>
+    <artifactId>nab-sentry</artifactId>
     <packaging>jar</packaging>
 
-    <name>nuts'n'bolts sentry spring-boot-starter</name>
+    <name>nuts'n'bolts sentry</name>
 
     <dependencies>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-sentry</artifactId>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry</artifactId>
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-boot-common</artifactId>
+            <artifactId>nab-common</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

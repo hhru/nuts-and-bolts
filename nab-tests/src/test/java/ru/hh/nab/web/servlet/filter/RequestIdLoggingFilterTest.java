@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.hh.nab.common.constants.RequestHeaders;
 import ru.hh.nab.testbase.web.WebTestBase;
 import ru.hh.nab.web.NabWebTestConfig;
-import ru.hh.nab.web.http.RequestHeaders;
 
 @SpringBootTest(classes = NabWebTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RequestIdLoggingFilterTest extends WebTestBase {

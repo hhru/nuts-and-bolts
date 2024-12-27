@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
-import static ru.hh.nab.web.http.RequestHeaders.EMPTY_REQUEST_ID;
-import static ru.hh.nab.web.http.RequestHeaders.EMPTY_USER_AGENT;
-import static ru.hh.nab.web.http.RequestHeaders.REQUEST_ID;
+import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_REQUEST_ID;
+import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_USER_AGENT;
+import static ru.hh.nab.common.constants.RequestHeaders.REQUEST_ID;
 import static ru.hh.nab.web.http.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.web.http.RequestInfo.NO_CACHE;
 

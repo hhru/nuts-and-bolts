@@ -1,4 +1,4 @@
-package ru.hh.nab.web.http;
+package ru.hh.nab.common.constants;
 
 public final class RequestHeaders {
   private RequestHeaders() {

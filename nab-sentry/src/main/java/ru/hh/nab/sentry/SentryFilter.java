@@ -1,31 +1,28 @@
-package ru.hh.nab.web.servlet.filter;
+package ru.hh.nab.sentry;
 
 import io.sentry.HubAdapter;
 import io.sentry.Sentry;
 import io.sentry.protocol.SentryId;
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.filter.OncePerRequestFilter;
-import ru.hh.nab.web.http.RequestHeaders;
+import ru.hh.nab.common.constants.RequestHeaders;
 
-public class SentryFilter extends OncePerRequestFilter {
+public class SentryFilter implements Filter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SentryFilter.class);
 
-  @SuppressWarnings("UnstableApiUsage")
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain
-  ) throws ServletException, IOException {
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    HttpServletRequest httpRequest = (HttpServletRequest) request;
     // TODO: https://jira.hh.ru/browse/HH-233805
-    String requestId = request.getHeader(RequestHeaders.REQUEST_ID);
+    String requestId = httpRequest.getHeader(RequestHeaders.REQUEST_ID);
     if (HubAdapter.getInstance().isEnabled() && requestId != null) {
       Sentry.configureScope(scope -> {
         try {
@@ -37,6 +34,6 @@ public class SentryFilter extends OncePerRequestFilter {
         }
       });
     }
-    filterChain.doFilter(request, response);
+    chain.doFilter(request, response);
   }
 }

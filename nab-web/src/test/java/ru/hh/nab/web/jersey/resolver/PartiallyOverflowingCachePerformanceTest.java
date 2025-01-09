@@ -1,4 +1,4 @@
-package ru.hh.nab.performance;
+package ru.hh.nab.web.jersey.resolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +25,11 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
-import ru.hh.nab.performance.variants.GenericCache;
-import ru.hh.nab.performance.variants.PartiallyOverflowingCache;
-import ru.hh.nab.performance.variants.PartiallyOverflowingCacheOptional;
-import ru.hh.nab.performance.variants.PartiallyOverflowingCacheWithSizeAtomicCache;
-import ru.hh.nab.performance.variants.PartiallyOverflowingCacheWithSizeCache;
+import ru.hh.nab.web.jersey.resolver.variants.GenericCache;
+import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCache;
+import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCacheOptional;
+import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCacheWithSizeAtomicCache;
+import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCacheWithSizeCache;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)

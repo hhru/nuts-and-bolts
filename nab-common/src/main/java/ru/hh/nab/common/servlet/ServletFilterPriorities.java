@@ -1,7 +1,5 @@
 package ru.hh.nab.common.servlet;
 
-import org.springframework.core.Ordered;
-
 /**
  * Servlet filters are invoked before jax-rs filters (see jax-rs filter priorities in ru.hh.nab.starter.jersey.NabPriorities)
  */
@@ -35,6 +33,6 @@ public final class ServletFilterPriorities {
    */
   public static final int USER = 5000;
 
-  public static final int LOWEST_PRIORITY = Ordered.LOWEST_PRECEDENCE;
-  public static final int HIGHEST_PRIORITY = Ordered.HIGHEST_PRECEDENCE;
+  public static final int LOWEST_PRIORITY = Integer.MAX_VALUE;
+  public static final int HIGHEST_PRIORITY = Integer.MIN_VALUE;
 }

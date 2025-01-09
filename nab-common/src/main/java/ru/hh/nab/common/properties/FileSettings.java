@@ -9,15 +9,13 @@ import java.util.Properties;
 import java.util.function.Function;
 import static java.util.function.Function.identity;
 import java.util.stream.Collectors;
-import org.springframework.core.env.Environment;
-import static org.springframework.util.Assert.hasLength;
 
 /**
  * @deprecated Use spring mechanisms to get settings:
  * <ul>
- *   <li>{@link Environment}</li>
- *   <li>{@code @ConfigurationProperties}</li>
- *   <li>{@code @Value}</li>
+ *   <li>{@link org.springframework.core.env.Environment Environment}</li>
+ *   <li>{@link org.springframework.boot.context.properties.ConfigurationProperties @ConfigurationProperties}</li>
+ *   <li>{@link org.springframework.beans.factory.annotation.Value @Value}</li>
  * </ul>
  */
 @Deprecated(forRemoval = true)
@@ -69,7 +67,9 @@ public class FileSettings {
   }
 
   public Properties getSubProperties(String prefix) {
-    hasLength(prefix, "prefix should not be null or empty");
+    if (prefix == null || prefix.isEmpty()) {
+      throw new IllegalArgumentException("prefix should not be null or empty");
+    }
     final Properties subProperties = new Properties();
     properties
         .stringPropertyNames()

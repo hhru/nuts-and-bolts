@@ -4,10 +4,10 @@ import jakarta.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -25,13 +25,11 @@ import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
 import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_SERVICE_ADDRESS_PROPERTY;
 import ru.hh.nab.web.exceptions.ConsulServiceException;
-import ru.hh.nab.web.logging.LogLevelOverrideExtension;
 
 public class ConsulService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConsulService.class);
 
-  private static final String LOG_LEVEL_OVERRIDE_EXTENSION_TAG = "log_level_override_extension_enabled";
   private static final int DEFAULT_WEIGHT = 100;
 
   public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
@@ -60,7 +58,7 @@ public class ConsulService {
       String nodeName,
       int applicationPort,
       ConsulProperties consulProperties,
-      @Nullable LogLevelOverrideExtension logLevelOverrideExtension
+      Set<String> tags
   ) {
     this.nodeName = nodeName;
     this.serviceName = serviceName;
@@ -84,10 +82,6 @@ public class ConsulService {
         .or(() -> address)
         .orElse("127.0.0.1");
 
-    var tags = new ArrayList<>(consulProperties.getTags());
-    if (logLevelOverrideExtension != null) {
-      tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
-    }
     this.registrationEnabled = consulProperties.getRegistration().isEnabled();
     if (registrationEnabled) {
       Registration.RegCheck regCheck = ImmutableRegCheck

@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.math.BigInteger;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -252,7 +253,7 @@ public class ConsulServiceTest {
           infrastructureProperties.getNodeName(),
           serverProperties.getPort(),
           consulProperties,
-          null
+          new HashSet<>(consulProperties.getTags())
       );
       return spy(consulService);
     }

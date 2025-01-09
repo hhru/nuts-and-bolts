@@ -1,7 +1,12 @@
 package ru.hh.nab.web.starter.configuration;
 
-import jakarta.annotation.Nullable;
+import java.util.Collection;
+import java.util.List;
 import static java.util.Optional.ofNullable;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,7 +25,7 @@ import ru.hh.nab.web.consul.ConsulFetcher;
 import ru.hh.nab.web.consul.ConsulMetricsTracker;
 import ru.hh.nab.web.consul.ConsulProperties;
 import ru.hh.nab.web.consul.ConsulService;
-import ru.hh.nab.web.logging.LogLevelOverrideExtension;
+import ru.hh.nab.web.consul.ConsulTagsSupplier;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 
 @Configuration
@@ -73,8 +78,13 @@ public class NabConsulConfiguration {
       ConsulProperties consulProperties,
       AgentClient agentClient,
       KeyValueClient keyValueClient,
-      @Nullable LogLevelOverrideExtension logLevelOverrideExtension
+      List<ConsulTagsSupplier> consulTagsSuppliers
   ) {
+    Set<String> tags = Stream
+        .concat(consulTagsSuppliers.stream(), Stream.of(consulProperties::getTags))
+        .map(Supplier::get)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
     return new ConsulService(
         agentClient,
         keyValueClient,
@@ -83,7 +93,7 @@ public class NabConsulConfiguration {
         infrastructureProperties.getNodeName(),
         serverProperties.getPort(),
         consulProperties,
-        logLevelOverrideExtension
+        tags
     );
   }
 

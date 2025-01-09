@@ -41,6 +41,7 @@ import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
 import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
 import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
 import ru.hh.nab.web.consul.ConsulService;
+import ru.hh.nab.web.consul.ConsulTagsSupplier;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
@@ -72,6 +73,7 @@ public class NabWebAutoConfigurationTest {
 
   private static final String STATSD_CLIENT_BEAN_NAME = "statsDClient";
   private static final String STATUS_SERVLET_BEAN_NAME = "statusServlet";
+  private static final String LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME = "logLevelOverrideConsulTagSupplier";
   private static final String REQUEST_ID_LOGGING_FILTER_BEAN_NAME = "requestIdLoggingFilter";
   private static final String COMMON_HEADERS_FILTER_BEAN_NAME = "commonHeadersFilter";
   private static final String REQUEST_CONTEXT_FILTER_BEAN_NAME = "requestContextFilter";
@@ -149,6 +151,10 @@ public class NabWebAutoConfigurationTest {
 
           // logging beans
           assertThat(context).hasSingleBean(LogLevelOverrideApplier.class);
+          assertThat(context)
+              .hasBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
+              .getBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
+              .isInstanceOf(ConsulTagsSupplier.class);
           assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
 
           // web beans
@@ -250,6 +256,7 @@ public class NabWebAutoConfigurationTest {
         .run(context -> {
           assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class);
           assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class);
+          assertThat(context).doesNotHaveBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME);
         });
   }
 

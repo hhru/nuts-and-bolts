@@ -31,7 +31,6 @@ import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
 import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 import ru.hh.nab.web.resource.StatusResource;
@@ -41,7 +40,6 @@ import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
-import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -75,13 +73,6 @@ public class NabWebAutoConfiguration {
       StatsDSender statsDSender
   ) {
     return new MonitoredQueuedThreadPoolFactory(infrastructureProperties.getServiceName(), statsDSender);
-  }
-
-  @Bean
-  @MainProfile
-  @ConditionalOnBean(ConsulService.class)
-  public ServiceDiscoveryInitializer serviceDiscoveryInitializer(ConsulService consulService) {
-    return new ServiceDiscoveryInitializer(consulService);
   }
 
   @Bean

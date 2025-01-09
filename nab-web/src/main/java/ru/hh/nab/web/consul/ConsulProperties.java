@@ -10,6 +10,7 @@ public class ConsulProperties {
 
   public static final String PREFIX = "consul";
   public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
+  public static final String CONSUL_REGISTRATION_ENABLED_PROPERTY = "consul.registration.enabled";
   public static final String CONSUL_HTTP_PORT_PROPERTY = "consul.http.port";
   public static final String CONSUL_HTTP_HOST_PROPERTY = "consul.http.host";
   public static final String CONSUL_HTTP_PING_PROPERTY = "consul.http.ping";

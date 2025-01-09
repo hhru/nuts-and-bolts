@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.validation.annotation.Validated;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
@@ -27,6 +28,7 @@ import ru.hh.nab.web.consul.ConsulProperties;
 import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.consul.ConsulTagsSupplier;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
+import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 
 @Configuration
 @MainProfile
@@ -71,34 +73,40 @@ public class NabConsulConfiguration {
   }
 
   @Bean
-  public ConsulService consulService(
-      InfrastructureProperties infrastructureProperties,
-      BuildProperties buildProperties,
-      ServerProperties serverProperties,
-      ConsulProperties consulProperties,
-      AgentClient agentClient,
-      KeyValueClient keyValueClient,
-      List<ConsulTagsSupplier> consulTagsSuppliers
-  ) {
-    Set<String> tags = Stream
-        .concat(consulTagsSuppliers.stream(), Stream.of(consulProperties::getTags))
-        .map(Supplier::get)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
-    return new ConsulService(
-        agentClient,
-        keyValueClient,
-        infrastructureProperties.getServiceName(),
-        buildProperties.getVersion(),
-        infrastructureProperties.getNodeName(),
-        serverProperties.getPort(),
-        consulProperties,
-        tags
-    );
-  }
-
-  @Bean
   public ConsulFetcher consulFetcher(HealthClient healthClient, InfrastructureProperties infrastructureProperties) {
     return new ConsulFetcher(healthClient, infrastructureProperties.getServiceName(), infrastructureProperties.getDatacenters());
+  }
+
+  @Configuration
+  @Import(ServiceDiscoveryInitializer.class)
+  @ConditionalOnProperty(name = ConsulProperties.CONSUL_REGISTRATION_ENABLED_PROPERTY, havingValue = "true", matchIfMissing = true)
+  public static class ServiceDiscoveryConfiguration {
+
+    @Bean
+    public ConsulService consulService(
+        InfrastructureProperties infrastructureProperties,
+        BuildProperties buildProperties,
+        ServerProperties serverProperties,
+        ConsulProperties consulProperties,
+        AgentClient agentClient,
+        KeyValueClient keyValueClient,
+        List<ConsulTagsSupplier> consulTagsSuppliers
+    ) {
+      Set<String> tags = Stream
+          .concat(consulTagsSuppliers.stream(), Stream.of(consulProperties::getTags))
+          .map(Supplier::get)
+          .flatMap(Collection::stream)
+          .collect(Collectors.toSet());
+      return new ConsulService(
+          agentClient,
+          keyValueClient,
+          infrastructureProperties.getServiceName(),
+          buildProperties.getVersion(),
+          infrastructureProperties.getNodeName(),
+          serverProperties.getPort(),
+          consulProperties,
+          tags
+      );
+    }
   }
 }

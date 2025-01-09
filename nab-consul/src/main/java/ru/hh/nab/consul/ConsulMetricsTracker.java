@@ -1,4 +1,4 @@
-package ru.hh.nab.web.consul;
+package ru.hh.nab.consul;
 
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.nab.metrics.Counters;

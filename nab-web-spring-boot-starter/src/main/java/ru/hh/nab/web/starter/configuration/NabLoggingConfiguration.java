@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.hh.nab.web.consul.ConsulTagsSupplier;
+import ru.hh.nab.consul.ConsulTagsSupplier;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
 import ru.hh.nab.web.starter.configuration.properties.LogLevelOverrideExtensionProperties;

@@ -1,4 +1,4 @@
-package ru.hh.nab.web.consul;
+package ru.hh.nab.consul;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

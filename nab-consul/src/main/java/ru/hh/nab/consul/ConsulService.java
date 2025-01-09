@@ -1,4 +1,4 @@
-package ru.hh.nab.web.consul;
+package ru.hh.nab.consul;
 
 import jakarta.annotation.Nullable;
 import java.math.BigInteger;
@@ -23,8 +23,7 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_SERVICE_ADDRESS_PROPERTY;
-import ru.hh.nab.web.exceptions.ConsulServiceException;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_SERVICE_ADDRESS_PROPERTY;
 
 public class ConsulService {
 

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.event.EventListener;
-import ru.hh.nab.web.consul.ConsulService;
+import ru.hh.nab.consul.ConsulService;
 
 public class ServiceDiscoveryInitializer {
   private static final Logger logger = LoggerFactory.getLogger(ServiceDiscoveryInitializer.class);

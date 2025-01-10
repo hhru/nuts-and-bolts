@@ -31,16 +31,18 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import static ru.hh.nab.common.spring.boot.profile.Profiles.MAIN;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
+import ru.hh.nab.consul.ConsulFetcher;
+import ru.hh.nab.consul.ConsulProperties;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_ENABLED_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_REGISTRATION_ENABLED_PROPERTY;
+import ru.hh.nab.consul.ConsulService;
+import ru.hh.nab.consul.ConsulTagsSupplier;
 import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
-import ru.hh.nab.web.consul.ConsulFetcher;
-import ru.hh.nab.web.consul.ConsulProperties;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_ENABLED_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
-import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
@@ -72,6 +74,7 @@ public class NabWebAutoConfigurationTest {
 
   private static final String STATSD_CLIENT_BEAN_NAME = "statsDClient";
   private static final String STATUS_SERVLET_BEAN_NAME = "statusServlet";
+  private static final String LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME = "logLevelOverrideConsulTagSupplier";
   private static final String REQUEST_ID_LOGGING_FILTER_BEAN_NAME = "requestIdLoggingFilter";
   private static final String COMMON_HEADERS_FILTER_BEAN_NAME = "commonHeadersFilter";
   private static final String REQUEST_CONTEXT_FILTER_BEAN_NAME = "requestContextFilter";
@@ -135,6 +138,7 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).hasSingleBean(KeyValueClient.class);
           assertThat(context).hasSingleBean(HealthClient.class);
           assertThat(context).hasSingleBean(ConsulService.class);
+          assertThat(context).hasSingleBean(ServiceDiscoveryInitializer.class);
           assertThat(context).hasSingleBean(ConsulFetcher.class);
           assertThat(context).hasSingleBean(ConsulProperties.class);
 
@@ -149,13 +153,16 @@ public class NabWebAutoConfigurationTest {
 
           // logging beans
           assertThat(context).hasSingleBean(LogLevelOverrideApplier.class);
+          assertThat(context)
+              .hasBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
+              .getBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
+              .isInstanceOf(ConsulTagsSupplier.class);
           assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
           assertThat(context).hasSingleBean(NabJettyServerCustomizer.class);
           assertThat(context).hasSingleBean(MonitoredQueuedThreadPoolFactory.class);
-          assertThat(context).hasSingleBean(ServiceDiscoveryInitializer.class);
           assertThat(context)
               .hasBean(DEFAULT_RESOURCE_CONFIG_BEAN_NAME)
               .getBean(DEFAULT_RESOURCE_CONFIG_BEAN_NAME)
@@ -194,6 +201,7 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(KeyValueClient.class);
           assertThat(context).doesNotHaveBean(HealthClient.class);
           assertThat(context).doesNotHaveBean(ConsulService.class);
+          assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
           assertThat(context).doesNotHaveBean(ConsulProperties.class);
         });
@@ -210,8 +218,20 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(KeyValueClient.class);
           assertThat(context).doesNotHaveBean(HealthClient.class);
           assertThat(context).doesNotHaveBean(ConsulService.class);
+          assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
           assertThat(context).doesNotHaveBean(ConsulProperties.class);
+        });
+
+    // when consul.registration.enabled=false
+    applicationContextRunner
+        .withPropertyValues(mainProfileProperty)
+        .withPropertyValues(infrastructureProperties)
+        .withPropertyValues(consulProperties)
+        .withPropertyValues(PROPERTY_TEMPLATE.formatted(CONSUL_REGISTRATION_ENABLED_PROPERTY, false))
+        .run(context -> {
+          assertThat(context).doesNotHaveBean(ConsulService.class);
+          assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
         });
   }
 
@@ -250,25 +270,8 @@ public class NabWebAutoConfigurationTest {
         .run(context -> {
           assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class);
           assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class);
+          assertThat(context).doesNotHaveBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME);
         });
-  }
-
-  @Test
-  public void testSpringContextDoesNotContainServiceDiscoveryInitializerBeanWithFailedConditions() {
-    // without main profile
-    applicationContextRunner
-        .withPropertyValues(infrastructureProperties)
-        .withPropertyValues(consulProperties)
-        .withUserConfiguration(TestConfiguration.class)
-        .run(context -> assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class));
-
-    // when ConsulService bean doesn't exist
-    applicationContextRunner
-        .withPropertyValues(mainProfileProperty)
-        .withPropertyValues(infrastructureProperties)
-        .withPropertyValues(consulProperties)
-        .withPropertyValues(PROPERTY_TEMPLATE.formatted(CONSUL_ENABLED_PROPERTY, false))
-        .run(context -> assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class));
   }
 
   @Test

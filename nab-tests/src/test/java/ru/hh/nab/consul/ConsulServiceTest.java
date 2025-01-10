@@ -1,4 +1,4 @@
-package ru.hh.nab.web.consul;
+package ru.hh.nab.consul;
 
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.math.BigInteger;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,18 +51,18 @@ import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
 import ru.hh.consul.util.Address;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_HOST_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_INTERVAL_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_TIMEOUT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.consul.ConsulProperties.CONSUL_TAGS_PROPERTY;
 import ru.hh.nab.testbase.NabTestConfig;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_VERSION;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_CHECK_HOST_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_CHECK_INTERVAL_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_CHECK_TIMEOUT_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.web.consul.ConsulProperties.CONSUL_TAGS_PROPERTY;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 
@@ -252,7 +253,7 @@ public class ConsulServiceTest {
           infrastructureProperties.getNodeName(),
           serverProperties.getPort(),
           consulProperties,
-          null
+          new HashSet<>(consulProperties.getTags())
       );
       return spy(consulService);
     }

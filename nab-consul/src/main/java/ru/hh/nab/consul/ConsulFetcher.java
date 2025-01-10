@@ -1,4 +1,4 @@
-package ru.hh.nab.web.consul;
+package ru.hh.nab.consul;
 
 import java.util.List;
 import java.util.Set;

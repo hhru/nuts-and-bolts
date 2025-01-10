@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-consul</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-spring-boot-common</artifactId>
         </dependency>
         <dependency>

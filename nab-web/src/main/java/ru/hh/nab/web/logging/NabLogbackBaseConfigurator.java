@@ -15,7 +15,6 @@ import ru.hh.nab.logging.HhMultiAppender;
 import ru.hh.nab.logging.NabLoggingConfiguratorTemplate;
 import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 import ru.hh.nab.logging.json.NabTSOnlyJsonLayout;
-import ru.hh.nab.web.consul.ConsulService;
 import ru.hh.nab.web.jetty.StructuredRequestLogger;
 import static ru.hh.nab.web.logging.PropertyFiles.PROPERTIES_FILE_NAME;
 import static ru.hh.nab.web.logging.PropertyFiles.TEST_PROPERTIES_FILE_NAME;
@@ -101,7 +100,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
     createLogger(context, "net.spy.memcached", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.glassfish.jersey", Level.WARN, false, List.of(libraries, sentry));
     createLogger(context, "org.springframework.kafka", Level.WARN, false, List.of(libraries, sentry));
-    createLogger(context, ConsulService.class, Level.INFO, false, service, sentry);
+    createLogger(context, "ru.hh.nab.consul.ConsulService", Level.INFO, false, List.of(service, sentry));
     createLogger(context, "org.eclipse.jetty.server", Level.INFO, false, List.of(service, sentry));
     createLogger(context, "org.springframework.boot.diagnostics.LoggingFailureAnalysisReporter", "OFF", false, List.of());
 

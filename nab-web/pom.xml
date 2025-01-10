@@ -77,10 +77,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ru.hh.consul</groupId>
-            <artifactId>consul-client</artifactId>
-        </dependency>
 
         <!--Jackson-->
         <dependency>

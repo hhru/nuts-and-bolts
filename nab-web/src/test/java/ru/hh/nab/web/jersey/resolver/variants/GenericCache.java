@@ -1,4 +1,4 @@
-package ru.hh.nab.performance.variants;
+package ru.hh.nab.web.jersey.resolver.variants;
 
 import java.util.function.Function;
 

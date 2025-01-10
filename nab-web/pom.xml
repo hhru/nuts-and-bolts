@@ -32,6 +32,12 @@
             <artifactId>nab-metrics</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-common-api</artifactId>
+            <version>${jclient.version}</version>
+        </dependency>
+
         <!-- Jersey -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -129,9 +135,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ru.hh.jclient-common</groupId>
-            <artifactId>jclient-common-api</artifactId>
-            <version>${jclient.version}</version>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

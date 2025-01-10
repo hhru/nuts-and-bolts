@@ -7,7 +7,6 @@ import jakarta.xml.bind.Marshaller;
 import java.util.Collections;
 import java.util.Set;
 import org.springframework.core.serializer.support.SerializationFailedException;
-import ru.hh.nab.common.cache.PartiallyOverflowingCache;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;

@@ -61,7 +61,10 @@ public class TelemetryListenerImpl implements RequestDebug {
 
 
     builder.setAttribute("http.request.cloud.region", context.getDestinationDatacenter());
-    builder.setAttribute("destination.address", context.getDestinationHost() == null ? UNKNOWN : context.getDestinationHost());
+    builder.setAttribute(
+        "destination.address",
+        context.getDestinationHost() == null ? getExactUriHost(request.getUri()) : context.getDestinationHost()
+    );
 
     span = builder.startSpan();
     LOGGER.trace("span started : {}", span);
@@ -120,4 +123,11 @@ public class TelemetryListenerImpl implements RequestDebug {
   public void onProcessingFinished() {
   }
 
+  private String getExactUriHost(Uri uri) {
+    String host = uri.getHost();
+    if (host == null || host.isBlank()) {
+      return UNKNOWN;
+    }
+    return host;
+  }
 }

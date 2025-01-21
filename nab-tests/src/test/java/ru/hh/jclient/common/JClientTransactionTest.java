@@ -1,126 +1,134 @@
 package ru.hh.jclient.common;
 
 import jakarta.inject.Inject;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import java.util.concurrent.atomic.LongAdder;
+import javax.sql.DataSource;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
-import org.asynchttpclient.Request;
-import org.asynchttpclient.Response;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
-import ru.hh.nab.datasource.transaction.TransactionalScope;
-import ru.hh.nab.jclient.NabJClientConfig;
+import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.jclient.checks.TransactionalCheck;
-import ru.hh.nab.jpa.JpaTestConfig;
 
-@SpringBootTest(classes = {JpaTestConfig.class, NabJClientConfig.class}, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = JClientTransactionTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class JClientTransactionTest {
-  private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
-  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(
-      Collections.emptyMap(),
-      Collections.emptyMap(),
-      List.of(() -> DEBUG)
+
+  private static final TransactionalCheck transactionalCheck = new TransactionalCheck(
+      null,
+      10,
+      new ScheduledExecutor(),
+      MINUTES.toMillis(1),
+      Set.of()
   );
+
+  private static Runnable jClientRequest;
 
   @Inject
   private TransactionalScope transactionalScope;
-  @Inject
-  private List<HttpClientEventListener> eventListeners;
-  @Inject
-  private TransactionalCheck transactionalCheck;
 
-  private AsyncHttpClient httpClient;
-  private HttpClientFactory httpClientFactory;
-
-  @BeforeEach
-  public void beforeTest() {
-    httpClient = mock(AsyncHttpClient.class);
+  @BeforeAll
+  public static void beforeTests() {
+    AsyncHttpClient httpClient = mock(AsyncHttpClient.class);
     when(httpClient.getConfig()).thenReturn(new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(0).build());
-    when(httpClient.executeRequest(isA(Request.class), isA(HttpClientImpl.CompletionHandler.class)))
-        .then(iom -> {
-          HttpClientImpl.CompletionHandler handler = iom.getArgument(1);
-          handler.onCompleted(mock(Response.class));
-          return null;
-        });
 
-    httpClientFactory = new HttpClientFactory(
+    HttpClientFactory httpClientFactory = new HttpClientFactory(
         httpClient,
-        new SingletonStorage<>(HTTP_CLIENT_CONTEXT),
+        new SingletonStorage<>(new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(), List.of())),
         Set.of(),
         Runnable::run,
         new DefaultRequestStrategy(),
-        eventListeners
+        List.of(transactionalCheck)
     );
+
+    jClientRequest = () -> httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result();
   }
 
   @Test
-  public void testJClientRequestInReadScope() {
+  public void testJClientRequestDoNotRaiseExceptionIfTransactionIsNonActive() {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
-    transactionalScope.read(() -> {
-      try {
-        return httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
+    assertDoesNotThrow(() -> transactionalScope.read(jClientRequest));
   }
 
   @Test
-  public void testJClientRequestDoNotRaiseExceptionInWriteScope() {
+  public void testJClientRequestDoNotRaiseExceptionIfActionIsDoNothing() {
+    transactionalCheck.setAction(TransactionalCheck.Action.DO_NOTHING);
+    assertDoesNotThrow(() -> transactionalScope.write(jClientRequest));
+  }
+
+  @Test
+  public void testJClientRequestDoNotRaiseExceptionIfActionIsLog() {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
-    transactionalScope.write(() -> {
-      try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return null;
-    });
+    assertDoesNotThrow(() -> transactionalScope.write(jClientRequest));
   }
 
   @Test
-  public void testJClientRequestRaiseActionInWriteScope() {
+  public void testJClientRequestRaiseExceptionIfTransactionIsActive() {
     transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
-    Exception raisedException = transactionalScope.write(() -> {
-      try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
-      } catch (Exception e) {
-        return e;
-      }
-      return null;
-    });
+    TransactionalCheck.TransactionalCheckException raisedException = assertThrows(
+        TransactionalCheck.TransactionalCheckException.class,
+        () -> transactionalScope.write(jClientRequest)
+    );
     assertNotNull(raisedException);
-    assertTrue(raisedException instanceof TransactionalCheck.TransactionalCheckException);
     assertEquals("transaction is active during executeRequest", raisedException.getMessage());
   }
 
   @Test
   public void testLogSkipsDefaultPackages() {
     transactionalCheck.setAction(TransactionalCheck.Action.LOG);
-    transactionalScope.write(() -> {
-      try {
-        httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return null;
-    });
+    transactionalScope.write(jClientRequest);
     Map<String, LongAdder> callInTxStatistics = transactionalCheck.getCallInTxStatistics();
     callInTxStatistics.forEach((stack, counter) -> assertFalse(
         stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
     ));
+  }
+
+  @Configuration
+  @EnableTransactionManagement
+  @Import(TransactionalScope.class)
+  public static class TestConfiguration {
+
+    @Bean
+    public TransactionManager transactionManager() throws SQLException {
+      DataSource dataSource = mock(DataSource.class);
+      when(dataSource.getConnection()).thenReturn(mock(Connection.class));
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  static class TransactionalScope {
+
+    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+    void read(Runnable runnable) {
+      runnable.run();
+    }
+
+    @Transactional
+    void write(Runnable runnable) {
+      runnable.run();
+    }
   }
 }

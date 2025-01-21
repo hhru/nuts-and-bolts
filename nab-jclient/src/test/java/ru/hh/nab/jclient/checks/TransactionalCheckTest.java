@@ -37,8 +37,8 @@ import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 
-@SpringBootTest(classes = JClientTransactionTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class JClientTransactionTest {
+@SpringBootTest(classes = TransactionalCheckTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+public class TransactionalCheckTest {
 
   private static final TransactionalCheck transactionalCheck = new TransactionalCheck(
       null,

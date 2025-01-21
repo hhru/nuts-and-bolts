@@ -26,18 +26,7 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-jclient</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-websocket-spring-boot-starter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.jclient-common</groupId>
-            <artifactId>jclient-common-testbase</artifactId>
-            <version>${jclient.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

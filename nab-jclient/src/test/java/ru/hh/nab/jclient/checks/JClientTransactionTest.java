@@ -1,4 +1,4 @@
-package ru.hh.jclient.common;
+package ru.hh.nab.jclient.checks;
 
 import jakarta.inject.Inject;
 import java.sql.Connection;
@@ -30,9 +30,12 @@ import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.hh.jclient.common.DefaultRequestStrategy;
+import ru.hh.jclient.common.HttpClientContext;
+import ru.hh.jclient.common.HttpClientFactory;
+import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.common.executor.ScheduledExecutor;
-import ru.hh.nab.jclient.checks.TransactionalCheck;
 
 @SpringBootTest(classes = JClientTransactionTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class JClientTransactionTest {

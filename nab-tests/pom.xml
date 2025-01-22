@@ -25,11 +25,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-websocket-spring-boot-starter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>test</scope>

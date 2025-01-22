@@ -1,5 +1,7 @@
 package ru.hh.nab.websocket.starter;
 
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -10,19 +12,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import ru.hh.nab.testbase.web.WebTestBase;
-import ru.hh.nab.web.NabWebTestConfig;
 
-@SpringBootTest(
-    classes = {NabWebTestConfig.class, TestEndpoint.class},
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-public class WebsocketTest extends WebTestBase {
+@SpringBootTest(classes = WebsocketTest.WebsocketTestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class WebsocketTest {
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @Test
   public void testWebsocketConnection() throws ExecutionException, InterruptedException, IOException {
@@ -37,7 +43,8 @@ public class WebsocketTest extends WebTestBase {
     };
 
     StandardWebSocketClient client = new StandardWebSocketClient();
-    WebSocketSession session = client.execute(testMessageHandler, resourceHelper.baseUrl("ws") + TestEndpoint.WS_URL).get();
+    String uriTemplate = UriBuilder.fromUri(testRestTemplate.getRootUri()).scheme("ws").path(TestEndpoint.WS_URL).toTemplate();
+    WebSocketSession session = client.execute(testMessageHandler, uriTemplate).get();
     waitUntil(() -> assertTrue(TestEndpoint.connectionOpen));
     assertEquals(0, receivedMessages.size());
 
@@ -54,5 +61,15 @@ public class WebsocketTest extends WebTestBase {
 
   private void waitUntil(Runnable assertion) {
     await().atMost(3, TimeUnit.SECONDS).untilAsserted(assertion::run);
+  }
+
+  @Configuration
+  @ImportAutoConfiguration({
+      NabWebsocketAutoConfiguration.class,
+      WebSocketServletAutoConfiguration.class,
+      ServletWebServerFactoryAutoConfiguration.class,
+  })
+  @Import(TestEndpoint.class)
+  public static class WebsocketTestConfiguration {
   }
 }

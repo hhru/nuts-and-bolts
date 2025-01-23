@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -39,7 +38,6 @@ import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
-import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
@@ -60,9 +58,6 @@ import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
 
     NabJettyWebServerFactoryCustomizer.class,
     NabJettyServerCustomizer.class,
-})
-@EnableConfigurationProperties({
-    ExtendedServerProperties.class,
 })
 public class NabWebAutoConfiguration {
 

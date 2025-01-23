@@ -11,25 +11,32 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.springframework.boot.web.embedded.jetty.JettyServerCustomizer;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.util.unit.DataSize;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.jetty.HHServerConnector;
 import ru.hh.nab.web.jetty.StructuredRequestLogger;
-import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class NabJettyServerCustomizer implements JettyServerCustomizer {
 
-  private final ExtendedServerProperties extendedServerProperties;
+  public final static String JETTY_ACCEPT_QUEUE_SIZE_PROPERTY = "server.jetty.accept-queue-size";
+  public final static String JETTY_OUTPUT_BUFFER_SIZE_PROPERTY = "server.jetty.output-buffer-size";
+
+  public final static int DEFAULT_JETTY_ACCEPT_QUEUE_SIZE = 50;
+  public final static int DEFAULT_JETTY_OUTPUT_BUFFER_SIZE = (int) DataSize.ofKilobytes(64).toBytes();
+
+  private final Environment environment;
   private final InfrastructureProperties infrastructureProperties;
   private final StatsDSender statsDSender;
 
   public NabJettyServerCustomizer(
-      ExtendedServerProperties extendedServerProperties,
+      Environment environment,
       InfrastructureProperties infrastructureProperties,
       StatsDSender statsDSender
   ) {
-    this.extendedServerProperties = extendedServerProperties;
+    this.environment = environment;
     this.infrastructureProperties = infrastructureProperties;
     this.statsDSender = statsDSender;
   }
@@ -59,7 +66,11 @@ public class NabJettyServerCustomizer implements JettyServerCustomizer {
 
         newServerConnector.setHost(serverConnector.getHost());
         newServerConnector.setPort(serverConnector.getPort());
-        newServerConnector.setAcceptQueueSize(extendedServerProperties.getJetty().getAcceptQueueSize());
+        newServerConnector.setAcceptQueueSize(environment.getProperty(
+            JETTY_ACCEPT_QUEUE_SIZE_PROPERTY,
+            Integer.class,
+            DEFAULT_JETTY_ACCEPT_QUEUE_SIZE
+        ));
 
         connectors.add(newServerConnector);
       } else {
@@ -73,7 +84,7 @@ public class NabJettyServerCustomizer implements JettyServerCustomizer {
     for (ConnectionFactory connectionFactory : connectionFactories) {
       if (connectionFactory instanceof HttpConfiguration.ConnectionFactory httpConnectionFactory) {
         httpConnectionFactory.getHttpConfiguration().setOutputBufferSize(
-            (int) extendedServerProperties.getJetty().getOutputBufferSize().toBytes()
+            environment.getProperty(JETTY_OUTPUT_BUFFER_SIZE_PROPERTY, Integer.class, DEFAULT_JETTY_OUTPUT_BUFFER_SIZE)
         );
       }
     }

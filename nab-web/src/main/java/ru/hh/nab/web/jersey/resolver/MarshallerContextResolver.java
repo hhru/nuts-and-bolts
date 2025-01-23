@@ -1,21 +1,33 @@
 package ru.hh.nab.web.jersey.resolver;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.Set;
 import org.springframework.core.serializer.support.SerializationFailedException;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
 
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
+  public static final String JAXB_CONTEXTS_MAX_COLLECTION_SIZE_PROPERTY = "jaxbContexts.max.collection.size";
+  public static final int DEFAULT_JAXB_CONTEXTS_MAX_COLLECTION_SIZE = 256;
+
   private final PartiallyOverflowingCache<Class<?>, JAXBContext> jaxbContexts;
 
-  public MarshallerContextResolver(int contextsMaxCollectionSize, String serviceName, StatsDSender statsDSender) {
+  @Inject
+  public MarshallerContextResolver(Properties properties, String serviceName, StatsDSender statsDSender) {
+    int contextsMaxCollectionSize = PropertiesUtils.getInteger(
+        properties,
+        JAXB_CONTEXTS_MAX_COLLECTION_SIZE_PROPERTY,
+        DEFAULT_JAXB_CONTEXTS_MAX_COLLECTION_SIZE
+    );
     jaxbContexts = new PartiallyOverflowingCache<>(contextsMaxCollectionSize);
 
     String cacheSizeMetricName = "JAXBContextCacheSize";

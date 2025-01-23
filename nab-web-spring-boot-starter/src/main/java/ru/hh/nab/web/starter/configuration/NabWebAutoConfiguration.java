@@ -25,10 +25,12 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
+import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.metrics.StatsDSender;
@@ -39,7 +41,6 @@ import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
-import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
 import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -62,7 +63,6 @@ import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
 })
 @EnableConfigurationProperties({
     ExtendedServerProperties.class,
-    JaxbProperties.class,
 })
 public class NabWebAutoConfiguration {
 
@@ -88,12 +88,12 @@ public class NabWebAutoConfiguration {
   public ResourceConfigCustomizer nabResourceConfigCustomizer(
       ApplicationContext applicationContext,
       InfrastructureProperties infrastructureProperties,
-      JaxbProperties jaxbProperties,
+      ConfigurableEnvironment environment,
       StatsDSender statsDSender
   ) {
     Collection<Object> beansWithPathAnnotation = applicationContext.getBeansWithAnnotation(Path.class).values();
     MarshallerContextResolver marshallerContextResolver = new MarshallerContextResolver(
-        jaxbProperties.getContextsMaxCollectionSize(),
+        EnvironmentUtils.getProperties(environment),
         infrastructureProperties.getServiceName(),
         statsDSender
     );

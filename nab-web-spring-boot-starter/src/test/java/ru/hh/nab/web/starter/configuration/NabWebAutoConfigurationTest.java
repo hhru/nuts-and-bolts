@@ -51,7 +51,6 @@ import static ru.hh.nab.web.starter.configuration.properties.InfrastructurePrope
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.SERVICE_NAME_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
 import ru.hh.nab.web.starter.configuration.properties.LogLevelOverrideExtensionProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
@@ -178,7 +177,6 @@ public class NabWebAutoConfigurationTest {
               .isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
           assertThat(context).hasSingleBean(ExtendedServerProperties.class);
-          assertThat(context).hasSingleBean(JaxbProperties.class);
         });
   }
 

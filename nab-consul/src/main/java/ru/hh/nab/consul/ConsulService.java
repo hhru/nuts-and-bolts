@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -23,13 +24,35 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_SERVICE_ADDRESS_PROPERTY;
+import ru.hh.nab.common.properties.PropertiesUtils;
 
 public class ConsulService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConsulService.class);
 
-  private static final int DEFAULT_WEIGHT = 100;
+  public static final String CONSUL_SERVICE_ADDRESS_PROPERTY = "consul.service.address";
+  public static final String CONSUL_WAIT_AFTER_DEREGISTRATION_MILLIS_PROPERTY = "consul.wait.after.deregistration.millis";
+  public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
+  public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
+  public static final String CONSUL_CHECK_INTERVAL_PROPERTY = "consul.check.interval";
+  public static final String CONSUL_CHECK_TIMEOUT_PROPERTY = "consul.check.timeout";
+  public static final String CONSUL_CHECK_SUCCESS_COUNT_PROPERTY = "consul.check.successCount";
+  public static final String CONSUL_CHECK_FAIL_COUNT_PROPERTY = "consul.check.failCount";
+  public static final String CONSUL_CHECK_PASSING_PROPERTY = "consul.check.passing";
+  public static final String CONSUL_WEIGHT_CACHE_WATCH_SECONDS_PROPERTY = "consul.weightCache.watchSeconds";
+  public static final String CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY = "consul.weightCache.consistencyMode";
+  public static final String CONSUL_CONSISTENCY_MODE_PROPERTY = "consul.consistencyMode";
+
+  public static final int DEFAULT_WEIGHT = 100;
+  public static final int DEFAULT_WEIGHT_CACHE_WATCH_SECONDS = 10;
+  public static final int DEFAULT_WAIT_AFTER_DEREGISTRATION_MILLIS = 300;
+  public static final String DEFAULT_CHECK_HOST = "127.0.0.1";
+  public static final String DEFAULT_CHECK_INTERVAL = "5s";
+  public static final String DEFAULT_CHECK_TIMEOUT = "5s";
+  public static final String DEFAULT_DEREGISTER_CRITICAL_TIMEOUT = "10m";
+  public static final int DEFAULT_CHECK_SUCCESS_COUNT = 1;
+  public static final int DEFAULT_CHECK_FAIL_COUNT = 1;
+  public static final ConsistencyMode DEFAULT_CONSISTENCY_MODE = ConsistencyMode.DEFAULT;
 
   public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
 
@@ -55,7 +78,7 @@ public class ConsulService {
       String serviceVersion,
       String nodeName,
       int applicationPort,
-      ConsulProperties consulProperties,
+      Properties properties,
       Set<String> tags
   ) {
     this.nodeName = nodeName;
@@ -64,31 +87,38 @@ public class ConsulService {
     this.agentClient = agentClient;
     this.kvClient = kvClient;
     this.weightPath = String.format("host/%s/weight", nodeName);
-    String resultingConsistencyMode = Optional
-        .ofNullable(consulProperties.getWeightCache().getConsistencyMode())
-        .orElseGet(consulProperties::getConsistencyMode);
+    String resultingConsistencyMode = properties.getProperty(
+        CONSUL_WEIGHT_CACHE_CONSISTENCY_MODE_PROPERTY,
+        properties.getProperty(CONSUL_CONSISTENCY_MODE_PROPERTY, DEFAULT_CONSISTENCY_MODE.name())
+    );
     this.consistencyMode = Stream
         .of(ConsistencyMode.values())
         .filter(mode -> mode.name().equalsIgnoreCase(resultingConsistencyMode))
         .findAny()
-        .orElse(ConsistencyMode.DEFAULT);
-    this.watchSeconds = consulProperties.getWeightCache().getWatchSeconds();
-    this.sleepAfterDeregisterMillis = consulProperties.getWaitAfterDeregistrationMillis();
-    Optional<String> address = resolveAddress(consulProperties.getService().getAddress());
-    var applicationHost = Optional
-        .ofNullable(consulProperties.getCheck().getHost())
-        .or(() -> address)
-        .orElse("127.0.0.1");
+        .orElse(DEFAULT_CONSISTENCY_MODE);
+    this.watchSeconds = PropertiesUtils.getInteger(properties, CONSUL_WEIGHT_CACHE_WATCH_SECONDS_PROPERTY, DEFAULT_WEIGHT_CACHE_WATCH_SECONDS);
+    this.sleepAfterDeregisterMillis = PropertiesUtils.getInteger(
+        properties,
+        CONSUL_WAIT_AFTER_DEREGISTRATION_MILLIS_PROPERTY,
+        DEFAULT_WAIT_AFTER_DEREGISTRATION_MILLIS
+    );
+    Optional<String> address = resolveAddress(properties);
+    var applicationHost = properties.getProperty(CONSUL_CHECK_HOST_PROPERTY, address.orElse(DEFAULT_CHECK_HOST));
 
     Registration.RegCheck regCheck = ImmutableRegCheck
         .builder()
         .http("http://" + applicationHost + ":" + applicationPort + "/status")
-        .status(Optional.ofNullable(consulProperties.getCheck().getPassing()).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
-        .interval(consulProperties.getCheck().getInterval())
-        .timeout(consulProperties.getCheck().getTimeout())
-        .deregisterCriticalServiceAfter(consulProperties.getDeregisterCritical().getTimeout())
-        .successBeforePassing(consulProperties.getCheck().getSuccessCount())
-        .failuresBeforeCritical(consulProperties.getCheck().getFailCount())
+        .status(
+            Optional
+                .ofNullable(PropertiesUtils.getBoolean(properties, CONSUL_CHECK_PASSING_PROPERTY))
+                .filter(Boolean.TRUE::equals)
+                .map(ignored -> "passing")
+        )
+        .interval(properties.getProperty(CONSUL_CHECK_INTERVAL_PROPERTY, DEFAULT_CHECK_INTERVAL))
+        .timeout(properties.getProperty(CONSUL_CHECK_TIMEOUT_PROPERTY, DEFAULT_CHECK_TIMEOUT))
+        .deregisterCriticalServiceAfter(properties.getProperty(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, DEFAULT_DEREGISTER_CRITICAL_TIMEOUT))
+        .successBeforePassing(PropertiesUtils.getInteger(properties, CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, DEFAULT_CHECK_SUCCESS_COUNT))
+        .failuresBeforeCritical(PropertiesUtils.getInteger(properties, CONSUL_CHECK_FAIL_COUNT_PROPERTY, DEFAULT_CHECK_FAIL_COUNT))
         .build();
 
     this.serviceTemplate = ImmutableRegistration
@@ -171,9 +201,9 @@ public class ConsulService {
     }
   }
 
-  private static Optional<String> resolveAddress(String serviceAddress) {
+  private static Optional<String> resolveAddress(Properties properties) {
     return Optional
-        .ofNullable(serviceAddress)
+        .ofNullable(properties.getProperty(CONSUL_SERVICE_ADDRESS_PROPERTY))
         .map(addressValue -> {
           if (AUTO_RESOLVE_ADDRESS_VALUE.equalsIgnoreCase(addressValue)) {
             try {

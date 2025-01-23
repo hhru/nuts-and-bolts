@@ -32,12 +32,6 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import static ru.hh.nab.common.spring.boot.profile.Profiles.MAIN;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.consul.ConsulFetcher;
-import ru.hh.nab.consul.ConsulProperties;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_ENABLED_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import ru.hh.nab.consul.ConsulService;
 import ru.hh.nab.consul.ConsulTagsSupplier;
 import ru.hh.nab.metrics.StatsDProperties;
@@ -46,6 +40,11 @@ import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_ENABLED_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PING_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import static ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY;
@@ -140,7 +139,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).hasSingleBean(ConsulService.class);
           assertThat(context).hasSingleBean(ServiceDiscoveryInitializer.class);
           assertThat(context).hasSingleBean(ConsulFetcher.class);
-          assertThat(context).hasSingleBean(ConsulProperties.class);
 
           // metrics beans
           assertThat(context).hasSingleBean(StatsDSender.class);
@@ -203,7 +201,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(ConsulService.class);
           assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
-          assertThat(context).doesNotHaveBean(ConsulProperties.class);
         });
 
     // when consul.enabled=false
@@ -220,7 +217,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(ConsulService.class);
           assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
-          assertThat(context).doesNotHaveBean(ConsulProperties.class);
         });
 
     // when consul.registration.enabled=false
@@ -344,7 +340,7 @@ public class NabWebAutoConfigurationTest {
               .hasFailed()
               .getFailure()
               .rootCause()
-              .isInstanceOf(BindValidationException.class)
+              .isInstanceOf(IllegalStateException.class)
               .hasMessageContaining(CONSUL_HTTP_PORT_PROPERTY);
         });
   }

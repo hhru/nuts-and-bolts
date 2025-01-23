@@ -27,7 +27,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.boot.web.context.WebServerApplicationContext;
@@ -37,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import ru.hh.consul.AgentClient;
 import ru.hh.consul.Consul;
@@ -51,18 +51,19 @@ import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
 import ru.hh.consul.util.Address;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_HOST_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_INTERVAL_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_CHECK_TIMEOUT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_TAGS_PROPERTY;
+import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
 import ru.hh.nab.testbase.NabTestConfig;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_VERSION;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_TAGS_PROPERTY;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 
@@ -230,18 +231,13 @@ public class ConsulServiceTest {
   @Import(NabTestConfig.class)
   @EnableAutoConfiguration
   public static class BaseConsulConfig {
-    @Bean
-    @ConfigurationProperties(ConsulProperties.PREFIX)
-    ConsulProperties consulProperties() {
-      return new ConsulProperties();
-    }
 
     @Bean
     ConsulService consulService(
         InfrastructureProperties infrastructureProperties,
         BuildProperties buildProperties,
         ServerProperties serverProperties,
-        ConsulProperties consulProperties,
+        ConfigurableEnvironment environment,
         AgentClient agentClient,
         KeyValueClient keyValueClient
     ) {
@@ -252,8 +248,8 @@ public class ConsulServiceTest {
           buildProperties.getVersion(),
           infrastructureProperties.getNodeName(),
           serverProperties.getPort(),
-          consulProperties,
-          new HashSet<>(consulProperties.getTags())
+          EnvironmentUtils.getProperties(environment),
+          new HashSet<>(EnvironmentUtils.getPropertyAsStringList(environment, CONSUL_TAGS_PROPERTY))
       );
       return spy(consulService);
     }

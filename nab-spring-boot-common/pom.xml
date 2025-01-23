@@ -16,6 +16,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>

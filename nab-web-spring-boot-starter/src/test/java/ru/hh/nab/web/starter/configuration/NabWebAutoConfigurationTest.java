@@ -34,7 +34,6 @@ import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.consul.ConsulFetcher;
 import ru.hh.nab.consul.ConsulService;
 import ru.hh.nab.consul.ConsulTagsSupplier;
-import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
@@ -144,7 +143,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).hasSingleBean(StatsDSender.class);
           assertThat(context).hasSingleBean(JvmMetricsSender.class);
           assertThat(context).hasBean(STATSD_CLIENT_BEAN_NAME).getBean(STATSD_CLIENT_BEAN_NAME).isInstanceOf(StatsDClient.class);
-          assertThat(context).hasSingleBean(StatsDProperties.class);
 
           // scheduling beans
           assertThat(context).hasSingleBean(ScheduledExecutorService.class);

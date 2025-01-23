@@ -1,3 +1,9 @@
+-   name: 10.1.5
+    date: '2025-01-23T12:27:50.024992+03:00'
+    description: change log level to debug for message 'low on threads'
+    instructions: ''
+    compatible: true
+
 -   name: 10.1.4
     date: '2025-01-15T14:11:00.242902+03:00'
     description: ''

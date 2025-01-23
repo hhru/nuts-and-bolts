@@ -40,6 +40,12 @@
             <artifactId>hibernate-core</artifactId>
         </dependency>
 
+        <!-- TODO: remove after adding hibernate-spring-boot-starter -->
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+        </dependency>
+
         <!--Testing-->
         <dependency>
             <groupId>ru.hh.nab</groupId>

@@ -51,7 +51,6 @@ import static ru.hh.nab.web.starter.configuration.properties.InfrastructurePrope
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.SERVICE_NAME_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.LogLevelOverrideExtensionProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -151,7 +150,6 @@ public class NabWebAutoConfigurationTest {
               .hasBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
               .getBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
               .isInstanceOf(ConsulTagsSupplier.class);
-          assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
@@ -258,7 +256,6 @@ public class NabWebAutoConfigurationTest {
         .withPropertyValues(infrastructureProperties)
         .withUserConfiguration(TestConfiguration.class)
         .run(context -> {
-          assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class);
           assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class);
           assertThat(context).doesNotHaveBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME);
         });

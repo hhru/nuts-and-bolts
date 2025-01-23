@@ -45,7 +45,6 @@ import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_
 import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.NabWebAutoConfiguration.HTTP_CACHE_SIZE_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTERS_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTER_PROPERTY;
@@ -174,7 +173,6 @@ public class NabWebAutoConfigurationTest {
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
-          assertThat(context).hasSingleBean(ExtendedServerProperties.class);
         });
   }
 

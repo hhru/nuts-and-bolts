@@ -1,4 +1,4 @@
-package ru.hh.nab.common.executor;
+package ru.hh.nab.metrics.executor;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;

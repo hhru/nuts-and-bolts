@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
@@ -37,7 +38,6 @@ import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
 import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
-import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
 import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
@@ -62,10 +62,11 @@ import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
 })
 @EnableConfigurationProperties({
     ExtendedServerProperties.class,
-    HttpCacheProperties.class,
     JaxbProperties.class,
 })
 public class NabWebAutoConfiguration {
+
+  public static final String HTTP_CACHE_SIZE_PROPERTY = "http.cache.sizeInMB";
 
   @Bean
   public MonitoredQueuedThreadPoolFactory monitoredQueuedThreadPoolFactory(
@@ -147,13 +148,17 @@ public class NabWebAutoConfiguration {
 
   @Bean
   @MainProfile
-  @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
+  @ConditionalOnProperty(HTTP_CACHE_SIZE_PROPERTY)
   public CacheFilter cacheFilter(
       InfrastructureProperties infrastructureProperties,
-      HttpCacheProperties httpCacheProperties,
+      Environment environment,
       StatsDSender statsDSender
   ) {
-    return new CacheFilter(infrastructureProperties.getServiceName(), DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
+    return new CacheFilter(
+        infrastructureProperties.getServiceName(),
+        DataSize.ofMegabytes(environment.getRequiredProperty(HTTP_CACHE_SIZE_PROPERTY, Integer.class)),
+        statsDSender
+    );
   }
 
   /**

@@ -21,11 +21,11 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-metrics</artifactId>
+            <artifactId>nab-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -1,4 +1,4 @@
-package ru.hh.nab.common.executor;
+package ru.hh.nab.metrics.executor;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;

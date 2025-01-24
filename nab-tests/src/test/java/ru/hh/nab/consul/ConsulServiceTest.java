@@ -1,226 +1,184 @@
 package ru.hh.nab.consul;
 
 import java.math.BigInteger;
-import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.info.BuildProperties;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import ru.hh.consul.AgentClient;
-import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.config.ClientConfig;
 import ru.hh.consul.model.ConsulResponse;
 import ru.hh.consul.model.agent.Registration;
 import ru.hh.consul.model.catalog.ServiceWeights;
-import ru.hh.consul.model.kv.ImmutableValue;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
 import ru.hh.consul.option.QueryOptions;
-import ru.hh.consul.util.Address;
-import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_FAIL_COUNT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_HOST_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_PASSING_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
-import static ru.hh.nab.consul.ConsulService.CONSUL_PROPERTIES_PREFIX;
-import ru.hh.nab.testbase.NabTestConfig;
-import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
-import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_VERSION;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_TAGS_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
-import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_FAIL_COUNT;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_HOST;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_INTERVAL;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_SUCCESS_COUNT;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_TIMEOUT;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_DEREGISTER_CRITICAL_TIMEOUT;
+import static ru.hh.nab.consul.ConsulService.DEFAULT_WEIGHT;
+import static ru.hh.nab.consul.ConsulService.META_SERVICE_VERSION_KEY;
+import static ru.hh.nab.consul.ConsulService.PASSING_STATUS;
 
 public class ConsulServiceTest {
 
+  private static final String TEST_SERVICE_NAME = "testService";
+  private static final String TEST_SERVICE_VERSION = "test-version";
   private static final String TEST_NODE_NAME = "testNode";
-  private static final String PROPERTY_TEMPLATE = "%s=%s";
+  private static final int TEST_APPLICATION_PORT = 8090;
+
+  private static final String CHECK_ENDPOINT_TEMPLATE = "http://%s:%s/status";
+
+  private static AgentClient agentClient;
+  private static KeyValueClient keyValueClient;
+
+  @BeforeAll
+  public static void setUpClass() {
+    agentClient = mock(AgentClient.class);
+
+    keyValueClient = mock(KeyValueClient.class);
+    when(keyValueClient.getConfig()).thenReturn(new ClientConfig());
+    when(keyValueClient.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
+  }
+
+  @AfterEach
+  public void tearDown() {
+    reset(agentClient);
+  }
 
   @Test
   public void testRegisterWithFullFileProperties() {
-    TestPropertyValues userProperties = TestPropertyValues.of(
-        PROPERTY_TEMPLATE.formatted(CONSUL_HTTP_PORT_PROPERTY, 123),
-        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_HOST_PROPERTY, "localhost"),
-        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_INTERVAL_PROPERTY, "33s"),
-        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_TIMEOUT_PROPERTY, "42s"),
-        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, 7),
-        PROPERTY_TEMPLATE.formatted(CONSUL_CHECK_FAIL_COUNT_PROPERTY, 8),
-        PROPERTY_TEMPLATE.formatted(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, "13m"),
-        PROPERTY_TEMPLATE.formatted(CONSUL_TAGS_PROPERTY, "tag1, tag2")
+    String testCheckHost = "localhost";
+    String testCheckInterval = "33s";
+    String testCheckTimeout = "42s";
+    int testCheckSuccessCount = 7;
+    int testCheckFailCount = 8;
+    String testDeregisterCriticalTimeout = "13m";
+    Set<String> testTags = Set.of("tag1", "tag2");
+    int testWight = 204;
+
+    Properties consulProperties = new Properties();
+    consulProperties.put(CONSUL_CHECK_HOST_PROPERTY, testCheckHost);
+    consulProperties.put(CONSUL_CHECK_INTERVAL_PROPERTY, testCheckInterval);
+    consulProperties.put(CONSUL_CHECK_TIMEOUT_PROPERTY, testCheckTimeout);
+    consulProperties.put(CONSUL_CHECK_SUCCESS_COUNT_PROPERTY, Integer.toString(testCheckSuccessCount));
+    consulProperties.put(CONSUL_CHECK_FAIL_COUNT_PROPERTY, Integer.toString(testCheckFailCount));
+    consulProperties.put(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, testDeregisterCriticalTimeout);
+    consulProperties.put(CONSUL_CHECK_PASSING_PROPERTY, Boolean.TRUE.toString());
+
+    Value weightValue = mock(Value.class);
+    when(weightValue.getValueAsString()).thenReturn(Optional.of(Integer.toString(testWight)));
+    when(keyValueClient.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
+        .thenReturn(Optional.of(new ConsulResponse<>(weightValue, 0, true, BigInteger.ONE, null, null)));
+
+    ConsulService consulService = new ConsulService(
+        agentClient,
+        keyValueClient,
+        TEST_SERVICE_NAME,
+        TEST_SERVICE_VERSION,
+        TEST_NODE_NAME,
+        TEST_APPLICATION_PORT,
+        consulProperties,
+        testTags
     );
-    ConfigurableApplicationContext context = new SpringApplicationBuilder(CustomKVConfig.class)
-        .initializers(userProperties::applyTo)
-        .run();
-    AgentClient agentClient = context.getBean(AgentClient.class);
-    ArgumentCaptor<Registration> argument = ArgumentCaptor.forClass(Registration.class);
-    verify(agentClient).register(argument.capture(), any(QueryOptions.class));
-    Registration registration = argument.getValue();
+    consulService.register();
 
-    assertTrue(registration.getCheck().isPresent());
+    Registration registration = getRegistration();
+
     Registration.RegCheck regCheck = registration.getCheck().get();
-    assertEquals("http://localhost:0/status", regCheck.getHttp().get());
-    assertEquals("33s", regCheck.getInterval().get());
-    assertEquals("42s", regCheck.getTimeout().get());
-    assertEquals("13m", regCheck.getDeregisterCriticalServiceAfter().get());
-    assertEquals(7, regCheck.getSuccessBeforePassing().get());
-    assertEquals(8, regCheck.getFailuresBeforeCritical().get());
+    assertEquals(CHECK_ENDPOINT_TEMPLATE.formatted(testCheckHost, TEST_APPLICATION_PORT), regCheck.getHttp().get());
+    assertEquals(testCheckInterval, regCheck.getInterval().get());
+    assertEquals(testCheckTimeout, regCheck.getTimeout().get());
+    assertEquals(testDeregisterCriticalTimeout, regCheck.getDeregisterCriticalServiceAfter().get());
+    assertEquals(testCheckSuccessCount, regCheck.getSuccessBeforePassing().get());
+    assertEquals(testCheckFailCount, regCheck.getFailuresBeforeCritical().get());
+    assertEquals(Optional.of(PASSING_STATUS), regCheck.getStatus());
 
-    assertTrue(registration.getServiceWeights().isPresent());
     ServiceWeights serviceWeights = registration.getServiceWeights().get();
-    assertEquals(204, serviceWeights.getPassing());
+    assertEquals(testWight, serviceWeights.getPassing());
     assertEquals(0, serviceWeights.getWarning());
 
-    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "0"), registration.getId());
+    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, Integer.toString(TEST_APPLICATION_PORT)), registration.getId());
     assertEquals(TEST_SERVICE_NAME, registration.getName());
-    assertEquals(0, registration.getPort().get());
+    assertEquals(TEST_APPLICATION_PORT, registration.getPort().get());
     List<String> tags = registration.getTags();
-    assertEquals(2, tags.size());
-    assertEquals(List.of("tag1", "tag2"), tags);
+    assertEquals(testTags.size(), tags.size());
+    assertTrue(testTags.containsAll(tags));
     Map<String, String> meta = registration.getMeta();
     assertEquals(1, meta.size());
-    assertEquals(Map.of("serviceVersion", TEST_SERVICE_VERSION), meta);
+    assertEquals(Map.of(META_SERVICE_VERSION_KEY, TEST_SERVICE_VERSION), meta);
   }
 
   @Test
   public void testRegisterWithDefault() {
-    ArgumentCaptor<Registration> defaultArgument = ArgumentCaptor.forClass(Registration.class);
-    TestPropertyValues userProperties = TestPropertyValues.of(PROPERTY_TEMPLATE.formatted("server.port", "17"));
-    ConfigurableApplicationContext context = new SpringApplicationBuilder(CustomKVConfig.class)
-        .initializers(userProperties::applyTo)
-        .run();
-    AgentClient agentClient = context.getBean(AgentClient.class);
-    verify(agentClient).register(defaultArgument.capture(), any(QueryOptions.class));
-    Registration registration = defaultArgument.getValue();
+    when(keyValueClient.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class))).thenReturn(
+        Optional.empty());
 
-    assertTrue(registration.getCheck().isPresent());
+    ConsulService consulService = new ConsulService(
+        agentClient,
+        keyValueClient,
+        TEST_SERVICE_NAME,
+        TEST_SERVICE_VERSION,
+        TEST_NODE_NAME,
+        TEST_APPLICATION_PORT,
+        new Properties(),
+        Set.of()
+    );
+    consulService.register();
+
+    Registration registration = getRegistration();
+
     Registration.RegCheck regCheck = registration.getCheck().get();
-    assertEquals("http://127.0.0.1:17/status", regCheck.getHttp().get());
-    assertEquals("5s", regCheck.getInterval().get());
-    assertEquals("5s", regCheck.getTimeout().get());
-    assertEquals("10m", regCheck.getDeregisterCriticalServiceAfter().get());
-    assertEquals(1, regCheck.getSuccessBeforePassing().get());
-    assertEquals(1, regCheck.getFailuresBeforeCritical().get());
+    assertEquals(CHECK_ENDPOINT_TEMPLATE.formatted(DEFAULT_CHECK_HOST, TEST_APPLICATION_PORT), regCheck.getHttp().get());
+    assertEquals(DEFAULT_CHECK_INTERVAL, regCheck.getInterval().get());
+    assertEquals(DEFAULT_CHECK_TIMEOUT, regCheck.getTimeout().get());
+    assertEquals(DEFAULT_DEREGISTER_CRITICAL_TIMEOUT, regCheck.getDeregisterCriticalServiceAfter().get());
+    assertEquals(DEFAULT_CHECK_SUCCESS_COUNT, regCheck.getSuccessBeforePassing().get());
+    assertEquals(DEFAULT_CHECK_FAIL_COUNT, regCheck.getFailuresBeforeCritical().get());
+    assertEquals(Optional.empty(), regCheck.getStatus());
 
-    assertTrue(registration.getServiceWeights().isPresent());
     ServiceWeights serviceWeights = registration.getServiceWeights().get();
-    assertEquals(204, serviceWeights.getPassing());
+    assertEquals(DEFAULT_WEIGHT, serviceWeights.getPassing());
     assertEquals(0, serviceWeights.getWarning());
 
-
-    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, "17"), registration.getId());
+    assertEquals(String.join("-", TEST_SERVICE_NAME, TEST_NODE_NAME, Integer.toString(TEST_APPLICATION_PORT)), registration.getId());
     assertEquals(TEST_SERVICE_NAME, registration.getName());
-    assertEquals(17, registration.getPort().get());
+    assertEquals(TEST_APPLICATION_PORT, registration.getPort().get());
     List<String> tags = registration.getTags();
     assertEquals(0, tags.size());
     Map<String, String> meta = registration.getMeta();
     assertEquals(1, meta.size());
-    assertEquals(Map.of("serviceVersion", TEST_SERVICE_VERSION), meta);
+    assertEquals(Map.of(META_SERVICE_VERSION_KEY, TEST_SERVICE_VERSION), meta);
   }
 
-  @Import(NabTestConfig.class)
-  @EnableAutoConfiguration
-  public static class BaseConsulConfig {
-
-    @Bean
-    ConsulService consulService(
-        InfrastructureProperties infrastructureProperties,
-        BuildProperties buildProperties,
-        ServerProperties serverProperties,
-        ConfigurableEnvironment environment,
-        AgentClient agentClient,
-        KeyValueClient keyValueClient
-    ) {
-      ConsulService consulService = new ConsulService(
-          agentClient,
-          keyValueClient,
-          infrastructureProperties.getServiceName(),
-          buildProperties.getVersion(),
-          infrastructureProperties.getNodeName(),
-          serverProperties.getPort(),
-          EnvironmentUtils.getPropertiesStartWith(environment, CONSUL_PROPERTIES_PREFIX),
-          new HashSet<>(EnvironmentUtils.getPropertyAsStringList(environment, CONSUL_TAGS_PROPERTY))
-      );
-      return spy(consulService);
-    }
-
-    @Bean
-    AgentClient agentClient() {
-      return mock(AgentClient.class);
-    }
-
-    @Bean
-    KeyValueClient keyValueClient() {
-      KeyValueClient mock = mock(KeyValueClient.class);
-      when(mock.getConfig()).thenReturn(new ClientConfig());
-      when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
-      return mock;
-    }
-
-    @Bean
-    ServiceDiscoveryInitializer serviceDiscoveryInitializer(ConsulService consulService) {
-      return new ServiceDiscoveryInitializer(consulService);
-    }
-  }
-
-  @Configuration
-  @Import(BaseConsulConfig.class)
-  public static class CustomKVConfig {
-    @Bean
-    KeyValueClient keyValueClient() {
-      KeyValueClient mock = mock(KeyValueClient.class);
-      when(mock.getConfig()).thenReturn(new ClientConfig());
-      when(mock.getEventHandler()).thenReturn(new ClientEventHandler("test", new ClientEventCallback() {}));
-      Value weight = ImmutableValue
-          .builder()
-          .createIndex(1)
-          .modifyIndex(1)
-          .lockIndex(1)
-          .key("key")
-          .flags(1)
-          .value(Base64.getEncoder().encodeToString("204".getBytes()))
-          .build();
-      when(mock.getConsulResponseWithValue(eq(String.join("/", "host", TEST_NODE_NAME, "weight")), any(QueryOptions.class)))
-          .thenReturn(Optional.of(new ConsulResponse<>(weight, 0, true, BigInteger.ONE, null, null)));
-      return mock;
-    }
-  }
-
-  @Configuration
-  @Import(BaseConsulConfig.class)
-  public static class BrokenConsulConfig {
-    @Bean
-    AgentClient consulClient(Environment environment) {
-      Address hostAndPort = new Address(
-          environment.getProperty(CONSUL_HTTP_HOST_PROPERTY, "127.0.0.1"),
-          environment.getRequiredProperty(CONSUL_HTTP_PORT_PROPERTY, Integer.class)
-      );
-      return Consul.builder().withAddress(hostAndPort).build().agentClient();
-    }
+  private Registration getRegistration() {
+    ArgumentCaptor<Registration> registrationArgument = ArgumentCaptor.forClass(Registration.class);
+    verify(agentClient).register(registrationArgument.capture(), any(QueryOptions.class));
+    return registrationArgument.getValue();
   }
 }

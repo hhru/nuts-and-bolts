@@ -57,6 +57,9 @@ public class ConsulService {
 
   public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
 
+  static final String PASSING_STATUS = "passing";
+  static final String META_SERVICE_VERSION_KEY = "serviceVersion";
+
   private final AgentClient agentClient;
   private final KeyValueClient kvClient;
   private final ImmutableRegistration serviceTemplate;
@@ -113,7 +116,7 @@ public class ConsulService {
             Optional
                 .ofNullable(PropertiesUtils.getBoolean(properties, CONSUL_CHECK_PASSING_PROPERTY))
                 .filter(Boolean.TRUE::equals)
-                .map(ignored -> "passing")
+                .map(ignored -> PASSING_STATUS)
         )
         .interval(properties.getProperty(CONSUL_CHECK_INTERVAL_PROPERTY, DEFAULT_CHECK_INTERVAL))
         .timeout(properties.getProperty(CONSUL_CHECK_TIMEOUT_PROPERTY, DEFAULT_CHECK_TIMEOUT))
@@ -130,7 +133,7 @@ public class ConsulService {
         .address(address)
         .check(regCheck)
         .tags(tags)
-        .meta(Map.of("serviceVersion", serviceVersion))
+        .meta(Map.of(META_SERVICE_VERSION_KEY, serviceVersion))
         .build();
   }
 

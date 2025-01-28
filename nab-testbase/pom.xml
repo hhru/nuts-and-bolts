@@ -40,7 +40,7 @@
         <dependency>
             <groupId>ru.hh.kafka.test</groupId>
             <artifactId>hh-kafka-test-utils</artifactId>
-            <version>1.0.0</version>
+            <version>${kafka-test-utils.version}</version>
         </dependency>
 
         <dependency>

@@ -187,7 +187,7 @@ public class DataSourceFactory {
     return config;
   }
 
-  private static DataSource createOriginalDataSource(HikariConfig hikariConfig) {
+  DataSource createOriginalDataSource(HikariConfig hikariConfig) {
     String jdbcUrl = hikariConfig.getJdbcUrl();
     String username = hikariConfig.getUsername();
     String password = hikariConfig.getPassword();
@@ -213,7 +213,7 @@ public class DataSourceFactory {
     return result;
   }
 
-  private static void checkDataSource(DataSource dataSource, String dataSourceName) {
+  void checkDataSource(DataSource dataSource, String dataSourceName) {
     try (Connection connection = dataSource.getConnection()) {
       if (!connection.isValid(1000)) {
         throw new RuntimeException("Invalid connection to " + dataSourceName);

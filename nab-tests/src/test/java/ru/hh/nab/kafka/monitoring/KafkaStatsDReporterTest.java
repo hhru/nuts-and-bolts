@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -21,8 +22,10 @@ import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.KafkaConsumer;
 import ru.hh.nab.kafka.consumer.KafkaConsumerTestBase;
 import ru.hh.nab.kafka.consumer.TopicConsumerMock;
@@ -34,6 +37,7 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaProducerFactory;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 
+@SpringBootTest(classes = KafkaStatsDReporterTest.CompanionConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
   private TopicConsumerMock<String> consumerMock;
   private KafkaConsumer<String> consumer;
@@ -67,20 +71,6 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
   );
 
   private static final AtomicReference<ConcurrentMap<MetricName, Metric>> observedMetrics = new AtomicReference<>();
-
-  @DynamicPropertySource
-  static void registerProperties(DynamicPropertyRegistry registry) {
-    String clusterName = "kafka";
-    // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
-    String prefix = "%s.common".formatted(clusterName);
-    registry.add(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class::getName);
-    registry.add(prefix + "." + KafkaStatsDReporter.METRICS_ALLOWED,
-        () -> ENABLED_METRICS
-            .stream()
-            .map(KafkaStatsDReporter::createMetricName)
-            .collect(Collectors.joining(","))
-    );
-  }
 
   @BeforeEach
   public void setUp() {
@@ -246,6 +236,24 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     public void configure(Map<String, ?> configs) {
       super.configure(configs);
       KafkaStatsDReporterTest.observedMetrics.set(this.recordedMetrics);
+    }
+  }
+
+  @Configuration
+  public static class CompanionConfiguration extends KafkaTestConfig {
+    @Bean
+    public Properties properties() {
+      Properties properties = super.properties();
+      // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
+      String prefix = "kafka.common";
+      properties.put(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class.getName());
+      properties.put(prefix + "." + KafkaStatsDReporter.METRICS_ALLOWED,
+          ENABLED_METRICS
+              .stream()
+              .map(KafkaStatsDReporter::createMetricName)
+              .collect(Collectors.joining(","))
+      );
+      return properties;
     }
   }
 }

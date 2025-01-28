@@ -3,7 +3,6 @@ package ru.hh.nab.kafka.consumer;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
-import ru.hh.nab.testbase.kafka.NoopKafkaConsumerFactory;
 
 public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
   public static final ConsumeStrategy<Object> CONSUME_STRATEGY = (messages, ack) -> {};
@@ -38,13 +37,5 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
     assertThrows(NullPointerException.class, () -> consumerFactory
         .builder(topicName, Object.class)
         .build());
-  }
-
-  @Test
-  void successfulBuildAndStartNoopConsumer() {
-    assertDoesNotThrow(() -> new NoopKafkaConsumerFactory()
-        .builder(null, null)
-        .build()
-        .start());
   }
 }

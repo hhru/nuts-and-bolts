@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.aspect;
 
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -25,10 +25,13 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
+import ru.hh.nab.datasource.TestDataSourceFactory;
+import ru.hh.nab.datasource.TransactionTestBase;
 import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
-import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceAspect;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 

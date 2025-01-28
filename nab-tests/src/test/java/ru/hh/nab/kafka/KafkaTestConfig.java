@@ -2,9 +2,10 @@ package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import java.util.Properties;
+import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
@@ -18,10 +19,8 @@ import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.NabTestConfig;
 
 @Configuration
-@Import(NabTestConfig.class)
 public class KafkaTestConfig {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -36,31 +35,53 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  DeserializerSupplier deserializerSupplier() {
+  public DeserializerSupplier deserializerSupplier() {
     return new JacksonDeserializerSupplier(OBJECT_MAPPER);
   }
 
   @Bean
-  ConfigProvider configProvider(FileSettings fileSettings, StatsDSender statsDSender) {
-    return new ConfigProvider("service", "kafka", fileSettings, statsDSender);
+  public ConfigProvider configProvider(Properties properties, StatsDSender statsDSender) {
+    return new ConfigProvider("service", "kafka", new FileSettings(properties), statsDSender);
   }
 
   @Bean
-  KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, TestKafka testKafka) {
+  public KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, TestKafka testKafka) {
     return new DefaultConsumerFactory(configProvider, deserializerSupplier, null, testKafka::getBootstrapServers);
   }
 
   @Bean
-  SerializerSupplier serializerSupplier() {
+  public SerializerSupplier serializerSupplier() {
     return new JacksonSerializerSupplier(new ObjectMapper());
   }
 
   @Bean
-  KafkaProducerFactory kafkaProducer(
+  public KafkaProducerFactory kafkaProducer(
       ConfigProvider configProvider,
       SerializerSupplier serializerSupplier,
       TestKafka testKafka
   ) {
     return new KafkaProducerFactory(configProvider, serializerSupplier, testKafka::getBootstrapServers);
+  }
+
+  @Bean
+  public Properties properties() {
+    Properties properties = new Properties();
+    properties.put("kafka.common.security.protocol", "PLAINTEXT");
+    properties.put("kafka.producer.default.retries", "3");
+    properties.put("kafka.producer.default.linger.ms", "10");
+    properties.put("kafka.producer.default.batch.size", "1");
+    properties.put("kafka.consumer.default.auto.offset.reset", "earliest");
+    properties.put("kafka.consumer.default.fetch.max.wait.ms", "250");
+    properties.put("kafka.consumer.default.max.poll.interval.ms", "5000");
+    properties.put("kafka.consumer.default.max.poll.records", "25");
+    properties.put("kafka.consumer.default.nab_setting.poll.timeout.ms", "500");
+    properties.put("kafka.consumer.default.nab_setting.backoff.initial.interval", "1");
+    properties.put("kafka.consumer.default.nab_setting.backoff.max.interval", "1");
+    return properties;
+  }
+
+  @Bean
+  public StatsDSender statsDSender() {
+    return mock(StatsDSender.class);
   }
 }

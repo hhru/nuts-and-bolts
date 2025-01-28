@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.routing;
 
 import jakarta.inject.Inject;
 import javax.sql.DataSource;
@@ -13,13 +13,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
-import ru.hh.nab.datasource.routing.DataSourceContext;
+import ru.hh.nab.datasource.TestDataSourceFactory;
+import ru.hh.nab.datasource.TransactionTestBase;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onReplica;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onSlowReplica;
-import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.datasource.transaction.TransactionalScope;

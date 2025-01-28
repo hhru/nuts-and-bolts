@@ -14,16 +14,16 @@ import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 import ru.hh.nab.metrics.StatsDSender;
 
-class TestDataSourceFactory extends DataSourceFactory {
+public class TestDataSourceFactory extends DataSourceFactory {
 
   private static final String TEST_SERVICE_NAME = "testService";
   private static final StatsDSender statsDSender = mock(StatsDSender.class);
 
-  TestDataSourceFactory() {
+  public TestDataSourceFactory() {
     this(null);
   }
 
-  TestDataSourceFactory(DatabaseSwitcher databaseSwitcher) {
+  public TestDataSourceFactory(DatabaseSwitcher databaseSwitcher) {
     super(
         new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, statsDSender),
         new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, statsDSender),
@@ -37,7 +37,7 @@ class TestDataSourceFactory extends DataSourceFactory {
     return createMockDataSource();
   }
 
-  DataSource createMockDataSource() {
+  public DataSource createMockDataSource() {
     try {
       Connection connection = mock(Connection.class);
       DataSource dataSource = mock(DataSource.class);

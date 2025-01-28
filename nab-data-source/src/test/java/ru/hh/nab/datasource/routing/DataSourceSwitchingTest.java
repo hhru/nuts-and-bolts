@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.routing;
 
 import com.codahale.metrics.health.HealthCheck;
 import jakarta.inject.Inject;
@@ -25,17 +25,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.datasource.DataSourceFactory;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
+import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.TestDataSourceFactory;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
 import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onDataSource;
-import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
-import ru.hh.nab.datasource.routing.DatabaseSwitcher;
-import ru.hh.nab.datasource.routing.RoutingDataSource;
-import ru.hh.nab.datasource.routing.RoutingDataSourceFactory;
 
 @SpringBootTest(classes = DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataSourceSwitchingTest {

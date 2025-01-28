@@ -1,4 +1,4 @@
-package ru.hh.nab.datasource;
+package ru.hh.nab.datasource.transaction;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -30,10 +30,11 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
+import ru.hh.nab.datasource.DataSourceType;
+import ru.hh.nab.datasource.TransactionTestBase;
 import ru.hh.nab.datasource.routing.DataSourceContext;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
-import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
-import ru.hh.nab.datasource.transaction.TransactionalScope;
 
 @SpringBootTest(classes = DataSourceContextTransactionManagerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataSourceContextTransactionManagerTest extends TransactionTestBase {

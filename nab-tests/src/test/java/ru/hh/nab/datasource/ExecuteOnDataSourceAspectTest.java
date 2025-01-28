@@ -1,215 +1,251 @@
 package ru.hh.nab.datasource;
 
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.aspectj.lang.ProceedingJoinPoint;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.jpa.EntityManagerProxy;
-import static org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive;
-import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
-import ru.hh.nab.common.properties.FileSettings;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
-import ru.hh.nab.datasource.annotation.DataSourceCacheMode;
+import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
 import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceAspect;
-import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
-import ru.hh.nab.jpa.JpaTestConfig;
-import ru.hh.nab.testbase.jpa.JpaTestBase;
+import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
+import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 
-@SpringBootTest(
-    classes = {JpaTestConfig.class, ExecuteOnDataSourceAspectTest.AspectConfig.class},
-    webEnvironment = SpringBootTest.WebEnvironment.NONE
-)
-public class ExecuteOnDataSourceAspectTest extends JpaTestBase {
+@SpringBootTest(classes = ExecuteOnDataSourceAspectTest.AspectConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+public class ExecuteOnDataSourceAspectTest extends TransactionTestBase {
 
-  private static final String WRITABLE_DATASOURCE = "writable";
-
-  private ExecuteOnDataSourceAspect executeOnDataSourceAspect;
-  private EntityManager masterEntityManager;
-  private EntityManager outerReadonlyEntityManager;
   @Inject
-  private TestService testService;
+  private ExecuteOnDataSourceAspect executeOnDataSourceAspect;
+  @Inject
+  private DataSourceContextTransactionManager transactionManager;
+  @Inject
+  private TransactionalScope transactionalScope;
 
-  @BeforeEach
-  public void setUp() {
-    executeOnDataSourceAspect = new ExecuteOnDataSourceAspect(
-        transactionManager,
-        Map.of("transactionManager", transactionManager)
+  @AfterEach
+  public void tearDown() {
+    reset(executeOnDataSourceAspect);
+    reset(transactionManager);
+  }
+
+  @Test
+  public void transactionOnMaster() throws Throwable {
+    assertActualTransactionIsNotActive();
+    transactionalScope.writeToMaster(() -> {
+      assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+      assertReadWriteTransaction();
+    });
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    TransactionDefinition transactionDefinition = transactionDefinitionArgumentCaptor.getValue();
+    assertFalse(transactionDefinition.isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_REQUIRED, transactionDefinition.getPropagationBehavior());
+  }
+
+  @Test
+  public void readOnlyTransactionOnMaster() throws Throwable {
+    assertActualTransactionIsNotActive();
+    transactionalScope.readFromMaster(() -> {
+      assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+      assertReadOnlyTransaction();
+    });
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    TransactionDefinition transactionDefinition = transactionDefinitionArgumentCaptor.getValue();
+    assertTrue(transactionDefinition.isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_NOT_SUPPORTED, transactionDefinition.getPropagationBehavior());
+  }
+
+  @Test
+  public void testMasterWithReadOnlyFlagInsideMaster() throws Throwable {
+    assertActualTransactionIsNotActive();
+    transactionalScope.writeToMaster(() -> {
+      assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+      assertReadWriteTransaction();
+
+      transactionalScope.readFromMaster(() -> {
+        assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+        assertReadWriteTransaction();
+      });
+    });
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect, times(2)).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    TransactionDefinition transactionDefinition = transactionDefinitionArgumentCaptor.getValue();
+    assertFalse(transactionDefinition.isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_REQUIRED, transactionDefinition.getPropagationBehavior());
+  }
+
+  @Test
+  public void testMasterInsideMasterWithReadOnlyFlag() throws Throwable {
+    assertActualTransactionIsNotActive();
+    transactionalScope.readFromMaster(() -> {
+      assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+      assertReadOnlyTransaction();
+
+      assertDoesNotThrow(() -> transactionalScope.writeToMaster(() -> {
+        assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+        assertReadOnlyTransaction();
+      }));
+    });
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect, times(2)).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    TransactionDefinition transactionDefinition = transactionDefinitionArgumentCaptor.getValue();
+    assertTrue(transactionDefinition.isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_NOT_SUPPORTED, transactionDefinition.getPropagationBehavior());
+  }
+
+  @Test
+  public void testReadOnlyReplica() throws Throwable {
+    assertActualTransactionIsNotActive();
+    transactionalScope.readFromReadOnly(() -> {
+      assertEquals(READONLY, DataSourceContextUnsafe.getDataSourceName());
+      assertReadOnlyTransaction();
+    });
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    TransactionDefinition transactionDefinition = transactionDefinitionArgumentCaptor.getValue();
+    assertTrue(transactionDefinition.isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_NOT_SUPPORTED, transactionDefinition.getPropagationBehavior());
+  }
+
+  @Test
+  public void testReadOnlyReplicaInsideMasterWithReadOnlyFlagDoesNotThrowException() throws Throwable {
+    DataSourcePropertiesStorage.registerPropertiesFor(DataSourceType.READONLY, new DataSourcePropertiesStorage.DataSourceProperties(false));
+
+    assertActualTransactionIsNotActive();
+    assertDoesNotThrow(() -> transactionalScope.readFromMaster(() -> {
+      assertEquals(DataSourceType.MASTER, DataSourceContextUnsafe.getDataSourceName());
+      assertReadOnlyTransaction();
+
+      transactionalScope.readFromReadOnly(() -> {
+        assertEquals(DataSourceType.READONLY, DataSourceContextUnsafe.getDataSourceName());
+        assertReadOnlyTransaction();
+      });
+    }));
+    assertActualTransactionIsNotActive();
+
+    ArgumentCaptor<TransactionDefinition> transactionDefinitionArgumentCaptor = ArgumentCaptor.forClass(TransactionDefinition.class);
+    verify(executeOnDataSourceAspect, times(2)).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager, times(2)).getTransaction(transactionDefinitionArgumentCaptor.capture());
+    List<TransactionDefinition> transactionDefinitions = transactionDefinitionArgumentCaptor.getAllValues();
+    assertEquals(2, transactionDefinitions.size());
+    assertTrue(transactionDefinitions.get(0).isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_NOT_SUPPORTED, transactionDefinitions.get(0).getPropagationBehavior());
+    assertTrue(transactionDefinitions.get(1).isReadOnly());
+    assertEquals(TransactionDefinition.PROPAGATION_NOT_SUPPORTED, transactionDefinitions.get(1).getPropagationBehavior());
+  }
+
+  @Test
+  public void testThrowCheckedException() throws Throwable {
+    String message = "test for @ExecuteOnDataSource";
+
+    assertActualTransactionIsNotActive();
+    IOException exception = assertThrows(
+        IOException.class,
+        () -> transactionalScope.writeToMaster(() -> {
+          throw new IOException(message);
+        })
     );
+    assertActualTransactionIsNotActive();
+
+    verify(executeOnDataSourceAspect).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).rollback(any());
+    assertEquals(message, exception.getMessage());
   }
 
   @Test
-  public void testReadOnly() throws Throwable {
-    startTransaction();
-    assertEquals(MASTER, getDataSourceName());
-    masterEntityManager = ((EntityManagerProxy) entityManager).getTargetEntityManager();
-
-    ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
-    when(pjpMock.proceed()).then(invocation -> readonlyOuter());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
-
-    assertEquals(MASTER, getDataSourceName());
-    assertEquals(masterEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
-    rollBackTransaction();
-  }
-
-  @Test
-  public void testWrite() {
-    assertTransactionIsNotActive();
-    testService.customWrite();
-    assertTransactionIsNotActive();
-  }
-
-  @Test
-  public void testThrowCheckedException() {
+  public void testThrowUncheckedException() throws Throwable {
     String message = "test for @ExecuteOnDataSource";
 
-    assertTransactionIsNotActive();
-    try {
-      testService.throwCheckedException(message);
-      fail("Expected exception was not thrown");
-    } catch (IOException e) {
-      assertEquals(IOException.class, e.getClass());
-      assertEquals(message, e.getMessage());
-    }
-  }
+    assertActualTransactionIsNotActive();
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> transactionalScope.readFromMaster(() -> {
+          throw new IllegalArgumentException(message);
+        })
+    );
+    assertActualTransactionIsNotActive();
 
-  @Test
-  public void testThrowUncheckedException() {
-    String message = "test for @ExecuteOnDataSource";
-
-    assertTransactionIsNotActive();
-    try {
-      testService.throwUncheckedException(message);
-      fail("Expected exception was not thrown");
-    } catch (IllegalArgumentException e) {
-      assertEquals(IllegalArgumentException.class, e.getClass());
-      assertEquals(message, e.getMessage());
-    }
-  }
-
-  private static void assertTransactionIsNotActive() {
-    assertFalse(isSynchronizationActive());
-    assertFalse(isActualTransactionActive());
-  }
-
-  private Object readonlyOuter() throws Throwable {
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
-    outerReadonlyEntityManager = ((EntityManagerProxy) entityManager).getTargetEntityManager();
-    assertNotEquals(masterEntityManager, outerReadonlyEntityManager);
-
-    ProceedingJoinPoint pjpMock = mock(ProceedingJoinPoint.class);
-    when(pjpMock.proceed()).then(invocation -> readonlyInner());
-    executeOnDataSourceAspect.executeOnSpecialDataSource(pjpMock, createExecuteOnReadonlyMock(DataSourceType.READONLY, false));
-
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
-    assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
-
-    return null;
-  }
-
-  private Object readonlyInner() {
-    assertEquals(DataSourceType.READONLY, getDataSourceName());
-    assertEquals(outerReadonlyEntityManager, ((EntityManagerProxy) entityManager).getTargetEntityManager());
-    return null;
-  }
-
-  private static ExecuteOnDataSource createExecuteOnReadonlyMock(String name, boolean writableTx) {
-    return new ExecuteOnDataSource() {
-
-      @Override
-      public Class<? extends Annotation> annotationType() {
-        return ExecuteOnDataSource.class;
-      }
-
-      @Override
-      public boolean writableTx() {
-        return writableTx;
-      }
-
-      @Override
-      public String dataSourceType() {
-        return name;
-      }
-
-      @Override
-      public boolean overrideByRequestScope() {
-        return false;
-      }
-
-      @Override
-      public String txManager() {
-        return "transactionManager";
-      }
-
-      @Override
-      public DataSourceCacheMode cacheMode() {
-        return DataSourceCacheMode.NORMAL;
-      }
-    };
-  }
-
-  static class TestService {
-
-    private final EntityManager entityManager;
-
-    TestService(EntityManager entityManager) {
-      this.entityManager = entityManager;
-    }
-
-    @Transactional
-    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE, writableTx = true)
-    public void customWrite() {
-      assertEquals(WRITABLE_DATASOURCE, getDataSourceName());
-      assertNotNull(entityManager);
-      assertTrue(isSynchronizationActive());
-      assertTrue(isActualTransactionActive());
-    }
-
-    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
-    public void throwCheckedException(String message) throws IOException {
-      throw new IOException(message);
-    }
-
-    @ExecuteOnDataSource(dataSourceType = WRITABLE_DATASOURCE)
-    public void throwUncheckedException(String message) {
-      throw new IllegalArgumentException(message);
-    }
+    verify(executeOnDataSourceAspect).executeOnSpecialDataSource(any(), any());
+    verify(transactionManager).rollback(any());
+    assertEquals(message, exception.getMessage());
   }
 
   @Configuration
+  @EnableAspectJAutoProxy
+  @Import(TransactionalScope.class)
   static class AspectConfig {
 
     @Bean
-    DataSource readOnlyDataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
-      return dataSourceFactory.create(DataSourceType.READONLY, true, fileSettings);
+    DataSourceContextTransactionManager transactionManager() {
+      TestDataSourceFactory dataSourceFactory = new TestDataSourceFactory();
+      DataSource dataSource = dataSourceFactory.createMockDataSource();
+      return spy(new DataSourceContextTransactionManager(new DataSourceTransactionManager(dataSource)));
     }
 
     @Bean
-    DataSource writableDataSource(DataSourceFactory dataSourceFactory, FileSettings fileSettings) {
-      return dataSourceFactory.create(WRITABLE_DATASOURCE, false, fileSettings);
+    ExecuteOnDataSourceAspect executeOnDataSourceAspect(DataSourceContextTransactionManager transactionManager) {
+      return spy(new ExecuteOnDataSourceAspect(
+          transactionManager,
+          Map.of("transactionManager", transactionManager)
+      ));
+    }
+  }
+
+  static class TransactionalScope {
+
+    @ExecuteOnDataSource(dataSourceType = MASTER, writableTx = true)
+    public void writeToMaster(ThrowingRunnable runnable) throws Exception {
+      runnable.run();
     }
 
-    @Bean
-    TestService testService(EntityManager entityManager) {
-      return new TestService(entityManager);
+    @ExecuteOnDataSource(dataSourceType = MASTER)
+    public void readFromMaster(Runnable runnable) {
+      runnable.run();
     }
+
+    @ExecuteOnDataSource(dataSourceType = READONLY)
+    public void readFromReadOnly(Runnable runnable) {
+      runnable.run();
+    }
+  }
+
+  interface ThrowingRunnable {
+    void run() throws Exception;
   }
 }

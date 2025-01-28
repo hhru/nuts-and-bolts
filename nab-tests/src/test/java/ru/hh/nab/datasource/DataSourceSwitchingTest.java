@@ -1,17 +1,10 @@
 package ru.hh.nab.datasource;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.PersistenceException;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,50 +24,35 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.transaction.annotation.Transactional;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
 import static ru.hh.nab.datasource.DataSourceSettings.ROUTING_SECONDARY_DATASOURCE;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSource;
-import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.healthcheck.UnhealthyDataSourceException;
-import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onDataSource;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 import ru.hh.nab.datasource.routing.RoutingDataSource;
 import ru.hh.nab.datasource.routing.RoutingDataSourceFactory;
-import ru.hh.nab.jpa.JpaTestConfig;
-import ru.hh.nab.jpa.MappingConfig;
-import ru.hh.nab.jpa.model.TestEntity;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.jpa.JpaTestBase;
-import ru.hh.nab.testbase.postgres.embedded.EmbeddedPostgresDataSourceFactory;
 
-@SpringBootTest(
-    classes = {
-        JpaTestConfig.class,
-        DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class
-    },
-    webEnvironment = SpringBootTest.WebEnvironment.NONE
-)
-public class DataSourceSwitchingTest extends JpaTestBase {
+@SpringBootTest(classes = DataSourceSwitchingTest.DataSourceSwitchingTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+public class DataSourceSwitchingTest {
 
   private static final String DB1 = "db1";
   private static final String DB2 = "db2";
   private static final String CRON_MASTER = "cronMaster";
 
   @Inject
-  private TransactionalScope transactionalScope;
-  @Inject
   private DataSourceFactory dataSourceFactory;
   @Inject
   private RoutingDataSourceFactory routingDataSourceFactory;
   @Inject
   private DatabaseNameHolder databaseNameHolder;
+
+  @Inject
+  private DataSource routingDataSource;
 
   @Inject
   @Named("db1MasterDataSource")
@@ -113,8 +91,6 @@ public class DataSourceSwitchingTest extends JpaTestBase {
     reset(db2ReadOnlyDataSource);
     reset(db2SlowDataSource);
     reset(db2CronMasterDataSource);
-
-    databaseNameHolder.reset();
   }
 
   @AfterAll
@@ -124,49 +100,26 @@ public class DataSourceSwitchingTest extends JpaTestBase {
   }
 
   @Test
-  public void testDsManageInsideTxScope() throws Exception {
-    Executor executor = Executors.newFixedThreadPool(1);
-    CompletableFuture
-        .supplyAsync(
-            () -> {
-              Supplier<TestEntity> supplier = () -> entityManager.find(TestEntity.class, 1);
-              TargetMethod<TestEntity> method = () -> onDataSource(DataSourceType.READONLY, supplier);
-              return transactionalScope.read(method);
-            },
-            executor
-        )
-        .get();
-
-    verify(db1MasterDataSource, never()).getConnection();
-    verify(db1ReadOnlyDataSource, times(1)).getConnection();
-    verify(db1SlowDataSource, never()).getConnection();
-    verify(db1CronMasterDataSource, never()).getConnection();
-
-    verify(db2MasterDataSource, never()).getConnection();
-    verify(db2ReadOnlyDataSource, never()).getConnection();
-    verify(db2SlowDataSource, never()).getConnection();
-    verify(db2CronMasterDataSource, never()).getConnection();
-  }
-
-  @Test
-  public void testTxScopeDoesntChangeDs() throws Exception {
-    Executor executor = Executors.newFixedThreadPool(1);
-    CompletableFuture.supplyAsync(() -> invokeMethodOnDataSource(DataSourceType.READONLY), executor).get();
-
-    verify(db1MasterDataSource, never()).getConnection();
-    verify(db1ReadOnlyDataSource, times(1)).getConnection();
-    verify(db1SlowDataSource, never()).getConnection();
-    verify(db1CronMasterDataSource, never()).getConnection();
-
-    verify(db2MasterDataSource, never()).getConnection();
-    verify(db2ReadOnlyDataSource, never()).getConnection();
-    verify(db2SlowDataSource, never()).getConnection();
-    verify(db2CronMasterDataSource, never()).getConnection();
-  }
-
-  @Test
-  public void testRoutingToDb1() throws SQLException {
+  public void testRoutingToDb1ReadOnly() throws Exception {
     databaseNameHolder.setDatabaseName(DB1);
+
+    invokeMethodOnDataSource(DataSourceType.READONLY);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, times(1)).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, never()).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testRoutingToDb1Master() throws SQLException {
+    databaseNameHolder.setDatabaseName(DB1);
+
     invokeMethodOnDataSource(DataSourceType.MASTER);
 
     verify(db1MasterDataSource, times(1)).getConnection();
@@ -181,8 +134,26 @@ public class DataSourceSwitchingTest extends JpaTestBase {
   }
 
   @Test
-  public void testRoutingToDb2() throws SQLException {
+  public void testRoutingToDb2ReadOnly() throws Exception {
     databaseNameHolder.setDatabaseName(DB2);
+
+    invokeMethodOnDataSource(DataSourceType.READONLY);
+
+    verify(db1MasterDataSource, never()).getConnection();
+    verify(db1ReadOnlyDataSource, never()).getConnection();
+    verify(db1SlowDataSource, never()).getConnection();
+    verify(db1CronMasterDataSource, never()).getConnection();
+
+    verify(db2MasterDataSource, never()).getConnection();
+    verify(db2ReadOnlyDataSource, times(1)).getConnection();
+    verify(db2SlowDataSource, never()).getConnection();
+    verify(db2CronMasterDataSource, never()).getConnection();
+  }
+
+  @Test
+  public void testRoutingToDb2Master() throws SQLException {
+    databaseNameHolder.setDatabaseName(DB2);
+
     invokeMethodOnDataSource(DataSourceType.MASTER);
 
     verify(db1MasterDataSource, never()).getConnection();
@@ -198,8 +169,10 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
   @Test
   public void testSwitchingIfSecondaryDataSourceIsNotPresentOnDb1() throws Exception {
+    databaseNameHolder.setDatabaseName(DB1);
+
     doThrow(UnhealthyDataSourceException.class).when(db1SlowDataSource).getConnection();
-    Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> invokeMethodOnDataSource(DataSourceType.SLOW));
     assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
 
     verify(db1MasterDataSource, never()).getConnection();
@@ -218,7 +191,7 @@ public class DataSourceSwitchingTest extends JpaTestBase {
     databaseNameHolder.setDatabaseName(DB2);
 
     doThrow(UnhealthyDataSourceException.class).when(db2SlowDataSource).getConnection();
-    Exception ex = invokeMethodOnDataSourceWithException(DataSourceType.SLOW);
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> invokeMethodOnDataSource(DataSourceType.SLOW));
     assertTrue(ex.getCause() instanceof UnhealthyDataSourceException);
 
     verify(db1MasterDataSource, never()).getConnection();
@@ -234,6 +207,8 @@ public class DataSourceSwitchingTest extends JpaTestBase {
 
   @Test
   public void testSwitchingIfSecondaryDataSourceIsPresentOnDb1() throws Exception {
+    databaseNameHolder.setDatabaseName(DB1);
+
     doThrow(UnhealthyDataSourceException.class).when(db1CronMasterDataSource).getConnection();
     invokeMethodOnDataSource(CRON_MASTER);
 
@@ -280,35 +255,32 @@ public class DataSourceSwitchingTest extends JpaTestBase {
     assertEquals("Secondary datasource master is not configured", ex.getMessage());
   }
 
-  private TestEntity invokeMethodOnDataSource(String dataSource) {
-    TargetMethod<TestEntity> method = () -> entityManager.find(TestEntity.class, 1);
-    return onDataSource(dataSource, () -> transactionalScope.read(method));
-  }
-
-  private Exception invokeMethodOnDataSourceWithException(String dataSource) {
-    TargetMethod<TestEntity> method = () -> entityManager.find(TestEntity.class, 1);
-    PersistenceException ex = assertThrows(
-        PersistenceException.class,
-        () -> onDataSource(dataSource, () -> transactionalScope.read(method))
-    );
-    return ex;
+  private void invokeMethodOnDataSource(String dataSource) {
+    onDataSource(dataSource, () -> {
+      try {
+        return routingDataSource.getConnection();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Configuration
   static class DataSourceSwitchingTestConfig {
 
     @Bean
-    DataSourceFactory dataSourceFactory(StatsDSender statsDSender, DatabaseSwitcher databaseSwitcher) {
-      return new EmbeddedPostgresDataSourceFactory(
-          new NabMetricsTrackerFactoryProvider(NabTestConfig.TEST_SERVICE_NAME, statsDSender),
-          new HealthCheckHikariDataSourceFactory(NabTestConfig.TEST_SERVICE_NAME, statsDSender) {
-            @Override
-            public HikariDataSource create(HikariConfig hikariConfig) {
-              return spy(super.create(hikariConfig));
-            }
-          },
-          databaseSwitcher
-      );
+    DatabaseSwitcher databaseSwitcher(DatabaseNameHolder databaseNameHolder) {
+      return new DatabaseSwitcher(databaseNameHolder::getDatabaseName);
+    }
+
+    @Bean
+    DatabaseNameHolder databaseNameHolder() {
+      return new DatabaseNameHolder();
+    }
+
+    @Bean
+    DataSourceFactory dataSourceFactory(DatabaseSwitcher databaseSwitcher) {
+      return new TestDataSourceFactory(databaseSwitcher);
     }
 
     @Bean
@@ -406,26 +378,6 @@ public class DataSourceSwitchingTest extends JpaTestBase {
       return routingDataSource;
     }
 
-    @Bean
-    DatabaseSwitcher databaseSwitcher(DatabaseNameHolder databaseNameHolder) {
-      return new DatabaseSwitcher(databaseNameHolder::getDatabaseName);
-    }
-
-    @Bean
-    MappingConfig mappingConfig() {
-      return new MappingConfig(TestEntity.class);
-    }
-
-    @Bean
-    TransactionalScope transactionalScope() {
-      return new TransactionalScope();
-    }
-
-    @Bean
-    DatabaseNameHolder databaseNameHolder() {
-      return new DatabaseNameHolder();
-    }
-
     private static Properties createProperties(String dataSourceName) {
       Properties properties = new Properties();
       properties.setProperty(dataSourceName + ".pool.maximumPoolSize", "2");
@@ -433,44 +385,24 @@ public class DataSourceSwitchingTest extends JpaTestBase {
     }
 
     private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String databaseName, String dataSourceType, Properties properties) {
-      DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, new FileSettings(properties)));
       try {
+        DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, new FileSettings(properties)));
         var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
-        HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
-        when(failedHealthCheck.check()).thenReturn(HealthCheck.Result.unhealthy("Data source is unhealthy"));
-        when(healthCheckHikariDataSource.getHealthCheck()).thenReturn(failedHealthCheck);
+        if (healthCheckHikariDataSource != null) {
+          HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);
+          when(failedHealthCheck.check()).thenReturn(HealthCheck.Result.unhealthy("Data source is unhealthy"));
+          when(healthCheckHikariDataSource.getHealthCheck()).thenReturn(failedHealthCheck);
+        }
+        return dataSource;
       } catch (SQLException e) {
-        // empty
+        throw new RuntimeException(e);
       }
-      return dataSource;
-    }
-  }
-
-  @FunctionalInterface
-  interface TargetMethod<T> {
-    T invoke();
-  }
-
-  static class TransactionalScope {
-
-    @Transactional(readOnly = true)
-    public <T> T read(TargetMethod<T> method) {
-      return method.invoke();
-    }
-
-    @Transactional
-    public <T> T write(TargetMethod<T> method) {
-      return method.invoke();
     }
   }
 
   static class DatabaseNameHolder {
 
-    private String databaseName = DB1;
-
-    public void reset() {
-      databaseName = DB1;
-    }
+    private String databaseName;
 
     public String getDatabaseName() {
       return databaseName;

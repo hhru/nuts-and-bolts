@@ -1,14 +1,18 @@
 package ru.hh.nab.datasource;
 
 import jakarta.inject.Inject;
+import javax.sql.DataSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
@@ -17,14 +21,12 @@ import static ru.hh.nab.datasource.routing.DataSourceContext.onReplica;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onSlowReplica;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
+import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
-import ru.hh.nab.testbase.transaction.TransactionTestBase;
 
-@SpringBootTest(classes = DataSourceTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = DataSourceContextTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataSourceContextTest extends TransactionTestBase {
 
-  @Inject
-  private PlatformTransactionManager transactionManager;
   @Inject
   private TransactionalScope transactionalScope;
 
@@ -59,21 +61,14 @@ public class DataSourceContextTest extends TransactionTestBase {
     assertIsCurrentDataSourceMaster();
   }
 
-  private static void assertIsCurrentDataSourceMaster() {
-    assertEquals(MASTER, getDataSourceName());
-    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
-  }
-
   @Test
   public void testOnReplicaInTransaction() {
-    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-    assertThrows(IllegalStateException.class, () -> transactionTemplate.execute(transactionStatus -> onReplica(() -> null)));
+    assertThrows(IllegalStateException.class, () -> transactionalScope.write(() -> onReplica(() -> null)));
   }
 
   @Test
   public void testOnSlowReplicaInTransaction() {
-    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-    assertThrows(IllegalStateException.class, () -> transactionTemplate.execute(transactionStatus -> onSlowReplica(() -> null)));
+    assertThrows(IllegalStateException.class, () -> transactionalScope.write(() -> onSlowReplica(() -> null)));
   }
 
   @Test
@@ -86,5 +81,22 @@ public class DataSourceContextTest extends TransactionTestBase {
   public void testTxScopeDoesntChangeDs() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
     DataSourceContext.onDataSource(DataSourceType.SLOW, () -> transactionalScope.read(dataSourceCheck));
+  }
+
+  private void assertIsCurrentDataSourceMaster() {
+    assertEquals(MASTER, getDataSourceName());
+    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
+  }
+
+  @Configuration
+  @EnableTransactionManagement
+  @Import(TransactionalScope.class)
+  public static class TestConfiguration {
+
+    @Bean
+    public DataSourceContextTransactionManager transactionManager() {
+      DataSource dataSource = new TestDataSourceFactory().createMockDataSource();
+      return new DataSourceContextTransactionManager(new DataSourceTransactionManager(dataSource));
+    }
   }
 }

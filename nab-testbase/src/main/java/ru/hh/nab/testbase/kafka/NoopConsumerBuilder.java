@@ -38,6 +38,11 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withDlq(KafkaProducer kafkaProducer, String destination) {
+    return this;
+  }
+
+  @Override
   public ConsumerBuilder<T> withLogger(Logger logger) {
     return this;
   }

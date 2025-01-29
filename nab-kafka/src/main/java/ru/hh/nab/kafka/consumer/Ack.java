@@ -19,6 +19,7 @@ public interface Ack<T> {
    * It blocks thread until both offsets have been committed to kafka and all retry futures for current batch have been completed.
    */
   void acknowledge();
+  void nAcknowledge();
 
   /**
    * Move both Kafka committedOffset and fetchOffset
@@ -33,6 +34,8 @@ public interface Ack<T> {
    * @param message - object containing information about topic, partition and offset to use to move offsets
    */
   void acknowledge(ConsumerRecord<String, T> message);
+  void nAcknowledge(ConsumerRecord<String, T> message);
+
 
   /**
    * Move both Kafka committedOffset and fetchOffset
@@ -47,6 +50,7 @@ public interface Ack<T> {
    * @param messages - collection of objects containing information about topic, partition and offset to use to move offsets
    */
   void acknowledge(Collection<ConsumerRecord<String, T>> messages);
+  void nAcknowledge(Collection<ConsumerRecord<String, T>> messages);
 
   /**
    * Move fetchOffset of the message topic and partition to the position next after message offset.

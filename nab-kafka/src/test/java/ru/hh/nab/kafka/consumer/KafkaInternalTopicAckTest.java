@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +44,8 @@ class KafkaInternalTopicAckTest {
   @Mock
   KafkaConsumer<String> kafkaConsumer;
   @Mock
+  KafkaProducer dlqKafkaProducer;
+  @Mock
   Consumer<?, ?> nativeKafkaConsumer;
   @Mock
   RetryService<String> retryService;
@@ -52,7 +56,8 @@ class KafkaInternalTopicAckTest {
     consumingState = new ConsumerConsumingState<>();
     consumingState.prepareForNextBatch(ALL_CONSUMER_RECORDS);
     when(kafkaConsumer.getConsumingState()).thenReturn(consumingState);
-    ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryService);
+    String dlqTopicName = UUID.randomUUID().toString();
+    ack = new KafkaInternalTopicAck<>(dlqKafkaProducer, dlqTopicName, kafkaConsumer, nativeKafkaConsumer, retryService);
   }
 
   public Stream<Executable> acknowledgeMethods() {

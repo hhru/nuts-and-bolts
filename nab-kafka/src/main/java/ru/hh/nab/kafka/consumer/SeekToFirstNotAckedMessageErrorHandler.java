@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.util.Optional;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.slf4j.Logger;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -19,7 +20,11 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
   private final BackOff backOff;
   private final KafkaConsumer<T> kafkaConsumer;
 
-  public SeekToFirstNotAckedMessageErrorHandler(Logger logger, BackOff backOff, KafkaConsumer<T> kafkaConsumer) {
+  public SeekToFirstNotAckedMessageErrorHandler(
+      Logger logger,
+      BackOff backOff,
+      KafkaConsumer<T> kafkaConsumer
+  ) {
     this.logger = logger;
     this.backOff = backOff;
     this.kafkaConsumer = kafkaConsumer;
@@ -60,6 +65,21 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
           Thread.currentThread().interrupt();
         }
       }
+    }
+  }
+
+  @Override
+  public void handleOtherException(Exception thrownException, Consumer<?, ?> consumer, MessageListenerContainer container, boolean batchListener) {
+    if (thrownException instanceof RecordDeserializationException se) {
+      try {
+        logger.debug("Skipping message of partition {} with offset {}", se.topicPartition(), se.offset());
+        consumer.seek(se.topicPartition(), se.offset() + 1);
+        consumer.commitSync();
+      } catch (Exception e) {
+        logger.error("Failed to skip malformed message", e);
+      }
+    } else {
+      CommonErrorHandler.super.handleOtherException(thrownException, consumer, container, batchListener);
     }
   }
 

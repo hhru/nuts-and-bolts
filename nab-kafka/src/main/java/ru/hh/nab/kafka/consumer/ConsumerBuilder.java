@@ -88,6 +88,18 @@ public interface ConsumerBuilder<T> {
     );
   }
 
+  /**
+   * Dead letter queue. Defines destination where messages will be sent in case of unexpected situations.
+   * Message is sent to DLQ in case of  :
+   * 1) Explicit intention by calling Ack#nAcknowledge
+   * 2) Retry budget exhaustion
+   *
+   * @param dlqProducer kafka producer to DLQ
+   * @param destination topic name of a DLQ
+   * @return builder
+   */
+  ConsumerBuilder<T> withDlq(KafkaProducer dlqProducer, String destination);
+
   ConsumerBuilder<T> withLogger(Logger logger);
 
   /**

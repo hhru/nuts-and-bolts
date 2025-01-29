@@ -47,6 +47,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private Logger logger;
   private AckProvider<T> ackProvider;
 
+  private KafkaProducer dlqProducer;
+  private String deadLetterQueueDestination;
+
   public DefaultConsumerBuilder(DefaultConsumerFactory consumerFactory, String topicName, Class<T> messageClass) {
     this.topicName = topicName;
     this.messageClass = messageClass;
@@ -81,6 +84,13 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withDlq(KafkaProducer dlqProducer, String destination) {
+    this.dlqProducer = dlqProducer;
+    this.deadLetterQueueDestination = destination;
+    return this;
+  }
+
+  @Override
   public DefaultConsumerBuilder<T> withLogger(Logger logger) {
     this.logger = logger;
     return this;
@@ -89,7 +99,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   @Override
   public DefaultConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
-    this.ackProvider = KafkaInternalTopicAck::new;
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
+      return new KafkaInternalTopicAck<>(dlqProducer, deadLetterQueueDestination, kafkaConsumer, nativeKafkaConsumer, retryService);
+    };
     return this;
   }
 
@@ -97,7 +109,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> new InMemorySeekOnlyAck<>(kafkaConsumer);
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
+      return new InMemorySeekOnlyAck<>(dlqProducer, deadLetterQueueDestination, kafkaConsumer);
+    };
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     return this;
   }
@@ -129,7 +143,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
           retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
         }
-        retryService = new RetryService<>(retryProducer, retryTopics, retryPolicyResolver);
+        retryService = new RetryService<>(dlqProducer, retryProducer, retryTopics, retryPolicyResolver, deadLetterQueueDestination);
         retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
       }
       return buildKafkaConsumerForConsumerGroup(

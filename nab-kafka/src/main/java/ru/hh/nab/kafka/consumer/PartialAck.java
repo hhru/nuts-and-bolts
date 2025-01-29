@@ -19,13 +19,28 @@ class PartialAck<T> implements Ack<T> {
   }
 
   @Override
+  public void nAcknowledge() {
+    delegate.nAcknowledge(messagesReadyForAcknowledge);
+  }
+
+  @Override
   public void acknowledge(ConsumerRecord<String, T> message) {
     delegate.acknowledge(message);
   }
 
   @Override
+  public void nAcknowledge(ConsumerRecord<String, T> message) {
+    delegate.nAcknowledge(message);
+  }
+
+  @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
     delegate.acknowledge(messages);
+  }
+
+  @Override
+  public void nAcknowledge(Collection<ConsumerRecord<String, T>> messages) {
+    delegate.nAcknowledge(messages);
   }
 
   @Override

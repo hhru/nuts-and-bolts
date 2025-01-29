@@ -1,11 +1,9 @@
 package ru.hh.nab.web.exceptions;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static jakarta.ws.rs.core.MediaType.TEXT_HTML_TYPE;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
@@ -19,83 +17,92 @@ import java.sql.SQLTransientConnectionException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.IntStream;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.exception.JDBCConnectionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_HTML;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor;
-import ru.hh.nab.testbase.web.WebTestBase;
 import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
 
-@SpringBootTest(
-    classes = {NabWebTestConfig.class, NabExceptionMappersTest.TestResource.class},
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-public class NabExceptionMappersTest extends WebTestBase {
+@SpringBootTest(classes = NabExceptionMappersTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class NabExceptionMappersTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  @Inject
+  private TestRestTemplate testRestTemplate;
+
   @Test
   public void testNabExceptionMappers() throws IOException {
-    Response response = resourceHelper.executeGet("/iae");
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/iae", String.class);
 
-    assertEquals(BAD_REQUEST.getStatusCode(), response.getStatus());
+    assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusCode().value());
     assertEquals("IAE", getErrorDescription(response));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/ise");
+    response = testRestTemplate.getForEntity("/ise", String.class);
 
-    assertEquals(CONFLICT.getStatusCode(), response.getStatus());
+    assertEquals(CONFLICT.getStatusCode(), response.getStatusCode().value());
     assertEquals("ISE", getErrorDescription(response));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/se");
+    response = testRestTemplate.getForEntity("/se", String.class);
 
-    assertEquals(FORBIDDEN.getStatusCode(), response.getStatus());
+    assertEquals(FORBIDDEN.getStatusCode(), response.getStatusCode().value());
     assertEquals("SE", getErrorDescription(response));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/wae");
+    response = testRestTemplate.exchange(RequestEntity.get("/wae").accept(TEXT_HTML).build(), String.class);
 
-    assertEquals(UNAUTHORIZED.getStatusCode(), response.getStatus());
-    assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
+    assertEquals(UNAUTHORIZED.getStatusCode(), response.getStatusCode().value());
+    assertEquals(TEXT_HTML, new MediaType(response.getHeaders().getContentType().getType(), response.getHeaders().getContentType().getSubtype()));
 
-    response = resourceHelper.executeGet("/connectionTimeout");
+    response = testRestTemplate.getForEntity("/connectionTimeout", String.class);
 
-    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatusCode().value());
 
-    response = resourceHelper.executeGet("/connectionTimeoutWrapped");
+    response = testRestTemplate.getForEntity("/connectionTimeoutWrapped", String.class);
 
-    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatusCode().value());
 
-    response = resourceHelper.executeGet("/connectionTimeoutWrappedWithIllegalState");
+    response = testRestTemplate.getForEntity("/connectionTimeoutWrappedWithIllegalState", String.class);
 
-    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatusCode().value());
 
-    response = resourceHelper.executeGet("/any");
+    response = testRestTemplate.getForEntity("/any", String.class);
 
-    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatusCode().value());
     assertEquals("Any exception", getErrorDescription(response));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/notFound");
+    response = testRestTemplate.exchange(RequestEntity.get("/notFound").accept(TEXT_HTML).build(), String.class);
 
-    assertEquals(NOT_FOUND.getStatusCode(), response.getStatus());
-    assertEquals(TEXT_HTML_TYPE, new MediaType(response.getMediaType().getType(), response.getMediaType().getSubtype()));
+    assertEquals(NOT_FOUND.getStatusCode(), response.getStatusCode().value());
+    assertEquals(TEXT_HTML, new MediaType(response.getHeaders().getContentType().getType(), response.getHeaders().getContentType().getSubtype()));
 
-    response = resourceHelper.executeGet("/rejectedExecution");
+    response = testRestTemplate.getForEntity("/rejectedExecution", String.class);
 
-    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatus());
+    assertEquals(SERVICE_PARTIALLY_UNAVAILABLE.getStatusCode(), response.getStatusCode().value());
   }
 
-  private String getErrorDescription(Response response) throws IOException {
-    return MAPPER.readValue(response.readEntity(String.class), Errors.class).getErrors().get(0).description;
+  private String getErrorDescription(ResponseEntity<String> response) throws IOException {
+    return MAPPER.readValue(response.getBody(), Errors.class).getErrors().get(0).description;
   }
 
   @Path("/")
@@ -179,5 +186,22 @@ public class NabExceptionMappersTest extends WebTestBase {
         //
       }
     };
+  }
+
+  @Configuration
+  @Import({NabWebTestConfig.class})
+  public static class TestConfiguration {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(TestResource.class);
+      resourceConfig.register(AnyExceptionMapper.class);
+      resourceConfig.register(IllegalArgumentExceptionMapper.class);
+      resourceConfig.register(IllegalStateExceptionMapper.class);
+      resourceConfig.register(SecurityExceptionMapper.class);
+      resourceConfig.register(WebApplicationExceptionMapper.class);
+      return resourceConfig;
+    }
   }
 }

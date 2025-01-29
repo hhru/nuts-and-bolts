@@ -1,6 +1,6 @@
 package ru.hh.nab.web.resource;
 
-import jakarta.ws.rs.HttpMethod;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -9,22 +9,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.WebTestBase;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
 import ru.hh.nab.web.NabWebTestConfig;
+import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_NAME;
+import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_VERSION;
 
 @SpringBootTest(classes = NabWebTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class StatusResourceTest extends WebTestBase {
+public class StatusResourceTest {
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @Test
   public void testStatusResponse() {
-    try (Response response = resourceHelper.createRequest("/status").build(HttpMethod.GET).invoke()) {
-      assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-      Project project = response.readEntity(Project.class);
-      assertEquals(NabTestConfig.TEST_SERVICE_NAME, project.name);
-      assertEquals(NabTestConfig.TEST_SERVICE_VERSION, project.version);
-      assertTrue(project.uptime > 0);
-    }
+    ResponseEntity<Project> response = testRestTemplate.getForEntity("/status", Project.class);
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
+    Project project = response.getBody();
+    assertEquals(TEST_SERVICE_NAME, project.name);
+    assertEquals(TEST_SERVICE_VERSION, project.version);
+    assertTrue(project.uptime > 0);
   }
 
   @XmlRootElement

@@ -1,4 +1,4 @@
-package ru.hh.nab.web.jersey;
+package ru.hh.nab.web.jersey.resolver;
 
 import jakarta.inject.Inject;
 import java.util.Properties;
@@ -16,7 +16,6 @@ import static org.springframework.http.RequestEntity.get;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_NAME;
-import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 
 @SpringBootTest(classes = XmlTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class XmlTest {

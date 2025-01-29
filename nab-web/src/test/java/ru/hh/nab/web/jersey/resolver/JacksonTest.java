@@ -1,4 +1,4 @@
-package ru.hh.nab.web.jersey;
+package ru.hh.nab.web.jersey.resolver;
 
 import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Import;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.RequestEntity.get;
 import ru.hh.nab.web.NabWebTestConfig;
-import ru.hh.nab.web.jersey.resolver.ObjectMapperContextResolver;
 
 @SpringBootTest(classes = JacksonTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class JacksonTest {

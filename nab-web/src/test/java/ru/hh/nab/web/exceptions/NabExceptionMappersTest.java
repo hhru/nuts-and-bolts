@@ -1,5 +1,6 @@
 package ru.hh.nab.web.exceptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -18,7 +19,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.IntStream;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.hibernate.exception.JDBCConnectionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
@@ -32,7 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
@@ -146,13 +145,13 @@ public class NabExceptionMappersTest {
     @GET
     @Path("/connectionTimeoutWrapped")
     public Response connectionTimeoutWrapped() {
-      throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException());
+      throw new RuntimeException("Could not connect", new SQLTransientConnectionException());
     }
 
     @GET
     @Path("/connectionTimeoutWrappedWithIllegalState")
     public Response connectionTimeoutWrappedWithIllegal() {
-      throw new JDBCConnectionException("Could not connect", new SQLTransientConnectionException(new IllegalStateException()));
+      throw new RuntimeException("Could not connect", new SQLTransientConnectionException(new IllegalStateException()));
     }
 
     @GET

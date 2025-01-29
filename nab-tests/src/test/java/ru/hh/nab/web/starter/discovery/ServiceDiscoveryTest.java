@@ -1,25 +1,31 @@
 package ru.hh.nab.web.starter.discovery;
 
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.BeanCreationException;
+import org.mockito.stubbing.Answer;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.context.WebServerApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,130 +33,78 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import ru.hh.consul.AgentClient;
-import ru.hh.consul.Consul;
 import ru.hh.consul.KeyValueClient;
 import ru.hh.consul.config.ClientConfig;
 import ru.hh.consul.monitoring.ClientEventCallback;
 import ru.hh.consul.monitoring.ClientEventHandler;
-import ru.hh.consul.util.Address;
-import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import ru.hh.nab.consul.ConsulService;
-import static ru.hh.nab.consul.ConsulService.CONSUL_PROPERTIES_PREFIX;
-import ru.hh.nab.testbase.NabTestConfig;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_TAGS_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
+import ru.hh.nab.consul.ConsulServiceException;
+import ru.hh.nab.web.starter.configuration.NabConsulConfiguration;
 
 public class ServiceDiscoveryTest {
 
-  @Test
-  public void testServiceIsUpOnConsulRegistration() {
-    ConsulResponseHolder consulResponseHolder = new ConsulResponseHolder();
-
-    class ContextRefreshedEventEventListener implements ApplicationListener<ContextRefreshedEvent> {
-      @Override
-      public void onApplicationEvent(ContextRefreshedEvent event) {
-        WebServerApplicationContext context = (WebServerApplicationContext) event.getApplicationContext();
-        ConsulService consulService = context.getBean(ConsulService.class);
-        doAnswer(invocation -> {
-          Invocation.Builder statusReq = ClientBuilder
-              .newBuilder()
-              .build()
-              .target(UriBuilder.fromUri("http://localhost").port(context.getWebServer().getPort()).build())
-              .path("status")
-              .request();
-          consulResponseHolder.setResponse(statusReq.get());
-          return null;
-        })
-            .when(consulService)
-            .register();
-      }
-    }
-
-    ConfigurableApplicationContext context = new SpringApplicationBuilder(BaseConsulConfig.class)
-        .listeners(new ContextRefreshedEventEventListener())
-        .run();
-
-    assertEquals(Response.Status.OK.getStatusCode(), consulResponseHolder.getResponse().getStatus());
-
-    SpringApplication.exit(context);
-  }
+  private static final String TEST_SERVICE_NAME = "test-service";
+  private static final String TEST_SERVICE_VERSION = "test-version";
+  private static final String TEST_NODE_NAME = "testNode";
 
   @Test
-  public void testServiceIsUpOnConsulDeregistration() {
-    ConsulResponseHolder consulResponseHolder = new ConsulResponseHolder();
-
-    class ContextRefreshedEventEventListener implements ApplicationListener<ContextRefreshedEvent> {
-      @Override
-      public void onApplicationEvent(ContextRefreshedEvent event) {
-        WebServerApplicationContext context = (WebServerApplicationContext) event.getApplicationContext();
-        ConsulService consulService = context.getBean(ConsulService.class);
-        doAnswer(invocation -> {
-          Invocation.Builder statusReq = ClientBuilder
-              .newBuilder()
-              .build()
-              .target(UriBuilder.fromUri("http://localhost").port(context.getWebServer().getPort()).build())
-              .path("status")
-              .request();
-          consulResponseHolder.setResponse(statusReq.get());
-          return null;
-        })
-            .when(consulService)
-            .deregister();
-      }
-    }
-
-    ConfigurableApplicationContext context = new SpringApplicationBuilder(BaseConsulConfig.class)
-        .listeners(new ContextRefreshedEventEventListener())
+  public void testServiceIsUpOnConsulRegistrationAndDeregistration() {
+    ConsulResponsesHolder consulResponsesHolder = new ConsulResponsesHolder();
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfiguration.class)
+        .listeners(consulResponsesHolder)
         .run();
     SpringApplication.exit(context);
 
-    assertEquals(Response.Status.OK.getStatusCode(), consulResponseHolder.getResponse().getStatus());
+    List<Response> consulResponses = consulResponsesHolder.getConsulResponses();
+    assertEquals(2, consulResponses.size());
+    assertEquals(Response.Status.OK.getStatusCode(), consulResponses.get(0).getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), consulResponses.get(1).getStatus());
   }
 
   @Test
   public void testFailWithoutConsul() {
-    BeanCreationException exception = assertThrows(
-        BeanCreationException.class,
-        () -> new SpringApplicationBuilder(BrokenConsulConfig.class).properties(Map.of(CONSUL_HTTP_PORT_PROPERTY, 123)).run()
+    ConsulServiceException exception = assertThrows(
+        ConsulServiceException.class,
+        () -> SpringApplication.run(TestConfiguration.class)
     );
-    assertEquals("consulClient", exception.getBeanName());
-    assertTrue(exception.getMessage().contains("Error connecting to Consul"));
+    assertEquals("Consul is unavailable", exception.getCause().getMessage());
   }
 
-  @Import(NabTestConfig.class)
-  @EnableAutoConfiguration
-  public static class BaseConsulConfig {
+  @Configuration
+  @ImportAutoConfiguration({
+      ServletWebServerFactoryAutoConfiguration.class,
+      JerseyAutoConfiguration.class,
+  })
+  @Import(NabConsulConfiguration.class)
+  public static class TestConfiguration {
 
     @Bean
-    ConsulService consulService(
-        InfrastructureProperties infrastructureProperties,
-        BuildProperties buildProperties,
-        ServerProperties serverProperties,
-        ConfigurableEnvironment environment,
-        AgentClient agentClient,
-        KeyValueClient keyValueClient
-    ) {
-      ConsulService consulService = new ConsulService(
+    public ResourceConfig resourceConfig() {
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(StatusResource.class);
+      return resourceConfig;
+    }
+
+    @Bean
+    ConsulService consulService(AgentClient agentClient, KeyValueClient keyValueClient) {
+      return spy(new ConsulService(
           agentClient,
           keyValueClient,
-          infrastructureProperties.getServiceName(),
-          buildProperties.getVersion(),
-          infrastructureProperties.getNodeName(),
-          serverProperties.getPort(),
-          EnvironmentUtils.getPropertiesStartWith(environment, CONSUL_PROPERTIES_PREFIX),
-          new HashSet<>(EnvironmentUtils.getPropertyAsStringList(environment, CONSUL_TAGS_PROPERTY))
-      );
-      return spy(consulService);
+          TEST_SERVICE_NAME,
+          TEST_SERVICE_VERSION,
+          TEST_NODE_NAME,
+          Integer.MIN_VALUE,
+          new Properties(),
+          Set.of()
+      ));
     }
 
     @Bean
     AgentClient agentClient() {
-      return mock(AgentClient.class);
+      AgentClient agentClient = mock(AgentClient.class);
+      doThrow(new IllegalStateException("Consul is unavailable")).when(agentClient).register(any(), any());
+      return agentClient;
     }
 
     @Bean
@@ -167,28 +121,39 @@ public class ServiceDiscoveryTest {
     }
   }
 
-  @Configuration
-  @Import(BaseConsulConfig.class)
-  public static class BrokenConsulConfig {
-    @Bean
-    AgentClient consulClient(Environment environment) {
-      Address hostAndPort = new Address(
-          environment.getProperty(CONSUL_HTTP_HOST_PROPERTY, "127.0.0.1"),
-          environment.getRequiredProperty(CONSUL_HTTP_PORT_PROPERTY, Integer.class)
-      );
-      return Consul.builder().withAddress(hostAndPort).build().agentClient();
+  private static class ConsulResponsesHolder implements ApplicationListener<ContextRefreshedEvent> {
+
+    private final List<Response> consulResponses = new ArrayList<>();
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+      WebServerApplicationContext context = (WebServerApplicationContext) event.getApplicationContext();
+      ConsulService consulService = context.getBean(ConsulService.class);
+      Answer<Void> statusEndpointRequest = invocation -> {
+        Invocation.Builder statusReq = ClientBuilder
+            .newBuilder()
+            .build()
+            .target(UriBuilder.fromUri("http://localhost").port(context.getWebServer().getPort()).build())
+            .path("status")
+            .request();
+        consulResponses.add(statusReq.get());
+        return null;
+      };
+      doAnswer(statusEndpointRequest).when(consulService).register();
+      doAnswer(statusEndpointRequest).when(consulService).deregister();
+    }
+
+    public List<Response> getConsulResponses() {
+      return consulResponses;
     }
   }
 
-  private static class ConsulResponseHolder {
-    private Response response;
+  @Path("/status")
+  public static class StatusResource {
 
-    public Response getResponse() {
-      return response;
-    }
-
-    public void setResponse(Response response) {
-      this.response = response;
+    @GET
+    public String status() {
+      return "ok";
     }
   }
 }

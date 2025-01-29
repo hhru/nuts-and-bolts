@@ -31,9 +31,7 @@ public interface ConsumerBuilder<T> {
    * @see RetryPolicyResolver
    * @see HeadersMessageMetadataProvider
    * */
-  default ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
-    return withRetries(retryProducer, retryPolicyResolver, RetryTopics.DEFAULT_SINGLE_TOPIC);
-  }
+  ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver);
 
   /**
    * Configures kafka consumer for retries via {@link Ack#retry(ConsumerRecord, Throwable)}
@@ -87,6 +85,18 @@ public interface ConsumerBuilder<T> {
         sleepIfNotReadyDuration
     );
   }
+
+  /**
+   * Dead letter queue. Defines destination where messages will be sent in case of unexpected situations.
+   * Message is sent to DLQ in case of  :
+   * 1) Explicit intention by calling Ack#nAcknowledge
+   * 2) Retry budget exhaustion
+   *
+   * @param destination topic name of a DLQ
+   * @param producer    kafka producer for DLQ destination
+   * @return builder
+   */
+  ConsumerBuilder<T> withDlq(String destination, KafkaProducer producer);
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

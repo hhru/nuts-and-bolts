@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 class PartialAck<T> implements Ack<T> {
@@ -24,8 +23,18 @@ class PartialAck<T> implements Ack<T> {
   }
 
   @Override
+  public void nAck(ConsumerRecord<String, T> message) {
+    delegate.nAck(message);
+  }
+
+  @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
     delegate.acknowledge(messages);
+  }
+
+  @Override
+  public void nAck(Collection<ConsumerRecord<String, T>> messages) {
+    delegate.nAck(messages);
   }
 
   @Override
@@ -39,7 +48,7 @@ class PartialAck<T> implements Ack<T> {
   }
 
   @Override
-  public CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
-    return delegate.retry(message, error);
+  public void retry(ConsumerRecord<String, T> message, Throwable error) {
+    delegate.retry(message, error);
   }
 }

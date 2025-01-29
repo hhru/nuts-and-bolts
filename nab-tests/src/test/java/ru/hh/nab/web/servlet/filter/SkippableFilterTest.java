@@ -1,35 +1,40 @@
 package ru.hh.nab.web.servlet.filter;
 
+import jakarta.inject.Inject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.web.WebTestBase;
+import org.springframework.http.ResponseEntity;
 import ru.hh.nab.web.NabWebTestConfig;
 
 @SpringBootTest(classes = SkippableFilterTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class SkippableFilterTest extends WebTestBase {
+public class SkippableFilterTest {
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @Test
   public void testSkippableFilterExclusions() {
-    Response response = resourceHelper.executeGet("/status");
-    assertNull(response.getHeaderString("x-passed-filter"));
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/status", String.class);
+    assertNull(response.getHeaders().get("x-passed-filter"));
   }
 
   @Test
   public void testSkippableFilterNoExclusions() {
-    Response response = resourceHelper.executeGet("/status-not");
-    assertEquals("true", response.getHeaderString("x-passed-filter"));
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/status-not", String.class);
+    assertEquals(List.of("true"), response.getHeaders().get("x-passed-filter"));
   }
 
   public static class AddHeaderSkippableFilter extends SkippableFilter {

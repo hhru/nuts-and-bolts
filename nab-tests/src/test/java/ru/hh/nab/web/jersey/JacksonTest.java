@@ -1,48 +1,53 @@
 package ru.hh.nab.web.jersey;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ru.hh.nab.testbase.web.WebTestBase;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.RequestEntity.get;
 import ru.hh.nab.web.NabWebTestConfig;
 import ru.hh.nab.web.jersey.resolver.ObjectMapperContextResolver;
 
 @SpringBootTest(classes = JacksonTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class JacksonTest extends WebTestBase {
+public class JacksonTest {
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @Test
   public void testJacksonJaxb() {
-    var response = resourceHelper.createRequest("/").accept(APPLICATION_JSON).get();
-    assertEquals("{\"string\":\"test\"}", response.readEntity(String.class));
+    var response = testRestTemplate.exchange(get("/").accept(APPLICATION_JSON).build(), String.class);
+    assertEquals("{\"string\":\"test\"}", response.getBody());
 
-    response = resourceHelper.createRequest("/0C").accept(APPLICATION_JSON).get();
-    assertEquals("{\"string\":\"\uFFFD\"}", response.readEntity(String.class));
+    response = testRestTemplate.exchange(get("/0C").accept(APPLICATION_JSON).build(), String.class);
+    assertEquals("{\"string\":\"\uFFFD\"}", response.getBody());
 
-    response = resourceHelper.createRequest("/FFFE").accept(APPLICATION_JSON).get();
-    assertEquals("{\"string\":\"\uFFFD\"}", response.readEntity(String.class));
+    response = testRestTemplate.exchange(get("/FFFE").accept(APPLICATION_JSON).build(), String.class);
+    assertEquals("{\"string\":\"\uFFFD\"}", response.getBody());
 
-    response = resourceHelper.createRequest("/0A").accept(APPLICATION_JSON).get();
-    assertEquals("{\"string\":\"\\n\"}", response.readEntity(String.class));
+    response = testRestTemplate.exchange(get("/0A").accept(APPLICATION_JSON).build(), String.class);
+    assertEquals("{\"string\":\"\\n\"}", response.getBody());
 
-    response = resourceHelper.createRequest("/special").accept(APPLICATION_JSON).get();
-    assertEquals("{\"string\":\"&<\"}", response.readEntity(String.class));
+    response = testRestTemplate.exchange(get("/special").accept(APPLICATION_JSON).build(), String.class);
+    assertEquals("{\"string\":\"&<\"}", response.getBody());
   }
 
   @Configuration
-  @Import({
-      NabWebTestConfig.class,
-      TestResource.class,
-  })
+  @Import(NabWebTestConfig.class)
   public static class TestConfiguration {
 
     @Bean
     public ResourceConfig resourceConfig() {
-      return new ResourceConfig().register(ObjectMapperContextResolver.class);
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(ObjectMapperContextResolver.class);
+      resourceConfig.register(TestResource.class);
+      return resourceConfig;
     }
   }
 }

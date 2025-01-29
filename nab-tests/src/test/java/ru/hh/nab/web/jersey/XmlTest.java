@@ -1,36 +1,69 @@
 package ru.hh.nab.web.jersey;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_XML;
+import jakarta.inject.Inject;
+import java.util.Properties;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.hh.nab.testbase.web.WebTestBase;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.springframework.http.RequestEntity.get;
+import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.NabWebTestConfig;
+import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_NAME;
+import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
 
-@SpringBootTest(classes = {NabWebTestConfig.class, TestResource.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class XmlTest extends WebTestBase {
+@SpringBootTest(classes = XmlTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class XmlTest {
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @Test
   public void testFilteredXML() {
-    var response = resourceHelper.createRequest("/").accept(APPLICATION_XML).get();
-    assertEquals("test", response.readEntity(TestResource.DTO.class).string);
+    var dtoResponse = testRestTemplate.exchange(get("/").accept(APPLICATION_XML).build(), TestResource.DTO.class);
+    assertEquals("test", dtoResponse.getBody().string);
 
-    response = resourceHelper.createRequest("/0C").accept(APPLICATION_XML).get();
-    assertEquals("\uFFFD", response.readEntity(TestResource.DTO.class).string);
+    dtoResponse = testRestTemplate.exchange(get("/0C").accept(APPLICATION_XML).build(), TestResource.DTO.class);
+    assertEquals("\uFFFD", dtoResponse.getBody().string);
 
-    response = resourceHelper.createRequest("/FFFE").accept(APPLICATION_XML).get();
-    assertEquals("\uFFFD", response.readEntity(TestResource.DTO.class).string);
+    dtoResponse = testRestTemplate.exchange(get("/FFFE").accept(APPLICATION_XML).build(), TestResource.DTO.class);
+    assertEquals("\uFFFD", dtoResponse.getBody().string);
 
-    response = resourceHelper.createRequest("/special").accept(APPLICATION_XML).get();
+    var strResponse = testRestTemplate.exchange(get("/special").accept(APPLICATION_XML).build(), String.class);
     assertEquals(
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dto><string>&amp;&lt;</string></dto>",
-        response.readEntity(String.class)
+        strResponse.getBody()
     );
 
-    response = resourceHelper.createRequest("/0A").accept(APPLICATION_XML).get();
+    strResponse = testRestTemplate.exchange(get("/0A").accept(APPLICATION_XML).build(), String.class);
     assertEquals(
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dto><string>\n</string></dto>",
-        response.readEntity(String.class)
+        strResponse.getBody()
     );
+  }
+
+  @Configuration
+  @Import(NabWebTestConfig.class)
+  public static class TestConfiguration {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      MarshallerContextResolver contextResolver = new MarshallerContextResolver(
+          new Properties(),
+          TEST_SERVICE_NAME,
+          mock(StatsDSender.class)
+      );
+
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(TestResource.class);
+      resourceConfig.register(contextResolver);
+      return resourceConfig;
+    }
   }
 }

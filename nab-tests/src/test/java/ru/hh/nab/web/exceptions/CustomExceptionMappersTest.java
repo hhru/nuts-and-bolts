@@ -1,5 +1,6 @@
 package ru.hh.nab.web.exceptions;
 
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Path;
@@ -13,55 +14,63 @@ import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.testbase.web.WebTestBase;
 import ru.hh.nab.web.NabWebTestConfig;
 
 @SpringBootTest(classes = CustomExceptionMappersTest.CustomExceptionMapperConfig.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CustomExceptionMappersTest extends WebTestBase {
+public class CustomExceptionMappersTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  @Inject
+  private TestRestTemplate testRestTemplate;
+
   @Test
   public void testCustomExceptionMappers() throws IOException {
-    Response response = resourceHelper.executeGet("/iae");
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/iae", String.class);
 
-    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
-    assertEquals("Failed: IAE", response.readEntity(String.class));
-    assertEquals(TEXT_PLAIN_TYPE, response.getMediaType());
+    assertEquals(SERVICE_UNAVAILABLE.getStatusCode(), response.getStatusCode().value());
+    assertEquals("Failed: IAE", response.getBody());
+    assertEquals(MediaType.TEXT_PLAIN, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/any");
+    response = testRestTemplate.getForEntity("/any", String.class);
 
-    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatusCode().value());
     assertEquals("Any exception", getErrorDescription(response));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
 
-    response = resourceHelper.executeGet("/any?customSerializer=true");
+    response = testRestTemplate.getForEntity("/any?customSerializer=true", String.class);
 
-    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
-    assertEquals("{\"reason\":\"Any exception\"}", response.readEntity(String.class));
-    assertEquals(APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatusCode().value());
+    assertEquals("{\"reason\":\"Any exception\"}", response.getBody());
+    assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
   }
 
-  private String getErrorDescription(Response response) throws IOException {
-    return MAPPER.readValue(response.readEntity(String.class), Errors.class).getErrors().get(0).description;
+  private String getErrorDescription(ResponseEntity<String> response) throws IOException {
+    return MAPPER.readValue(response.getBody(), Errors.class).getErrors().get(0).description;
   }
 
   @Configuration
   @Import({
       NabWebTestConfig.class,
       CustomExceptionSerializer.class,
-      TestResource.class,
   })
   public static class CustomExceptionMapperConfig {
 
     @Bean
     public ResourceConfig resourceConfig() {
-      return new ResourceConfig().register(CustomExceptionMapper.class);
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(TestResource.class);
+      resourceConfig.register(AnyExceptionMapper.class);
+      resourceConfig.register(CustomExceptionMapper.class);
+      return resourceConfig;
     }
   }
 

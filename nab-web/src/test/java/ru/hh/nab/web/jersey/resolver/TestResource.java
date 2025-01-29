@@ -1,4 +1,4 @@
-package ru.hh.nab.web.jersey;
+package ru.hh.nab.web.jersey.resolver;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

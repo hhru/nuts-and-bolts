@@ -8,7 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -16,7 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.servlet.ServletFilterPriorities;
-import ru.hh.nab.web.NabWebTestConfig;
 
 public class RegistrationValidatorTest {
 
@@ -44,7 +48,8 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabWebTestConfig.class)
+  @Import(TestWebServerFactoryCustomizer.class)
+  @ImportAutoConfiguration(ServletWebServerFactoryAutoConfiguration.class)
   public static class ValidServletConfiguration {
     @Bean
     ServletRegistrationBean<HttpServlet> servlet1() {
@@ -58,7 +63,8 @@ public class RegistrationValidatorTest {
   }
 
   @Configuration
-  @Import(NabWebTestConfig.class)
+  @Import(TestWebServerFactoryCustomizer.class)
+  @ImportAutoConfiguration(ServletWebServerFactoryAutoConfiguration.class)
   public static class ConflictingServletConfiguration {
 
     private static final String CONFLICTING_URL = "/conflict";
@@ -75,6 +81,20 @@ public class RegistrationValidatorTest {
       ServletRegistrationBean<HttpServlet> registration = new ServletRegistrationBean<>(new DefaultServlet(), CONFLICTING_URL);
       registration.setOrder(ServletFilterPriorities.USER + 1);
       return registration;
+    }
+  }
+
+  private static class TestWebServerFactoryCustomizer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
+
+    private final ListableBeanFactory beanFactory;
+
+    private TestWebServerFactoryCustomizer(ListableBeanFactory beanFactory) {
+      this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void customize(JettyServletWebServerFactory factory) {
+      factory.addInitializers(new RegistrationValidator(beanFactory));
     }
   }
 }

@@ -8,6 +8,8 @@ import ru.hh.nab.common.properties.PropertiesUtils;
 
 public class StatsDClientFactory {
 
+  public static final String STATSD_PROPERTIES_PREFIX = "statsd";
+
   /**
    * The address of a StatsD server.
    * See constructor of {@link com.timgroup.statsd.NonBlockingStatsDClient} for additional information.

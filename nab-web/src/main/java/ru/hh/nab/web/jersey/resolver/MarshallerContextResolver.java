@@ -16,6 +16,7 @@ import ru.hh.nab.metrics.TaggedSender;
 
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
+  public static final String JAXB_CONTEXTS_PROPERTIES_PREFIX = "jaxbContexts";
   public static final String JAXB_CONTEXTS_MAX_COLLECTION_SIZE_PROPERTY = "jaxbContexts.max.collection.size";
   public static final int DEFAULT_JAXB_CONTEXTS_MAX_COLLECTION_SIZE = 256;
 

@@ -8,6 +8,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import ru.hh.nab.consul.ConsulTagsSupplier;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
+import static ru.hh.nab.web.logging.LogLevelOverrideApplier.LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
 
 @Configuration
@@ -18,7 +19,10 @@ public class NabLoggingConfiguration {
 
   @Bean
   public LogLevelOverrideApplier logLevelOverrideApplier(LogLevelOverrideExtension extension, ConfigurableEnvironment environment) {
-    return new LogLevelOverrideApplier(extension, EnvironmentUtils.getProperties(environment));
+    return new LogLevelOverrideApplier(
+        extension,
+        EnvironmentUtils.getPropertiesStartWith(environment, LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX)
+    );
   }
 
   @Bean

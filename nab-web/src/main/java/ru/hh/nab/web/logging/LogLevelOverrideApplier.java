@@ -19,6 +19,7 @@ import ru.hh.nab.common.properties.PropertiesUtils;
 
 public class LogLevelOverrideApplier {
 
+  public static final String LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX = "logLevelOverrideExtension";
   public static final String UPDATE_INTERVAL_IN_MINUTES_PROPERTY = "logLevelOverrideExtension.updateIntervalInMinutes";
   public static final int DEFAULT_INTERVAL_IN_MINUTES = 5;
 

@@ -12,6 +12,7 @@ import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import ru.hh.nab.metrics.factory.StatsDClientFactory;
+import static ru.hh.nab.metrics.factory.StatsDClientFactory.STATSD_PROPERTIES_PREFIX;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 
 @Configuration
@@ -38,6 +39,6 @@ public class NabMetricsConfiguration {
   @Bean
   @MainProfile
   public StatsDClient statsDClient(ConfigurableEnvironment environment) {
-    return StatsDClientFactory.createNonBlockingClient(EnvironmentUtils.getProperties(environment));
+    return StatsDClientFactory.createNonBlockingClient(EnvironmentUtils.getPropertiesStartWith(environment, STATSD_PROPERTIES_PREFIX));
   }
 }

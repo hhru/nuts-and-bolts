@@ -58,6 +58,7 @@ import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_PROPERTIES_PREFIX;
 import ru.hh.nab.testbase.NabTestConfig;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_NAME;
 import static ru.hh.nab.testbase.NabTestConfig.TEST_SERVICE_VERSION;
@@ -248,7 +249,7 @@ public class ConsulServiceTest {
           buildProperties.getVersion(),
           infrastructureProperties.getNodeName(),
           serverProperties.getPort(),
-          EnvironmentUtils.getProperties(environment),
+          EnvironmentUtils.getPropertiesStartWith(environment, CONSUL_PROPERTIES_PREFIX),
           new HashSet<>(EnvironmentUtils.getPropertyAsStringList(environment, CONSUL_TAGS_PROPERTY))
       );
       return spy(consulService);

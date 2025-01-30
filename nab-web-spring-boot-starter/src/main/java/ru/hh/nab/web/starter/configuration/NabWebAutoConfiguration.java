@@ -35,6 +35,7 @@ import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
+import static ru.hh.nab.web.jersey.resolver.MarshallerContextResolver.JAXB_CONTEXTS_PROPERTIES_PREFIX;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
@@ -88,7 +89,7 @@ public class NabWebAutoConfiguration {
   ) {
     Collection<Object> beansWithPathAnnotation = applicationContext.getBeansWithAnnotation(Path.class).values();
     MarshallerContextResolver marshallerContextResolver = new MarshallerContextResolver(
-        EnvironmentUtils.getProperties(environment),
+        EnvironmentUtils.getPropertiesStartWith(environment, JAXB_CONTEXTS_PROPERTIES_PREFIX),
         infrastructureProperties.getServiceName(),
         statsDSender
     );

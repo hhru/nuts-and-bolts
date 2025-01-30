@@ -20,6 +20,7 @@ import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.consul.ConsulFetcher;
 import ru.hh.nab.consul.ConsulMetricsTracker;
 import ru.hh.nab.consul.ConsulService;
+import static ru.hh.nab.consul.ConsulService.CONSUL_PROPERTIES_PREFIX;
 import ru.hh.nab.consul.ConsulTagsSupplier;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
@@ -115,7 +116,7 @@ public class NabConsulConfiguration {
           buildProperties.getVersion(),
           infrastructureProperties.getNodeName(),
           serverProperties.getPort(),
-          EnvironmentUtils.getProperties(environment),
+          EnvironmentUtils.getPropertiesStartWith(environment, CONSUL_PROPERTIES_PREFIX),
           tags
       );
     }

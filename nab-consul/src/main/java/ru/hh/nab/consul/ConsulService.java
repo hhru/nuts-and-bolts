@@ -30,6 +30,7 @@ public class ConsulService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConsulService.class);
 
+  public static final String CONSUL_PROPERTIES_PREFIX = "consul";
   public static final String CONSUL_SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String CONSUL_WAIT_AFTER_DEREGISTRATION_MILLIS_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";

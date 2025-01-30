@@ -9,7 +9,6 @@ Nuts-and-Bolts is a set of small Java libraries which are used in [hh.ru](https:
     * built-in off-heap server cache
     * built-in monitoring
     * logging filters
-    * websocket support
     
 * JDBC:
     * using multiple data sources (master, slaves)

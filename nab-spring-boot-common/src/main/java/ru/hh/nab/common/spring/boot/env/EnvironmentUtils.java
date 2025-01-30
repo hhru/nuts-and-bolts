@@ -6,12 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import static java.util.function.Function.identity;
-import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import ru.hh.nab.common.properties.PropertiesUtils;
 
 public final class EnvironmentUtils {
 
@@ -23,15 +22,7 @@ public final class EnvironmentUtils {
   }
 
   public static Properties getPropertiesStartWith(ConfigurableEnvironment environment, String prefix) {
-    String fullPrefix = prefix + ".";
-    Properties allProperties = getPropertiesInternal(environment);
-    Properties filteredProperties = new Properties();
-    allProperties
-        .stringPropertyNames()
-        .stream()
-        .filter(propertyName -> propertyName.startsWith(fullPrefix))
-        .forEach(propertyName -> filteredProperties.setProperty(propertyName, allProperties.getProperty(propertyName)));
-    return filteredProperties;
+    return PropertiesUtils.getPropertiesStartWith(getPropertiesInternal(environment), prefix);
   }
 
   public static Properties getSubProperties(ConfigurableEnvironment environment, String prefix) {
@@ -39,11 +30,7 @@ public final class EnvironmentUtils {
   }
 
   public static Map<String, ? extends String> getPropertiesAsMap(ConfigurableEnvironment configurableEnvironment) {
-    Properties properties = getPropertiesInternal(configurableEnvironment);
-    return properties
-        .stringPropertyNames()
-        .stream()
-        .collect(Collectors.toUnmodifiableMap(identity(), properties::getProperty));
+    return PropertiesUtils.getAsMap(getPropertiesInternal(configurableEnvironment));
   }
 
   public static String getNotEmptyPropertyOrThrow(Environment environment, String propertyKey) {

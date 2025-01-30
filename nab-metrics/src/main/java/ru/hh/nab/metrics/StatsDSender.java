@@ -7,7 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static ru.hh.nab.metrics.StatsDProperties.DEFAULT_SEND_INTERVAL_SECONDS;
 
 /**
  * A glue between aggregators ({@link Counters}, {@link Histogram}, etc.) and StatsDClient.<br/>
@@ -17,6 +16,7 @@ import static ru.hh.nab.metrics.StatsDProperties.DEFAULT_SEND_INTERVAL_SECONDS;
 public class StatsDSender {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StatsDSender.class);
+  public static final int DEFAULT_SEND_INTERVAL_SECONDS = 60;
   public static final int[] DEFAULT_PERCENTILES = {95, 99, 100};
 
   private final StatsDClient statsDClient;

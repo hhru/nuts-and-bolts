@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.ResourceConfigCustomizer;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -25,21 +24,22 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.RequestContextFilter;
 import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
+import ru.hh.nab.common.spring.boot.env.EnvironmentUtils;
 import ru.hh.nab.common.spring.boot.profile.MainProfile;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.jersey.resolver.MarshallerContextResolver;
+import static ru.hh.nab.web.jersey.resolver.MarshallerContextResolver.JAXB_CONTEXTS_PROPERTIES_PREFIX;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.nab.web.servlet.filter.CommonHeadersFilter;
 import ru.hh.nab.web.servlet.filter.RequestIdLoggingFilter;
-import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
-import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
-import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
 import ru.hh.nab.web.starter.jersey.NabResourceConfigCustomizer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -60,12 +60,9 @@ import ru.hh.nab.web.starter.jetty.NabJettyWebServerFactoryCustomizer;
     NabJettyWebServerFactoryCustomizer.class,
     NabJettyServerCustomizer.class,
 })
-@EnableConfigurationProperties({
-    ExtendedServerProperties.class,
-    HttpCacheProperties.class,
-    JaxbProperties.class,
-})
 public class NabWebAutoConfiguration {
+
+  public static final String HTTP_CACHE_SIZE_PROPERTY = "http.cache.sizeInMB";
 
   @Bean
   public MonitoredQueuedThreadPoolFactory monitoredQueuedThreadPoolFactory(
@@ -87,12 +84,12 @@ public class NabWebAutoConfiguration {
   public ResourceConfigCustomizer nabResourceConfigCustomizer(
       ApplicationContext applicationContext,
       InfrastructureProperties infrastructureProperties,
-      JaxbProperties jaxbProperties,
+      ConfigurableEnvironment environment,
       StatsDSender statsDSender
   ) {
     Collection<Object> beansWithPathAnnotation = applicationContext.getBeansWithAnnotation(Path.class).values();
     MarshallerContextResolver marshallerContextResolver = new MarshallerContextResolver(
-        jaxbProperties.getContextsMaxCollectionSize(),
+        EnvironmentUtils.getPropertiesStartWith(environment, JAXB_CONTEXTS_PROPERTIES_PREFIX),
         infrastructureProperties.getServiceName(),
         statsDSender
     );
@@ -147,13 +144,17 @@ public class NabWebAutoConfiguration {
 
   @Bean
   @MainProfile
-  @ConditionalOnProperty(HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY)
+  @ConditionalOnProperty(HTTP_CACHE_SIZE_PROPERTY)
   public CacheFilter cacheFilter(
       InfrastructureProperties infrastructureProperties,
-      HttpCacheProperties httpCacheProperties,
+      Environment environment,
       StatsDSender statsDSender
   ) {
-    return new CacheFilter(infrastructureProperties.getServiceName(), DataSize.ofMegabytes(httpCacheProperties.getSizeInMb()), statsDSender);
+    return new CacheFilter(
+        infrastructureProperties.getServiceName(),
+        DataSize.ofMegabytes(environment.getRequiredProperty(HTTP_CACHE_SIZE_PROPERTY, Integer.class)),
+        statsDSender
+    );
   }
 
   /**

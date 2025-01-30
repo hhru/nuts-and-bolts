@@ -25,24 +25,7 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
-        <!--Monitoring-->
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-metrics</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!--Testing-->
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-logging</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -53,7 +36,11 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,8 +15,13 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.nab.common.properties.PropertiesUtils;
 
 public class LogLevelOverrideApplier {
+
+  public static final String LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX = "logLevelOverrideExtension";
+  public static final String UPDATE_INTERVAL_IN_MINUTES_PROPERTY = "logLevelOverrideExtension.updateIntervalInMinutes";
+  public static final int DEFAULT_INTERVAL_IN_MINUTES = 5;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LogLevelOverrideApplier.class);
 
@@ -24,12 +30,10 @@ public class LogLevelOverrideApplier {
 
   private final LogLevelOverrideExtension extension;
   private final long updateInterval;
-  private final TimeUnit timeUnit;
 
-  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, long updateInterval, TimeUnit timeUnit) {
+  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, Properties properties) {
     this.extension = extension;
-    this.updateInterval = updateInterval;
-    this.timeUnit = timeUnit;
+    this.updateInterval = PropertiesUtils.getInteger(properties, UPDATE_INTERVAL_IN_MINUTES_PROPERTY, DEFAULT_INTERVAL_IN_MINUTES);
   }
 
   @PostConstruct
@@ -48,7 +52,7 @@ public class LogLevelOverrideApplier {
       } catch (RuntimeException e) {
         LOGGER.error("Could not apply log level overrides", e);
       }
-    }, updateInterval, updateInterval, timeUnit);
+    }, updateInterval, updateInterval, TimeUnit.MINUTES);
   }
 
   private void applyFilteredOverrides(Map<String, String> currentOverrides) {

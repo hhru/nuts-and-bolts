@@ -15,7 +15,6 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_CONFIG_TEMPLA
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.PRODUCER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_CONSUMER_CONFIG_TEMPLATE;
-import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class ConfigProviderTest {
@@ -172,7 +171,7 @@ public class ConfigProviderTest {
   }
 
   private static ConfigProvider createConfigProvider(FileSettings fileSettings) {
-    StatsDSender statsDSender = new StatsDSender(new NoOpStatsDClient(), new ScheduledExecutor(), StatsDProperties.DEFAULT_SEND_INTERVAL_SECONDS);
+    StatsDSender statsDSender = new StatsDSender(new NoOpStatsDClient(), new ScheduledExecutor(), StatsDSender.DEFAULT_SEND_INTERVAL_SECONDS);
     return new ConfigProvider(SERVICE_NAME, KAFKA_CLUSTER_NAME, fileSettings, statsDSender);
   }
 

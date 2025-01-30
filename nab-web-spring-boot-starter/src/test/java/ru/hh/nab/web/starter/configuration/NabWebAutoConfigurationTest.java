@@ -32,30 +32,24 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_VERSION;
 import static ru.hh.nab.common.spring.boot.profile.Profiles.MAIN;
 import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.consul.ConsulFetcher;
-import ru.hh.nab.consul.ConsulProperties;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_ENABLED_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_HOST_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PING_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_HTTP_PORT_PROPERTY;
-import static ru.hh.nab.consul.ConsulProperties.CONSUL_REGISTRATION_ENABLED_PROPERTY;
 import ru.hh.nab.consul.ConsulService;
 import ru.hh.nab.consul.ConsulTagsSupplier;
-import ru.hh.nab.metrics.StatsDProperties;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
 import ru.hh.nab.web.jersey.filter.CacheFilter;
 import ru.hh.nab.web.logging.LogLevelOverrideApplier;
 import ru.hh.nab.web.logging.LogLevelOverrideExtension;
-import ru.hh.nab.web.starter.configuration.properties.ExtendedServerProperties;
-import ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties;
-import static ru.hh.nab.web.starter.configuration.properties.HttpCacheProperties.HTTP_CACHE_SIZE_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_ENABLED_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_HOST_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PING_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_HTTP_PORT_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabConsulConfiguration.CONSUL_REGISTRATION_ENABLED_PROPERTY;
+import static ru.hh.nab.web.starter.configuration.NabWebAutoConfiguration.HTTP_CACHE_SIZE_PROPERTY;
 import ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTERS_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.DATACENTER_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.NODE_NAME_PROPERTY;
 import static ru.hh.nab.web.starter.configuration.properties.InfrastructureProperties.SERVICE_NAME_PROPERTY;
-import ru.hh.nab.web.starter.configuration.properties.JaxbProperties;
-import ru.hh.nab.web.starter.configuration.properties.LogLevelOverrideExtensionProperties;
 import ru.hh.nab.web.starter.discovery.ServiceDiscoveryInitializer;
 import ru.hh.nab.web.starter.jetty.MonitoredQueuedThreadPoolFactory;
 import ru.hh.nab.web.starter.jetty.NabJettyServerCustomizer;
@@ -140,13 +134,11 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).hasSingleBean(ConsulService.class);
           assertThat(context).hasSingleBean(ServiceDiscoveryInitializer.class);
           assertThat(context).hasSingleBean(ConsulFetcher.class);
-          assertThat(context).hasSingleBean(ConsulProperties.class);
 
           // metrics beans
           assertThat(context).hasSingleBean(StatsDSender.class);
           assertThat(context).hasSingleBean(JvmMetricsSender.class);
           assertThat(context).hasBean(STATSD_CLIENT_BEAN_NAME).getBean(STATSD_CLIENT_BEAN_NAME).isInstanceOf(StatsDClient.class);
-          assertThat(context).hasSingleBean(StatsDProperties.class);
 
           // scheduling beans
           assertThat(context).hasSingleBean(ScheduledExecutorService.class);
@@ -157,7 +149,6 @@ public class NabWebAutoConfigurationTest {
               .hasBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
               .getBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME)
               .isInstanceOf(ConsulTagsSupplier.class);
-          assertThat(context).hasSingleBean(LogLevelOverrideExtensionProperties.class);
 
           // web beans
           assertThat(context).hasSingleBean(NabJettyWebServerFactoryCustomizer.class);
@@ -182,9 +173,6 @@ public class NabWebAutoConfigurationTest {
               .getBean(REQUEST_CONTEXT_FILTER_BEAN_NAME)
               .isInstanceOf(SystemFilterRegistrationBean.class);
           assertThat(context).hasSingleBean(CacheFilter.class);
-          assertThat(context).hasSingleBean(ExtendedServerProperties.class);
-          assertThat(context).hasSingleBean(HttpCacheProperties.class);
-          assertThat(context).hasSingleBean(JaxbProperties.class);
         });
   }
 
@@ -203,7 +191,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(ConsulService.class);
           assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
-          assertThat(context).doesNotHaveBean(ConsulProperties.class);
         });
 
     // when consul.enabled=false
@@ -220,7 +207,6 @@ public class NabWebAutoConfigurationTest {
           assertThat(context).doesNotHaveBean(ConsulService.class);
           assertThat(context).doesNotHaveBean(ServiceDiscoveryInitializer.class);
           assertThat(context).doesNotHaveBean(ConsulFetcher.class);
-          assertThat(context).doesNotHaveBean(ConsulProperties.class);
         });
 
     // when consul.registration.enabled=false
@@ -268,7 +254,6 @@ public class NabWebAutoConfigurationTest {
         .withPropertyValues(infrastructureProperties)
         .withUserConfiguration(TestConfiguration.class)
         .run(context -> {
-          assertThat(context).doesNotHaveBean(LogLevelOverrideExtensionProperties.class);
           assertThat(context).doesNotHaveBean(LogLevelOverrideApplier.class);
           assertThat(context).doesNotHaveBean(LOG_LEVEL_OVERRIDE_CONSUL_TAG_SUPPLIER_BEAN_NAME);
         });
@@ -302,7 +287,7 @@ public class NabWebAutoConfigurationTest {
 
   @Test
   public void testSpringContextDoesNotContainCacheFilterBeanWithFailedConditions() {
-    // when http.cache.sizeInMb property doesn't exist
+    // when http.cache.sizeInMB property doesn't exist
     applicationContextRunner
         .withPropertyValues(mainProfileProperty)
         .withPropertyValues(infrastructureProperties)
@@ -344,7 +329,7 @@ public class NabWebAutoConfigurationTest {
               .hasFailed()
               .getFailure()
               .rootCause()
-              .isInstanceOf(BindValidationException.class)
+              .isInstanceOf(IllegalStateException.class)
               .hasMessageContaining(CONSUL_HTTP_PORT_PROPERTY);
         });
   }

@@ -31,7 +31,6 @@
         <module>nab-sentry</module>
         <module>nab-consul</module>
         <module>nab-spring-boot-common</module>
-        <module>nab-web-spring-boot-starter</module>
     </modules>
 
     <properties>
@@ -121,11 +120,6 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-spring-boot-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-web-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

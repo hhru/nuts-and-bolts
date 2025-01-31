@@ -1,1 +1,0 @@
-org.springframework.context.ApplicationListener=ru.hh.nab.sentry.starter.SentryInitializationApplicationListener

@@ -32,12 +32,14 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
-import ru.hh.nab.datasource.TransactionTestBase;
+import static ru.hh.nab.datasource.TransactionAssertions.assertActualTransactionIsNotActive;
+import static ru.hh.nab.datasource.TransactionAssertions.assertReadOnlyTransaction;
+import static ru.hh.nab.datasource.TransactionAssertions.assertReadWriteTransaction;
 import ru.hh.nab.datasource.routing.DataSourceContext;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 
 @SpringBootTest(classes = DataSourceContextTransactionManagerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class DataSourceContextTransactionManagerTest extends TransactionTestBase {
+public class DataSourceContextTransactionManagerTest {
 
   @Inject
   @Named("delegateTransactionManager")

@@ -18,7 +18,6 @@ import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import static ru.hh.nab.datasource.DataSourceType.SLOW;
 import ru.hh.nab.datasource.TestDataSourceFactory;
-import ru.hh.nab.datasource.TransactionTestBase;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onReplica;
 import static ru.hh.nab.datasource.routing.DataSourceContext.onSlowReplica;
 import static ru.hh.nab.datasource.routing.DataSourceContextUnsafe.getDataSourceName;
@@ -26,7 +25,7 @@ import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 
 @SpringBootTest(classes = DataSourceContextTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class DataSourceContextTest extends TransactionTestBase {
+public class DataSourceContextTest {
 
   @Inject
   private TransactionalScope transactionalScope;

@@ -30,13 +30,15 @@ import ru.hh.nab.datasource.DataSourceType;
 import static ru.hh.nab.datasource.DataSourceType.MASTER;
 import static ru.hh.nab.datasource.DataSourceType.READONLY;
 import ru.hh.nab.datasource.TestDataSourceFactory;
-import ru.hh.nab.datasource.TransactionTestBase;
+import static ru.hh.nab.datasource.TransactionAssertions.assertActualTransactionIsNotActive;
+import static ru.hh.nab.datasource.TransactionAssertions.assertReadOnlyTransaction;
+import static ru.hh.nab.datasource.TransactionAssertions.assertReadWriteTransaction;
 import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
 import ru.hh.nab.datasource.routing.DataSourceContextUnsafe;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 
 @SpringBootTest(classes = ExecuteOnDataSourceAspectTest.AspectConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class ExecuteOnDataSourceAspectTest extends TransactionTestBase {
+public class ExecuteOnDataSourceAspectTest {
 
   @Inject
   private ExecuteOnDataSourceAspect executeOnDataSourceAspect;

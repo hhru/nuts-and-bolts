@@ -6,20 +6,23 @@ import static org.springframework.transaction.support.TransactionSynchronization
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive;
 
-public class TransactionTestBase {
+public final class TransactionAssertions {
 
-  protected static void assertReadWriteTransaction() {
+  private TransactionAssertions() {
+  }
+
+  public static void assertReadWriteTransaction() {
     assertTrue(isSynchronizationActive());
     assertTrue(isActualTransactionActive());
     assertFalse(isCurrentTransactionReadOnly());
   }
 
-  protected static void assertReadOnlyTransaction() {
+  public static void assertReadOnlyTransaction() {
     assertTrue(isSynchronizationActive());
     assertFalse(isActualTransactionActive()); // means no transaction when @Transactional(readOnly=true) is used
   }
 
-  protected static void assertActualTransactionIsNotActive() {
+  public static void assertActualTransactionIsNotActive() {
     assertFalse(isSynchronizationActive());
     assertFalse(isActualTransactionActive());
   }

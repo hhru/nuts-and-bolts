@@ -1,4 +1,4 @@
-version: 10.1.5
+version: 10.1.6
 build_image: registry.pyn.ru/openjdk17-building:2024.05.01
 type: library
 build_method: mvn_build

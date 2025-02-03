@@ -101,7 +101,7 @@ public class TelemetryListenerTest {
     assertEquals("0000000000000000", span.getParentSpanId());
     assertEquals(url, attributes.get(SemanticAttributes.HTTP_URL));
     assertNull(attributes.get(InternalAttributeKeyImpl.create("http.request.cloud.region", AttributeType.STRING)));
-    assertEquals("unknown", attributes.get(InternalAttributeKeyImpl.create("destination.address", AttributeType.STRING)));
+    assertEquals("127.0.0.1", attributes.get(InternalAttributeKeyImpl.create("destination.address", AttributeType.STRING)));
   }
 
   @Test

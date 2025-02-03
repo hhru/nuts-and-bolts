@@ -129,7 +129,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
           retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
         }
-        retryService = new RetryService<>(retryProducer, retryTopics.retrySendTopic(), retryPolicyResolver);
+        retryService = new RetryService<>(retryProducer, retryTopics, retryPolicyResolver);
         retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
       }
       return buildKafkaConsumerForConsumerGroup(

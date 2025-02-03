@@ -25,10 +25,13 @@ import org.apache.kafka.common.header.Headers;
  *     "lastFailTime" : 1.7302115379555104E9
  *   }
  * </pre>
+ * <p>
+ * Topic name where application expects to receive retry message is stored in {@link #HEADER_RECEIVE_TOPIC}
  * */
 public class HeadersMessageMetadataProvider {
   public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-retry-message-processing-history";
   public static final String HEADER_NEXT_RETRY_TIME = "x-retry-next-retry-time";
+  public static final String HEADER_RECEIVE_TOPIC = "x-retry-receive-topic";
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .registerModule(new JavaTimeModule());
@@ -60,6 +63,17 @@ public class HeadersMessageMetadataProvider {
   }
 
   /**
+   * Get retry receive topic name from message headers
+   * */
+  public static Optional<String> getRetryReceiveTopic(Headers headers) {
+
+    return Optional
+        .ofNullable(headers.lastHeader(HEADER_RECEIVE_TOPIC))
+        .map(Header::value)
+        .map(value -> new String(value, StandardCharsets.UTF_8));
+  }
+
+  /**
    * Store {@link MessageProcessingHistory} to message headers
    * */
   public static void setMessageProcessingHistory(Headers headers, MessageProcessingHistory messageProcessingHistory) {
@@ -82,5 +96,16 @@ public class HeadersMessageMetadataProvider {
     headers
         .remove(HEADER_NEXT_RETRY_TIME)
         .add(HEADER_NEXT_RETRY_TIME, headerValue);
+  }
+
+  /**
+   * Store retry receive topic name to message headers
+   * */
+  public static void setRetryReceiveTopic(Headers headers, RetryTopics retryTopics) {
+    String receiveTopic = retryTopics.retryReceiveTopic();
+    byte[] headerValue = receiveTopic.getBytes(StandardCharsets.UTF_8);
+    headers
+        .remove(HEADER_RECEIVE_TOPIC)
+        .add(HEADER_RECEIVE_TOPIC, headerValue);
   }
 }

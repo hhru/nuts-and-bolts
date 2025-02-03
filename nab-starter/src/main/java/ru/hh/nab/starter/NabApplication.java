@@ -1,6 +1,9 @@
 package ru.hh.nab.starter;
 
+import io.sentry.EventProcessor;
+import io.sentry.Hint;
 import io.sentry.Sentry;
+import io.sentry.SentryEvent;
 import jakarta.servlet.ServletContextEvent;
 import java.lang.management.ManagementFactory;
 import static java.text.MessageFormat.format;
@@ -25,6 +28,8 @@ import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import ru.hh.nab.common.mdc.MDC;
+import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
@@ -133,6 +138,7 @@ public final class NabApplication {
         options.setEnableExternalConfiguration(true);
         options.setDsn(dsn);
         options.setRelease(System.getProperty(SENTRY_RELEASE_ENV));
+        options.addEventProcessor(new SentryEventProcessor());
       });
     }
   }
@@ -220,6 +226,26 @@ public final class NabApplication {
       webAppRootCtx.setServletContext(baseCtx.getServletContext());
     }
     return webAppRootCtx;
+  }
+
+  public static class SentryEventProcessor implements EventProcessor {
+
+    @Override
+    public SentryEvent process(SentryEvent event, Hint hint) {
+      MDC.getController().ifPresent(controller -> {
+        if (Optional.ofNullable(event.getFingerprints()).map(List::isEmpty).orElse(false)) {
+          event.setFingerprints(List.of("{{ default }}", controller));
+        } else {
+          List<String> fingerprints = event.getFingerprints();
+          if (!fingerprints.contains(controller)) {
+            fingerprints.add(controller);
+            event.setFingerprints(fingerprints);
+          }
+        }
+        event.setTag(CONTROLLER_MDC_KEY, controller);
+      });
+      return event;
+    }
   }
 
 }

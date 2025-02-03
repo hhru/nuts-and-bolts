@@ -40,17 +40,7 @@
         <dependency>
             <groupId>ru.hh.kafka.test</groupId>
             <artifactId>hh-kafka-test-utils</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-launcher</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.test-framework</groupId>
-            <artifactId>jersey-test-framework-core</artifactId>
+            <version>${kafka-test-utils.version}</version>
         </dependency>
 
         <dependency>

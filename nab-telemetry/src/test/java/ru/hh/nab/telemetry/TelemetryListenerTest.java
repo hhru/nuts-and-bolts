@@ -16,6 +16,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,15 +24,19 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import ru.hh.jclient.common.DefaultRequestStrategy;
 import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
@@ -39,16 +44,17 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
-import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.web.WebTestBase;
 
 @SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class TelemetryListenerTest extends WebTestBase {
+public class TelemetryListenerTest {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 
   private static OpenTelemetry telemetry;
   private static HttpClientContext httpClientContext;
   private static HttpClientFactory httpClientFactory;
+
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @BeforeAll
   public static void init() {
@@ -83,7 +89,7 @@ public class TelemetryListenerTest extends WebTestBase {
 
   @Test
   public void testSimpleRequest() throws ExecutionException, InterruptedException {
-    String url = resourceHelper.baseUrl() + "/simple";
+    String url = testRestTemplate.getRootUri() + "/simple";
     Response response = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).unconverted().get();
     assertEquals("Hello, world!", response.getResponseBody());
 
@@ -101,7 +107,7 @@ public class TelemetryListenerTest extends WebTestBase {
 
   @Test
   public void testErrorRequest() throws ExecutionException, InterruptedException {
-    String url = resourceHelper.baseUrl() + "/error";
+    String url = testRestTemplate.getRootUri() + "/error";
     Response response = httpClientFactory.with(new RequestBuilder().setUrl(url).build()).unconverted().get();
     assertEquals(500, response.getStatusCode());
 
@@ -114,7 +120,7 @@ public class TelemetryListenerTest extends WebTestBase {
 
   @Test
   public void testNestedRequestWithParent() throws ExecutionException, InterruptedException {
-    String url = resourceHelper.baseUrl() + "/simple";
+    String url = testRestTemplate.getRootUri() + "/simple";
 
     Span parentSpan = telemetry
         .getTracer("test")
@@ -143,11 +149,17 @@ public class TelemetryListenerTest extends WebTestBase {
   }
 
   @Configuration
-  @EnableAutoConfiguration
-  @Import({
-      NabTestConfig.class,
-      TestResource.class,
+  @ImportAutoConfiguration({
+      ServletWebServerFactoryAutoConfiguration.class,
+      JerseyAutoConfiguration.class,
   })
   public static class TestConfiguration {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(TestResource.class);
+      return resourceConfig;
+    }
   }
 }

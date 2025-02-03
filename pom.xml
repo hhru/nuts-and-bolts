@@ -21,7 +21,6 @@
         <module>nab-jpa</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
-        <module>nab-tests</module>
         <module>nab-logging</module>
         <module>nab-jclient</module>
         <module>nab-metrics</module>
@@ -41,6 +40,7 @@
         <jclient.version>4.1.0.jakarta-rc1</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>1.2.13.jakarta-rc1</consul.client.version>
+        <kafka-test-utils.version>1.0.0</kafka-test-utils.version>
     </properties>
 
     <dependencyManagement>

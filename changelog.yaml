@@ -1,3 +1,12 @@
+-   name: 10.1.6
+    date: '2025-02-03T18:29:50.653173+03:00'
+    description: Добавлен interceptor SentryAppenderInterceptor, который можно использовать
+        при необходимости логировать ошибки вида "Broken pipe" в разные sentry issue
+        - interceptor добавляет controller в MDC, если он пуст на момент логирования
+        в sentry
+    instructions: ''
+    compatible: true
+
 -   name: 10.1.5
     date: '2025-01-23T12:27:50.024992+03:00'
     description: change log level to debug for message 'low on threads'

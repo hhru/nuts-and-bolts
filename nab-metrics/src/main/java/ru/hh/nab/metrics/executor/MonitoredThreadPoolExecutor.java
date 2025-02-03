@@ -2,7 +2,7 @@ package ru.hh.nab.metrics.executor;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import static java.util.Optional.ofNullable;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
@@ -107,8 +107,8 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     }
   }
 
-  public static ThreadPoolExecutor create(FileSettings threadPoolSettings, String threadPoolName, StatsDSender statsDSender, String serviceName) {
-    return create(threadPoolSettings, threadPoolName, statsDSender, serviceName, (r, executor) -> {
+  public static ThreadPoolExecutor create(Properties threadPoolProperties, String threadPoolName, StatsDSender statsDSender, String serviceName) {
+    return create(threadPoolProperties, threadPoolName, statsDSender, serviceName, (r, executor) -> {
       LOGGER.warn(
           "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
           threadPoolName,
@@ -121,25 +121,24 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   }
 
   public static ThreadPoolExecutor create(
-      FileSettings threadPoolSettings,
+      Properties threadPoolProperties,
       String threadPoolName,
       StatsDSender statsDSender,
       String serviceName,
       RejectedExecutionHandler rejectedExecutionHandler
   ) {
-    int coreThreads = ofNullable(threadPoolSettings.getInteger(MIN_SIZE_PROPERTY)).orElse(4);
-    int maxThreads = ofNullable(threadPoolSettings.getInteger(MAX_SIZE_PROPERTY)).orElse(16);
-    int queueSize = ofNullable(threadPoolSettings.getInteger(QUEUE_SIZE_PROPERTY)).orElse(maxThreads);
-    int keepAliveTimeSec = ofNullable(threadPoolSettings.getInteger(KEEP_ALIVE_TIME_SEC_PROPERTY)).orElse(60);
-    Integer longTaskDurationMs = threadPoolSettings.getInteger(LONG_TASK_DURATION_MS_PROPERTY);
-    int taskDurationHistogramSize = ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY)).orElse(512);
+    int coreThreads = PropertiesUtils.getInteger(threadPoolProperties, MIN_SIZE_PROPERTY, 4);
+    int maxThreads = PropertiesUtils.getInteger(threadPoolProperties, MAX_SIZE_PROPERTY, 16);
+    int queueSize = PropertiesUtils.getInteger(threadPoolProperties, QUEUE_SIZE_PROPERTY, maxThreads);
+    int keepAliveTimeSec = PropertiesUtils.getInteger(threadPoolProperties, KEEP_ALIVE_TIME_SEC_PROPERTY, 60);
+    Integer longTaskDurationMs = PropertiesUtils.getInteger(threadPoolProperties, LONG_TASK_DURATION_MS_PROPERTY);
+    int taskDurationHistogramSize = PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY, 512);
     int taskDurationHistogramCompactionRatio =
-        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY)).orElse(1);
+        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY, 1);
     int taskExecutionStartLagHistogramSize =
-        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY)).orElse(512);
+        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY, 512);
     int taskExecutionStartLagHistogramCompactionRatio =
-        ofNullable(threadPoolSettings.getInteger(MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY))
-            .orElse(1);
+        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY, 1);
 
     var count = new AtomicLong(0);
     ThreadFactory threadFactory = r -> {

@@ -28,7 +28,7 @@ public class NabHibernateCommonConfig {
   }
 
   @Bean
-  ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
+  ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService> nabSessionFactoryBuilderServiceSupplier() {
     return new ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
       @Override
       public Class<NabSessionFactoryBuilderFactory.BuilderService> getClazz() {

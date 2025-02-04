@@ -7,14 +7,18 @@ import org.hibernate.service.spi.ServiceContributor;
 
 public class NabServiceContributor implements ServiceContributor {
 
-  private final List<ServiceSupplier<Service>> serviceSuppliers;
+  private final List<ServiceSupplier<?>> serviceSuppliers;
 
-  public NabServiceContributor(List<ServiceSupplier<Service>> serviceSuppliers) {
+  public NabServiceContributor(List<ServiceSupplier<?>> serviceSuppliers) {
     this.serviceSuppliers = serviceSuppliers;
   }
 
   @Override
   public void contribute(StandardServiceRegistryBuilder serviceRegistryBuilder) {
-    serviceSuppliers.forEach(serviceSupplier -> serviceRegistryBuilder.addService(serviceSupplier.getClazz(), serviceSupplier.get()));
+    serviceSuppliers.forEach(serviceSupplier -> apply(serviceRegistryBuilder, serviceSupplier));
+  }
+
+  private static <T extends Service> void apply(StandardServiceRegistryBuilder serviceRegistryBuilder, ServiceSupplier<T> serviceSupplier) {
+    serviceRegistryBuilder.addService(serviceSupplier.getClazz(), serviceSupplier.get());
   }
 }

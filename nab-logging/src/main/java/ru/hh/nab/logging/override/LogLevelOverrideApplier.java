@@ -1,7 +1,6 @@
-package ru.hh.nab.web.logging;
+package ru.hh.nab.logging.override;
 
 import ch.qos.logback.classic.Level;
-import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,7 +35,6 @@ public class LogLevelOverrideApplier {
     this.updateInterval = PropertiesUtils.getInteger(properties, UPDATE_INTERVAL_IN_MINUTES_PROPERTY, DEFAULT_INTERVAL_IN_MINUTES);
   }
 
-  @PostConstruct
   public void run() {
     var executor = newSingleThreadScheduledExecutor((Runnable r) -> {
       Thread thread = new Thread(r, LogLevelOverrideApplier.class.getSimpleName());

@@ -30,6 +30,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>

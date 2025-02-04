@@ -228,8 +228,8 @@
     </repositories>
 
     <scm>
-        <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
-        <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
+        <connection>scm:git:git@forgejo.pyn.ru:hhru/nuts-and-bolts.git</connection>
+        <developerConnection>scm:git:git@forgejo.pyn.ru:hhru/nuts-and-bolts.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 </project>

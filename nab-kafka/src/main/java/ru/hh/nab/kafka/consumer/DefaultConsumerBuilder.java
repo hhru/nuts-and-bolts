@@ -139,7 +139,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     if (usingDlq()){
       deadLetterQueue = new DeadLetterQueue<>(this.deadLetterQueueDesination, deadLetterQueueProducer);
     }
-
+//todo
     if (useConsumerGroup) {
       RetryQueue<T> retryQueue = null;
       KafkaConsumer<T> retryKafkaConsumer = null;

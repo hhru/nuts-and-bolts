@@ -191,7 +191,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.createAck(this, consumer, retryQueue);
+    Ack<T> ack = ackProvider.createAck(this, consumer);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }
@@ -244,5 +244,9 @@ public class KafkaConsumer<T> implements SmartLifecycle {
 
   DeadLetterQueue<T> getDeadLetterQueue() {
     return deadLetterQueue;
+  }
+
+  RetryQueue<T> getRetryQueue() {
+    return retryQueue;
   }
 }

@@ -99,8 +99,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   @Override
   public DefaultConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryQueue) -> {
-      return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryQueue);
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> {
+      return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer);
     };
     return this;
   }
@@ -109,7 +109,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryQueue) -> {
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> {
       return new InMemorySeekOnlyAck<>(kafkaConsumer);
     };
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;

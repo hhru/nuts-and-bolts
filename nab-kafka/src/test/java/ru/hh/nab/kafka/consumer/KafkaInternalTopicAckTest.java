@@ -55,7 +55,8 @@ class KafkaInternalTopicAckTest {
     consumingState.prepareForNextBatch(ALL_CONSUMER_RECORDS);
     when(kafkaConsumer.getConsumingState()).thenReturn(consumingState);
     when(kafkaConsumer.getDeadLetterQueue()).thenReturn(deadLetterQueue);
-    ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryQueue);
+    when(kafkaConsumer.getRetryQueue()).thenReturn(retryQueue);
+    ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer);
   }
 
   public Stream<Executable> acknowledgeMethods() {

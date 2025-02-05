@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeaders;
@@ -46,7 +45,7 @@ class RetryServiceTest {
   static final String KEY = "key";
   static long offset = 0;
   @Mock
-  KafkaProducer dlqProducer;
+  DeadLetterQueue<String> deadLetterQueue;
   @Mock
   KafkaProducer kafkaProducer;
   @Captor
@@ -151,11 +150,10 @@ class RetryServiceTest {
 
   private RetryService<String> createRetryService(RetryPolicyResolver<String> retryPolicyResolver, RetryTopics retryTopics) {
     return new RetryService<>(
-        dlqProducer,
+        deadLetterQueue,
         kafkaProducer,
         retryTopics,
         retryPolicyResolver,
-        UUID.randomUUID().toString(),
         Clock.fixed(NOW, ZoneId.systemDefault())
     );
   }

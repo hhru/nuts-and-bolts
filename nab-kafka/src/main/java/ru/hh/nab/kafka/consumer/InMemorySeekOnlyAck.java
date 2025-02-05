@@ -6,19 +6,16 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
-import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.AckUtils;
 
 class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   private final ConsumerConsumingState<T> consumingState;
-  private final KafkaProducer kafkaProducer;
-  private final String deadLetterQueueDestination;
+  private final DeadLetterQueue<T> deadLetterQueue;
 
-  public InMemorySeekOnlyAck(KafkaProducer kafkaProducer, String deadLetterQueueDestination, KafkaConsumer<T> kafkaConsumer) {
+  public InMemorySeekOnlyAck(KafkaConsumer<T> kafkaConsumer) {
     this.consumingState = kafkaConsumer.getConsumingState();
-    this.kafkaProducer = kafkaProducer;
-    this.deadLetterQueueDestination = deadLetterQueueDestination;
+    this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
   }
 
   @Override
@@ -40,12 +37,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   @Override
   public void nAcknowledge(ConsumerRecord<String, T> message) {
-    try {
-      // TODO do we need key for a queue ?
-      kafkaProducer.sendMessage(deadLetterQueueDestination, message.value()).join();
-    } catch (Exception e) {
-      // TODO store in buffer
-    }
+    deadLetterQueue.send(message);
     seek(message);
   }
 
@@ -58,12 +50,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
   @Override
   public void nAcknowledge(Collection<ConsumerRecord<String, T>> messages) {
     for (ConsumerRecord<String, T> record : messages) {
-      try {
-        // TODO do we need key for a queue ?
-        kafkaProducer.sendMessage(deadLetterQueueDestination, record.value()).join();
-      } catch (Exception e) {
-        // TODO store in buffer
-      }
+      deadLetterQueue.send(record);
     }
     Map<TopicPartition, OffsetAndMetadata> offsets = AckUtils.getLatestOffsetForEachPartition(messages);
     offsets.forEach(consumingState::seekOffset);

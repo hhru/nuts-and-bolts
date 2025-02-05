@@ -11,7 +11,6 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.InterruptException;
-import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.AckUtils;
 
 class KafkaInternalTopicAck<T> implements Ack<T> {
@@ -19,17 +18,13 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   private final ConsumerConsumingState<T> consumingState;
   private final Consumer<?, ?> nativeKafkaConsumer;
   private final RetryService<T> retryService;
-  private final KafkaProducer kafkaProducer;
-  private final String deadLetterQueueDestination;
+  private final DeadLetterQueue<T> deadLetterQueue;
 
   public KafkaInternalTopicAck(
-      KafkaProducer kafkaProducer,
-      String deadLetterQueueDestination,
       KafkaConsumer<T> kafkaConsumer,
       Consumer<?, ?> nativeKafkaConsumer,
       RetryService<T> retryService) {
-    this.kafkaProducer = kafkaProducer;
-    this.deadLetterQueueDestination = deadLetterQueueDestination;
+    this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
     this.consumingState = kafkaConsumer.getConsumingState();
     this.nativeKafkaConsumer = nativeKafkaConsumer;
     this.retryService = retryService;
@@ -45,12 +40,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   @Override
   public void nAcknowledge() {
     for (ConsumerRecord<String, T> record : consumingState.getCurrentBatch()) {
-      try {
-        // TODO do we need key for a queue ?
-        kafkaProducer.sendMessage(deadLetterQueueDestination, record.value()).join();
-      } catch (Exception e) {
-        // TODO store in buffer
-      }
+      deadLetterQueue.send(record);
     }
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync();
@@ -68,12 +58,8 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
 
   @Override
   public void nAcknowledge(ConsumerRecord<String, T> message) {
-    try {
-      // TODO do we need key for a queue ?
-      kafkaProducer.sendMessage(deadLetterQueueDestination, message.value()).join();
-    } catch (Exception e) {
-      // TODO store in buffer
-    }
+    deadLetterQueue.send(message);
+
     TopicPartition partition = AckUtils.getMessagePartition(message);
     OffsetAndMetadata offsetOfNextMessageInPartition = AckUtils.getOffsetOfNextMessage(message);
     waitForRetriesToComplete();
@@ -92,12 +78,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   @Override
   public void nAcknowledge(Collection<ConsumerRecord<String, T>> messages) {
     for (ConsumerRecord<String, T> record : messages) {
-      try {
-        // TODO do we need key for a queue ?
-        kafkaProducer.sendMessage(deadLetterQueueDestination, record.value()).join();
-      } catch (Exception e) {
-        // TODO store in buffer
-      }
+      deadLetterQueue.send(record);
     }
     Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = AckUtils.getLatestOffsetForEachPartition(messages);
     waitForRetriesToComplete();

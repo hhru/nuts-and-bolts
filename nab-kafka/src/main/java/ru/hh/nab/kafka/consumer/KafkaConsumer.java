@@ -33,6 +33,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
   private final RetryService<T> retryService;
+  private final DeadLetterQueue<T> deadLetterQueue;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
@@ -45,6 +46,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       ConsumeStrategy<T> consumeStrategy,
       RetryService<T> retryService,
       KafkaConsumer<T> retryKafkaConsumer,
+      DeadLetterQueue<T> deadLetterQueue,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
       AckProvider<T> ackProvider,
       Logger logger
@@ -52,6 +54,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
     this.retryService = retryService;
+    this.deadLetterQueue = deadLetterQueue;
     this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.logger = logger;
@@ -68,6 +71,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
+      DeadLetterQueue<T> deadLetterQueue,
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
@@ -77,6 +81,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.deadLetterQueue = deadLetterQueue;
     this.logger = logger;
     this.retryService = null;
     this.retryKafkaConsumer = null;
@@ -237,4 +242,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     return consumerConsumingState;
   }
 
+  DeadLetterQueue<T> getDeadLetterQueue() {
+    return deadLetterQueue;
+  }
 }

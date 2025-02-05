@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.KafkaException;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setNextRetryTime;
@@ -22,37 +21,33 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
  */
 class RetryService<T> {
 
-  protected final KafkaProducer dlqProducer;
+  protected final DeadLetterQueue<T> deadLetterQueue;
 
   protected final RetryPolicyResolver<T> retryPolicyResolver;
   protected final KafkaProducer retryProducer;
   protected final RetryTopics retryTopics;
-  protected final String deadLetterQueueDestination;
   protected final Clock clock;
 
   public RetryService(
-      KafkaProducer dlqProducer,
+      DeadLetterQueue<T> deadLetterQueue,
       KafkaProducer retryProducer,
       RetryTopics retryTopics,
-      RetryPolicyResolver<T> retryPolicyResolver,
-      String deadLetterQueueDestination
+      RetryPolicyResolver<T> retryPolicyResolver
   ) {
-    this(dlqProducer, retryProducer, retryTopics, retryPolicyResolver, deadLetterQueueDestination, Clock.systemDefaultZone());
+    this(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver, Clock.systemDefaultZone());
   }
 
   RetryService(
-      KafkaProducer dlqProducer,
+      DeadLetterQueue<T> deadLetterQueue,
       KafkaProducer retryProducer,
       RetryTopics retryTopics,
       RetryPolicyResolver<T> retryPolicyResolver,
-      String deadLetterQueueDestination,
       Clock clock
   ) {
-    this.dlqProducer = dlqProducer;
+    this.deadLetterQueue = deadLetterQueue;
     this.retryProducer = Objects.requireNonNull(retryProducer);
     this.retryTopics = Objects.requireNonNull(retryTopics);
     this.retryPolicyResolver = Objects.requireNonNull(retryPolicyResolver);
-    this.deadLetterQueueDestination = deadLetterQueueDestination;
     this.clock = clock;
   }
 
@@ -66,14 +61,8 @@ class RetryService<T> {
     CompletableFuture<?> response = retryPolicy
         .getNextRetryTime(updatedProcessingHistory)
         .map(nextRetryTime -> retry(message, nextRetryTime, updatedProcessingHistory))
-        // Either retry budged exhausted or it was configured to never retry ( second case handled above )
         .orElseGet(() -> {
-          ProducerRecord<String, T> record = new ProducerRecord<>(deadLetterQueueDestination, null, message.key(), message.value());
-          try {
-            dlqProducer.sendMessage(record, Runnable::run);
-          } catch (KafkaException e) {
-            // TODO authentication, timeouts, overload, other errors ?
-          }
+          deadLetterQueue.send(message);
           return CompletableFuture.completedFuture(null);
         });
     return response;

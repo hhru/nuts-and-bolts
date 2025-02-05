@@ -47,8 +47,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private Logger logger;
   private AckProvider<T> ackProvider;
 
-  private KafkaProducer dlqProducer;
-  private String deadLetterQueueDestination;
+  private String deadLetterQueueDesination;
+  private KafkaProducer deadLetterQueueProducer;
 
   public DefaultConsumerBuilder(DefaultConsumerFactory consumerFactory, String topicName, Class<T> messageClass) {
     this.topicName = topicName;
@@ -84,9 +84,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
-  public ConsumerBuilder<T> withDlq(KafkaProducer dlqProducer, String destination) {
-    this.dlqProducer = dlqProducer;
-    this.deadLetterQueueDestination = destination;
+  public ConsumerBuilder<T> withDlq(String destination, KafkaProducer producer) {
+    this.deadLetterQueueDesination = destination;
+    this.deadLetterQueueProducer = producer;
     return this;
   }
 
@@ -100,7 +100,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public DefaultConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
     this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
-      return new KafkaInternalTopicAck<>(dlqProducer, deadLetterQueueDestination, kafkaConsumer, nativeKafkaConsumer, retryService);
+      return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryService);
     };
     return this;
   }
@@ -110,7 +110,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
     this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
-      return new InMemorySeekOnlyAck<>(dlqProducer, deadLetterQueueDestination, kafkaConsumer);
+      return new InMemorySeekOnlyAck<>(kafkaConsumer);
     };
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     return this;
@@ -134,6 +134,12 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
+
+    DeadLetterQueue<T> deadLetterQueue = null;
+    if (usingDlq()){
+      deadLetterQueue = new DeadLetterQueue<>(this.deadLetterQueueDesination, deadLetterQueueProducer);
+    }
+
     if (useConsumerGroup) {
       RetryService<T> retryService = null;
       KafkaConsumer<T> retryKafkaConsumer = null;
@@ -143,18 +149,23 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
           retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
         }
-        retryService = new RetryService<>(dlqProducer, retryProducer, retryTopics, retryPolicyResolver, deadLetterQueueDestination);
-        retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
+        retryService = new RetryService<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
+        retryKafkaConsumer = buildRetryKafkaConsumer(retryService, deadLetterQueue);
       }
       return buildKafkaConsumerForConsumerGroup(
           configProvider,
           springConsumerFactory,
           consumerMetadata,
           retryService,
-          retryKafkaConsumer
+          retryKafkaConsumer,
+          deadLetterQueue
       );
     }
-    return buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
+    return buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue);
+  }
+
+  private boolean usingDlq() {
+    return deadLetterQueueDesination != null;
   }
 
   private boolean usingRetries() {
@@ -166,7 +177,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
       RetryService<T> retryService,
-      KafkaConsumer<T> retryKafkaConsumer
+      KafkaConsumer<T> retryKafkaConsumer,
+      DeadLetterQueue<T> deadLetterQueue
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
@@ -182,13 +194,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         retryService,
         retryKafkaConsumer,
+        deadLetterQueue,
         springContainerProvider,
         ackProvider,
         logger
     );
   }
 
-  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService) {
+  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService, DeadLetterQueue<T> deadLetterQueue) {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
@@ -207,6 +220,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         consumerFactory.interceptConsumeStrategy(consumerMetadata, retryReceiveConsumeStrategy),
         retryService,
         null, // retry consumer has no retry consumer
+        deadLetterQueue,
         springContainerProvider,
         ackProvider,
         logger
@@ -225,7 +239,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(
-      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
+      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata,
+      DeadLetterQueue<T> deadLetterQueue
   ) {
     if (usingRetries()) {
       throw new IllegalStateException("Can't use retries for consumer reading all partitions");
@@ -247,6 +262,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
+        deadLetterQueue,
         springContainerProvider,
         consumerFactory.getTopicPartitionsMonitoring(),
         consumerFactory.getClusterMetadataProvider(),

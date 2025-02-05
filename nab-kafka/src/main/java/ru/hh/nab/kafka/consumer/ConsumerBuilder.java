@@ -94,11 +94,11 @@ public interface ConsumerBuilder<T> {
    * 1) Explicit intention by calling Ack#nAcknowledge
    * 2) Retry budget exhaustion
    *
-   * @param dlqProducer kafka producer to DLQ
    * @param destination topic name of a DLQ
+   * @param producer    kafka producer for DLQ destination
    * @return builder
    */
-  ConsumerBuilder<T> withDlq(KafkaProducer dlqProducer, String destination);
+  ConsumerBuilder<T> withDlq(String destination, KafkaProducer producer);
 
   ConsumerBuilder<T> withLogger(Logger logger);
 

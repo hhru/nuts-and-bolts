@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 
-public class ConsumerConsumingState<T> {
+class ConsumerContext<T> {
 
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
   private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> batchSeekedOffsets = new InheritableThreadLocal<>();
@@ -24,7 +24,7 @@ public class ConsumerConsumingState<T> {
     }
   };
 
-  public ConsumerConsumingState() {
+  public ConsumerContext() {
     this.globalSeekedOffsets = new ConcurrentHashMap<>();
   }
 

@@ -38,7 +38,7 @@ class KafkaInternalTopicAckTest {
   static final List<ConsumerRecord<String, String>> ALL_CONSUMER_RECORDS = List.of(CONSUMER_RECORD_0, CONSUMER_RECORD_1, CONSUMER_RECORD_2);
   static final List<ConsumerRecord<String, String>> SOME_CONSUMER_RECORDS = List.of(CONSUMER_RECORD_0, CONSUMER_RECORD_2);
 
-  ConsumerConsumingState<String> consumingState;
+  ConsumerContext<String> consumerContext;
   @Mock
   KafkaConsumer<String> kafkaConsumer;
   @Mock
@@ -51,9 +51,9 @@ class KafkaInternalTopicAckTest {
 
   @BeforeEach
   void setUp() {
-    consumingState = new ConsumerConsumingState<>();
-    consumingState.prepareForNextBatch(ALL_CONSUMER_RECORDS);
-    when(kafkaConsumer.getConsumingState()).thenReturn(consumingState);
+    consumerContext = new ConsumerContext<>();
+    consumerContext.prepareForNextBatch(ALL_CONSUMER_RECORDS);
+    when(kafkaConsumer.getConsumingState()).thenReturn(consumerContext);
     when(kafkaConsumer.getDeadLetterQueue()).thenReturn(deadLetterQueue);
     when(kafkaConsumer.getRetryQueue()).thenReturn(retryQueue);
     ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer);
@@ -83,7 +83,8 @@ class KafkaInternalTopicAckTest {
   @MethodSource("acknowledgeMethods")
   void waitForRetryToComplete(Executable executable) {
     CompletableFuture<Void> retryFuture = CompletableFuture.runAsync(
-        () -> {},
+        () -> {
+        },
         CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS)
     );
     doReturn(retryFuture).when(retryQueue).retry(any(), any());
@@ -97,11 +98,11 @@ class KafkaInternalTopicAckTest {
   void moveSeekedOffsetsOnNextSeekAfterRetry() {
     when(retryQueue.retry(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     ack.acknowledge(CONSUMER_RECORD_0);
-    assertEquals(1, consumingState.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
+    assertEquals(1, consumerContext.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
     ack.retry(CONSUMER_RECORD_1, new RuntimeException());
-    assertEquals(1, consumingState.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
+    assertEquals(1, consumerContext.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
     ack.seek(CONSUMER_RECORD_2);
-    assertEquals(2, consumingState.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
-    assertEquals(11, consumingState.getBatchSeekedOffsets().get(new TopicPartition("t", 1)).offset());
+    assertEquals(2, consumerContext.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
+    assertEquals(11, consumerContext.getBatchSeekedOffsets().get(new TopicPartition("t", 1)).offset());
   }
 }

@@ -10,24 +10,24 @@ import ru.hh.nab.kafka.util.AckUtils;
 
 class InMemorySeekOnlyAck<T> implements Ack<T> {
 
-  private final ConsumerConsumingState<T> consumingState;
+  private final ConsumerContext<T> consumerContext;
   private final DeadLetterQueue<T> deadLetterQueue;
 
   public InMemorySeekOnlyAck(KafkaConsumer<T> kafkaConsumer) {
-    this.consumingState = kafkaConsumer.getConsumingState();
+    this.consumerContext = kafkaConsumer.getConsumingState();
     this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
   }
 
   @Override
   public void acknowledge() {
-    consumingState.setWholeBatchCommited(true);
-    acknowledge(consumingState.getCurrentBatch());
+    consumerContext.setWholeBatchCommited(true);
+    acknowledge(consumerContext.getCurrentBatch());
   }
 
   @Override
   public void nAcknowledge() {
-    consumingState.setWholeBatchCommited(true);
-    nAcknowledge(consumingState.getCurrentBatch());
+    consumerContext.setWholeBatchCommited(true);
+    nAcknowledge(consumerContext.getCurrentBatch());
   }
 
   @Override
@@ -44,7 +44,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
   @Override
   public void acknowledge(Collection<ConsumerRecord<String, T>> messages) {
     Map<TopicPartition, OffsetAndMetadata> offsets = AckUtils.getLatestOffsetForEachPartition(messages);
-    offsets.forEach((partition, offset) -> consumingState.seekOffset(partition, offset));
+    offsets.forEach((partition, offset) -> consumerContext.seekOffset(partition, offset));
   }
 
   @Override
@@ -53,7 +53,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
       deadLetterQueue.send(record);
     }
     Map<TopicPartition, OffsetAndMetadata> offsets = AckUtils.getLatestOffsetForEachPartition(messages);
-    offsets.forEach(consumingState::seekOffset);
+    offsets.forEach(consumerContext::seekOffset);
   }
 
   @Override
@@ -63,7 +63,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
 
   @Override
   public void seek(ConsumerRecord<String, T> message) {
-    consumingState.seekOffset(AckUtils.getMessagePartition(message), AckUtils.getOffsetOfNextMessage(message));
+    consumerContext.seekOffset(AckUtils.getMessagePartition(message), AckUtils.getOffsetOfNextMessage(message));
   }
 
   @Override

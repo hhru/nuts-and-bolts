@@ -34,7 +34,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final ConsumeStrategy<T> consumeStrategy;
   private final RetryQueue<T> retryQueue;
   private final DeadLetterQueue<T> deadLetterQueue;
-  private final ConsumerConsumingState<T> consumerConsumingState;
+  private final ConsumerContext<T> consumerContext;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
   private List<PartitionInfo> assignedPartitions;
@@ -58,7 +58,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.logger = logger;
-    this.consumerConsumingState = new ConsumerConsumingState<>();
+    this.consumerContext = new ConsumerContext<>();
 
     this.springContainerProvider = springContainerProvider;
     this.springContainerForPartitionsProvider = null;
@@ -86,7 +86,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.retryQueue = null;
     this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
-    this.consumerConsumingState = new ConsumerConsumingState<>();
+    this.consumerContext = new ConsumerContext<>();
 
     this.springContainerProvider = null;
     this.springContainerForPartitionsProvider = springContainerForPartitionsProvider;
@@ -190,7 +190,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
-    consumerConsumingState.prepareForNextBatch(messages);
+    consumerContext.prepareForNextBatch(messages);
     Ack<T> ack = ackProvider.createAck(this, consumer);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
@@ -214,17 +214,17 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
-    if (consumerConsumingState.isWholeBatchAcked()) {
+    if (consumerContext.isWholeBatchAcked()) {
       return;
     }
 
-    List<ConsumerRecord<String, T>> messages = consumerConsumingState.getCurrentBatch();
+    List<ConsumerRecord<String, T>> messages = consumerContext.getCurrentBatch();
     if (CollectionUtils.isEmpty(messages)) {
       return;
     }
 
     LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = getLowestOffsetsForEachPartition(messages);
-    offsetsToSeek.putAll(consumerConsumingState.getBatchSeekedOffsets());
+    offsetsToSeek.putAll(consumerContext.getBatchSeekedOffsets());
     offsetsToSeek.forEach(consumer::seek);
   }
 
@@ -238,8 +238,8 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     ));
   }
 
-  public ConsumerConsumingState<T> getConsumingState() {
-    return consumerConsumingState;
+  public ConsumerContext<T> getConsumingState() {
+    return consumerContext;
   }
 
   DeadLetterQueue<T> getDeadLetterQueue() {

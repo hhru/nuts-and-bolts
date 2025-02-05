@@ -15,7 +15,7 @@ import ru.hh.nab.kafka.util.AckUtils;
 
 class KafkaInternalTopicAck<T> implements Ack<T> {
 
-  private final ConsumerConsumingState<T> consumingState;
+  private final ConsumerContext<T> consumerContext;
   private final Consumer<?, ?> nativeKafkaConsumer;
   private final RetryQueue<T> retryQueue;
   private final DeadLetterQueue<T> deadLetterQueue;
@@ -25,7 +25,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
       Consumer<?, ?> nativeKafkaConsumer
   ) {
     this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
-    this.consumingState = kafkaConsumer.getConsumingState();
+    this.consumerContext = kafkaConsumer.getConsumingState();
     this.nativeKafkaConsumer = nativeKafkaConsumer;
     this.retryQueue = kafkaConsumer.getRetryQueue();
   }
@@ -34,17 +34,17 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   public void acknowledge() {
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync();
-    consumingState.setWholeBatchCommited(true);
+    consumerContext.setWholeBatchCommited(true);
   }
 
   @Override
   public void nAcknowledge() {
-    for (ConsumerRecord<String, T> record : consumingState.getCurrentBatch()) {
+    for (ConsumerRecord<String, T> record : consumerContext.getCurrentBatch()) {
       deadLetterQueue.send(record);
     }
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync();
-    consumingState.setWholeBatchCommited(true);
+    consumerContext.setWholeBatchCommited(true);
   }
 
   @Override
@@ -53,7 +53,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     OffsetAndMetadata offsetOfNextMessageInPartition = AckUtils.getOffsetOfNextMessage(message);
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
-    consumingState.seekOffset(partition, offsetOfNextMessageInPartition);
+    consumerContext.seekOffset(partition, offsetOfNextMessageInPartition);
   }
 
   @Override
@@ -64,7 +64,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     OffsetAndMetadata offsetOfNextMessageInPartition = AckUtils.getOffsetOfNextMessage(message);
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync(Map.of(partition, offsetOfNextMessageInPartition));
-    consumingState.seekOffset(partition, offsetOfNextMessageInPartition);
+    consumerContext.seekOffset(partition, offsetOfNextMessageInPartition);
   }
 
   @Override
@@ -72,7 +72,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = AckUtils.getLatestOffsetForEachPartition(messages);
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync(latestOffsetsForEachPartition);
-    latestOffsetsForEachPartition.forEach(consumingState::seekOffset);
+    latestOffsetsForEachPartition.forEach(consumerContext::seekOffset);
   }
 
   @Override
@@ -83,7 +83,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
     Map<TopicPartition, OffsetAndMetadata> latestOffsetsForEachPartition = AckUtils.getLatestOffsetForEachPartition(messages);
     waitForRetriesToComplete();
     nativeKafkaConsumer.commitSync(latestOffsetsForEachPartition);
-    latestOffsetsForEachPartition.forEach(consumingState::seekOffset);
+    latestOffsetsForEachPartition.forEach(consumerContext::seekOffset);
   }
 
   @Override
@@ -96,7 +96,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   public void seek(ConsumerRecord<String, T> message) {
     TopicPartition partition = AckUtils.getMessagePartition(message);
     waitForRetriesToComplete();
-    consumingState.seekOffset(partition, AckUtils.getOffsetOfNextMessage(message));
+    consumerContext.seekOffset(partition, AckUtils.getOffsetOfNextMessage(message));
   }
 
   @Override
@@ -105,14 +105,14 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
       throw new UnsupportedOperationException("This Consumer has not been configured for retries");
     }
     CompletableFuture<?> retryFuture = retryQueue.retry(message, error);
-    consumingState.addRetryFuture(retryFuture, message);
+    consumerContext.addRetryFuture(retryFuture, message);
     return retryFuture;
   }
 
   private void waitForRetriesToComplete() {
     try {
-      consumingState.getAllBatchRetryFuturesAsOne().get();
-      AckUtils.getLatestOffsetForEachPartition(consumingState.getBatchRetryMessages()).forEach(consumingState::seekOffset);
+      consumerContext.getAllBatchRetryFuturesAsOne().get();
+      AckUtils.getLatestOffsetForEachPartition(consumerContext.getBatchRetryMessages()).forEach(consumerContext::seekOffset);
     } catch (InterruptedException e) {
       throw new InterruptException(e);
     } catch (ExecutionException | CancellationException e) {

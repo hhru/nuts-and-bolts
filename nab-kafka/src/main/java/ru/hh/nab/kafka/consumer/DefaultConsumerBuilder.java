@@ -35,7 +35,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private final DefaultConsumerFactory consumerFactory;
   private String operationName;
   private String clientId;
-  private boolean useConsumerGroup;
+  private boolean isConsumerGroup;
   private SeekPosition seekPositionIfNoConsumerGroup;
   private Duration checkNewPartitionsInterval;
 
@@ -98,7 +98,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public DefaultConsumerBuilder<T> withConsumerGroup() {
-    this.useConsumerGroup = true;
+    this.isConsumerGroup = true;
     this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> {
       return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer);
     };
@@ -107,7 +107,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
-    this.useConsumerGroup = false;
+    this.isConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
     this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> {
       return new InMemorySeekOnlyAck<>(kafkaConsumer);
@@ -131,37 +131,24 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public KafkaConsumer<T> build() {
     requireNonNull(messageClass, "messageClass is required"); // this would fail later with not very helpful error message
     requireNonNull(consumeStrategy, "consumeStrategy is required"); // duplicate check in KafkaConsumer because strategy is wrapped by this builder
+
+    if (usingRetries() && !isConsumerGroup) {
+      throw new IllegalStateException("Consumers without consumer group are not supported for retries");
+    }
+
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
 
     DeadLetterQueue<T> deadLetterQueue = null;
-    if (usingDlq()){
+    if (usingDlq()) {
       deadLetterQueue = new DeadLetterQueue<>(this.deadLetterQueueDesination, deadLetterQueueProducer);
     }
-//todo
-    if (useConsumerGroup) {
-      RetryQueue<T> retryQueue = null;
-      KafkaConsumer<T> retryKafkaConsumer = null;
-      if (usingRetries()) {
-        if (RetryTopics.DEFAULT_SINGLE_TOPIC == retryTopics) {
-          retryTopics = RetryTopics.defaultSingleTopic(consumerMetadata);
-        } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
-          retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
-        }
-        retryQueue = new RetryQueue<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
-        retryKafkaConsumer = buildRetryKafkaConsumer(retryQueue, deadLetterQueue);
-      }
-      return buildKafkaConsumerForConsumerGroup(
-          configProvider,
-          springConsumerFactory,
-          consumerMetadata,
-          retryQueue,
-          retryKafkaConsumer,
-          deadLetterQueue
-      );
-    }
-    return buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue);
+
+    return isConsumerGroup ?
+        buildKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue)
+        :
+        buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue);
   }
 
   private boolean usingDlq() {
@@ -176,8 +163,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
-      RetryQueue<T> retryQueue,
-      KafkaConsumer<T> retryKafkaConsumer,
       DeadLetterQueue<T> deadLetterQueue
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
@@ -189,6 +174,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
+    RetryQueue<T> retryQueue = null;
+    KafkaConsumer<T> retryKafkaConsumer = null;
+    if (usingRetries()) {
+      retryTopics = createRetryTopic(consumerMetadata);
+      retryQueue = new RetryQueue<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
+      retryKafkaConsumer = buildRetryKafkaConsumer(retryQueue, deadLetterQueue);
+    }
+
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
@@ -199,6 +192,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         ackProvider,
         logger
     );
+  }
+
+  private RetryTopics createRetryTopic(ConsumerMetadata consumerMetadata) {
+    if (RetryTopics.DEFAULT_SINGLE_TOPIC == retryTopics) {
+      return RetryTopics.defaultSingleTopic(consumerMetadata);
+    } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
+      return RetryTopics.defaultPairOfTopics(consumerMetadata);
+    } else {
+      throw new IllegalStateException("Unsupported retry topic: " + retryTopics);
+    }
   }
 
   private KafkaConsumer<T> buildRetryKafkaConsumer(RetryQueue<T> retryQueue, DeadLetterQueue<T> deadLetterQueue) {
@@ -242,10 +245,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
-    if (usingRetries()) {
-      throw new IllegalStateException("Can't use retries for consumer reading all partitions");
-    }
-
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (
         nabKafkaConsumer,
         partitionsInfo

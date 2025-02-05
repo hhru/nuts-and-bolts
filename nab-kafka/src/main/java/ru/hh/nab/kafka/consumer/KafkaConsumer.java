@@ -32,7 +32,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   final KafkaConsumer<T> retryKafkaConsumer;
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
-  private final RetryService<T> retryService;
+  private final RetryQueue<T> retryQueue;
   private final DeadLetterQueue<T> deadLetterQueue;
   private final ConsumerConsumingState<T> consumerConsumingState;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
@@ -44,7 +44,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
-      RetryService<T> retryService,
+      RetryQueue<T> retryQueue,
       KafkaConsumer<T> retryKafkaConsumer,
       DeadLetterQueue<T> deadLetterQueue,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
@@ -53,7 +53,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
-    this.retryService = retryService;
+    this.retryQueue = retryQueue;
     this.deadLetterQueue = deadLetterQueue;
     this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
@@ -83,7 +83,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.consumeStrategy = consumeStrategy;
     this.deadLetterQueue = deadLetterQueue;
     this.logger = logger;
-    this.retryService = null;
+    this.retryQueue = null;
     this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
     this.consumerConsumingState = new ConsumerConsumingState<>();
@@ -191,7 +191,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.createAck(this, consumer, retryService);
+    Ack<T> ack = ackProvider.createAck(this, consumer, retryQueue);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }

@@ -99,8 +99,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   @Override
   public DefaultConsumerBuilder<T> withConsumerGroup() {
     this.useConsumerGroup = true;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
-      return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryService);
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryQueue) -> {
+      return new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryQueue);
     };
     return this;
   }
@@ -109,7 +109,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
     this.useConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> {
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryQueue) -> {
       return new InMemorySeekOnlyAck<>(kafkaConsumer);
     };
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
@@ -141,7 +141,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     if (useConsumerGroup) {
-      RetryService<T> retryService = null;
+      RetryQueue<T> retryQueue = null;
       KafkaConsumer<T> retryKafkaConsumer = null;
       if (usingRetries()) {
         if (RetryTopics.DEFAULT_SINGLE_TOPIC == retryTopics) {
@@ -149,14 +149,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
           retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
         }
-        retryService = new RetryService<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
-        retryKafkaConsumer = buildRetryKafkaConsumer(retryService, deadLetterQueue);
+        retryQueue = new RetryQueue<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
+        retryKafkaConsumer = buildRetryKafkaConsumer(retryQueue, deadLetterQueue);
       }
       return buildKafkaConsumerForConsumerGroup(
           configProvider,
           springConsumerFactory,
           consumerMetadata,
-          retryService,
+          retryQueue,
           retryKafkaConsumer,
           deadLetterQueue
       );
@@ -176,7 +176,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
-      RetryService<T> retryService,
+      RetryQueue<T> retryQueue,
       KafkaConsumer<T> retryKafkaConsumer,
       DeadLetterQueue<T> deadLetterQueue
   ) {
@@ -192,7 +192,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
-        retryService,
+        retryQueue,
         retryKafkaConsumer,
         deadLetterQueue,
         springContainerProvider,
@@ -201,7 +201,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     );
   }
 
-  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService, DeadLetterQueue<T> deadLetterQueue) {
+  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryQueue<T> retryQueue, DeadLetterQueue<T> deadLetterQueue) {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
@@ -218,7 +218,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, retryReceiveConsumeStrategy),
-        retryService,
+        retryQueue,
         null, // retry consumer has no retry consumer
         deadLetterQueue,
         springContainerProvider,

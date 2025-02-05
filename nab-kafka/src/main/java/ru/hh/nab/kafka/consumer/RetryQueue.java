@@ -19,7 +19,7 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 /**
  * Class represents retries capabilities for a kafka message
  */
-class RetryService<T> {
+class RetryQueue<T> {
 
   protected final DeadLetterQueue<T> deadLetterQueue;
 
@@ -28,7 +28,7 @@ class RetryService<T> {
   protected final RetryTopics retryTopics;
   protected final Clock clock;
 
-  public RetryService(
+  public RetryQueue(
       DeadLetterQueue<T> deadLetterQueue,
       KafkaProducer retryProducer,
       RetryTopics retryTopics,
@@ -37,7 +37,7 @@ class RetryService<T> {
     this(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver, Clock.systemDefaultZone());
   }
 
-  RetryService(
+  RetryQueue(
       DeadLetterQueue<T> deadLetterQueue,
       KafkaProducer retryProducer,
       RetryTopics retryTopics,

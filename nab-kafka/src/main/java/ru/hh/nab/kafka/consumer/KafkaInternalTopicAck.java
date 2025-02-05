@@ -17,17 +17,18 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
 
   private final ConsumerConsumingState<T> consumingState;
   private final Consumer<?, ?> nativeKafkaConsumer;
-  private final RetryService<T> retryService;
+  private final RetryQueue<T> retryQueue;
   private final DeadLetterQueue<T> deadLetterQueue;
 
   public KafkaInternalTopicAck(
       KafkaConsumer<T> kafkaConsumer,
       Consumer<?, ?> nativeKafkaConsumer,
-      RetryService<T> retryService) {
+      RetryQueue<T> retryQueue
+  ) {
     this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
     this.consumingState = kafkaConsumer.getConsumingState();
     this.nativeKafkaConsumer = nativeKafkaConsumer;
-    this.retryService = retryService;
+    this.retryQueue = retryQueue;
   }
 
   @Override
@@ -101,10 +102,10 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
 
   @Override
   public CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
-    if (retryService == null) {
+    if (retryQueue == null) {
       throw new UnsupportedOperationException("This Consumer has not been configured for retries");
     }
-    CompletableFuture<?> retryFuture = retryService.retry(message, error);
+    CompletableFuture<?> retryFuture = retryQueue.retry(message, error);
     consumingState.addRetryFuture(retryFuture, message);
     return retryFuture;
   }

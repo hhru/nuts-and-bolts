@@ -46,7 +46,7 @@ class KafkaInternalTopicAckTest {
   @Mock
   Consumer<?, ?> nativeKafkaConsumer;
   @Mock
-  RetryService<String> retryService;
+  RetryQueue<String> retryQueue;
   KafkaInternalTopicAck<String> ack;
 
   @BeforeEach
@@ -55,7 +55,7 @@ class KafkaInternalTopicAckTest {
     consumingState.prepareForNextBatch(ALL_CONSUMER_RECORDS);
     when(kafkaConsumer.getConsumingState()).thenReturn(consumingState);
     when(kafkaConsumer.getDeadLetterQueue()).thenReturn(deadLetterQueue);
-    ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryService);
+    ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer, retryQueue);
   }
 
   public Stream<Executable> acknowledgeMethods() {
@@ -71,7 +71,7 @@ class KafkaInternalTopicAckTest {
   @ParameterizedTest
   @MethodSource("acknowledgeMethods")
   void failOnFailedRetry(Executable executable) {
-    when(retryService.retry(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException()));
+    when(retryQueue.retry(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException()));
     ack.retry(CONSUMER_RECORD_0, new RuntimeException());
     assertThrows(KafkaException.class, executable);
     verify(nativeKafkaConsumer, never()).commitSync();
@@ -85,7 +85,7 @@ class KafkaInternalTopicAckTest {
         () -> {},
         CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS)
     );
-    doReturn(retryFuture).when(retryService).retry(any(), any());
+    doReturn(retryFuture).when(retryQueue).retry(any(), any());
     ack.retry(CONSUMER_RECORD_0, new RuntimeException());
     assertFalse(retryFuture.isDone());
     assertDoesNotThrow(executable);
@@ -94,7 +94,7 @@ class KafkaInternalTopicAckTest {
 
   @Test
   void moveSeekedOffsetsOnNextSeekAfterRetry() {
-    when(retryService.retry(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(retryQueue.retry(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     ack.acknowledge(CONSUMER_RECORD_0);
     assertEquals(1, consumingState.getBatchSeekedOffsets().get(new TopicPartition("t", 0)).offset());
     ack.retry(CONSUMER_RECORD_1, new RuntimeException());

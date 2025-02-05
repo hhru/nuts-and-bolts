@@ -25,7 +25,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
       Consumer<?, ?> nativeKafkaConsumer
   ) {
     this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
-    this.consumerContext = kafkaConsumer.getConsumingState();
+    this.consumerContext = kafkaConsumer.getConsumerContext();
     this.nativeKafkaConsumer = nativeKafkaConsumer;
     this.retryQueue = kafkaConsumer.getRetryQueue();
   }

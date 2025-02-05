@@ -290,7 +290,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       List<PartitionInfo> partitionsInfo,
       KafkaConsumer<T> nabKafkaConsumer
   ) {
-    ConsumerContext<T> consumerContext = nabKafkaConsumer.getConsumingState();
+    ConsumerContext<T> consumerContext = nabKafkaConsumer.getConsumerContext();
     TopicPartitionOffset[] partitions = partitionsInfo
         .stream()
         .map(partition -> consumerContext

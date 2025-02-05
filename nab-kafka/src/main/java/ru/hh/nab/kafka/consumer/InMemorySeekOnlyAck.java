@@ -14,7 +14,7 @@ class InMemorySeekOnlyAck<T> implements Ack<T> {
   private final DeadLetterQueue<T> deadLetterQueue;
 
   public InMemorySeekOnlyAck(KafkaConsumer<T> kafkaConsumer) {
-    this.consumerContext = kafkaConsumer.getConsumingState();
+    this.consumerContext = kafkaConsumer.getConsumerContext();
     this.deadLetterQueue = kafkaConsumer.getDeadLetterQueue();
   }
 

@@ -238,7 +238,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     ));
   }
 
-  public ConsumerContext<T> getConsumingState() {
+  ConsumerContext<T> getConsumerContext() {
     return consumerContext;
   }
 

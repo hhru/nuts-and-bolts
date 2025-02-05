@@ -53,7 +53,7 @@ class KafkaInternalTopicAckTest {
   void setUp() {
     consumerContext = new ConsumerContext<>();
     consumerContext.prepareForNextBatch(ALL_CONSUMER_RECORDS);
-    when(kafkaConsumer.getConsumingState()).thenReturn(consumerContext);
+    when(kafkaConsumer.getConsumerContext()).thenReturn(consumerContext);
     when(kafkaConsumer.getDeadLetterQueue()).thenReturn(deadLetterQueue);
     when(kafkaConsumer.getRetryQueue()).thenReturn(retryQueue);
     ack = new KafkaInternalTopicAck<>(kafkaConsumer, nativeKafkaConsumer);

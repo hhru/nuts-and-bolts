@@ -24,8 +24,8 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web</artifactId>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
         </dependency>
 
         <dependency>

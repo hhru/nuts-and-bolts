@@ -32,7 +32,6 @@
         <module>nab-consul</module>
         <module>nab-spring-boot-common</module>
         <module>nab-web-spring-boot-starter</module>
-        <module>nab-websocket-spring-boot-starter</module>
         <module>nab-sentry-spring-boot-starter</module>
     </modules>
 
@@ -128,11 +127,6 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-web-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-websocket-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

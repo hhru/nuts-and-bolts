@@ -3,8 +3,11 @@ package ru.hh.nab.web.jetty;
 import static java.lang.System.currentTimeMillis;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import static net.logstash.logback.marker.Markers.appendEntries;
+import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
@@ -23,6 +26,8 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   private static final Logger LOGGER = LoggerFactory.getLogger(StructuredRequestLogger.class);
   private static final Logger SLOW_REQUESTS = LoggerFactory.getLogger("slowRequests");
 
+  private static final String UNKNOWN_URI = "unknown";
+
   @Override
   public void log(Request request, Response response) {
     final String outerTimoutMs = request.getHeader(X_OUTER_TIMEOUT_MS);
@@ -39,7 +44,14 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
     long executionTime = currentTimeMillis() - request.getTimeStamp();
     context.put("time", executionTime);
     context.put("method", request.getMethod());
-    context.put("uri", request.getHttpURI().getPathQuery());
+    context.put(
+        "uri",
+        Optional
+            .ofNullable(request.getHttpURI())
+            .or(() -> Optional.ofNullable(request.getMetaData()).map(MetaData.Request::getURI))
+            .map(HttpURI::getPathQuery)
+            .orElse(UNKNOWN_URI)
+    );
 
     LOGGER.info(appendEntries(context), null);
     ofNullable(outerTimoutMs)

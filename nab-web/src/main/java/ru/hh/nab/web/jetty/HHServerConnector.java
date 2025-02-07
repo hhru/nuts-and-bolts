@@ -67,7 +67,7 @@ public final class HHServerConnector extends ServerConnector {
       if (executor instanceof ThreadPool threadPool) {
         if (threadPool.isLowOnThreads()) {
           statsDSender.sendCount(LOW_ON_THREADS_METRIC_NAME, 1);
-          logger.warn("low on threads, closing accepted socket");
+          logger.debug("low on threads, closing accepted socket");
           try {
             channel.close();
           } catch (IOException e) {

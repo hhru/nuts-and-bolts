@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,10 +25,13 @@ import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getNextRetryTime;
+import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.getRetryReceiveTopic;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setMessageProcessingHistory;
 import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setNextRetryTime;
+import static ru.hh.nab.kafka.consumer.retry.HeadersMessageMetadataProvider.setRetryReceiveTopic;
 import ru.hh.nab.kafka.consumer.retry.MessageProcessingHistory;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
@@ -36,6 +40,7 @@ class RetryServiceTest {
   static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS);
   static final Instant CREATION_TIME = NOW.minusSeconds(100);
   static final String TOPIC = "topic";
+  static final RetryTopics RETRY_TOPICS = new RetryTopics(TOPIC + "_retry_send", TOPIC);
   static final String MESSAGE = "message";
   static final String KEY = "key";
   static long offset = 0;
@@ -53,11 +58,31 @@ class RetryServiceTest {
 
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
     ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
-    assertEquals(TOPIC + "_retry_send", retryMessage.topic());
+    assertEquals(RETRY_TOPICS.retrySendTopic(), retryMessage.topic());
     assertEquals(KEY, retryMessage.key());
     assertEquals(MESSAGE, retryMessage.value());
     assertEquals(processingHistory, getMessageProcessingHistory(retryMessage.headers()).get());
     assertEquals(NOW.plusSeconds(10), getNextRetryTime(retryMessage.headers()).get());
+    assertEquals(RETRY_TOPICS.retryReceiveTopic(), getRetryReceiveTopic(retryMessage.headers()).get());
+  }
+
+  @Test
+  void firstRetryWithRetryTopicsSingleDoesNotAddRetryReceiveTopicToHeaders() {
+    RetryService<String> retryService = createRetryService(
+        RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))),
+        RetryTopics.single(TOPIC));
+    MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
+
+    retryService.retry(message(), null);
+
+    verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
+    ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
+    assertEquals(TOPIC, retryMessage.topic());
+    assertEquals(KEY, retryMessage.key());
+    assertEquals(MESSAGE, retryMessage.value());
+    assertEquals(processingHistory, getMessageProcessingHistory(retryMessage.headers()).get());
+    assertEquals(NOW.plusSeconds(10), getNextRetryTime(retryMessage.headers()).get());
+    assertFalse(getRetryReceiveTopic(retryMessage.headers()).isPresent());
   }
 
   @Test
@@ -67,17 +92,19 @@ class RetryServiceTest {
     MessageProcessingHistory oldProcessingHistory = new MessageProcessingHistory(CREATION_TIME.plusSeconds(1), 9, NOW.minusSeconds(90));
     setMessageProcessingHistory(message.headers(), oldProcessingHistory);
     setNextRetryTime(message.headers(), NOW);
+    setRetryReceiveTopic(message.headers(), RETRY_TOPICS);
 
     retryService.retry(message, null);
 
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
     ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
-    assertEquals(TOPIC + "_retry_send", retryMessage.topic());
+    assertEquals(RETRY_TOPICS.retrySendTopic(), retryMessage.topic());
     assertEquals(KEY, retryMessage.key());
     assertEquals(MESSAGE, retryMessage.value());
     assertNotEquals(oldProcessingHistory,  getMessageProcessingHistory(retryMessage.headers()).get());
     assertEquals(oldProcessingHistory.withOneMoreFail(NOW), getMessageProcessingHistory(retryMessage.headers()).get());
     assertEquals(NOW.plusSeconds(10), getNextRetryTime(retryMessage.headers()).get());
+    assertEquals(RETRY_TOPICS.retryReceiveTopic(), getRetryReceiveTopic(retryMessage.headers()).get());
   }
 
   @Test
@@ -116,9 +143,13 @@ class RetryServiceTest {
   }
 
   private RetryService<String> createRetryService(RetryPolicyResolver<String> retryPolicyResolver) {
+    return createRetryService(retryPolicyResolver, RETRY_TOPICS);
+  }
+
+  private RetryService<String> createRetryService(RetryPolicyResolver<String> retryPolicyResolver, RetryTopics retryTopics) {
     return new RetryService<>(
         kafkaProducer,
-        TOPIC + "_retry_send",
+        retryTopics,
         retryPolicyResolver,
         Clock.fixed(NOW, ZoneId.systemDefault())
     );

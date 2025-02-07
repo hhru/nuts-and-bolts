@@ -21,6 +21,7 @@ public class SentryInitializer {
         options.setEnableExternalConfiguration(true);
         options.setDsn(dsn);
         options.setRelease(properties.getProperty(RELEASE_PROPERTY));
+        options.addEventProcessor(new SentryEventProcessor());
       });
     }
   }

@@ -18,11 +18,6 @@
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
         </dependency>
-        <!-- TODO: remove nab-spring-boot-common dependency when spring beans configuration will be moved to separate starter -->
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-boot-common</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>
@@ -48,12 +43,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.jclient-common</groupId>
-            <artifactId>jclient-common-testbase</artifactId>
-            <version>${jclient.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

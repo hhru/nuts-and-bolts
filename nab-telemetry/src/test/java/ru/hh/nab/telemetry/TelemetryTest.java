@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -31,14 +31,13 @@ import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import static org.springframework.http.RequestEntity.get;
 import static org.springframework.http.RequestEntity.head;
 import org.springframework.http.ResponseEntity;
-import ru.hh.nab.common.servlet.ServletSystemFilterPriorities;
-import ru.hh.nab.common.spring.boot.web.servlet.SystemFilterRegistrationBean;
 import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
 import ru.hh.nab.web.resource.StatusResource;
 
@@ -233,7 +232,7 @@ public class TelemetryTest {
     }
 
     @Bean
-    public SystemFilterRegistrationBean<TelemetryFilter> telemetryFilter() {
+    public FilterRegistrationBean<TelemetryFilter> telemetryFilter() {
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
           .builder()
           .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
@@ -250,9 +249,7 @@ public class TelemetryTest {
           true
       );
 
-      SystemFilterRegistrationBean<TelemetryFilter> registration = new SystemFilterRegistrationBean<>(telemetryFilter);
-      registration.setOrder(ServletSystemFilterPriorities.SYSTEM_OBSERVABILITY);
-      return registration;
+      return new FilterRegistrationBean<>(telemetryFilter);
     }
   }
 }

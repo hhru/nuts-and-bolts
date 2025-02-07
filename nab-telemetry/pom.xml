@@ -14,11 +14,6 @@
     <name>nuts'n'bolts telemetry</name>
 
     <dependencies>
-        <!-- TODO: remove nab-spring-boot-common dependency when spring beans configuration will be moved to separate starter -->
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-spring-boot-common</artifactId>
-        </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-jclient</artifactId>
@@ -69,12 +64,6 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk-testing</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.jclient-common</groupId>
-            <artifactId>jclient-common-testbase</artifactId>
-            <version>${jclient.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

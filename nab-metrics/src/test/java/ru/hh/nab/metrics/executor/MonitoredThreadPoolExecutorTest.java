@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class MonitoredThreadPoolExecutorTest {
@@ -35,7 +34,7 @@ public class MonitoredThreadPoolExecutorTest {
     properties.setProperty("maxSize", "4");
 
     var tpe = MonitoredThreadPoolExecutor.create(
-        new FileSettings(properties),
+        properties,
         "test",
         mock(StatsDSender.class),
         "test"
@@ -83,7 +82,7 @@ public class MonitoredThreadPoolExecutorTest {
     properties.setProperty("longTaskDurationMs", String.valueOf(sleepMs));
 
     var tpe = MonitoredThreadPoolExecutor.create(
-        new FileSettings(properties),
+        properties,
         "test",
         mock(StatsDSender.class),
         "test"
@@ -105,7 +104,7 @@ public class MonitoredThreadPoolExecutorTest {
     properties.setProperty("longTaskDurationMs", String.valueOf(sleepMs));
 
     var tpe = MonitoredThreadPoolExecutor.create(
-        new FileSettings(properties),
+        properties,
         "test",
         mock(StatsDSender.class),
         "test"

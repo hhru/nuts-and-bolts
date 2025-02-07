@@ -1,5 +1,0 @@
-org.springframework.boot.env.EnvironmentPostProcessor=ru.hh.nab.common.spring.boot.autoconfigure.AutoConfigurationPropertiesEnvironmentPostProcessor
-org.springframework.boot.logging.LoggingSystemFactory=ru.hh.nab.common.spring.boot.logging.NabLoggingSystem.Factory
-org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=ru.hh.nab.common.spring.boot.autoconfigure.NestedAutoConfigurationImportFilter
-org.springframework.boot.diagnostics.FailureAnalyzer=ru.hh.nab.common.spring.boot.diagnostics.NabFailureAnalyzer
-org.springframework.boot.diagnostics.FailureAnalysisReporter=ru.hh.nab.common.spring.boot.diagnostics.NabFailureAnalysisReporter

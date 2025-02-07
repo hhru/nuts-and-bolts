@@ -1,4 +1,4 @@
-package ru.hh.nab.web.logging;
+package ru.hh.nab.logging.override;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

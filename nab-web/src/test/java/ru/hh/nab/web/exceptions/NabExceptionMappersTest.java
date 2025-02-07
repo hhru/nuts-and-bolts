@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.TEXT_HTML;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.web.NabWebTestConfig;
@@ -161,7 +160,7 @@ public class NabExceptionMappersTest {
       properties.setProperty("minSize", "4");
       properties.setProperty("maxSize", "4");
 
-      var tpe = MonitoredThreadPoolExecutor.create(new FileSettings(properties), "test", mock(StatsDSender.class), "test");
+      var tpe = MonitoredThreadPoolExecutor.create(properties, "test", mock(StatsDSender.class), "test");
 
       tpe.execute(TASK);
       tpe.execute(TASK);

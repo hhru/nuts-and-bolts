@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration$JacksonResourceConfigCustomizer
-org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration$JacksonResourceConfigCustomizer$JaxbObjectMapperCustomizer

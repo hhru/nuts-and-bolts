@@ -11,10 +11,12 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Supplier;
-import static org.eclipse.jetty.util.URIUtil.HTTP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResourceHelper {
+
+  private static final String HTTP = "http";
+
   private final Supplier<Integer> serverPort;
   private final Client client;
 

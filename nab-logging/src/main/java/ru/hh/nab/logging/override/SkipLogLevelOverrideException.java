@@ -1,4 +1,4 @@
-package ru.hh.nab.web.logging;
+package ru.hh.nab.logging.override;
 
 /**
  * Special exception for {@link LogLevelOverrideExtension} which force to skip overriding without any error.

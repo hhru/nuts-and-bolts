@@ -200,7 +200,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
       return RetryTopics.defaultPairOfTopics(consumerMetadata);
     } else {
-      throw new IllegalStateException("Unsupported retry topic: " + retryTopics);
+      return retryTopics;
     }
   }
 

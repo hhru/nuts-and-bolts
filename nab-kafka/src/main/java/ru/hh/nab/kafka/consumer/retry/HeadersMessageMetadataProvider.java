@@ -27,7 +27,7 @@ import org.apache.kafka.common.header.Headers;
  * </pre>
  * <p>
  * Topic name where application expects to receive retry message is stored in {@link #HEADER_RECEIVE_TOPIC}
- * */
+ */
 public class HeadersMessageMetadataProvider {
   public static final String HEADER_MESSAGE_PROCESSING_HISTORY = "x-retry-message-processing-history";
   public static final String HEADER_NEXT_RETRY_TIME = "x-retry-next-retry-time";
@@ -38,7 +38,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Get {@link MessageProcessingHistory} from message headers
-   * */
+   */
   public static Optional<MessageProcessingHistory> getMessageProcessingHistory(Headers headers) {
     return Optional
         .ofNullable(headers.lastHeader(HEADER_MESSAGE_PROCESSING_HISTORY))
@@ -54,7 +54,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Get next scheduled retry time from message headers
-   * */
+   */
   public static Optional<Instant> getNextRetryTime(Headers headers) {
     return Optional
         .ofNullable(headers.lastHeader(HEADER_NEXT_RETRY_TIME))
@@ -64,7 +64,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Get retry receive topic name from message headers
-   * */
+   */
   public static Optional<String> getRetryReceiveTopic(Headers headers) {
 
     return Optional
@@ -75,7 +75,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Store {@link MessageProcessingHistory} to message headers
-   * */
+   */
   public static void setMessageProcessingHistory(Headers headers, MessageProcessingHistory messageProcessingHistory) {
     byte[] headerValue;
     try {
@@ -90,7 +90,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Store next scheduled retry time to message headers
-   * */
+   */
   public static void setNextRetryTime(Headers headers, Instant nextRetryTime) {
     byte[] headerValue = nextRetryTime.toString().getBytes(StandardCharsets.UTF_8);
     headers
@@ -100,7 +100,7 @@ public class HeadersMessageMetadataProvider {
 
   /**
    * Store retry receive topic name to message headers
-   * */
+   */
   public static void setRetryReceiveTopic(Headers headers, RetryTopics retryTopics) {
     String receiveTopic = retryTopics.retryReceiveTopic();
     byte[] headerValue = receiveTopic.getBytes(StandardCharsets.UTF_8);

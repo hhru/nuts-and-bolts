@@ -18,7 +18,9 @@ import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 
 public class KafkaStatsDReporter implements MetricsReporter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
+  public static final String METRICS_ALLOWED = "metrics.allowed";
+  public static final String METRICS_SEND_ALL = "metrics.send-all";
+  public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
   static final Set<String> CRITICAL_METRICS = Set.of(
       "consumer-metrics.last-poll-seconds-ago",
 
@@ -48,17 +50,17 @@ public class KafkaStatsDReporter implements MetricsReporter {
       "producer-topic-metrics.record-retry-rate",
       "producer-topic-metrics.record-error-rate"
   );
-
-  public static final String METRICS_ALLOWED = "metrics.allowed";
-  public static final String METRICS_SEND_ALL = "metrics.send-all";
-  public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
+  protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
   private String serviceName;
   private StatsDSender statsDSender;
   private boolean isSendAll;
   private Set<String> allowedMetrics;
 
-  protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
+  // Visible only for tests
+  static String createMetricName(MetricName metricName) {
+    return String.format("%s.%s", metricName.group(), metricName.name());
+  }
 
   @Override
   public void init(List<KafkaMetric> metrics) {
@@ -134,11 +136,6 @@ public class KafkaStatsDReporter implements MetricsReporter {
     this.statsDSender = (StatsDSender) configs.get(STATSD_INSTANCE_PROPERTY);
   }
 
-  // Visible only for tests
-  static String createMetricName(MetricName metricName) {
-    return String.format("%s.%s", metricName.group(), metricName.name());
-  }
-
   private void recordMetric(KafkaMetric metric) {
     String name = createMetricName(metric.metricName());
     if (isSendAll || allowedMetrics.contains(name)) {
@@ -158,13 +155,13 @@ public class KafkaStatsDReporter implements MetricsReporter {
     PARTITION("partition", "partition"),
     TOPIC("topic", "topic");
 
+    private final String kafkaTag;
+    private final String statsDTag;
+
     ReporterTag(String kafkaTag, String statsDTag) {
       this.kafkaTag = kafkaTag;
       this.statsDTag = statsDTag;
     }
-
-    private final String kafkaTag;
-    private final String statsDTag;
 
     public String getKafkaTag() {
       return kafkaTag;

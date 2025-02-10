@@ -10,8 +10,7 @@ public record RetryLimit(RetryPolicy base, long limit) implements RetryPolicy {
     this.base = Objects.requireNonNull(base);
     if (limit < 0) {
       throw new IllegalArgumentException("Limit should be positive");
-    }
-    else if (limit == 0) {
+    } else if (limit == 0) {
       throw new IllegalArgumentException("Explicitly use Never policy instead of limit 0");
     }
     this.limit = limit;

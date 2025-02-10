@@ -1,6 +1,7 @@
-### Подключение 
+### Подключение
 
 В своем сервисе добавьте зависимость:
+
  ```
         <dependency>
             <groupId>ru.hh.nab</groupId>
@@ -9,14 +10,13 @@
         </dependency>
 
 ```
- 
- 
+
 А также spring config:
 
 ```
   @Bean
-  public ConfigProvider configProvider(String serviceName, FileSettings fileSettings) {
-    return new ConfigProvider(serviceName, "kafka.cluster.name", fileSettings);
+  public ConfigProvider configProvider(String serviceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
+    return new ConfigProvider(serviceName, "kafka.cluster.name", properties, statsDSender);
   }
 
   // если в сервисе нужно подписаться на топик
@@ -34,8 +34,6 @@
 
 ```
 
-
-
 ### Подписываемся на топик
 
 Inject'им KafkaConsumerFactory и вызываем следующий метод:
@@ -49,15 +47,18 @@ kafkaConsumerFactory.subscribe(
 );
 ```
 
-Совокупность параметров topicName и operationName, а также имя сервиса, определяет [имя consumer группы](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumerMetadata.java).
+Совокупность параметров topicName и operationName, а также имя сервиса,
+определяет [имя consumer группы](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumerMetadata.java).
 Подробнее про [consumer группы](https://kafka.apache.org/documentation/#intro_consumers)
 
-Лямбда реализовывает интерфейс [ConsumeStrategy](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumeStrategy.java)
+Лямбда реализовывает
+интерфейс [ConsumeStrategy](https://github.com/hhru/nuts-and-bolts/blob/master/nab-kafka/src/main/java/ru/hh/nab/kafka/consumer/ConsumeStrategy.java)
 
-Есть вариант создать "готовый" консумер (удобно использовать в Spring), который при создании подпишется на топик и требует имплементить 
-только метод обработки одного сообщения. При этом стратегия обработки батча сообщений может быть передана в конструктор. 
-По умолчанию используется простая at least once обработка с ack'ом после успешной обработки всего батча. 
+Есть вариант создать "готовый" консумер (удобно использовать в Spring), который при создании подпишется на топик и требует имплементить
+только метод обработки одного сообщения. При этом стратегия обработки батча сообщений может быть передана в конструктор.
+По умолчанию используется простая at least once обработка с ack'ом после успешной обработки всего батча.
 Spring сам остановит такой консумер при остановке контекста, т.к. он Closeable.
+
 ```
 public class MyMessageConsumer extends ru.hh.nab.kafka.consumer.SimpleKafkaConsumer<MyMessage> {
 
@@ -81,7 +82,8 @@ public class MyMessageConsumer extends ru.hh.nab.kafka.consumer.SimpleKafkaConsu
 
 [Библиотека](https://github.com/hhru/hh-java-libs/tree/master/kafka-client-utils) для сбора метрик.
 
-Подключается следующим образом: 
+Подключается следующим образом:
+
 ```
   @Bean
   public Object kafkaStatsDReporter(String serviceName, StatsDClient statsDClient, ScheduledExecutorService scheduledExecutorService) {

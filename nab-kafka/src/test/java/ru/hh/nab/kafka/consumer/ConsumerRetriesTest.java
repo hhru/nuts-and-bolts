@@ -45,6 +45,20 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
 
   private KafkaConsumer<String> consumer;
 
+  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record) {
+    try {
+      return new ProducerRecord<>(
+          record.topic(),
+          record.partition(),
+          record.key(),
+          KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(record.value()),
+          record.headers()
+      );
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @AfterEach
   void tearDown() {
     if (consumer != null) {
@@ -184,19 +198,5 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
       return CompletableFuture.failedFuture(e);
     }
     return CompletableFuture.completedFuture(null);
-  }
-
-  private static <T> ProducerRecord<String, byte[]> toBinaryRecord(ProducerRecord<String, T> record)  {
-    try {
-      return new ProducerRecord<>(
-          record.topic(),
-          record.partition(),
-          record.key(),
-          KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(record.value()),
-          record.headers()
-      );
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

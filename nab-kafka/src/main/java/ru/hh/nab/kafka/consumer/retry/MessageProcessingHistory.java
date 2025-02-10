@@ -6,8 +6,9 @@ import java.util.Objects;
 /**
  * Message processing history. History is not meant to be created before first failure,
  * so all fields are required, and retryNumber should be greater than zero
+ *
  * @param creationTime Time when this message was initially created
- * @param retryNumber Number of failures to process this message
+ * @param retryNumber  Number of failures to process this message
  * @param lastFailTime Time of last processing failure for this message
  */
 public record MessageProcessingHistory(

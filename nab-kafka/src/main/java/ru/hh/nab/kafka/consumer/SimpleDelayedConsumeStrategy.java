@@ -13,7 +13,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
  * When message batch contains no ready messages sleeps for specified duration,
  * otherwise passes only ready messages to delegate strategy.
  * Uses special wrapper for Ack to support {@link Ack#acknowledge()} call from delegate.
- * */
+ */
 public class SimpleDelayedConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final ConsumeStrategy<T> delegate;
   private final Function<ConsumerRecord<String, T>, Instant> getReadyTime;

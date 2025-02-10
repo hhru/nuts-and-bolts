@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
 import ru.hh.nab.kafka.consumer.DeserializerSupplier;
 import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;
@@ -41,7 +40,7 @@ public class KafkaTestConfig {
 
   @Bean
   public ConfigProvider configProvider(Properties properties, StatsDSender statsDSender) {
-    return new ConfigProvider("service", "kafka", new FileSettings(properties), statsDSender);
+    return new ConfigProvider("service", "kafka", properties, statsDSender);
   }
 
   @Bean

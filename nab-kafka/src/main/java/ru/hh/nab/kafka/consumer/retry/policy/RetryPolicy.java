@@ -10,7 +10,7 @@ import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
  * Decides when (and if) a message should be retried based on its {@link MessageProcessingHistory}
  *
  * @see RetryPolicyResolver
- * */
+ */
 public sealed interface RetryPolicy permits Deadline, Fixed, Never, Progressive, RetryLimit, Ttl {
 
   /**
@@ -65,7 +65,7 @@ public sealed interface RetryPolicy permits Deadline, Fixed, Never, Progressive,
    * that is, return value of {@link #getNextRetryTime(MessageProcessingHistory)}
    * is after {@link MessageProcessingHistory#creationTime()} plus <b>ttl</b>
    */
-  default Ttl withTtl(Duration ttl){
+  default Ttl withTtl(Duration ttl) {
     return new Ttl(this, ttl);
   }
 

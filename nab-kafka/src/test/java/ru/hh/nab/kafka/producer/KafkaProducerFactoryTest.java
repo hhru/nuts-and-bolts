@@ -18,10 +18,9 @@ import ru.hh.nab.kafka.KafkaTestConfig;
 public class KafkaProducerFactoryTest {
 
   @Inject
-  private KafkaProducerFactory producerFactory;
-  @Inject
   protected TestKafkaWithJsonMessages testKafka;
-
+  @Inject
+  private KafkaProducerFactory producerFactory;
   private String topicName;
 
   @BeforeEach

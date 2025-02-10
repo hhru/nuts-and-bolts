@@ -49,7 +49,7 @@ class RetryService<T> {
   }
 
   protected CompletableFuture<?> retry(ConsumerRecord<String, T> message, Instant retryTime, MessageProcessingHistory updatedProcessingHistory) {
-    ProducerRecord<String, T> retryRecord = new ProducerRecord<>(retryTopics.retrySendTopic(), null,  message.key(), message.value());
+    ProducerRecord<String, T> retryRecord = new ProducerRecord<>(retryTopics.retrySendTopic(), null, message.key(), message.value());
     setMessageProcessingHistory(retryRecord.headers(), updatedProcessingHistory);
     setNextRetryTime(retryRecord.headers(), retryTime);
     if (!retryTopics.isSingleTopic()) {

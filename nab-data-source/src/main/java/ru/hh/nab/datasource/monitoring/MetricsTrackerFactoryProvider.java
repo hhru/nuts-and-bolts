@@ -1,9 +1,9 @@
 package ru.hh.nab.datasource.monitoring;
 
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
-import ru.hh.nab.common.properties.FileSettings;
+import java.util.Properties;
 
 @FunctionalInterface
 public interface MetricsTrackerFactoryProvider<T extends MetricsTrackerFactory> {
-  T create(FileSettings dataSourceSettings);
+  T create(Properties dataSourceProperties);
 }

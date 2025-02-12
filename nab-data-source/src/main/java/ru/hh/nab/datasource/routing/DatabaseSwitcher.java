@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 
@@ -13,8 +12,8 @@ import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
  * Для того, чтобы приложение работало с несколькими базами данных, необходимо в service.properties добавить конфиги для всех датасорсов, используя
  * при этом имя базы данных в качестве префикса пропертей. В коде сервиса необходимо создать бин DatabaseSwitcher с помощью конструктора
  * {@link DatabaseSwitcher#DatabaseSwitcher(Supplier)} (в сапплаере можно, например, доставать значение какой-либо динамической настройки) + при
- * создании датасорсов с помощью фабричного метода {@link DataSourceFactory#create(String, String, boolean, FileSettings)} нужно передавать имя базы
- * отдельным аргументом (оно должно совпадать с префиксом в конфиге)
+ * создании датасорсов с помощью фабричного метода {@link DataSourceFactory#create(String, String, boolean, java.util.Properties)} нужно передавать
+ * имя базы отдельным аргументом (оно должно совпадать с префиксом в конфиге)
  * <p>
  * Пример конфига:
  * <pre>{@code
@@ -39,13 +38,13 @@ import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
  * RoutingDataSource dataSource(
  *     DataSourceFactory dataSourceFactory,
  *     RoutingDataSourceFactory routingDataSourceFactory,
- *     FileSettings fileSettings
+ *     Properties properties
  * ) {
  *   var routingDataSource = routingDataSourceFactory.create();
- *   routingDataSource.addNamedDataSource(dataSourceFactory.create(TEST_DB, DataSourceType.MASTER, false, fileSettings));
- *   routingDataSource.addNamedDataSource(dataSourceFactory.create(TEST_DB, DataSourceType.READONLY, true, fileSettings));
- *   routingDataSource.addNamedDataSource(dataSourceFactory.create(PROD_DB, DataSourceType.MASTER, false, fileSettings));
- *   routingDataSource.addNamedDataSource(dataSourceFactory.create(PROD_DB, DataSourceType.READONLY, true, fileSettings));
+ *   routingDataSource.addNamedDataSource(dataSourceFactory.create(TEST_DB, DataSourceType.MASTER, false, properties));
+ *   routingDataSource.addNamedDataSource(dataSourceFactory.create(TEST_DB, DataSourceType.READONLY, true, properties));
+ *   routingDataSource.addNamedDataSource(dataSourceFactory.create(PROD_DB, DataSourceType.MASTER, false, properties));
+ *   routingDataSource.addNamedDataSource(dataSourceFactory.create(PROD_DB, DataSourceType.READONLY, true, properties));
  *   return routingDataSource;
  * }
  *

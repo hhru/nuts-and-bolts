@@ -5,7 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
-  public static final ConsumeStrategy<Object> CONSUME_STRATEGY = (messages, ack) -> {};
+  public static final ConsumeStrategy<Object> CONSUME_STRATEGY = (messages, ack) -> {
+  };
 
   @Test
   void successfulBuildAndStartWithOnlyRequiredParams() {

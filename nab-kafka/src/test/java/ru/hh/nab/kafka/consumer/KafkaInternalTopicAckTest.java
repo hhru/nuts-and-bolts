@@ -79,7 +79,8 @@ class KafkaInternalTopicAckTest {
   @MethodSource("acknowledgeMethods")
   void waitForRetryToComplete(Executable executable) {
     CompletableFuture<Void> retryFuture = CompletableFuture.runAsync(
-        () -> {},
+        () -> {
+        },
         CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS)
     );
     doReturn(retryFuture).when(retryService).retry(any(), any());

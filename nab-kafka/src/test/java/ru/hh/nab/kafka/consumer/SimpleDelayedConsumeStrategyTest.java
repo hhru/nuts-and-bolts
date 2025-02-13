@@ -44,7 +44,19 @@ class SimpleDelayedConsumeStrategyTest {
       strategy,
       GET_READY_TIME.andThen(time -> time.minusSeconds(1)), // wrapping strategy takes messages as ready 1 second earlier than nested one
       Duration.ofSeconds(1),
-      Clock.fixed(NOW, ZoneId.systemDefault()));
+      Clock.fixed(NOW, ZoneId.systemDefault())
+  );
+
+  private static List<ConsumerRecord<String, Long>> messages(Long... messages) {
+    return Stream
+        .of(messages)
+        .map(SimpleDelayedConsumeStrategyTest::message)
+        .toList();
+  }
+
+  private static ConsumerRecord<String, Long> message(Long value) {
+    return new ConsumerRecord<>("", 0, value, null, value);
+  }
 
   @BeforeEach
   void setUp() {
@@ -154,7 +166,8 @@ class SimpleDelayedConsumeStrategyTest {
         strategy,
         GET_READY_TIME.andThen(time -> time.plusSeconds(1)), // wrapping strategy takes messages as ready 1 second later than nested one
         Duration.ofSeconds(1),
-        Clock.fixed(NOW, ZoneId.systemDefault()));
+        Clock.fixed(NOW, ZoneId.systemDefault())
+    );
     assertTimeout(Duration.ofMillis(500), () -> nestedInvertedStrategy.onMessagesBatch(
         messages(
             NOW.toEpochMilli() - 1001,
@@ -166,16 +179,5 @@ class SimpleDelayedConsumeStrategyTest {
     assertEquals(1, processedMessages.size());
     verify(myAck, never()).acknowledge();
     verify(myAck, only()).acknowledge(eq(processedMessages));
-  }
-
-  private static List<ConsumerRecord<String, Long>> messages(Long... messages) {
-    return Stream
-        .of(messages)
-        .map(SimpleDelayedConsumeStrategyTest::message)
-        .toList();
-  }
-
-  private static ConsumerRecord<String, Long> message(Long value) {
-    return new ConsumerRecord<>("", 0, value, null, value);
   }
 }

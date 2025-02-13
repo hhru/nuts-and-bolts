@@ -39,12 +39,6 @@ import ru.hh.nab.kafka.producer.KafkaSendResult;
 
 @SpringBootTest(classes = KafkaStatsDReporterTest.CompanionConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
-  private TopicConsumerMock<String> consumerMock;
-  private KafkaConsumer<String> consumer;
-
-  @Inject
-  private KafkaProducerFactory producerFactory;
-
   private static final MetricName CONSUMER_METRICS_OUTGOING_BYTE_TOTAL =
       new MetricName("outgoing-byte-total", "consumer-metrics", "", Collections.emptyMap());
   private static final MetricName CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE =
@@ -59,7 +53,6 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
       new MetricName("incoming-byte-rate", "producer-node-metrics", "", Collections.emptyMap());
   private static final MetricName PRODUCER_TOPIC_METRICS_BYTE_RATE =
       new MetricName("byte-rate", "producer-topic-metrics", "", Collections.emptyMap());
-
   private static final Set<MetricName> ENABLED_METRICS = Set.of(
       CONSUMER_METRICS_OUTGOING_BYTE_TOTAL,
       CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE,
@@ -69,8 +62,25 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
       PRODUCER_NODE_METRICS_INCOMING_BYTE_RATE,
       PRODUCER_TOPIC_METRICS_BYTE_RATE
   );
-
   private static final AtomicReference<ConcurrentMap<MetricName, Metric>> observedMetrics = new AtomicReference<>();
+  private TopicConsumerMock<String> consumerMock;
+  private KafkaConsumer<String> consumer;
+  @Inject
+  private KafkaProducerFactory producerFactory;
+
+  private static Metric getObservedMetric(MetricName searchedMetricName) {
+    ConcurrentMap<MetricName, Metric> metrics = observedMetrics.get();
+
+    String nameToSearch = KafkaStatsDReporter.createMetricName(searchedMetricName);
+    for (MetricName originalMetricName : metrics.keySet()) {
+      String originalName = KafkaStatsDReporter.createMetricName(originalMetricName);
+      if (originalName.equals(nameToSearch)) {
+        return Objects.requireNonNull(metrics.get(originalMetricName), "Initialize kafka client before using metrics");
+      }
+    }
+
+    throw new RuntimeException("Metric [%s] was not found.".formatted(nameToSearch));
+  }
 
   @BeforeEach
   public void setUp() {
@@ -216,20 +226,6 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     }
   }
 
-  private static Metric getObservedMetric(MetricName searchedMetricName) {
-    ConcurrentMap<MetricName, Metric> metrics = observedMetrics.get();
-
-    String nameToSearch = KafkaStatsDReporter.createMetricName(searchedMetricName);
-    for (MetricName originalMetricName : metrics.keySet()) {
-      String originalName = KafkaStatsDReporter.createMetricName(originalMetricName);
-      if (originalName.equals(nameToSearch)) {
-        return Objects.requireNonNull(metrics.get(originalMetricName), "Initialize kafka client before using metrics");
-      }
-    }
-
-    throw new RuntimeException("Metric [%s] was not found.".formatted(nameToSearch));
-  }
-
   // Public visibility and default constructor is necessary for kafka client
   public static class TestMetricsReporter extends KafkaStatsDReporter {
     @Override
@@ -247,7 +243,8 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
       // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE
       String prefix = "kafka.common";
       properties.put(prefix + "." + CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, TestMetricsReporter.class.getName());
-      properties.put(prefix + "." + KafkaStatsDReporter.METRICS_ALLOWED,
+      properties.put(
+          prefix + "." + KafkaStatsDReporter.METRICS_ALLOWED,
           ENABLED_METRICS
               .stream()
               .map(KafkaStatsDReporter::createMetricName)

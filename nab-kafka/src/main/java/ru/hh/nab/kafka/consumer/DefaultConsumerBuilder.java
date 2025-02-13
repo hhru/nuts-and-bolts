@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -17,7 +18,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.producer.KafkaProducer;
@@ -206,7 +207,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     if (!retryTopics.isSingleTopic()) {
       return consumeStrategy;
     }
-    long pollTimeout = consumerFactory.configProvider.getNabConsumerSettings(topicName).getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS);
+    Properties settings = consumerFactory.configProvider.getNabConsumerSettings(topicName);
+    long pollTimeout = PropertiesUtils.getLong(settings, POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS);
     return ConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofMillis(pollTimeout * 9 / 10));
   }
 
@@ -250,7 +252,8 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(topicName, nabKafkaConsumer, logger);
     ConcurrentMessageListenerContainer<String, T> container = new ConcurrentMessageListenerContainer<>(springConsumerFactory, containerProperties);
     container.setCommonErrorHandler(errorHandler);
-    container.setConcurrency(configProvider.getNabConsumerSettings(topicName).getInteger(CONCURRENCY, 1));
+    Properties settings = configProvider.getNabConsumerSettings(topicName);
+    container.setConcurrency(PropertiesUtils.getInteger(settings, CONCURRENCY, 1));
     return container;
   }
 
@@ -270,16 +273,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         )
         .toArray(TopicPartitionOffset[]::new);
 
-    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
+    Properties settings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(partitions);
-    addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
+    addCommonContainerProperties(messageListener, containerProperties, settings);
     return containerProperties;
   }
 
   private ContainerProperties getSpringConsumerContainerPropertiesWithConsumerGroup(
       ConfigProvider configProvider, ConsumerMetadata consumerMetadata, GenericMessageListener<?> messageListener
   ) {
-    FileSettings nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     var containerProperties = new ContainerProperties(consumerMetadata.getTopic());
     containerProperties.setGroupId(consumerMetadata.getConsumerGroupId());
     addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
@@ -287,13 +290,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private void addCommonContainerProperties(
-      GenericMessageListener<?> messageListener, ContainerProperties containerProperties, FileSettings nabConsumerSettings
+      GenericMessageListener<?> messageListener, ContainerProperties containerProperties, Properties settings
   ) {
     containerProperties.setClientId(Optional.ofNullable(clientId).orElseGet(() -> UUID.randomUUID().toString()));
     containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
     containerProperties.setMessageListener(messageListener);
-    containerProperties.setPollTimeout(nabConsumerSettings.getLong(POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
-    containerProperties.setAuthExceptionRetryInterval(Duration.ofMillis(nabConsumerSettings.getLong(
+    containerProperties.setPollTimeout(PropertiesUtils.getLong(settings, POLL_TIMEOUT, DEFAULT_POLL_TIMEOUT_MS));
+    containerProperties.setAuthExceptionRetryInterval(Duration.ofMillis(PropertiesUtils.getLong(
+        settings,
         AUTH_EXCEPTION_RETRY_INTERVAL,
         DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS
     )));

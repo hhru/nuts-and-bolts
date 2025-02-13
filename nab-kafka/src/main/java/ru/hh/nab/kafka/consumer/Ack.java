@@ -82,8 +82,8 @@ public interface Ack<T> {
    * next call to {@link #seek(ConsumerRecord)} or any of acknowledge(...) methods will do that.
    *
    * @param message Message that should be scheduled for retry
-   * @param error Exception that was the cause for retrying message. If there was no exception set to {@code null}
-   *              or create custom exception with details that Ack needs to determine retry time correctly
+   * @param error   Exception that was the cause for retrying message. If there was no exception set to {@code null}
+   *                or create custom exception with details that Ack needs to determine retry time correctly
    * @return Future that represents an async operation of scheduling the message for retry
    * @throws UnsupportedOperationException if implementation does not support retries
    * @see ConsumerBuilder#withRetries(KafkaProducer, RetryPolicyResolver)

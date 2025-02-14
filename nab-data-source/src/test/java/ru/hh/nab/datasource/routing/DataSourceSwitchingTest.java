@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
@@ -247,7 +246,7 @@ public class DataSourceSwitchingTest {
     Properties properties = DataSourceSwitchingTestConfig.createProperties(dataSourceName);
     properties.setProperty(dataSourceName + "." + HEALTHCHECK_SETTINGS_PREFIX + "." + HEALTHCHECK_ENABLED, "true");
     properties.setProperty(dataSourceName + "." + ROUTING_SECONDARY_DATASOURCE, DataSourceType.MASTER);
-    DataSource dataSource = dataSourceFactory.create(CRON_MASTER, false, new FileSettings(properties));
+    DataSource dataSource = dataSourceFactory.create(CRON_MASTER, false, properties);
 
     RoutingDataSource routingDataSource = routingDataSourceFactory.create();
     routingDataSource.addNamedDataSource(dataSource);
@@ -386,7 +385,7 @@ public class DataSourceSwitchingTest {
 
     private static DataSource createDsSpy(DataSourceFactory dataSourceFactory, String databaseName, String dataSourceType, Properties properties) {
       try {
-        DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, new FileSettings(properties)));
+        DataSource dataSource = spy(dataSourceFactory.create(databaseName, dataSourceType, false, properties));
         var healthCheckHikariDataSource = dataSource.unwrap(HealthCheckHikariDataSource.class);
         if (healthCheckHikariDataSource != null) {
           HealthCheckHikariDataSource.AsyncHealthCheckDecorator failedHealthCheck = mock(HealthCheckHikariDataSource.AsyncHealthCheckDecorator.class);

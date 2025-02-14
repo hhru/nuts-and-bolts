@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +25,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.common.servlet.UriComponent;
 import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
@@ -77,30 +76,30 @@ public class DataSourceFactory {
     this.databaseSwitcher = databaseSwitcher;
   }
 
-  public DataSource create(String databaseName, String dataSourceType, boolean isReadonly, FileSettings settings) {
+  public DataSource create(String databaseName, String dataSourceType, boolean isReadonly, Properties properties) {
     if (databaseSwitcher == null) {
       throw new IllegalStateException("If your application needs to work with multiple databases, you should create DatabaseSwitcher bean");
     } else {
       String dataSourceName = databaseSwitcher.createDataSourceName(databaseName, dataSourceType);
-      return create(dataSourceName, isReadonly, settings);
+      return create(dataSourceName, isReadonly, properties);
     }
   }
 
-  public DataSource create(String dataSourceName, boolean isReadonly, FileSettings settings) {
-    return createDataSource(dataSourceName, isReadonly, settings.getSubSettings(dataSourceName));
+  public DataSource create(String dataSourceName, boolean isReadonly, Properties properties) {
+    return createDataSource(dataSourceName, isReadonly, PropertiesUtils.getSubProperties(properties, dataSourceName));
   }
 
-  public DataSource create(HikariConfig hikariConfig, FileSettings dataSourceSettings, boolean isReadonly) {
+  public DataSource create(HikariConfig hikariConfig, Properties dataSourceProperties, boolean isReadonly) {
     String dataSourceName = hikariConfig.getPoolName();
     try {
-      boolean sendStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SEND_STATS)).orElse(false);
+      boolean sendStats = PropertiesUtils.getBoolean(dataSourceProperties, MONITORING_SEND_STATS, false);
       if (sendStats && metricsTrackerFactoryProvider != null) {
-        hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceSettings));
+        hikariConfig.setMetricsTrackerFactory(metricsTrackerFactoryProvider.create(dataSourceProperties));
       }
 
-      FileSettings healthCheckSettings = dataSourceSettings.getSubSettings(HEALTHCHECK_SETTINGS_PREFIX);
-      boolean healthCheckEnabled = healthCheckSettings.getBoolean(HEALTHCHECK_ENABLED, false);
-      String secondaryDataSource = dataSourceSettings.getString(ROUTING_SECONDARY_DATASOURCE);
+      Properties healthCheckProperties = PropertiesUtils.getSubProperties(dataSourceProperties, HEALTHCHECK_SETTINGS_PREFIX);
+      boolean healthCheckEnabled = PropertiesUtils.getBoolean(healthCheckProperties, HEALTHCHECK_ENABLED, false);
+      String secondaryDataSource = dataSourceProperties.getProperty(ROUTING_SECONDARY_DATASOURCE);
       if (!healthCheckEnabled && secondaryDataSource != null) {
         throw new RuntimeException(String.format(
             "Exception during %s datasource initialization: if %s is configured, healthcheck should be enabled. " +
@@ -116,13 +115,13 @@ public class DataSourceFactory {
       DataSource hikariDataSource;
       if (healthCheckHikariDataSourceFactory != null && healthCheckEnabled) {
         hikariConfig.setHealthCheckRegistry(new HealthCheckRegistry());
-        hikariConfig.setHealthCheckProperties(healthCheckSettings.getProperties());
+        hikariConfig.setHealthCheckProperties(healthCheckProperties);
         hikariDataSource = healthCheckHikariDataSourceFactory.create(hikariConfig);
       } else {
         hikariDataSource = new HikariDataSource(hikariConfig);
       }
 
-      String statementTimeoutMsVal = dataSourceSettings.getString(STATEMENT_TIMEOUT_MS);
+      String statementTimeoutMsVal = dataSourceProperties.getProperty(STATEMENT_TIMEOUT_MS);
       if (statementTimeoutMsVal != null) {
         int statementTimeoutMs = parseInt(statementTimeoutMsVal);
         if (statementTimeoutMs > 0) {
@@ -159,13 +158,13 @@ public class DataSourceFactory {
     }
   }
 
-  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, dataSourceSettings);
-    return create(hikariConfig, dataSourceSettings, isReadonly);
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, Properties dataSourceProperties) {
+    HikariConfig hikariConfig = createBaseHikariConfig(dataSourceName, dataSourceProperties);
+    return create(hikariConfig, dataSourceProperties, isReadonly);
   }
 
-  private static HikariConfig createBaseHikariConfig(String dataSourceName, FileSettings dataSourceSettings) {
-    Properties poolProperties = dataSourceSettings.getSubProperties(POOL_SETTINGS_PREFIX);
+  private static HikariConfig createBaseHikariConfig(String dataSourceName, Properties dataSourceProperties) {
+    Properties poolProperties = PropertiesUtils.getSubProperties(dataSourceProperties, POOL_SETTINGS_PREFIX);
     if (poolProperties.isEmpty()) {
       throw new RuntimeException(String.format(
         "Exception during %1$s pooled datasource initialization: could not find %1$s.%2$s settings in config file. " +
@@ -175,9 +174,9 @@ public class DataSourceFactory {
     }
 
     HikariConfig config = new HikariConfig(poolProperties);
-    config.setJdbcUrl(dataSourceSettings.getString(JDBC_URL));
-    config.setUsername(dataSourceSettings.getString(USER));
-    config.setPassword(dataSourceSettings.getString(PASSWORD));
+    config.setJdbcUrl(dataSourceProperties.getProperty(JDBC_URL));
+    config.setUsername(dataSourceProperties.getProperty(USER));
+    config.setPassword(dataSourceProperties.getProperty(PASSWORD));
     config.setPoolName(dataSourceName);
     config.setReadOnly(false);
 

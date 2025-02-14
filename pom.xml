@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>10.1.6.jakarta-rc2.spring-boot-rc4-SNAPSHOT</version>
+    <version>10.1.6.jakarta-rc2.spring-boot-rc4</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -241,6 +241,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>10.1.6.jakarta-rc2.spring-boot-rc4</tag>
     </scm>
 </project>

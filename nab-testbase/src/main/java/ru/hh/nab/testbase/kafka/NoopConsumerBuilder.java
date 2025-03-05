@@ -28,12 +28,22 @@ public class NoopConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+    return this;
+  }
+
+  @Override
   public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, RetryTopics retryTopics) {
     return this;
   }
 
   @Override
   public ConsumerBuilder<T> withRetryConsumeStrategy(ConsumeStrategy<T> retryConsumeStrategy) {
+    return this;
+  }
+
+  @Override
+  public ConsumerBuilder<T> withDlq(String destination, KafkaProducer kafkaProducer) {
     return this;
   }
 

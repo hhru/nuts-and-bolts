@@ -79,14 +79,18 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     return new MonitoringConsumeStrategy<>(statsDSender, consumerMetadata, consumeStrategy);
   }
 
-  <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(String topicName, KafkaConsumer<T> kafkaConsumer, Logger logger) {
+  <T> SeekToFirstNotAckedMessageErrorHandler<T> getCommonErrorHandler(
+      String topicName,
+      KafkaConsumer<T> kafkaConsumer,
+      Logger logger
+  ) {
     FileSettings settings = configProvider.getNabConsumerSettings(topicName);
     ExponentialBackOff backOff = new ExponentialBackOff(
         settings.getLong(BACKOFF_INITIAL_INTERVAL_NAME, DEFAULT_BACKOFF_INITIAL_INTERVAL),
         settings.getDouble(BACKOFF_MULTIPLIER_NAME, DEFAULT_BACKOFF_MULTIPLIER)
     );
     backOff.setMaxInterval(settings.getLong(BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL));
-    return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer);
+    return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer, configProvider.getServiceName(), statsDSender);
   }
 
   <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {

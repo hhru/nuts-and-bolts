@@ -1,3 +1,33 @@
+-   name: 11.0.0
+    date: '2025-03-05T17:25:41.768911+03:00'
+    description: "> **API**\r\n\r\n**NabKafkaException**\r\n\r\n* Добавлена новая\
+        \ иерархия RuntimeException для nab-kafka.\r\n\r\n**ConfigurationException**\r\
+        \n\r\n* Добавлена новая ошибка, сообщающая о нерабочих конфигурациях.\r\n\r\
+        \n**ConsumerBuilder**\r\n\r\n* Добавлен новый метод `ConsumerBuilder<T> withDlq(String\
+        \ destination, KafkaProducer producer);`\r\n\r\n**KafkaConsumer**\r\n\r\n\
+        * Метод `ConsumerConsumingState<T> getConsumingState()` переименован в `ConsumerContext<T>\
+        \ getConsumerContext()` и более не находится в публичном доступе.\r\n\r\n\
+        **Ack**\r\n\r\n* Добавлен новый метод `void nAck(ConsumerRecord<String, T>\
+        \ message);`\r\n* Добавлен новый метод `void nAck(Collection<ConsumerRecord<String,\
+        \ T>> messages);`\r\n\r\n* Изменен метод `void retry(ConsumerRecord<String,\
+        \ T> message, Throwable error);`\r\n\r\n**ConsumerConsumingState** \r\n\r\n\
+        * Класс переименован в ConsumerContext и более не находится в публичном доступе.\r\
+        \n\r\n> ПОВЕДЕНИЕ\r\n\r\n**KafkaConsumer**\r\n\r\n* Научился пропускать corrupted\
+        \ сообщения\r\n* Шлет новую метрику `nab.kafka.errors.records.deserialization.count`,\
+        \ которая показывает кол-во corrupted сообщений пришедших в сервис\r\n\r\n\
+        **ConsumeStrategy**\r\n\r\n* Удалено явное смещение offset-а после процессинга\
+        \ одного сообщения, теперь это делает acknowledge в конце batch-а\r\n\r\n\
+        **ConsumerBuilder#withRetries**\r\n\r\n* В случае исчерпания попыток для retry-ев\
+        \ сообщения отправляется в DLQ, если конфигурация для DLQ была включена\r\n\
+        \r\n**DefaultConsumerBuilder**\r\n\r\n* Метод `build()` теперь кидает новые\
+        \ ConfigurationException, если конфигурация не является рабочей."
+    instructions: "1. Прекратить использовать KafkaConsumer#getConsumingState, это\
+        \ внутреннее api\r\n2. Прекратить использовать возвращаемое значение от Ack#retry,\
+        \ оно не означало конец исполнения retry операции\r\n3. Прекратить использовать\
+        \ ConsumerConsumingState, это внутреннее api\r\n4. Если у вас были собственные\
+        \ решения для пропуска corrupted сообщений, то их можно и нужно удалить"
+    compatible: false
+
 -   name: 10.1.6
     date: '2025-02-03T18:29:50.653173+03:00'
     description: Добавлен interceptor SentryAppenderInterceptor, который можно использовать

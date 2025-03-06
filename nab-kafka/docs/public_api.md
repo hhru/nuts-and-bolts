@@ -4,7 +4,7 @@
 <hr style="border: 1px solid #444; margin: 16px 0;">
 
 Класс `ConfigProvider` предоставляет конфигурации для Kafka потребителей (consumers) и производителей (producers) на основе настроек, загруженных из файлов конфигурации.
-Он также обеспечивает валидацию конфигураций и интеграцию с системой мониторинга StatsD. Вся концигурация основана на существующих настройках из официальной документации
+Он также обеспечивает валидацию конфигураций и интеграцию с системой мониторинга. Вся концигурация основана на существующих настройках из официальной документации
 для [consumer](https://kafka.apache.org/documentation/#consumerconfigs) или [producer](https://kafka.apache.org/documentation/#producerconfigs)
 
 ### Основные возможности:
@@ -13,6 +13,7 @@
 
 ### Создание ConfigProvidr
 
+Для примера возьмем кластер kafka site. У каждого кластера будет своя конфигурация.
 
 ```java
 @Bean
@@ -303,7 +304,7 @@ public KafkaProducer createProducer(KafkaProducerFactory factory) {
 
 ### Retry Queue
 
-По умолчанию имя retry queue топика будет имяТопика_имяСервиса_имяОперации_retry_receive .
+По умолчанию имя retry queue топика будет имяТопика_имяСервиса_имяОперации_retry_receive.
 
 ```java
 @Bean("resumeModerationKafkaConsumer")
@@ -319,6 +320,17 @@ public KafkaConsumer<ResumeModerationMessage> buildKafkaConsumer(
       .build();
 }
 ```
+
+#### Гибкая настройка частоты повторов
+
+1. RetryPolicy.fixed(Duration.ofSeconds(60)) — повторять каждые 60 секунд.
+2. RetryPolicy.progressive(retryCount -> retryCount < 3 ? Duration.ofSeconds(60) : Duration.ofHours(1)) — повторять каждые 60 секунд, если количество попыток меньше 3; если попыток 3 или больше, повторять каждый час.
+
+#### Гибкая настройка условий завершения повторов
+
+1. RetryPolicy.withRetryLimit(3) — завершить попытки, если их количество превышает 3.
+2. RetryPolicy.withDeadline(OffsetDateTime.now().plusHours(3L).toInstant()) — завершить попытки, если прошло 3 часа с момента начала.
+3. RetryPolicy.withTtl(Duration.ofHours(3L)) — завершить попытки, если сообщение было создано более 3 часов назад.
 
 ### Dead Letter Queue
 
@@ -520,6 +532,35 @@ public void startConsumer() {
 @PreDestroy
 public void stopConsumer() {
   consumer.stop();
+}
+```
+
+### Как работать с Ack
+
+```java
+public class TranslationUpdate implements ConsumeStrategy<String> {
+
+  @Override
+  public void onMessagesBatch(List<ConsumerRecord<String, String>> messages, Ack<String> ack) throws InterruptedException {
+    for (ConsumerRecord<String, String> message : messages) {
+      String words = message.value();
+      CompletableFuture<String> futureResult = requestTranslation(words);
+      try {
+        String result = futureResult.get(1L, TimeUnit.SECONDS);
+      } catch (ExecutionException e) { // Ошибка в логике обработки, запишем в DLQ и разберем позже вручную
+        ack.nAck(message);
+      } catch (TimeoutException e) { // Ответ не получен, запишем в RQ и попробуем еще раз позже автоматически
+        ack.retry(message, e);
+      }
+    }
+    // Мы обработали весь batch без ошибок, дожидаемся конца операций retry & nAck
+    ack.acknowledge();
+  }
+
+  private CompletableFuture<String> requestTranslation(String value) throws InterruptedException {
+    // Делаем вызов к внешнему сервису
+    return CompletableFuture.completedFuture(value);
+  }
 }
 ```
 

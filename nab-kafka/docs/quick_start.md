@@ -48,7 +48,7 @@ kafka.site.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginMod
 kafka.site.sasl.mechanism=PLAIN  
 kafka.site.security.protocol=SASL_PLAINTEXT  
 
-# Конфигурация потребителя  
+# Конфигурация consumer  
 kafka.site.consumer.topic.area_state.default.auto.offset.reset=latest  
 kafka.site.consumer.default.enable.auto.commit=false  
 kafka.site.consumer.topic.area_state.default.fetch.max.wait.ms=5000  
@@ -56,7 +56,7 @@ kafka.site.consumer.topic.area_state.default.max.poll.interval.ms=75000
 kafka.site.consumer.topic.area_state.default.max.poll.records=50  
 kafka.site.consumer.topic.area_state.default.enable.auto.commit=false  
 
-# Конфигурация производителя  
+# Конфигурация producer  
 kafka.site.producer.default.client.id={{ name }}  
 kafka.site.producer.default.retries=2  
 kafka.site.producer.default.linger.ms=500  
@@ -103,8 +103,8 @@ public class KafkaConfig {
 }  
 ```  
 
-#### **Шаг 3: Создание и управление Kafka-потребителями**
-Используйте `KafkaConsumerFactory` для создания Kafka-потребителей и управления их жизненным циклом с помощью `@PostConstruct` и `@PreDestroy`:
+#### **Шаг 3: Создание и управление Kafka consumer**
+Используйте `KafkaConsumerFactory` для создания Kafka consumer и управления их жизненным циклом с помощью `@PostConstruct` и `@PreDestroy`:
 
 ```java  
 import org.springframework.stereotype.Service;  

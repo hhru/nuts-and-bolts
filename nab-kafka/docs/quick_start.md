@@ -132,7 +132,7 @@ public class KafkaService {
         kafkaConsumer = kafkaConsumerFactory  
             .builder(topicName, MailMessage.class)  
             .withOperationName("mailer_message_listener")  
-            .withConsumeStrategy(this::processMessage)  
+            .withConsumeStrategy(ConsumeStrategy.atLeastOnceWithBatchAck(this::processMessage))  
             .build();  
         kafkaConsumer.start();  
     }  

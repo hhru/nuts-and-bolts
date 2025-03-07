@@ -40,7 +40,7 @@ implementation 'ru.hh.nab:nab-kafka:11.0.0'
 Бин `FileSettings` предоставляется библиотекой `nab-starter`. Вам нужно только настроить `ConfigProvider` и использовать его в вашем приложении.
 
 #### **Шаг 1: Определение `service.properties`**
-Создайте файл `service.properties` в вашем каталоге `/deploy/.../service.properties`:
+Создайте файл `service.properties` в вашем каталоге `deploy` репозитория:
 
 ```properties  
 # SASL аутентификация  

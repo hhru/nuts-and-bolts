@@ -96,7 +96,9 @@ public class KafkaConfig {
         return new DefaultConsumerFactory(  
             configProvider,  
             new JacksonDeserializerSupplier(KafkaSiteObjectMapperFactory.createObjectMapper()),  
-            statsDSender,  
+            statsDSender, 
+            // Этот параметр является опциональным. Без него конфигурация bootstrap.servers должна быть явно задана в service.properties.
+            // https://kafka.apache.org/documentation/#consumerconfigs_bootstrap.servers
             () -> kafkaHostsFetcher.get("KAFKA_SITE") // Получение bootstrap-серверов из Consul  
         );  
     }  

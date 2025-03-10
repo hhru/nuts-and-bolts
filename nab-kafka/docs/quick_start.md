@@ -26,13 +26,7 @@
     <artifactId>nab-kafka</artifactId>  
     <version>11.0.0</version>  
 </dependency>  
-```  
-
-#### **Gradle**
-Добавьте это в ваш `build.gradle`:
-```groovy  
-implementation 'ru.hh.nab:nab-kafka:11.0.0'  
-```  
+```   
 
 ---
 
@@ -88,15 +82,17 @@ public class KafkaConfig {
     }  
 
     @Bean  
-    public KafkaConsumerFactory kafkaSiteConsumerFactory(  
+    public TelemetryAwareConsumerFactory kafkaSiteConsumerFactory(  
         ConfigProvider configProvider,  
-        StatsDSender statsDSender,  
+        StatsDSender statsDSender,
+        OpenTelemetry openTelemetry,
         KafkaHostsFetcher kafkaHostsFetcher  
     ) {  
         return new DefaultConsumerFactory(  
             configProvider,  
             new JacksonDeserializerSupplier(KafkaSiteObjectMapperFactory.createObjectMapper()),  
-            statsDSender, 
+            statsDSender,
+            openTelemetry,
             // Этот параметр является опциональным. Без него конфигурация bootstrap.servers должна быть явно задана в service.properties.
             // https://kafka.apache.org/documentation/#consumerconfigs_bootstrap.servers
             () -> kafkaHostsFetcher.get("KAFKA_SITE") // Получение bootstrap-серверов из Consul  

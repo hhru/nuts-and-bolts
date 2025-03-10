@@ -10,13 +10,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 
-public class ConsumerConsumingState<T> {
+class ConsumerContext<T> {
 
   private final ThreadLocal<List<ConsumerRecord<String, T>>> currentBatch = new InheritableThreadLocal<>();
   private final ThreadLocal<Map<TopicPartition, OffsetAndMetadata>> batchSeekedOffsets = new InheritableThreadLocal<>();
   private final Map<TopicPartition, OffsetAndMetadata> globalSeekedOffsets;
-  private final ThreadLocal<List<CompletableFuture<?>>> batchRetryFutures = new InheritableThreadLocal<>();
-  private final ThreadLocal<List<ConsumerRecord<String, T>>> batchRetryMessages = new InheritableThreadLocal<>();
+  private final ThreadLocal<List<CompletableFuture<?>>> batchFutures = new InheritableThreadLocal<>();
+  private final ThreadLocal<List<ConsumerRecord<String, T>>> batchFutureMessages = new InheritableThreadLocal<>();
   private final ThreadLocal<Boolean> wholeBatchCommited = new InheritableThreadLocal<>() {
     @Override
     protected Boolean initialValue() {
@@ -24,7 +24,7 @@ public class ConsumerConsumingState<T> {
     }
   };
 
-  public ConsumerConsumingState() {
+  public ConsumerContext() {
     this.globalSeekedOffsets = new ConcurrentHashMap<>();
   }
 
@@ -34,8 +34,8 @@ public class ConsumerConsumingState<T> {
 
   public void prepareForNextBatch(List<ConsumerRecord<String, T>> batchMessages) {
     batchSeekedOffsets.set(new ConcurrentHashMap<>());
-    batchRetryFutures.set(new ArrayList<>());
-    batchRetryMessages.set(new ArrayList<>());
+    batchFutures.set(new ArrayList<>());
+    batchFutureMessages.set(new ArrayList<>());
     wholeBatchCommited.set(false);
     currentBatch.set(batchMessages);
   }
@@ -45,17 +45,22 @@ public class ConsumerConsumingState<T> {
     globalSeekedOffsets.put(topic, offset);
   }
 
-  public void addRetryFuture(CompletableFuture<?> future, ConsumerRecord<String, T> message) {
-    batchRetryFutures.get().add(future);
-    batchRetryMessages.get().add(message);
+  public void addFutureMessage(CompletableFuture<?> future, ConsumerRecord<String, T> message) {
+    batchFutures.get().add(future);
+    batchFutureMessages.get().add(message);
   }
 
-  public CompletableFuture<Void> getAllBatchRetryFuturesAsOne() {
-    return CompletableFuture.allOf(batchRetryFutures.get().toArray(CompletableFuture<?>[]::new));
+  public CompletableFuture<Void> getAllBatchFuturesAsOne() {
+    return CompletableFuture.allOf(batchFutures.get().toArray(CompletableFuture<?>[]::new));
   }
 
-  public List<ConsumerRecord<String, T>> getBatchRetryMessages() {
-    return batchRetryMessages.get();
+  // Visible for testing
+  List<CompletableFuture<?>> getBatchFutures() {
+    return batchFutures.get();
+  }
+
+  public List<ConsumerRecord<String, T>> getBatchFutureMessages() {
+    return batchFutureMessages.get();
   }
 
   public Optional<OffsetAndMetadata> getGlobalSeekedOffset(TopicPartition partition) {

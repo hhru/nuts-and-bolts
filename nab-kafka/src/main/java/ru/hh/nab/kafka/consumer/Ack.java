@@ -43,7 +43,7 @@ public interface Ack<T> {
    * @param message - an object containing information about the topic, partition, and offset to be used for moving the offsets
    * @see ConsumerBuilder#withDlq(String, KafkaProducer)
    */
-  void nAck(ConsumerRecord<String, T> message);
+  void sendToDlq(ConsumerRecord<String, T> message);
 
 
   /**
@@ -70,7 +70,7 @@ public interface Ack<T> {
    * @param messages - a collection of objects containing information about the topic, partition, and offset to be used for moving the offsets
    * @see ConsumerBuilder#withDlq(String, KafkaProducer)
    */
-  void nAck(Collection<ConsumerRecord<String, T>> messages);
+  void sendToDlq(Collection<ConsumerRecord<String, T>> messages);
 
   /**
    * Move fetchOffset of the message topic and partition to the position next after message offset.

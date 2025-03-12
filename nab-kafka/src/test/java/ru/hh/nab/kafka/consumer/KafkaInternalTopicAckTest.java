@@ -187,7 +187,7 @@ class KafkaInternalTopicAckTest {
    */
 
   @Test
-  void nAcknowledgeSingleMessage() {
+  void sendToDlqSingleMessage() {
     KafkaConsumer<String> consumer = createMock();
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
 
@@ -197,20 +197,20 @@ class KafkaInternalTopicAckTest {
     KafkaInternalTopicAck<String> ack = createAck(consumer, nativeConsumer);
 
     // Test
-    ack.nAck(record);
+    ack.sendToDlq(record);
 
-    // Verify nAck awaited and passed
+    // Verify sendToDlq awaited and passed
     Assertions.assertTrue(consumer.getConsumerContext().getBatchFutureMessages().contains(record));
     Assertions.assertEquals(List.of(record).size(), consumer.getConsumerContext().getBatchFutures().size());
     Assertions.assertTrue(consumer.getConsumerContext().getAllBatchFuturesAsOne().isDone());
   }
 
   /**
-   * Verifies that user can't perform nAcknowledge for a single message if DLQ is not configured
+   * Verifies that user can't perform sendToDlq for a single message if DLQ is not configured
    */
 
   @Test
-  void nAcknowledgeSingleMessageInvalidConfiguration() {
+  void sendToDlqSingleMessageInvalidConfiguration() {
     KafkaConsumer<String> consumer = createMock();
     Mockito.when(consumer.getDeadLetterQueue()).thenReturn(null);
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
@@ -220,7 +220,7 @@ class KafkaInternalTopicAckTest {
     KafkaInternalTopicAck<String> ack = createAck(consumer, nativeConsumer);
 
     // Test
-    Assertions.assertThrows(ConfigurationException.class, () -> ack.nAck(record));
+    Assertions.assertThrows(ConfigurationException.class, () -> ack.sendToDlq(record));
 
     Assertions.assertEquals(0, consumer.getConsumerContext().getBatchFutureMessages().size());
     Assertions.assertEquals(0, consumer.getConsumerContext().getBatchFutures().size());
@@ -231,7 +231,7 @@ class KafkaInternalTopicAckTest {
    */
 
   @Test
-  void nAcknowledgeSingleMessageRetry() {
+  void sendToDlqSingleMessageRetry() {
     KafkaConsumer<String> consumer = createMock();
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
 
@@ -252,9 +252,9 @@ class KafkaInternalTopicAckTest {
     ack.retry(record, new UnknownLeaderEpochException("Stub exception"));
 
     // Test
-    ack.nAck(record);
+    ack.sendToDlq(record);
 
-    // Verify retry and nAck awaited and passed
+    // Verify retry and sentToDlq awaited and passed
     Assertions.assertTrue(consumer.getConsumerContext().getBatchFutureMessages().contains(record));
     Assertions.assertEquals(List.of(record).size() + List.of(record).size(), consumer.getConsumerContext().getBatchFutures().size());
     Assertions.assertTrue(consumer.getConsumerContext().getAllBatchFuturesAsOne().isDone());
@@ -338,11 +338,11 @@ class KafkaInternalTopicAckTest {
   }
 
   /**
-   * Verifies that user can't perform nAcknowledge for several messages if DLQ is not configured
+   * Verifies that user can't perform sendToDlq for several messages if DLQ is not configured
    */
 
   @Test
-  void nAcknowledgeSeveralMessagesInvalidConfiguration() {
+  void sendToDlqSeveralMessagesInvalidConfiguration() {
     KafkaConsumer<String> consumer = createMock();
     Mockito.when(consumer.getDeadLetterQueue()).thenReturn(null);
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
@@ -357,7 +357,7 @@ class KafkaInternalTopicAckTest {
     KafkaInternalTopicAck<String> ack = createAck(consumer, nativeConsumer);
 
     // Test
-    Assertions.assertThrows(ConfigurationException.class, () -> ack.nAck(recordsToAcknowledge));
+    Assertions.assertThrows(ConfigurationException.class, () -> ack.sendToDlq(recordsToAcknowledge));
 
     Assertions.assertEquals(0, consumer.getConsumerContext().getBatchFutureMessages().size());
     Assertions.assertEquals(0, consumer.getConsumerContext().getBatchFutures().size());
@@ -422,7 +422,7 @@ class KafkaInternalTopicAckTest {
    */
 
   @Test
-  void nAcknowledgeSeveralMessages() {
+  void sendToDlqSeveralMessages() {
     KafkaConsumer<String> consumer = createMock();
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
 
@@ -436,9 +436,9 @@ class KafkaInternalTopicAckTest {
     KafkaInternalTopicAck<String> ack = createAck(consumer, nativeConsumer);
 
     // Test
-    ack.nAck(recordsToAcknowledge);
+    ack.sendToDlq(recordsToAcknowledge);
 
-    // Verify nAck awaited and passed
+    // Verify sendToDlq awaited and passed
     Assertions.assertTrue(consumer.getConsumerContext().getBatchFutureMessages().containsAll(recordsToAcknowledge));
     Assertions.assertEquals(recordsToAcknowledge.size(), consumer.getConsumerContext().getBatchFutures().size());
     Assertions.assertTrue(consumer.getConsumerContext().getAllBatchFuturesAsOne().isDone());
@@ -449,7 +449,7 @@ class KafkaInternalTopicAckTest {
    */
 
   @Test
-  void nAcknowledgeSeveralMessagesExceptionOnSecondMessage() {
+  void sendToDlqSeveralMessagesExceptionOnSecondMessage() {
     KafkaConsumer<String> consumer = createMock();
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
 
@@ -465,7 +465,7 @@ class KafkaInternalTopicAckTest {
     KafkaInternalTopicAck<String> ack = createAck(consumer, nativeConsumer);
 
     // Test
-    Assertions.assertThrows(KafkaException.class, () -> ack.nAck(recordsToAcknowledge));
+    Assertions.assertThrows(KafkaException.class, () -> ack.sendToDlq(recordsToAcknowledge));
 
     // Only first message must be sent to DLQ because second message will result in exception
     Assertions.assertTrue(consumer.getConsumerContext().getBatchFutureMessages().contains(firstRecord));
@@ -478,7 +478,7 @@ class KafkaInternalTopicAckTest {
    */
 
   @Test
-  void nAcknowledgeSeveralMessagesRetry() {
+  void sendToDlqSeveralMessagesRetry() {
     KafkaConsumer<String> consumer = createMock();
     org.apache.kafka.clients.consumer.KafkaConsumer<String, String> nativeConsumer = createNativeMock();
 
@@ -503,9 +503,9 @@ class KafkaInternalTopicAckTest {
     ack.retry(retryRecord, new UnknownLeaderEpochException("Stub exception"));
 
     // Test
-    ack.nAck(recordsToAcknowledge);
+    ack.sendToDlq(recordsToAcknowledge);
 
-    // Verify retry and nAck awaited and passed
+    // Verify retry and sendToDlq awaited and passed
     Assertions.assertTrue(consumer.getConsumerContext().getBatchFutureMessages().containsAll(recordsToAcknowledge));
     Assertions.assertEquals(List.of(retryRecord).size() + recordsToAcknowledge.size(), consumer.getConsumerContext().getBatchFutures().size());
     Assertions.assertTrue(consumer.getConsumerContext().getAllBatchFuturesAsOne().isDone());

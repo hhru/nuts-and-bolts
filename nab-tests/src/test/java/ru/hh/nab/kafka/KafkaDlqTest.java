@@ -46,11 +46,11 @@ public class KafkaDlqTest {
   private KafkaProducerFactory kafkaProducerFactory;
 
   /**
-   * Verifies single message is sent to DLQ topic after negative acknowledgment operation
+   * Verifies single message is sent to DLQ topic after sendToDlq operation
    */
 
   @Test
-  public void testNackSingleMessage() {
+  public void testSendToDlqSingleMessage() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic dlqTopic = createRandomTopic();
@@ -80,8 +80,8 @@ public class KafkaDlqTest {
         (messages, ack) -> {
           for (ConsumerRecord<String, String> message : messages) {
             // explicitly send to DLQ
-            ack.nAck(message);
-            // await nAck operation
+            ack.sendToDlq(message);
+            // await sendToDlq operation
             ack.acknowledge(message);
           }
           isSentToDlq.set(true);
@@ -101,11 +101,11 @@ public class KafkaDlqTest {
   }
 
   /**
-   * Verifies single message is sent to DLQ topic after retry operation with nAck
+   * Verifies single message is sent to DLQ topic after retry operation with sendToDlq
    */
 
   @Test
-  public void testRetryAndNackSingleMessage() {
+  public void testRetryAndSendToDlqSingleMessage() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic retryTopic = createRandomTopic();
@@ -152,8 +152,8 @@ public class KafkaDlqTest {
           for (ConsumerRecord<String, String> message : messages) {
             ack.retry(message, new TimeoutException("Stub exception"));
             // explicitly send to DLQ and await retry operation completion
-            ack.nAck(message);
-            // await nAck operation
+            ack.sendToDlq(message);
+            // await sendToDlq operation
             ack.acknowledge(message);
           }
           isSentToRetry.set(true);
@@ -179,7 +179,7 @@ public class KafkaDlqTest {
    */
 
   @Test
-  public void testRetryExhaustAndNackSingleMessage() {
+  public void testRetryExhaustAndSendToDlqSingleMessage() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic retryTopic = createRandomTopic();
@@ -247,11 +247,11 @@ public class KafkaDlqTest {
   }
 
   /**
-   * Verifies specific messages are sent to DLQ topic after negative acknowledgment operation
+   * Verifies specific messages are sent to DLQ topic after sendToDlq operation
    */
 
   @Test
-  public void testNackSeveralMessages() {
+  public void testSendToDlqSeveralMessages() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic dlqTopic = createRandomTopic();
@@ -285,12 +285,12 @@ public class KafkaDlqTest {
         String.class,
         (messages, ack) -> {
 
-          List<ConsumerRecord<String, String>> messagesToNack = messages
+          List<ConsumerRecord<String, String>> messagesSendToDlq = messages
               .stream()
               .filter(msg -> dlqMessages.contains(msg.value()))
               .toList();
-          ack.nAck(messagesToNack);
-          // await nAck operation
+          ack.sendToDlq(messagesSendToDlq);
+          // await sendToDlq operation
           ack.acknowledge();
 
           isSentToRetry.set(true);
@@ -310,11 +310,11 @@ public class KafkaDlqTest {
   }
 
   /**
-   * Verifies all messages are sent to DLQ topic after negative acknowledgment operation
+   * Verifies all messages are sent to DLQ topic after sendToDlq operation
    */
 
   @Test
-  public void testNackAllMessages() {
+  public void testSendToDlqAllMessages() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic dlqTopic = createRandomTopic();
@@ -345,8 +345,8 @@ public class KafkaDlqTest {
         dlqTopic.name(),
         String.class,
         (messages, ack) -> {
-          ack.nAck(messages);
-          // await nAck operation
+          ack.sendToDlq(messages);
+          // await sendToDlq operation
           ack.acknowledge(messages);
           isSentToRetry.set(true);
         }
@@ -369,7 +369,7 @@ public class KafkaDlqTest {
    */
 
   @Test
-  public void testNackWithMalformedMessage() {
+  public void testSendToDlqWithMalformedMessage() {
     AdminClient adminClient = kafkaTestUtils.getAdminClient();
     NewTopic originalTopic = createRandomTopic();
     NewTopic dlqTopic = createRandomTopic();
@@ -399,8 +399,8 @@ public class KafkaDlqTest {
         (messages, ack) -> {
           for (ConsumerRecord<String, ValidMessage> message : messages) {
             receivedMessages.add(message.value());
-            ack.nAck(message);
-            // await nAck operation
+            ack.sendToDlq(message);
+            // await sendToDlq operation
             ack.acknowledge(message);
           }
           isReceived.set(true);

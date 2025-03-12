@@ -23,8 +23,8 @@ class PartialAck<T> implements Ack<T> {
   }
 
   @Override
-  public void nAck(ConsumerRecord<String, T> message) {
-    delegate.nAck(message);
+  public void sendToDlq(ConsumerRecord<String, T> message) {
+    delegate.sendToDlq(message);
   }
 
   @Override
@@ -33,8 +33,8 @@ class PartialAck<T> implements Ack<T> {
   }
 
   @Override
-  public void nAck(Collection<ConsumerRecord<String, T>> messages) {
-    delegate.nAck(messages);
+  public void sendToDlq(Collection<ConsumerRecord<String, T>> messages) {
+    delegate.sendToDlq(messages);
   }
 
   @Override

@@ -24,14 +24,14 @@ class InMemorySeekOnlyAckTest {
    */
 
   @Test
-  void nAcknowledgeSingleMessage() {
+  void sendToDlqSingleMessage() {
     KafkaConsumer<String> consumer = createMock();
     // at least three always created by a factory method
     ConsumerRecord<String, String> singleMessage = consumer.getConsumerContext().getCurrentBatch().get(0);
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    ack.nAck(singleMessage);
+    ack.sendToDlq(singleMessage);
 
     Mockito.verify(consumer.getDeadLetterQueue(), Mockito.times(1)).send(singleMessage);
     // Other messages must not be sent to DLQ
@@ -43,7 +43,7 @@ class InMemorySeekOnlyAckTest {
    */
 
   @Test
-  void nAcknowledgeSeveralMessages() {
+  void sendToDlqSeveralMessages() {
     KafkaConsumer<String> consumer = createMock();
     // at least three always created by a factory method
     List<ConsumerRecord<String, String>> batch = consumer.getConsumerContext().getCurrentBatch();
@@ -55,7 +55,7 @@ class InMemorySeekOnlyAckTest {
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    ack.nAck(List.of(firstMessage, secondMessage, thirdMessage));
+    ack.sendToDlq(List.of(firstMessage, secondMessage, thirdMessage));
 
     Mockito.verify(consumer.getDeadLetterQueue(), Mockito.times(1)).send(firstMessage);
     Mockito.verify(consumer.getDeadLetterQueue(), Mockito.times(1)).send(secondMessage);
@@ -69,7 +69,7 @@ class InMemorySeekOnlyAckTest {
    */
 
   @Test
-  void nAcknowledgeSingleMessageFailed() {
+  void sendToDlqSingleMessageFailed() {
     KafkaConsumer<String> consumer = createMock();
     // at least three always created by a factory method
     ConsumerRecord<String, String> singleMessage = consumer.getConsumerContext().getCurrentBatch().get(0);
@@ -82,18 +82,18 @@ class InMemorySeekOnlyAckTest {
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    Assertions.assertThrows(KafkaException.class, () -> ack.nAck(singleMessage));
+    Assertions.assertThrows(KafkaException.class, () -> ack.sendToDlq(singleMessage));
 
     Assertions.assertEquals(0, consumerContext.getBatchFutures().size());
     Assertions.assertNull(consumerContext.getAllBatchFuturesAsOne());
   }
 
   /**
-   * Verifies that user can't perform nAcknowledge for a single message if DLQ is not configured
+   * Verifies that user can't perform sendToDlq for a single message if DLQ is not configured
    */
 
   @Test
-  void nAcknowledgeSingleMessageInvalidConfiguration() {
+  void sendToDlqSingleMessageInvalidConfiguration() {
     KafkaConsumer<String> consumer = createMock();
     Mockito.when(consumer.getDeadLetterQueue()).thenReturn(null);
     // at least three always created by a factory method
@@ -105,7 +105,7 @@ class InMemorySeekOnlyAckTest {
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    Assertions.assertThrows(ConfigurationException.class, () -> ack.nAck(singleMessage));
+    Assertions.assertThrows(ConfigurationException.class, () -> ack.sendToDlq(singleMessage));
 
     Assertions.assertEquals(0, consumerContext.getBatchFutures().size());
     Assertions.assertNull(consumerContext.getAllBatchFuturesAsOne());
@@ -116,7 +116,7 @@ class InMemorySeekOnlyAckTest {
    */
 
   @Test
-  void nAcknowledgeSeveralMessageFailed() {
+  void sendToDlqSeveralMessageFailed() {
     KafkaConsumer<String> consumer = createMock();
     // at least three always created by a factory method
     ConsumerRecord<String, String> firstMessage = consumer.getConsumerContext().getCurrentBatch().get(0);
@@ -132,18 +132,18 @@ class InMemorySeekOnlyAckTest {
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    Assertions.assertThrows(KafkaException.class, () -> ack.nAck(severalMessages));
+    Assertions.assertThrows(KafkaException.class, () -> ack.sendToDlq(severalMessages));
 
     Assertions.assertEquals(0, consumerContext.getBatchFutures().size());
     Assertions.assertNull(consumerContext.getAllBatchFuturesAsOne());
   }
 
   /**
-   * Verifies that user can't perform nAcknowledge for several messages if DLQ is not configured
+   * Verifies that user can't perform sendToDlq for several messages if DLQ is not configured
    */
 
   @Test
-  void nAcknowledgeSeveralMessagesInvalidConfiguration() {
+  void sendToDlqSeveralMessagesInvalidConfiguration() {
     KafkaConsumer<String> consumer = createMock();
     Mockito.when(consumer.getDeadLetterQueue()).thenReturn(null);
     // at least three always created by a factory method
@@ -157,14 +157,14 @@ class InMemorySeekOnlyAckTest {
 
     // Test
     InMemorySeekOnlyAck<String> ack = createAck(consumer);
-    Assertions.assertThrows(ConfigurationException.class, () -> ack.nAck(severalMessages));
+    Assertions.assertThrows(ConfigurationException.class, () -> ack.sendToDlq(severalMessages));
 
     Assertions.assertEquals(0, consumerContext.getBatchFutures().size());
     Assertions.assertNull(consumerContext.getAllBatchFuturesAsOne());
   }
 
   /**
-   * Verifies nack are not allowed
+   * Verifies sendToDlq are not allowed
    */
 
   @Test

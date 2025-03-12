@@ -491,7 +491,7 @@ public void stop() {
 
 ### Основные возможности:
 - **Acknowledge**: Сигнал о коцне обработки сообщения с последующим смещением offset-а на новое
-- **Negative Acknowledge**: Сигнал об отправке сообщения в DLQ
+- **DLQ**: Сигнал об отправке сообщения в DLQ
 - **Retry**: Сигнал об отправке собщения в RQ
 - **Seek**: Ручное управление offset-ами
 - **Commit**: Ручное управление сommit-ами
@@ -548,12 +548,12 @@ public class TranslationUpdate implements ConsumeStrategy<String> {
       try {
         String result = futureResult.get(1L, TimeUnit.SECONDS);
       } catch (ExecutionException e) { // Ошибка в логике обработки, запишем в DLQ и разберем позже вручную
-        ack.nAck(message);
+        ack.sendToDlq(message);
       } catch (TimeoutException e) { // Ответ не получен, запишем в RQ и попробуем еще раз позже автоматически
         ack.retry(message, e);
       }
     }
-    // Мы обработали весь batch без ошибок, дожидаемся конца операций retry & nAck
+    // Мы обработали весь batch без ошибок, дожидаемся конца операций retry & sendToDlq
     ack.acknowledge();
   }
 
@@ -577,7 +577,7 @@ public class TranslationUpdate implements ConsumeStrategy<String> {
 - **Описание**: Перемещает committedOffset и fetchOffset для топика и партиции переданного сообщения.
 - **Примечание**: Этот метод должен выполняться только в потоке слушателя потребителя, иначе будет выброшено исключение ConcurrentModificationException. Он блокирует поток до тех пор, пока смещения не будут зафиксированы в Kafka и все будущие повторные попытки для текущего пакета не будут завершены.
 
-### `void nAck(ConsumerRecord<String, T> message)`
+### `void sendToDlq(ConsumerRecord<String, T> message)`
 
 - **Описание**: Неблокирующая асинхронная операция, которая отправляет сообщение в отдельный топик Dead Letter Queue (DLQ).
 - **Примечание**: Этот метод должен вызываться только в потоке слушателя потребителя, чтобы избежать ConcurrentModificationException.
@@ -587,7 +587,7 @@ public class TranslationUpdate implements ConsumeStrategy<String> {
 - **Описание**: Перемещает committedOffset и fetchOffset для топиков и партиций переданных сообщений.
 - **Примечание**: Этот метод должен выполняться только в потоке слушателя потребителя, иначе будет выброшено исключение ConcurrentModificationException. Он блокирует поток до тех пор, пока смещения не будут зафиксированы в Kafka и все будущие повторные попытки для текущего пакета не будут завершены.
 
-### `void nAck(Collection<ConsumerRecord<String, T>> messages)`
+### `void sendToDlq(Collection<ConsumerRecord<String, T>> messages)`
 
 - **Описание**: Неблокирующая асинхронная операция, которая отправляет сообщения в отдельный топик Dead Letter Queue (DLQ).
 - **Примечание**: Этот метод должен вызываться только в потоке слушателя потребителя, чтобы избежать ConcurrentModificationException.

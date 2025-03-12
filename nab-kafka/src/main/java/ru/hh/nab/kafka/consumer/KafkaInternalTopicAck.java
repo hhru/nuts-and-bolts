@@ -48,7 +48,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   }
 
   @Override
-  public void nAck(ConsumerRecord<String, T> message) {
+  public void sendToDlq(ConsumerRecord<String, T> message) {
     if (deadLetterQueue == null) {
       throw new ConfigurationException("Attempt to send message into DLQ without proper configuration. See ConsumerBuilder#withDlq.");
     }
@@ -66,7 +66,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   }
 
   @Override
-  public void nAck(Collection<ConsumerRecord<String, T>> messages) {
+  public void sendToDlq(Collection<ConsumerRecord<String, T>> messages) {
     if (deadLetterQueue == null) {
       throw new ConfigurationException("Attempt to send message into DLQ without proper configuration. See ConsumerBuilder#withDlq.");
     }

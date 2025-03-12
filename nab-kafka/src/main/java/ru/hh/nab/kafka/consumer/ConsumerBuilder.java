@@ -89,7 +89,7 @@ public interface ConsumerBuilder<T> {
   /**
    * Dead letter queue. Defines destination where messages will be sent in case of unexpected situations.
    * Message is sent to DLQ in case of  :
-   * 1) Explicit intention by calling Ack#nAcknowledge
+   * 1) Explicit intention by calling Ack#sendToDlq
    * 2) Retry budget exhaustion
    *
    * @param destination topic name of a DLQ

@@ -1,6 +1,7 @@
 package ru.hh.nab.datasource.aspect;
 
 import java.util.Map;
+import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -17,19 +18,35 @@ import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 @Aspect
 public class ExecuteOnDataSourceAspect {
 
+  private final boolean skip;
   private final DataSourceContextTransactionManager defaultTxManager;
   private final Map<String, DataSourceContextTransactionManager> txManagers;
+
+  private ExecuteOnDataSourceAspect() {
+    skip = true;
+    this.defaultTxManager = null;
+    this.txManagers = null;
+  }
 
   public ExecuteOnDataSourceAspect(
       DataSourceContextTransactionManager defaultTxManager,
       Map<String, DataSourceContextTransactionManager> txManagers
   ) {
-    this.defaultTxManager = defaultTxManager;
-    this.txManagers = txManagers;
+    skip = false;
+    this.defaultTxManager = requireNonNull(defaultTxManager);
+    this.txManagers = requireNonNull(txManagers);
+  }
+
+  public static ExecuteOnDataSourceAspect skipped() {
+    return new ExecuteOnDataSourceAspect();
   }
 
   @Around(value = "@annotation(executeOnDataSource)", argNames = "pjp,executeOnDataSource")
   public Object executeOnSpecialDataSource(final ProceedingJoinPoint pjp, final ExecuteOnDataSource executeOnDataSource) throws Throwable {
+    if (skip) {
+      return pjp.proceed();
+    }
+
     String dataSourceType = executeOnDataSource.dataSourceType();
     if (DataSourceContextUnsafe.isCurrentDataSource(dataSourceType) && TransactionSynchronizationManager.isSynchronizationActive()) {
       return pjp.proceed();

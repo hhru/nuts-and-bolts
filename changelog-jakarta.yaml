@@ -1,3 +1,18 @@
+-   name: 12.0.0.jakarta-rc2
+    date: '2025-03-26T14:00:00.000000+03:00'
+    description: "
+        * Добавлена настройка `nab.datasource.executeOnDataSource.skip`, позволяющая отключать работу аннотации `@ExecuteOnDataSource`.
+        * Бин `DataSourceContextTransactionManager defaultJdbcTransactionManager` перемещён из конфига `NabDataSourceCommonConfig`
+          в отдельный конфиг `NabDataSourceTransactionManagerConfig`."
+    instructions: "
+        * Из конфига `NabDataSourceCommonConfig` убран бин `DataSourceContextTransactionManager defaultJdbcTransactionManager`,
+          теперь он лежит в отдельном конфиге `NabDataSourceTransactionManagerConfig`. Если вам нужен этот TransactionManager,
+          подключайте новый конфиг явно. Имейте в виду, что `NabDataSourceTransactionManagerConfig` не совместим
+          с конфигами hibernate/jpa (`NabJpaCommonConfig`, `NabJpaProdConfig`, `NabHibernateCommonConfig`, `NabHibernateProdConfig`, `NabHibernateTestBaseConfig`),
+          т.к. в них подключается другой TransactionManager.
+        * Изменено имя бина `transactionManager` - проверьте, что вы не используете это имя явно (если конечно вы не объявили такой бин в своём сервисе)."
+    compatible: false
+
 -   name: 10.1.6.jakarta-rc2
     date: '2025-02-04T15:00:00.000000+03:00'
     description: Фикс бага с типом ServiceSupplier в NabServiceContributor

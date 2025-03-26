@@ -30,6 +30,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
@@ -106,6 +107,11 @@ public class NabSessionFactoryBuilderFactoryTest {
     @Bean
     StatsDSender statsDSender() {
       return mock(StatsDSender.class);
+    }
+
+    @Bean
+    FileSettings fileSettings() {
+      return new FileSettings(new Properties());
     }
 
     @Bean

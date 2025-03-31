@@ -36,7 +36,7 @@ import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 @ExtendWith(MockitoExtension.class)
-class RetryServiceTest {
+class RetryQueueTest {
   static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS);
   static final Instant CREATION_TIME = NOW.minusSeconds(100);
   static final String TOPIC = "topic";
@@ -44,6 +44,8 @@ class RetryServiceTest {
   static final String MESSAGE = "message";
   static final String KEY = "key";
   static long offset = 0;
+  @Mock
+  DeadLetterQueue<String> deadLetterQueue;
   @Mock
   KafkaProducer kafkaProducer;
   @Captor
@@ -71,10 +73,10 @@ class RetryServiceTest {
 
   @Test
   void firstRetryAddsHeaders() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
+    RetryQueue<String> retryQueue = createRetryQueue(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
 
-    retryService.retry(message(), null);
+    retryQueue.retry(message(), null);
 
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
     ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
@@ -88,13 +90,13 @@ class RetryServiceTest {
 
   @Test
   void firstRetryWithRetryTopicsSingleDoesNotAddRetryReceiveTopicToHeaders() {
-    RetryService<String> retryService = createRetryService(
+    RetryQueue<String> retryQueue = createRetryQueue(
         RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))),
         RetryTopics.single(TOPIC)
     );
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
 
-    retryService.retry(message(), null);
+    retryQueue.retry(message(), null);
 
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
     ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
@@ -108,14 +110,14 @@ class RetryServiceTest {
 
   @Test
   void nextRetryReplacesHeaders() {
-    RetryService<String> retryService = createRetryService(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
+    RetryQueue<String> retryQueue = createRetryQueue(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
     ConsumerRecord<String, String> message = message();
     MessageProcessingHistory oldProcessingHistory = new MessageProcessingHistory(CREATION_TIME.plusSeconds(1), 9, NOW.minusSeconds(90));
     setMessageProcessingHistory(message.headers(), oldProcessingHistory);
     setNextRetryTime(message.headers(), NOW);
     setRetryReceiveTopic(message.headers(), RETRY_TOPICS);
 
-    retryService.retry(message, null);
+    retryQueue.retry(message, null);
 
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
     ProducerRecord<String, String> retryMessage = producerRecordCaptor.getValue();
@@ -130,45 +132,46 @@ class RetryServiceTest {
 
   @Test
   void testStopRetriesDueToPolicyLimits() {
-    RetryService<String> retryService = createRetryService(
+    RetryQueue<String> retryQueue = createRetryQueue(
         RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10)).withRetryLimit(1)));
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
     ConsumerRecord<String, String> message = message();
     setMessageProcessingHistory(message.headers(), processingHistory);
 
-    retryService.retry(message, null);
+    retryQueue.retry(message, null);
 
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
   }
 
   @Test
   void testStopRetriesForSpecificException() {
-    RetryService<String> retryService = createRetryService(
+    RetryQueue<String> retryQueue = createRetryQueue(
         (message, throwable) -> throwable instanceof IllegalStateException ? RetryPolicy.never() : RetryPolicy.fixed(Duration.ofSeconds(10))
     );
-    retryService.retry(message(), new IllegalStateException());
+    retryQueue.retry(message(), new IllegalStateException());
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
-    retryService.retry(message(), null);
+    retryQueue.retry(message(), null);
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
   }
 
   @Test
   void testStopRetriesForSpecificMessage() {
-    RetryService<String> retryService = createRetryService(
+    RetryQueue<String> retryQueue = createRetryQueue(
         (message, throwable) -> message.value().equals("non-retriable") ? RetryPolicy.never() : RetryPolicy.fixed(Duration.ofSeconds(10))
     );
-    retryService.retry(message("non-retriable"), null);
+    retryQueue.retry(message("non-retriable"), null);
     verify(kafkaProducer, never()).sendMessage(producerRecordCaptor.capture(), any());
-    retryService.retry(message(), null);
+    retryQueue.retry(message(), null);
     verify(kafkaProducer, only()).sendMessage(producerRecordCaptor.capture(), any());
   }
 
-  private RetryService<String> createRetryService(RetryPolicyResolver<String> retryPolicyResolver) {
-    return createRetryService(retryPolicyResolver, RETRY_TOPICS);
+  private RetryQueue<String> createRetryQueue(RetryPolicyResolver<String> retryPolicyResolver) {
+    return createRetryQueue(retryPolicyResolver, RETRY_TOPICS);
   }
 
-  private RetryService<String> createRetryService(RetryPolicyResolver<String> retryPolicyResolver, RetryTopics retryTopics) {
-    return new RetryService<>(
+  private RetryQueue<String> createRetryQueue(RetryPolicyResolver<String> retryPolicyResolver, RetryTopics retryTopics) {
+    return new RetryQueue<>(
+        deadLetterQueue,
         kafkaProducer,
         retryTopics,
         retryPolicyResolver,

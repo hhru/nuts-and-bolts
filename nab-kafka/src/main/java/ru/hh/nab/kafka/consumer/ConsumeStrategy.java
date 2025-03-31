@@ -11,7 +11,6 @@ public interface ConsumeStrategy<T> {
       for (ConsumerRecord<String, M> record : consumerRecords) {
         try {
           messageProcessor.process(record.value());
-          ack.seek(record);
         } catch (RuntimeException e) {
           ack.retry(record, e);
         }

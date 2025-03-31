@@ -2,7 +2,6 @@ package ru.hh.nab.kafka.consumer;
 
 import java.time.Duration;
 import java.util.List;
-import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -21,6 +20,7 @@ import org.springframework.kafka.support.TopicPartitionOffset;
 import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
+import ru.hh.nab.kafka.exception.ConfigurationException;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
@@ -36,7 +36,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private final DefaultConsumerFactory consumerFactory;
   private String operationName;
   private String clientId;
-  private boolean useConsumerGroup;
+  private boolean isConsumerGroup;
   private SeekPosition seekPositionIfNoConsumerGroup;
   private Duration checkNewPartitionsInterval;
 
@@ -47,6 +47,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private ConsumeStrategy<T> retryConsumeStrategy;
   private Logger logger;
   private AckProvider<T> ackProvider;
+
+  private String deadLetterQueueDesination;
+  private KafkaProducer deadLetterQueueProducer;
 
   public DefaultConsumerBuilder(DefaultConsumerFactory consumerFactory, String topicName, Class<T> messageClass) {
     this.topicName = topicName;
@@ -68,6 +71,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver) {
+    return withRetries(retryProducer, retryPolicyResolver, RetryTopics.DEFAULT_SINGLE_TOPIC);
+  }
+
+  @Override
   public DefaultConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver, RetryTopics retryTopics) {
     this.retryProducer = retryProducer;
     this.retryPolicyResolver = retryPolicyResolver;
@@ -82,6 +90,13 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   @Override
+  public ConsumerBuilder<T> withDlq(String destination, KafkaProducer producer) {
+    this.deadLetterQueueDesination = destination;
+    this.deadLetterQueueProducer = producer;
+    return this;
+  }
+
+  @Override
   public DefaultConsumerBuilder<T> withLogger(Logger logger) {
     this.logger = logger;
     return this;
@@ -89,16 +104,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public DefaultConsumerBuilder<T> withConsumerGroup() {
-    this.useConsumerGroup = true;
+    this.isConsumerGroup = true;
     this.ackProvider = KafkaInternalTopicAck::new;
     return this;
   }
 
   @Override
   public DefaultConsumerBuilder<T> withAllPartitionsAssigned(SeekPosition seekPosition, Duration checkNewPartitionsInterval) {
-    this.useConsumerGroup = false;
+    this.isConsumerGroup = false;
     this.seekPositionIfNoConsumerGroup = seekPosition;
-    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer, retryService) -> new InMemorySeekOnlyAck<>(kafkaConsumer);
+    this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> new InMemorySeekOnlyAck<>(kafkaConsumer);
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
     return this;
   }
@@ -116,32 +131,39 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   @Override
   public KafkaConsumer<T> build() {
-    requireNonNull(messageClass, "messageClass is required"); // this would fail later with not very helpful error message
-    requireNonNull(consumeStrategy, "consumeStrategy is required"); // duplicate check in KafkaConsumer because strategy is wrapped by this builder
+    if (topicName == null) {
+      throw new ConfigurationException("Messages can not be consumed without specified topic. See DefaultConsumerBuilder constructor");
+    }
+
+    if (messageClass == null) {
+      throw new ConfigurationException("Messages without specified class can not be consumed. See DefaultConsumerBuilder constructor");
+    }
+
+    if (consumeStrategy == null) {
+      throw new ConfigurationException("Messages can not be consumed without strategy. See ConsumerBuilder#withConsumeStrategy");
+    }
+
+    if (usingRetries() && !isConsumerGroup) {
+      throw new ConfigurationException("Consumers without group id are not supported for retries.");
+    }
+
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
-    if (useConsumerGroup) {
-      RetryService<T> retryService = null;
-      KafkaConsumer<T> retryKafkaConsumer = null;
-      if (usingRetries()) {
-        if (RetryTopics.DEFAULT_SINGLE_TOPIC == retryTopics) {
-          retryTopics = RetryTopics.defaultSingleTopic(consumerMetadata);
-        } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
-          retryTopics = RetryTopics.defaultPairOfTopics(consumerMetadata);
-        }
-        retryService = new RetryService<>(retryProducer, retryTopics, retryPolicyResolver);
-        retryKafkaConsumer = buildRetryKafkaConsumer(retryService);
-      }
-      return buildKafkaConsumerForConsumerGroup(
-          configProvider,
-          springConsumerFactory,
-          consumerMetadata,
-          retryService,
-          retryKafkaConsumer
-      );
+
+    DeadLetterQueue<T> deadLetterQueue = null;
+    if (usingDlq()) {
+      deadLetterQueue = new DeadLetterQueue<>(this.deadLetterQueueDesination, deadLetterQueueProducer);
     }
-    return buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata);
+
+    return isConsumerGroup ?
+        buildKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue)
+        :
+        buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue);
+  }
+
+  private boolean usingDlq() {
+    return deadLetterQueueDesination != null;
   }
 
   private boolean usingRetries() {
@@ -152,8 +174,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
-      RetryService<T> retryService,
-      KafkaConsumer<T> retryKafkaConsumer
+      DeadLetterQueue<T> deadLetterQueue
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
@@ -164,18 +185,40 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
     };
 
+    RetryQueue<T> retryQueue = null;
+    KafkaConsumer<T> retryKafkaConsumer = null;
+    if (usingRetries()) {
+      if (retryTopics == null) {
+        throw new ConfigurationException("Retries can not be used without retry topics. See ConsumerBuilder#withRetries");
+      }
+      retryTopics = normalizeTopics(consumerMetadata);
+      retryQueue = new RetryQueue<>(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver);
+      retryKafkaConsumer = buildRetryKafkaConsumer(retryQueue, deadLetterQueue);
+    }
+
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
-        retryService,
+        retryQueue,
         retryKafkaConsumer,
+        deadLetterQueue,
         springContainerProvider,
         ackProvider,
         logger
     );
   }
 
-  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryService<T> retryService) {
+  private RetryTopics normalizeTopics(ConsumerMetadata consumerMetadata) {
+    if (RetryTopics.DEFAULT_SINGLE_TOPIC == retryTopics) {
+      return RetryTopics.defaultSingleTopic(consumerMetadata);
+    } else if (RetryTopics.DEFAULT_PAIR_OF_TOPICS == retryTopics) {
+      return RetryTopics.defaultPairOfTopics(consumerMetadata);
+    } else {
+      return retryTopics;
+    }
+  }
+
+  private KafkaConsumer<T> buildRetryKafkaConsumer(RetryQueue<T> retryQueue, DeadLetterQueue<T> deadLetterQueue) {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
@@ -192,8 +235,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, retryReceiveConsumeStrategy),
-        retryService,
+        retryQueue,
         null, // retry consumer has no retry consumer
+        deadLetterQueue,
         springContainerProvider,
         ackProvider,
         logger
@@ -213,12 +257,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(
-      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata
+      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata,
+      DeadLetterQueue<T> deadLetterQueue
   ) {
-    if (usingRetries()) {
-      throw new IllegalStateException("Can't use retries for consumer reading all partitions");
-    }
-
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (
         nabKafkaConsumer,
         partitionsInfo
@@ -235,6 +276,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return new KafkaConsumer<>(
         consumerMetadata,
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
+        deadLetterQueue,
         springContainerProvider,
         consumerFactory.getTopicPartitionsMonitoring(),
         consumerFactory.getClusterMetadataProvider(),
@@ -249,7 +291,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, KafkaConsumer<T> nabKafkaConsumer,
       ContainerProperties containerProperties
   ) {
-    SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(topicName, nabKafkaConsumer, logger);
+    SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(
+        topicName,
+        nabKafkaConsumer,
+        logger
+    );
     ConcurrentMessageListenerContainer<String, T> container = new ConcurrentMessageListenerContainer<>(springConsumerFactory, containerProperties);
     container.setCommonErrorHandler(errorHandler);
     Properties settings = configProvider.getNabConsumerSettings(topicName);
@@ -263,10 +309,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       List<PartitionInfo> partitionsInfo,
       KafkaConsumer<T> nabKafkaConsumer
   ) {
-    ConsumerConsumingState<T> consumingState = nabKafkaConsumer.getConsumingState();
+    ConsumerContext<T> consumerContext = nabKafkaConsumer.getConsumerContext();
     TopicPartitionOffset[] partitions = partitionsInfo
         .stream()
-        .map(partition -> consumingState
+        .map(partition -> consumerContext
             .getGlobalSeekedOffset(new TopicPartition(topicName, partition.partition()))
             .map(seekedOffset -> new TopicPartitionOffset(topicName, partition.partition(), seekedOffset.offset()))
             .orElseGet(() -> new TopicPartitionOffset(topicName, partition.partition(), seekPositionIfNoConsumerGroup.getSpringSeekPosition()))

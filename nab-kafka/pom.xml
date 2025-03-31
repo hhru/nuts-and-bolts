@@ -3,7 +3,7 @@
     <parent>
         <artifactId>nuts-and-bolts-parent</artifactId>
         <groupId>ru.hh.nab</groupId>
-        <version>10.1.6.jakarta-rc2.spring-boot-rc5-SNAPSHOT</version>
+        <version>12.0.0.jakarta-rc1.spring-boot-rc1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -27,6 +27,13 @@
             <groupId>ru.hh.logging</groupId>
             <artifactId>timing-logger</artifactId>
             <version>1.2.6.jakarta-rc1</version>
+        </dependency>
+
+        <!-- Rate limiting capabilities -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.14.0</version>
         </dependency>
 
         <dependency>

@@ -3,6 +3,10 @@ package ru.hh.nab.kafka.consumer;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
+import ru.hh.nab.kafka.exception.ConfigurationException;
+import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
   public static final ConsumeStrategy<Object> CONSUME_STRATEGY = (messages, ack) -> {
@@ -19,7 +23,7 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
 
   @Test
   void failToBuildConsumerWithoutTopic() {
-    assertThrows(NullPointerException.class, () -> consumerFactory
+    assertThrows(ConfigurationException.class, () -> consumerFactory
         .builder(null, Object.class)
         .withConsumeStrategy(CONSUME_STRATEGY)
         .build());
@@ -27,7 +31,7 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
 
   @Test
   void failToBuildConsumerWithoutMessageClass() {
-    assertThrows(NullPointerException.class, () -> consumerFactory
+    assertThrows(ConfigurationException.class, () -> consumerFactory
         .builder(topicName, null)
         .withConsumeStrategy(CONSUME_STRATEGY)
         .build());
@@ -35,8 +39,24 @@ public class KafkaConsumerBuilderTest extends KafkaConsumerTestBase {
 
   @Test
   void failToBuildConsumerWithoutConsumeStrategy() {
-    assertThrows(NullPointerException.class, () -> consumerFactory
+    assertThrows(ConfigurationException.class, () -> consumerFactory
         .builder(topicName, Object.class)
+        .build());
+  }
+
+  /**
+   * Verifies that retries can't be used by a consumer without consumer group
+   */
+
+  @Test
+  void failToBuildConsumerWithRetriesAndWithoutConsumerGroup() {
+    assertThrows(ConfigurationException.class, () -> consumerFactory
+        .builder(topicName, Object.class)
+        // With retries
+        .withRetries(Mockito.mock(KafkaProducer.class), RetryPolicyResolver.never())
+        // Without consumer group
+        .withAllPartitionsAssigned(SeekPosition.EARLIEST)
+        .withConsumeStrategy(CONSUME_STRATEGY)
         .build());
   }
 }

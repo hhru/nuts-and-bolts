@@ -31,8 +31,9 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
-  private final RetryService<T> retryService;
-  private final ConsumerConsumingState<T> consumerConsumingState;
+  private final RetryQueue<T> retryQueue;
+  private final DeadLetterQueue<T> deadLetterQueue;
+  private final ConsumerContext<T> consumerContext;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
   private volatile boolean running = false;
@@ -43,19 +44,21 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
-      RetryService<T> retryService,
+      RetryQueue<T> retryQueue,
       KafkaConsumer<T> retryKafkaConsumer,
+      DeadLetterQueue<T> deadLetterQueue,
       Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider,
       AckProvider<T> ackProvider,
       Logger logger
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
-    this.retryService = retryService;
+    this.retryQueue = retryQueue;
+    this.deadLetterQueue = deadLetterQueue;
     this.retryKafkaConsumer = retryKafkaConsumer;
     this.ackProvider = ackProvider;
     this.logger = logger;
-    this.consumerConsumingState = new ConsumerConsumingState<>();
+    this.consumerContext = new ConsumerContext<>();
 
     this.springContainerProvider = springContainerProvider;
     this.springContainerForPartitionsProvider = null;
@@ -68,6 +71,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   public KafkaConsumer(
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy,
+      DeadLetterQueue<T> deadLetterQueue,
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
       TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
@@ -77,11 +81,12 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   ) {
     this.consumerMetadata = consumerMetadata;
     this.consumeStrategy = consumeStrategy;
+    this.deadLetterQueue = deadLetterQueue;
     this.logger = logger;
-    this.retryService = null;
+    this.retryQueue = null;
     this.retryKafkaConsumer = null;
     this.ackProvider = ackProvider;
-    this.consumerConsumingState = new ConsumerConsumingState<>();
+    this.consumerContext = new ConsumerContext<>();
 
     this.springContainerProvider = null;
     this.springContainerForPartitionsProvider = springContainerForPartitionsProvider;
@@ -185,8 +190,8 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
-    consumerConsumingState.prepareForNextBatch(messages);
-    Ack<T> ack = ackProvider.createAck(this, consumer, retryService);
+    consumerContext.prepareForNextBatch(messages);
+    Ack<T> ack = ackProvider.createAck(this, consumer);
     processMessages(messages, ack);
     rewindToLastAckedOffset(consumer);
   }
@@ -209,17 +214,17 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   public void rewindToLastAckedOffset(Consumer<?, ?> consumer) {
-    if (consumerConsumingState.isWholeBatchAcked()) {
+    if (consumerContext.isWholeBatchAcked()) {
       return;
     }
 
-    List<ConsumerRecord<String, T>> messages = consumerConsumingState.getCurrentBatch();
+    List<ConsumerRecord<String, T>> messages = consumerContext.getCurrentBatch();
     if (CollectionUtils.isEmpty(messages)) {
       return;
     }
 
     LinkedHashMap<TopicPartition, OffsetAndMetadata> offsetsToSeek = getLowestOffsetsForEachPartition(messages);
-    offsetsToSeek.putAll(consumerConsumingState.getBatchSeekedOffsets());
+    offsetsToSeek.putAll(consumerContext.getBatchSeekedOffsets());
     offsetsToSeek.forEach(consumer::seek);
   }
 
@@ -233,8 +238,15 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     ));
   }
 
-  public ConsumerConsumingState<T> getConsumingState() {
-    return consumerConsumingState;
+  ConsumerContext<T> getConsumerContext() {
+    return consumerContext;
   }
 
+  DeadLetterQueue<T> getDeadLetterQueue() {
+    return deadLetterQueue;
+  }
+
+  RetryQueue<T> getRetryQueue() {
+    return retryQueue;
+  }
 }

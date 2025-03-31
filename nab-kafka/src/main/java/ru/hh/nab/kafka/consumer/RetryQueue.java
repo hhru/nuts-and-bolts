@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.consumer;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -17,20 +18,34 @@ import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 /**
- * Provides retries implementation to {@link ru.hh.nab.kafka.consumer.Ack}.
+ * Class represents retries capabilities for a kafka message
  */
-class RetryService<T> {
+class RetryQueue<T> {
+
+  protected final DeadLetterQueue<T> deadLetterQueue;
 
   protected final RetryPolicyResolver<T> retryPolicyResolver;
   protected final KafkaProducer retryProducer;
   protected final RetryTopics retryTopics;
   protected final Clock clock;
 
-  public RetryService(KafkaProducer retryProducer, RetryTopics retryTopics, RetryPolicyResolver<T> retryPolicyResolver) {
-    this(retryProducer, retryTopics, retryPolicyResolver, Clock.systemDefaultZone());
+  public RetryQueue(
+      DeadLetterQueue<T> deadLetterQueue,
+      KafkaProducer retryProducer,
+      RetryTopics retryTopics,
+      RetryPolicyResolver<T> retryPolicyResolver
+  ) {
+    this(deadLetterQueue, retryProducer, retryTopics, retryPolicyResolver, Clock.systemDefaultZone());
   }
 
-  RetryService(KafkaProducer retryProducer, RetryTopics retryTopics, RetryPolicyResolver<T> retryPolicyResolver, Clock clock) {
+  RetryQueue(
+      DeadLetterQueue<T> deadLetterQueue,
+      KafkaProducer retryProducer,
+      RetryTopics retryTopics,
+      RetryPolicyResolver<T> retryPolicyResolver,
+      Clock clock
+  ) {
+    this.deadLetterQueue = deadLetterQueue;
     this.retryProducer = Objects.requireNonNull(retryProducer);
     this.retryTopics = Objects.requireNonNull(retryTopics);
     this.retryPolicyResolver = Objects.requireNonNull(retryPolicyResolver);
@@ -39,13 +54,20 @@ class RetryService<T> {
 
   CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error) {
     RetryPolicy retryPolicy = retryPolicyResolver.apply(message, error);
+
     MessageProcessingHistory updatedProcessingHistory = getMessageProcessingHistory(message.headers())
         .map(messageProcessingHistory -> messageProcessingHistory.withOneMoreFail(Instant.now(clock)))
         .orElseGet(() -> MessageProcessingHistory.initial(Instant.ofEpochMilli(message.timestamp()), Instant.now(clock)));
-    return retryPolicy
-        .getNextRetryTime(updatedProcessingHistory)
-        .map(nextRetryTime -> retry(message, nextRetryTime, updatedProcessingHistory))
-        .orElseGet(() -> CompletableFuture.completedFuture(null));
+
+    Optional<Instant> nextRetryTime = retryPolicy
+        .getNextRetryTime(updatedProcessingHistory);
+
+    // We exhausted all retry attempts
+    if (nextRetryTime.isEmpty()) {
+      return deadLetterQueue == null ? CompletableFuture.completedFuture(null) : deadLetterQueue.send(message);
+    }
+
+    return retry(message, nextRetryTime.get(), updatedProcessingHistory);
   }
 
   protected CompletableFuture<?> retry(ConsumerRecord<String, T> message, Instant retryTime, MessageProcessingHistory updatedProcessingHistory) {

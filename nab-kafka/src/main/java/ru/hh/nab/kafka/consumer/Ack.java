@@ -1,7 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.policy.RetryPolicy;
@@ -35,6 +34,19 @@ public interface Ack<T> {
   void acknowledge(ConsumerRecord<String, T> message);
 
   /**
+   * A non-blocking asynchronous operation which sends message into a separate Dead Letter Queue (DLQ) topic.
+   * This method should only be called within the consumer listener thread to avoid ConcurrentModificationException.
+   *
+   * @implNote Result of this operation may be available at some time in the future or as part of
+   * {@link Ack#acknowledge()}/{@link Ack#acknowledge(ConsumerRecord)}/{@link Ack#acknowledge(Collection)}/{@link Ack#seek(ConsumerRecord)}}
+   * invocation
+   * @param message - an object containing information about the topic, partition, and offset to be used for moving the offsets
+   * @see ConsumerBuilder#withDlq(String, KafkaProducer)
+   */
+  void sendToDlq(ConsumerRecord<String, T> message);
+
+
+  /**
    * Move both Kafka committedOffset and fetchOffset
    * belonging to the topic and partition of the passed record
    * <p>
@@ -47,6 +59,18 @@ public interface Ack<T> {
    * @param messages - collection of objects containing information about topic, partition and offset to use to move offsets
    */
   void acknowledge(Collection<ConsumerRecord<String, T>> messages);
+
+  /**
+   * A non-blocking asynchronous operation which sends messages into a separate Dead Letter Queue (DLQ) topic.
+   * This method should only be called within the consumer listener thread to avoid ConcurrentModificationException.
+   *
+   * @implNote Result of this operation may be available at some time in the future or as part of
+   * {@link Ack#acknowledge()}/{@link Ack#acknowledge(ConsumerRecord)}/{@link Ack#acknowledge(Collection)}/{@link Ack#seek(ConsumerRecord)}}
+   * invocation
+   * @param messages - a collection of objects containing information about the topic, partition, and offset to be used for moving the offsets
+   * @see ConsumerBuilder#withDlq(String, KafkaProducer)
+   */
+  void sendToDlq(Collection<ConsumerRecord<String, T>> messages);
 
   /**
    * Move fetchOffset of the message topic and partition to the position next after message offset.
@@ -90,5 +114,5 @@ public interface Ack<T> {
    * @see RetryPolicyResolver
    * @see RetryPolicy
    */
-  CompletableFuture<?> retry(ConsumerRecord<String, T> message, Throwable error);
+  void retry(ConsumerRecord<String, T> message, Throwable error);
 }

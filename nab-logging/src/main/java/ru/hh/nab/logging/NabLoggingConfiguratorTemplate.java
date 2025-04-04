@@ -8,6 +8,7 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -74,6 +75,10 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
 
   public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> cls, Level level, Appender appender) {
     return createLogger(context, cls, level, false, Set.of(appender));
+  }
+
+  public LoggerWrapper createLogger(LoggingContextWrapper context, Class<?> aClass, Level level) {
+    return createLogger(context, aClass, level, true, List.of());
   }
 
   public LoggerWrapper createLogger(

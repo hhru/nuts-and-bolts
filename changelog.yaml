@@ -1,3 +1,10 @@
+-   name: 12.0.1
+    date: '2025-04-01T11:42:01.982256+03:00'
+    description: Added new method createLogger(LoggingContextWrapper, Class, Level)
+        to NabLoggingConfiguratorTemplate
+    instructions: ''
+    compatible: true
+
 -   name: 12.0.0
     date: '2025-03-12T13:42:00.958961+03:00'
     description: Переименованы методы Ack#nAck в Ack#sendToDlq

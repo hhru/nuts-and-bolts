@@ -29,6 +29,7 @@ public class NabCommonConfig {
   private static final String NODE_NAME_ENV = "NODE_NAME";
 
   public static final String TEST_PROPERTIES_FILE_NAME = "service-test.properties";
+  public static final String SCHEDULED_EXECUTOR_SERVICE = "scheduledExecutorService";
 
   @Named(SERVICE_NAME)
   @Bean(SERVICE_NAME)
@@ -80,7 +81,8 @@ public class NabCommonConfig {
   }
 
 
-  @Bean
+  @Bean(SCHEDULED_EXECUTOR_SERVICE)
+  @Named(SCHEDULED_EXECUTOR_SERVICE)
   ScheduledExecutorService scheduledExecutorService() {
     return new ScheduledExecutor();
   }

@@ -7,7 +7,6 @@ import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import javax.inject.Named;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -82,8 +81,8 @@ public class NabCommonConfig {
   }
 
 
-  @Bean
-  @Qualifier(SCHEDULED_EXECUTOR_SERVICE)
+  @Bean(SCHEDULED_EXECUTOR_SERVICE)
+  @Named(SCHEDULED_EXECUTOR_SERVICE)
   ScheduledExecutorService scheduledExecutorService() {
     return new ScheduledExecutor();
   }

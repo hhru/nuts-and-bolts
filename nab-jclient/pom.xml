@@ -20,6 +20,10 @@
             <artifactId>nab-common</artifactId>
         </dependency>
         <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-kafka</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ru.hh.jclient-common</groupId>
             <artifactId>jclient-common</artifactId>
             <version>${jclient.version}</version>

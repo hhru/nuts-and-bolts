@@ -17,9 +17,10 @@ public class DefaultKafkaProducer extends KafkaProducer {
   @Override
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
-    return kafkaTemplate
-        .send((ProducerRecord<String, Object>) record)
-        .thenApplyAsync(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()), executor);
+    return CompletableFuture
+        .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
+        .thenApply(CompletableFuture::join)
+        .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
   }
 
   private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult, Class<T> messageType) {

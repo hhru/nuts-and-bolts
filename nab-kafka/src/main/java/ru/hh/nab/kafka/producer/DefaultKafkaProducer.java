@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.producer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -19,7 +20,7 @@ public class DefaultKafkaProducer extends KafkaProducer {
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
     return CompletableFuture
         .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
-        .thenApply(CompletableFuture::join)
+        .thenCompose(Function.identity())
         .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
   }
 

@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>12.1.2.jakarta-rc1.spring-boot-rc2-SNAPSHOT</version>
+        <version>12.2.0.jakarta-rc1.spring-boot-rc1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -18,6 +18,10 @@
             <groupId>ru.hh.nab</groupId>
             <artifactId>nab-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>ru.hh.nab</groupId>
@@ -27,6 +31,11 @@
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>
             <artifactId>jclient-common</artifactId>
+            <version>${jclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-balancing</artifactId>
             <version>${jclient.version}</version>
         </dependency>
 

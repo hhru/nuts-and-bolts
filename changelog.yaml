@@ -1,3 +1,13 @@
+-   name: 12.2.0
+    date: '2025-04-15T17:06:41.283847+03:00'
+    description: Обновление jclient до 6.0.0. В nab-jclient добавлены классы из удаленного
+        модуля jclient-common-metrics. При этом была изменена сигнатура метода MonitoringBalancingUpstreamManagerFactory.createWithDefaults
+        - данный метод больше не принимает на вход объект StatsDSender, который использовался
+        для создания UpstreamMonitoring (объект UpstreamMonitoring тоже не создается
+        при вызове MonitoringBalancingUpstreamManagerFactory.createWithDefaults)
+    instructions: ''
+    compatible: true
+
 -   name: 12.1.2
     date: '2025-04-15T10:52:55.087341+03:00'
     description: Обновление jclient до 5.0.1

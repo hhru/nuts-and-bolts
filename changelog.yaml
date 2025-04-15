@@ -1,3 +1,9 @@
+-   name: 12.1.2
+    date: '2025-04-15T10:52:55.087341+03:00'
+    description: Обновление jclient до 5.0.1
+    instructions: ''
+    compatible: true
+
 -   name: 12.1.1
     date: '2025-04-10T16:20:33.944133+03:00'
     description: Используется @Named вместо @Qualifier для бина ScheduledExecutorService

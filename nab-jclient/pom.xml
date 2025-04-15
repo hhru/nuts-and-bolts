@@ -21,11 +21,20 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
+            <artifactId>nab-metrics</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-kafka</artifactId>
         </dependency>
         <dependency>
             <groupId>ru.hh.jclient-common</groupId>
             <artifactId>jclient-common</artifactId>
+            <version>${jclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.hh.jclient-common</groupId>
+            <artifactId>jclient-balancing</artifactId>
             <version>${jclient.version}</version>
         </dependency>
 

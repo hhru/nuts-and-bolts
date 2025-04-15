@@ -1,6 +1,13 @@
+-   name: 12.1.1.jakarta-rc2
+    date: '2025-04-15T14:00:00.000000+03:00'
+    description: "Исправлена ошибка с блокировкой потоков в DefaultKafkaProducer"
+    instructions: ''
+    compatible: true
+
 -   name: 12.0.2.jakarta-rc2
     date: '2025-04-09T14:00:00.000000+03:00'
-    description: "Исправлена реализация DefaultKafkaProducer: обращение к kafkaTemplate осуществляется асинхронно"
+    description: "Сразу обновляйтесь до версии 12.1.1.jakarta-rc2, так как в версии 12.0.2.jakarta-rc2 есть проблема с блокировкой потоков. 
+        Исправлена реализация DefaultKafkaProducer: обращение к kafkaTemplate осуществляется асинхронно"
     instructions: ''
     compatible: true
 

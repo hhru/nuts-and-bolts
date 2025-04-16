@@ -1,20 +1,18 @@
 package ru.hh.nab.hibernate;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,15 +25,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.hh.nab.common.properties.FileSettings;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
+import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import ru.hh.nab.datasource.DataSourceType;
-import ru.hh.nab.hibernate.transaction.DataSourceContextTransactionManager;
-import ru.hh.nab.hibernate.transaction.ExecuteOnDataSource;
-import ru.hh.nab.hibernate.transaction.TransactionalScope;
+import ru.hh.nab.datasource.annotation.ExecuteOnDataSource;
+import ru.hh.nab.datasource.transaction.TransactionalScope;
+import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
+import ru.hh.nab.metrics.StatsDSender;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class)
@@ -64,12 +66,11 @@ public class NabSessionFactoryBuilderFactoryTest {
   }
 
   private static class TestService {
-    private final SessionFactory sessionFactory;
+    private final Session session;
     private final TransactionalScope transactionalScope;
 
-
-    TestService(SessionFactory sessionFactory, TransactionalScope transactionalScope) {
-      this.sessionFactory = sessionFactory;
+    TestService(Session session, TransactionalScope transactionalScope) {
+      this.session = session;
       this.transactionalScope = transactionalScope;
     }
 
@@ -78,73 +79,60 @@ public class NabSessionFactoryBuilderFactoryTest {
       AtomicReference<Connection> ref = new AtomicReference<>();
       transactionalScope.read(() -> {
         try {
-          Session currentSession = sessionFactory.getCurrentSession();
-          ref.set(((SharedSessionContractImplementor) currentSession).connection());
-          verify(((SharedSessionContractImplementor) currentSession).connection(), times(0)).close();
-          currentSession.createNativeQuery("select 1 from dual").uniqueResult();
-          verify(((SharedSessionContractImplementor) currentSession).connection(), times(1)).close();
+          ref.set(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection());
+          verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(0)).close();
+          session.createNativeQuery("select 1 from dual").uniqueResult();
+          verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(1)).close();
         } catch (SQLException e) {
           throw new RuntimeException(e);
         }
       });
-      verify(ref.get(), times(2)).close();
+      verify(ref.get(), times(1)).close();
     }
   }
 
   @Configuration
-  @EnableTransactionManagement(order = 0)
-  @EnableAspectJAutoProxy
+  @Import({
+      NabHibernateCommonConfig.class,
+      TestService.class,
+  })
   static class TestContext {
+
+    @Bean
+    @Named(SERVICE_NAME)
+    String serviceName() {
+      return "test-service";
+    }
+
+    @Bean
+    StatsDSender statsDSender() {
+      return mock(StatsDSender.class);
+    }
+
+    @Bean
+    FileSettings fileSettings() {
+      return new FileSettings(new Properties());
+    }
+
     @Bean
     DataSource dataSource() {
       DataSource hikariDataSource = new HikariDataSource() {
         @Override
-        public Connection getConnection() throws SQLException {
+        public Connection getConnection() {
           return connection;
         }
       };
+      DataSourcePropertiesStorage.registerPropertiesFor(
+          DataSourceType.READONLY,
+          new DataSourcePropertiesStorage.DataSourceProperties(false, null)
+      );
       return hikariDataSource;
     }
 
     @Bean
-    DataSourceContextTransactionManager transactionManager(SessionFactory sessionFactory, DataSource routingDataSource) {
-      HibernateTransactionManager simpleTransactionManager = new HibernateTransactionManager(sessionFactory);
-      simpleTransactionManager.setDataSource(routingDataSource);
-      return new DataSourceContextTransactionManager(simpleTransactionManager);
-    }
-
-    @Bean
-    NabSessionFactoryBean.ServiceSupplier<?> nabSessionFactoryBuilderServiceSupplier() {
-      return new NabSessionFactoryBean.ServiceSupplier<NabSessionFactoryBuilderFactory.BuilderService>() {
-        @Override
-        public Class<NabSessionFactoryBuilderFactory.BuilderService> getClazz() {
-          return NabSessionFactoryBuilderFactory.BuilderService.class;
-        }
-
-        @Override
-        public NabSessionFactoryBuilderFactory.BuilderService get() {
-          return new NabSessionFactoryBuilderFactory.BuilderService();
-        }
-      };
-    }
-
-    @Bean
-    NabSessionFactoryBean sessionFactoryBean(DataSource dataSource, NabSessionFactoryBean.ServiceSupplier<?> supplier) throws IOException {
-      var props = new Properties();
-      props.load(TestContext.class.getResourceAsStream("/hibernate-test.properties"));
-      return new NabSessionFactoryBean(dataSource, props,
-          new BootstrapServiceRegistryBuilder(), List.of(supplier), List.of()
-      );
-    }
-
-    @Bean
-    TransactionalScope transactionalScope() {
-      return new TransactionalScope();
-    }
-
-    @Bean
-    TestService testService(SessionFactory sessionFactory, TransactionalScope transactionalScope) {
-      return new TestService(sessionFactory, transactionalScope);
+    HibernatePropertiesProvider hibernatePropertiesProvider() throws IOException {
+      Properties hibernateProperties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("hibernate-test.properties"));
+      return new HibernatePropertiesProvider(hibernateProperties);
     }
   }
 }

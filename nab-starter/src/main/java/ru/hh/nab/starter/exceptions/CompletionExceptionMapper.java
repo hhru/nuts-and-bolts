@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.core.MediaType;
 import java.util.concurrent.CompletionException;
-import javax.annotation.Priority;
-import javax.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;

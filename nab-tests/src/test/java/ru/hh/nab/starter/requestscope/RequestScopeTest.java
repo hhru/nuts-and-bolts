@@ -1,9 +1,9 @@
 package ru.hh.nab.starter.requestscope;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.OK;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.ws.rs.core.Response;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;

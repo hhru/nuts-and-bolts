@@ -1,11 +1,11 @@
 package ru.hh.nab.starter.spring;
 
+import jakarta.servlet.ServletContext;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
-import javax.servlet.ServletContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;

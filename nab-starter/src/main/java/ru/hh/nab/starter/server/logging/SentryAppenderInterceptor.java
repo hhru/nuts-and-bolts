@@ -1,14 +1,14 @@
 package ru.hh.nab.starter.server.logging;
 
+import jakarta.annotation.Priority;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Priority;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
 import ru.hh.nab.common.mdc.MDC;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 import ru.hh.nab.starter.jersey.NabPriorities;

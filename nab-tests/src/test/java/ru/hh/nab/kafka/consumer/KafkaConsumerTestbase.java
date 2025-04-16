@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.consumer;
 
+import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -7,7 +8,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
-import javax.inject.Inject;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.NewPartitions;

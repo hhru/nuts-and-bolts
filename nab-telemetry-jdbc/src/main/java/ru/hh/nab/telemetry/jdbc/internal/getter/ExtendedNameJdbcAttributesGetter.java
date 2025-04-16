@@ -1,6 +1,6 @@
 package ru.hh.nab.telemetry.jdbc.internal.getter;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.extractor.DataSourceNameExtractor;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 

@@ -1,6 +1,7 @@
 package ru.hh.nab.starter.server.jetty;
 
 import com.timgroup.statsd.NoOpStatsDClient;
+import jakarta.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,7 +11,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executors;
-import javax.annotation.Nullable;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;

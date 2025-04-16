@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka.monitoring;
 
+import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -12,7 +13,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;

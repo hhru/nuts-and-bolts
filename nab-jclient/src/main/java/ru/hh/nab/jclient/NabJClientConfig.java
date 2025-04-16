@@ -1,5 +1,7 @@
 package ru.hh.nab.jclient;
 
+import jakarta.annotation.Nullable;
+import jakarta.inject.Named;
 import java.time.Duration;
 import java.util.List;
 import static java.util.Optional.ofNullable;
@@ -7,8 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
-import javax.inject.Named;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContext;

@@ -1,25 +1,44 @@
 package ru.hh.nab.hibernate;
 
+import jakarta.inject.Named;
 import java.util.Properties;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.hh.nab.common.properties.PropertiesUtils;
-import ru.hh.nab.datasource.NabDataSourceProdConfig;
+import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.hibernate.monitoring.HibernateStatisticsSender;
-import ru.hh.nab.hibernate.qualifier.Hibernate;
+import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
+import ru.hh.nab.jpa.EntityManagerFactoryRegistry;
+import ru.hh.nab.jpa.NabJpaProdConfig;
+import ru.hh.nab.metrics.StatsDSender;
 
 @Configuration
 @Import({
-    HibernateStatisticsSender.class,
     NabHibernateCommonConfig.class,
-    NabDataSourceProdConfig.class
+    NabJpaProdConfig.class
 })
 public class NabHibernateProdConfig {
 
   @Bean
-  @Hibernate
-  Properties hibernateProperties() throws Exception {
-    return PropertiesUtils.fromFilesInSettingsDir("hibernate.properties", "hibernate.properties.dev");
+  HibernatePropertiesProvider hibernatePropertiesProvider() throws Exception {
+    Properties hibernateProperties = PropertiesUtils.fromFilesInSettingsDir("hibernate.properties", "hibernate.properties.dev");
+    return new HibernatePropertiesProvider(hibernateProperties);
+  }
+
+  @Bean
+  HibernateStatisticsSender hibernateStatisticsSender(
+      HibernatePropertiesProvider hibernatePropertiesProvider,
+      @Named(SERVICE_NAME) String serviceName,
+      StatsDSender statsDSender,
+      EntityManagerFactoryRegistry entityManagerFactoryRegistry
+  ) {
+    return new HibernateStatisticsSender(
+        hibernatePropertiesProvider.get(),
+        serviceName,
+        entityManagerFactoryRegistry.getEntityManagerFactories(SessionFactory.class),
+        statsDSender
+    );
   }
 }

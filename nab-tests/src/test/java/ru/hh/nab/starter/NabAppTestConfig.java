@@ -1,6 +1,6 @@
 package ru.hh.nab.starter;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;

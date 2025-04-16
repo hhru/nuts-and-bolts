@@ -1,6 +1,6 @@
 package ru.hh.nab.starter.servlet;
 
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.WebApplicationContext;

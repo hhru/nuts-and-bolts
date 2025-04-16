@@ -7,6 +7,7 @@ import com.zaxxer.hikari.pool.HikariPool;
 import com.zaxxer.hikari.util.DriverDataSource;
 import com.zaxxer.hikari.util.PropertyElf;
 import static com.zaxxer.hikari.util.UtilityElf.createInstance;
+import jakarta.annotation.Nullable;
 import static java.lang.Integer.parseInt;
 import java.net.URI;
 import java.sql.Connection;
@@ -20,7 +21,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -42,6 +42,7 @@ import ru.hh.nab.datasource.ext.OpenTelemetryJdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
+import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 
 public class DataSourceFactory {
 

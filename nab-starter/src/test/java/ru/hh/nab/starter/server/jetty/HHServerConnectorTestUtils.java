@@ -1,6 +1,6 @@
 package ru.hh.nab.starter.server.jetty;
 
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;

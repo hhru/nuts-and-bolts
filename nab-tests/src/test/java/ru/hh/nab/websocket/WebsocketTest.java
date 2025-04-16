@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +32,7 @@ public class WebsocketTest {
 
   @Test
   public void testWebsocketConnection() throws ExecutionException, InterruptedException, IOException {
-    assertNull(TestEndpoint.connectionOpen);
+    assertFalse(TestEndpoint.connectionOpen);
 
     List<String> receivedMessages = new CopyOnWriteArrayList<>();
     var testMessageHandler = new TextWebSocketHandler() {
@@ -42,13 +41,13 @@ public class WebsocketTest {
         receivedMessages.add(message.getPayload());
       }
     };
-    String messageToSend = "привет";
 
     StandardWebSocketClient client = new StandardWebSocketClient();
-    WebSocketSession session = client.doHandshake(testMessageHandler, resourceHelper.baseUrl("ws") + TestEndpoint.WS_URL).completable().get();
+    WebSocketSession session = client.execute(testMessageHandler, resourceHelper.baseUrl("ws") + TestEndpoint.WS_URL).get();
     waitUntil(() -> assertTrue(TestEndpoint.connectionOpen));
-
     assertEquals(0, receivedMessages.size());
+
+    String messageToSend = "привет";
     session.sendMessage(new TextMessage(messageToSend));
     waitUntil(() -> {
       assertEquals(1, receivedMessages.size());

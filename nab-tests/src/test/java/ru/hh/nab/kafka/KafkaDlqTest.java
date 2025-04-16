@@ -1,5 +1,6 @@
 package ru.hh.nab.kafka;
 
+import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
 import java.util.Queue;
@@ -8,7 +9,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.inject.Inject;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

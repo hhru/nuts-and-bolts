@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.SelectorManager;
 import org.eclipse.jetty.server.ConnectionFactory;
@@ -65,7 +64,7 @@ public final class HHServerConnector extends ServerConnector {
 
   public HHServerConnector(
       @Name("server") Server server,
-      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
       TaggedSender statsDSender
   ) {
     super(server, sslContextFactory);
@@ -76,7 +75,7 @@ public final class HHServerConnector extends ServerConnector {
       @Name("server") Server server,
       @Name("acceptors") int acceptors,
       @Name("selectors") int selectors,
-      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
       TaggedSender statsDSender
   ) {
     super(server, acceptors, selectors, sslContextFactory);
@@ -85,7 +84,7 @@ public final class HHServerConnector extends ServerConnector {
 
   public HHServerConnector(
       @Name("server") Server server,
-      @Name("sslContextFactory") SslContextFactory sslContextFactory,
+      @Name("sslContextFactory") SslContextFactory.Server sslContextFactory,
       TaggedSender statsDSender,
       @Name("factories") ConnectionFactory... factories
   ) {
@@ -113,7 +112,7 @@ public final class HHServerConnector extends ServerConnector {
   }
 
   @Override
-  public Future<Void> shutdown() {
+  public CompletableFuture<Void> shutdown() {
     super.shutdown();
 
     CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();

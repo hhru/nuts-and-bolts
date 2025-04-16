@@ -242,21 +242,22 @@ public class HhRollingAppender extends RollingFileAppender<ILoggingEvent> {
     }
 
     if (getTriggeringPolicy() == null) {
-      DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> triggering = new DefaultTimeBasedFileNamingAndTriggeringPolicy<>() {
+      DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> triggering = new DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent>() {
         private final long dayMillis = TimeUnit.DAYS.toMillis(1);
 
         @Override
-        protected void computeNextCheck() {
-          super.computeNextCheck();
+        protected long computeNextCheck(long timestamp) {
+          super.computeNextCheck(timestamp);
           long nowMillis = getCurrentTime();
-          if (nextCheck < nowMillis) {
-            nextCheck = nowMillis + rollOffset; // use jitter for old logs
+          if (atomicNextCheck.get() < nowMillis) {
+            atomicNextCheck.set(nowMillis + rollOffset); // use jitter for old logs
           } else {
-            nextCheck += rollOffset + TimeUnit.HOURS.toMillis(rollHour) + TimeUnit.MINUTES.toMillis(rollMinute);
-            if (nextCheck - dayMillis > nowMillis) {
-              nextCheck -= dayMillis;
+            atomicNextCheck.getAndAdd(rollOffset + TimeUnit.HOURS.toMillis(rollHour) + TimeUnit.MINUTES.toMillis(rollMinute));
+            if (atomicNextCheck.get() - dayMillis > nowMillis) {
+              atomicNextCheck.getAndUpdate(value -> value - dayMillis);
             }
           }
+          return atomicNextCheck.get();
         }
       };
       triggering.setContext(context);

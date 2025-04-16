@@ -3,8 +3,8 @@ package ru.hh.nab.telemetry.jdbc.internal.model;
 import io.opentelemetry.api.common.AttributeKey;
 import static io.opentelemetry.api.common.AttributeKey.booleanKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import jakarta.annotation.Nullable;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 
 public class NabDataSourceInfo {

@@ -29,7 +29,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   private Map<String, Appender> appenders = new HashMap<>();
 
   @Override
-  public final void configure(LoggerContext context) {
+  public final ExecutionStatus configure(LoggerContext context) {
     try {
       Properties properties = createLoggingProperties();
       statusListener(context, properties);
@@ -39,6 +39,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       throw new AssertionError(e);
     }
     appenders = null;
+    return ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY;
   }
 
   protected void statusListener(LoggerContext context, Properties properties) {

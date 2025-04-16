@@ -305,7 +305,7 @@ public class ConsumerRecoveryAfterFailTest extends KafkaConsumerTestbase {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       String body = "body" + ID_SEQUENCE.incrementAndGet();
-      kafkaTestUtils.sendMessage(topicName, body);
+      kafkaTestUtils.sendMessage(topicName, Integer.toString(i),  body);
       messages.add(body);
     }
     return messages;

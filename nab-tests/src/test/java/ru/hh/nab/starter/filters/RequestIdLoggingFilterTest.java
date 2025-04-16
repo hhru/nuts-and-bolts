@@ -1,7 +1,7 @@
 package ru.hh.nab.starter.filters;
 
-import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.OK;
+import jakarta.ws.rs.core.Response;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;

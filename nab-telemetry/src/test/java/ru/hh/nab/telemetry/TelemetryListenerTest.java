@@ -114,7 +114,7 @@ public class TelemetryListenerTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     // StatusData раскладывается потом в otel.status_code и otel.status_description
-    assertEquals("Internal Server Error", span.getStatus().getDescription());
+    assertEquals("Server Error", span.getStatus().getDescription());
   }
 
   @Test

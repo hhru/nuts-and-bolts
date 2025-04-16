@@ -1,8 +1,8 @@
 package ru.hh.nab.starter.exceptions;
 
-import javax.annotation.Priority;
-import javax.ws.rs.core.MediaType;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.core.MediaType;
+import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;

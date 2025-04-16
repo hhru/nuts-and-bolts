@@ -1,7 +1,7 @@
 package ru.hh.nab.starter.http;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 public enum HttpStatus implements Response.StatusType {
   SERVICE_PARTIALLY_UNAVAILABLE(597, "Service partially unavailable");

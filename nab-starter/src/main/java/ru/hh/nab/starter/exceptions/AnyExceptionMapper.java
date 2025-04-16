@@ -1,12 +1,12 @@
 package ru.hh.nab.starter.exceptions;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import java.sql.SQLTransientConnectionException;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
-import javax.annotation.Priority;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

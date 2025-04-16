@@ -1,5 +1,7 @@
 package ru.hh.nab.example;
 
+import jakarta.inject.Inject;
+import jakarta.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
@@ -8,8 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
-import javax.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

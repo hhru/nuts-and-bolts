@@ -4,8 +4,8 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import static io.opentelemetry.instrumentation.api.internal.AttributesExtractorUtil.internalSet;
+import jakarta.annotation.Nullable;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDataSourceInfo;
 
 public class NabDataSourceInfoExtractor<REQUEST> implements AttributesExtractor<REQUEST, Void> {

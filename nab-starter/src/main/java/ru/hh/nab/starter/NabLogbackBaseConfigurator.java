@@ -34,6 +34,7 @@ public abstract class NabLogbackBaseConfigurator extends NabLoggingConfiguratorT
 
   @Override
   protected Properties createLoggingProperties() {
+
     if (isTestProfile()) {
       return new Properties();
     }

@@ -1,3 +1,77 @@
+-   name: 13.0.0
+    date: '2025-04-16T17:49:54.303148+03:00'
+    description: "public-pom обновлен до 2.0.1\r\nЛогика по маршрутизации запросов\
+        \ в различные датасорсы, а также логика по управлению транзакциями перенесена\
+        \ из модуля nab-hibernate в модуль nab-data-source. А именно были перенесены\
+        \ следующие классы: DatabaseSwitcher, DataSourceContext, DataSourceContextUnsafe,\
+        \ DataSourceRoutingFilter, RoutingDataSource, RoutingDataSourceFactory, @ExecuteOnDataSource,\
+        \ DataSourceContextTransactionManager, TransactionalScope. Таким образом,\
+        \ при необходимости использовать данные классы необязательно тянуть в сервис\
+        \ hibernate. Удален интерфейс DataSourceProxyFactory, вместо него добавлен\
+        \ JdbcExtension. Удален метод RoutingDataSource.setProxyFactory, вместо него\
+        \ добавлен RoutingDataSource.setJdbcExtension. В DataSourceContextTransactionManager\
+        \ исправлены конструкторы: первый принимает на вход PlatformTransactionManager,\
+        \ второй - PlatformTransactionManager и ExecuteOnDataSourceTransactionCallbackFactory.\
+        \ Удален метод DataSourceContextTransactionManager.getSessionFactory. Добавлен\
+        \ конфигурационный класс NabDataSourceCommonConfig, который содержит описание\
+        \ таких бинов, как RoutingDataSourceFactory и TransactionalScope, а также\
+        \ включение аспектов для обработки аннотаций @Transactional и @ExecuteOnDataSource.\
+        \ В NabDataSourceProdConfig импортируется NabDataSourceCommonConfig. Добавлен\
+        \ конфигурационный класс NabDataSourceTransactionManagerConfig, который содержит\
+        \ описание бина дефолтного transaction manager'а. Добавлена настройка nab.datasource.executeOnDataSource.skip,\
+        \ позволяющая отключать работу аннотации @ExecuteOnDataSource.\r\nДобавлен\
+        \ новый модуль nab-jpa, содержащий базовые абстракции, которые могут быть\
+        \ использованы при конфигурации конкретного persistence провайдера. Кроме\
+        \ того, в nab-jpa добавлен конфигурационный класс NabJpaCommonConfig, который\
+        \ содержит описание таких бинов, как EntityManager и JpaTransactionManager\
+        \ (данный бин НЕ помечен @Primary), а также импортируется NabDataSourceCommonConfig.\
+        \ В NabJpaProdConfig импортируются NabJpaCommonConfig и NabDataSourceProdConfig.\r\
+        \nВ модуле nab-hibernate подключается nab-jpa, и описываются различные системные\
+        \ бины для конфигурации hibernate. В nab-hibernate ушли от использования классов\
+        \ из пакета org.springframework.orm.hibernate5, так как не все они имеют совместимость\
+        \ с hibernate 6. Ручная работа с использованием метода SessionFactory.getCurrentSession\
+        \ больше не поддерживается, и вызовы данного метода будут приводить к ошибке.\
+        \ В NabHibernateCommonConfig описан бин Session, и импортируется NabJpaCommonConfig.\
+        \ Добавлена возможность сконфигурировать несколько бинов Session / EntityManager\
+        \ для работы с разными датасорсами. \r\nКласс MappingConfig перенесен в модуль\
+        \ nab-jpa. \r\nУдален квалификатор Hibernate. \r\nВ nab-testbase добавлены\
+        \ классы NabDataSourceTestBaseConfig, JpaTestBase, TransactionTestBase"
+    instructions: "Сбилдить проект и поправить импорты.\r\nДобавить в помник сервиса\
+        \ необходимый JDBC Driver (например, org.postgresql:postgresql). Если в сервисе\
+        \ есть необходимость отправлять запросы в разные датасорсы, либо необходим\
+        \ функционал управления транзакциями, и при этом не нужен hibernate, можно\
+        \ подключить зависимость nab-data-source вместо nab-hibernate.\r\nКонфиг NabDataSourceTransactionManagerConfig\
+        \ в набе нигде не импортируется, поэтому если есть необходимость в бине defaultJdbcTransactionManager,\
+        \ необходимо импортировать NabDataSourceTransactionManagerConfig самостоятельно.\
+        \ Имейте в виду, что NabDataSourceTransactionManagerConfig не совместим с\
+        \ конфигами hibernate/jpa (NabJpaCommonConfig, NabJpaProdConfig, NabHibernateCommonConfig,\
+        \ NabHibernateProdConfig, NabHibernateTestBaseConfig), т.к. в них подключается\
+        \ другой TransactionManager. Изменено имя бина transactionManager - проверьте,\
+        \ что вы не используете это имя явно (если конечно вы не объявили такой бин\
+        \ в своём сервисе). Если у вас в сервисе объявляются свои бины TransactionManager,\
+        \ то нужно убедиться, что один из них помечен @Primary. Если в сервисе явно\
+        \ создается объект DataSourceContextTransactionManager, то нужно помимо PlatformTransactionManager'а\
+        \ также передавать реализацию ExecuteOnDataSourceTransactionCallbackFactory,\
+        \ иначе будет использоваться DefaultTransactionCallbackFactory. Также при\
+        \ объявлении бина DataSourceContextTransactionManager в качестве возвращаемого\
+        \ типа необходимо указывать именно DataSourceContextTransactionManager, а\
+        \ не PlatformTransactionManager (transactionManager'ы, объявленные как PlatformTransactionManager,\
+        \ не будут инжектиться в ExecuteOnDataSourceAspect).\r\nВместо DataSourceProxyFactory\
+        \ необходимо использовать JdbcExtension.\r\nВместо вызова метода RoutingDataSource.setProxyFactory\
+        \ необходимо вызывать RoutingDataSource.setJdbcExtension.\r\nВместо SessionFactory\
+        \ необходимо инжектить Session (если в приложении используется хиберовский\
+        \ api) или EntityManager (если в приложении используется jpa) и использовать\
+        \ их для работы с базой - спринг сам создаст инстанс Session/EntityManager\
+        \ или переиспользует уже существующий в текущей транзакции. Вместо NabSessionFactoryBean\
+        \ необходимо использовать NabEntityManagerFactoryBean. Вместо SessionFactoryCreationHandler\
+        \ необходимо использовать EntityManagerFactoryCreationHandler. Для регистрации\
+        \ EventListener'ов необходимо добавить бин EventListenerRegistryConsumer в\
+        \ контекст спринга. Для использования Integrator'ов необходимо реализовать\
+        \ IntegratorProvider и указать имя класса в настройке hibernate.integrator_provider.\
+        \ При явном объявлении бина LocalContainerEntityManagerFactoryBean в своем\
+        \ коде необходимо повесить на него аннотацию @EntityManagerFactoryId."
+    compatible: false
+
 -   name: 12.2.0
     date: '2025-04-15T17:06:41.283847+03:00'
     description: Обновление jclient до 6.0.0. В nab-jclient добавлены классы из удаленного
@@ -527,7 +601,8 @@
 
 -   name: 4.44.5
     date: '2023-12-27T18:31:51.014373+03:00'
-    description: 'Треды в тредпуле jetty теперь в своём названии имеют название самого тредпула'
+    description: Треды в тредпуле jetty теперь в своём названии имеют название самого
+        тредпула
     instructions: ''
     compatible: true
 

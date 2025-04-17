@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>13.0.0.spring-boot-rc1-SNAPSHOT</version>
+        <version>13.0.0.spring-boot-rc1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

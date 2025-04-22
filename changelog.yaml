@@ -1,3 +1,10 @@
+-   name: 13.0.2
+    date: '2025-04-22T14:58:33.968790+03:00'
+    description: В mdc не проставляется db, если логирование выполняется вне контекста
+        работы с базой
+    instructions: ''
+    compatible: true
+
 -   name: 13.0.1
     date: '2025-04-22T11:02:01.703415+03:00'
     description: добавили в TaggedSender метод для отправки sendCounters

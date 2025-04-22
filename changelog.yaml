@@ -1,3 +1,9 @@
+-   name: 13.0.1
+    date: '2025-04-22T11:02:01.703415+03:00'
+    description: добавили в TaggedSender метод для отправки sendCounters
+    instructions: ''
+    compatible: true
+
 -   name: 13.0.0
     date: '2025-04-16T17:49:54.303148+03:00'
     description: "public-pom обновлен до 2.0.1\r\nЛогика по маршрутизации запросов\

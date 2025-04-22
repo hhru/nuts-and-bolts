@@ -8,6 +8,7 @@ import ru.hh.nab.datasource.DataSourceType;
 
 public final class DataSourceContextUnsafe {
   public static final String MDC_KEY = "db";
+  private static final ThreadLocal<String> defaultDataSourceName = new ThreadLocal<>();
   private static final ThreadLocal<String> currentDataSourceName = new ThreadLocal<>();
   private static final ThreadLocal<String> requestScopeDataSourceType = new ThreadLocal<>();
   private static DatabaseSwitcher databaseSwitcher = null;
@@ -18,6 +19,10 @@ public final class DataSourceContextUnsafe {
       dataSourceType = requestDataSourceType;
     }
     String dataSourceName = createDataSourceName(dataSourceType);
+    return executeOn(dataSourceName, supplier);
+  }
+
+  public static <T> T executeOn(String dataSourceName, Supplier<T> supplier) {
     var previousDataSourceName = currentDataSourceName.get();
     if (dataSourceName.equals(previousDataSourceName)) {
       return supplier.get();
@@ -29,10 +34,11 @@ public final class DataSourceContextUnsafe {
     } finally {
       if (previousDataSourceName == null) {
         currentDataSourceName.remove();
+        clearMDC();
       } else {
         currentDataSourceName.set(previousDataSourceName);
+        updateMDC(previousDataSourceName);
       }
-      updateMDC(previousDataSourceName);
     }
   }
 
@@ -45,6 +51,16 @@ public final class DataSourceContextUnsafe {
     }
   }
 
+  public static void executeWithDefaultDataSource(String dataSourceType, Runnable action) {
+    try {
+      String dataSourceName = createDataSourceName(dataSourceType);
+      defaultDataSourceName.set(dataSourceName);
+      action.run();
+    } finally {
+      defaultDataSourceName.remove();
+    }
+  }
+
   public static void setDatabaseSwitcher(DatabaseSwitcher databaseSwitcher) {
     DataSourceContextUnsafe.databaseSwitcher = databaseSwitcher;
   }
@@ -54,23 +70,13 @@ public final class DataSourceContextUnsafe {
   }
 
   public static String getDataSourceName() {
-    return ofNullable(currentDataSourceName.get()).orElseGet(() -> createDataSourceName(DataSourceType.MASTER));
+    return ofNullable(currentDataSourceName.get())
+        .or(() -> Optional.ofNullable(defaultDataSourceName.get()))
+        .orElseGet(() -> createDataSourceName(DataSourceType.MASTER));
   }
 
   public static boolean isCurrentDataSource(String dataSourceType) {
     return getDataSourceName().equals(createDataSourceName(dataSourceType));
-  }
-
-  public static void setDefaultMDC() {
-    updateMDC(createDataSourceName(DataSourceType.MASTER));
-  }
-
-  public static void clearMDC() {
-    MDC.deleteKey(MDC_KEY);
-  }
-
-  private static void updateMDC(String dataSourceName) {
-    MDC.setKey(MDC_KEY, ofNullable(dataSourceName).orElseGet(() -> createDataSourceName(DataSourceType.MASTER)));
   }
 
   public static void setRequestScopeDataSourceType(String dataSourceType) {
@@ -87,6 +93,14 @@ public final class DataSourceContextUnsafe {
 
   public static String createDataSourceName(String dataSourceType) {
     return databaseSwitcher == null ? dataSourceType : databaseSwitcher.getDataSourceName(dataSourceType);
+  }
+
+  private static void clearMDC() {
+    MDC.deleteKey(MDC_KEY);
+  }
+
+  private static void updateMDC(String dataSourceName) {
+    MDC.setKey(MDC_KEY, dataSourceName);
   }
 
   private DataSourceContextUnsafe() {

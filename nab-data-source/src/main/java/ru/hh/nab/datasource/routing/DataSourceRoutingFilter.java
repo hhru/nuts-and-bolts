@@ -21,32 +21,26 @@ public class DataSourceRoutingFilter implements Filter {
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-    try {
-      HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-      MultivaluedMap<String, String> queryParams = UriComponent.decodeQuery(httpServletRequest.getQueryString(), false);
-      String targetDataSource = queryParams.getFirst(NAB_TARGET_DATA_SOURCE);
-      if (targetDataSource != null && !targetDataSource.isEmpty()) {
-        wrapInDataSource(request, response, chain, targetDataSource);
-      } else if (Boolean.parseBoolean(queryParams.getFirst(REPLICA_ONLY_RQ))) {
-        LOG.debug(REPLICA_ONLY_RQ + " used. It's deprecated, use " + NAB_TARGET_DATA_SOURCE + " parameter");
-        wrapInDataSource(request, response, chain, DataSourceType.READONLY);
-      } else {
-        DataSourceContextUnsafe.setDefaultMDC();
-        chain.doFilter(request, response);
-      }
-    } finally {
-      DataSourceContextUnsafe.clearMDC();
+    HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+    MultivaluedMap<String, String> queryParams = UriComponent.decodeQuery(httpServletRequest.getQueryString(), false);
+    String targetDataSource = queryParams.getFirst(NAB_TARGET_DATA_SOURCE);
+    if (targetDataSource != null && !targetDataSource.isEmpty()) {
+      wrapInDataSource(request, response, chain, targetDataSource);
+    } else if (Boolean.parseBoolean(queryParams.getFirst(REPLICA_ONLY_RQ))) {
+      LOG.debug(REPLICA_ONLY_RQ + " used. It's deprecated, use " + NAB_TARGET_DATA_SOURCE + " parameter");
+      wrapInDataSource(request, response, chain, DataSourceType.READONLY);
+    } else {
+      chain.doFilter(request, response);
     }
   }
 
   protected void wrapInDataSource(ServletRequest request, ServletResponse response, FilterChain chain, String targetDataSource) {
-    DataSourceContextUnsafe.executeInScope(targetDataSource, () -> DataSourceContext.onDataSource(targetDataSource, () -> {
+    DataSourceContextUnsafe.executeInScope(targetDataSource, () -> DataSourceContextUnsafe.executeWithDefaultDataSource(targetDataSource, () -> {
       try {
         chain.doFilter(request, response);
       } catch (IOException | ServletException e) {
         throw new RuntimeException(e);
       }
-      return null;
     }));
   }
 }

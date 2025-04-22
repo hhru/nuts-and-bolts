@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.aspect.ExecuteOnDataSourceAspect;
+import ru.hh.nab.datasource.aspect.TransactionalAspect;
 import ru.hh.nab.datasource.routing.RoutingDataSourceFactory;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
@@ -25,6 +26,7 @@ import ru.hh.nab.datasource.validation.ExecuteOnDataSourceBeanPostProcessor;
     ExecuteOnDataSourceBeanPostProcessor.class,
     DataSourcesReadyTarget.class,
     TransactionalScope.class,
+    TransactionalAspect.class,
 })
 public class NabDataSourceCommonConfig {
 

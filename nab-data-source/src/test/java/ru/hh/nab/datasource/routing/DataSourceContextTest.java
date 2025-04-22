@@ -3,8 +3,8 @@ package ru.hh.nab.datasource.routing;
 import jakarta.inject.Inject;
 import javax.sql.DataSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,14 +30,10 @@ public class DataSourceContextTest {
   @Inject
   private TransactionalScope transactionalScope;
 
-  @BeforeEach
-  public void setUp() {
-    DataSourceContextUnsafe.setDefaultMDC();
-  }
-
   @Test
   public void testOnReplica() {
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     onReplica(() -> {
       assertEquals(READONLY, getDataSourceName());
@@ -45,12 +41,14 @@ public class DataSourceContextTest {
       return null;
     });
 
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test
   public void testOnSlowReplica() {
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     onSlowReplica(() -> {
       assertEquals(SLOW, getDataSourceName());
@@ -58,7 +56,8 @@ public class DataSourceContextTest {
       return null;
     });
 
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test
@@ -81,11 +80,6 @@ public class DataSourceContextTest {
   public void testTxScopeDoesntChangeDs() {
     Runnable dataSourceCheck = () -> assertEquals(SLOW, getDataSourceName());
     DataSourceContext.onDataSource(DataSourceType.SLOW, () -> transactionalScope.read(dataSourceCheck));
-  }
-
-  private void assertIsCurrentDataSourceMaster() {
-    assertEquals(MASTER, getDataSourceName());
-    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Configuration

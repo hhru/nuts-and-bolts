@@ -41,9 +41,11 @@ public class StatsDSender {
     statsDClient.count(getFullMetricName(metricName, tags), delta);
   }
 
-  public void sendCounters(String metricName, Counters counters) {
+  public void sendCounters(String metricName, Counters counters, Tag... additionalTags) {
     Map<Tags, Integer> counterAggregatorSnapshot = counters.getSnapshotAndReset();
-    counterAggregatorSnapshot.forEach((tags, count) -> statsDClient.count(getFullMetricName(metricName, tags.getTags()), count));
+    counterAggregatorSnapshot.forEach(
+        (counterTags, count) -> statsDClient.count(getFullMetricName(metricName, counterTags.getTags(), additionalTags), count)
+    );
   }
 
   public void sendLongCounters(String metricName, LongCounters counters) {
@@ -151,13 +153,26 @@ public class StatsDSender {
   }
 
   static String getFullMetricName(String metricName, Tag[] tags) {
-    if (tags == null || tags.length == 0) {
+    return getFullMetricName(metricName, tags, null);
+  }
+
+  static String getFullMetricName(String metricName, Tag[] tags, Tag[] additionalTags) {
+    if (isEmpty(tags) && isEmpty(additionalTags)) {
       return metricName;
     }
 
-    StringBuilder stringBuilder = new StringBuilder(metricName);
+    var stringBuilder = new StringBuilder(metricName);
+    appendTags(metricName, stringBuilder, tags);
+    appendTags(metricName, stringBuilder, additionalTags);
+    return stringBuilder.toString();
+  }
 
-    for (Tag tag : tags) {
+  private static void appendTags(String metricName, StringBuilder stringBuilder, Tag[] tags) {
+    if (isEmpty(tags)) {
+      return;
+    }
+
+    for (var tag : tags) {
       if (tag.name == null) {
         LOGGER.warn("Null tag name for metric: {}", metricName);
         continue;
@@ -172,6 +187,9 @@ public class StatsDSender {
           .append("_is_")
           .append(Optional.ofNullable(tag.value).map(value -> value.replace('.', '-')).orElse("null"));
     }
-    return stringBuilder.toString();
+  }
+
+  private static <T> boolean isEmpty(T[] array) {
+    return array == null || array.length == 0;
   }
 }

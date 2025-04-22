@@ -20,6 +20,10 @@ public class TaggedSender {
     delegate.sendCount(metricName, delta, tags);
   }
 
+  public void sendCounters(String metricName, Counters counters) {
+    delegate.sendCounters(metricName, counters, tags);
+  }
+
   public void sendGauge(String metricName, long metric) {
     delegate.sendGauge(metricName, metric, tags);
   }

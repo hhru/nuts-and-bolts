@@ -2,8 +2,8 @@ package ru.hh.nab.datasource;
 
 import jakarta.inject.Inject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,14 +28,10 @@ public class DataSourceContextTest extends TransactionTestBase {
   @Inject
   private TransactionalScope transactionalScope;
 
-  @BeforeEach
-  public void setUp() {
-    DataSourceContextUnsafe.setDefaultMDC();
-  }
-
   @Test
   public void testOnReplica() {
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     onReplica(() -> {
       assertEquals(READONLY, getDataSourceName());
@@ -43,12 +39,14 @@ public class DataSourceContextTest extends TransactionTestBase {
       return null;
     });
 
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test
   public void testOnSlowReplica() {
-    assertIsCurrentDataSourceMaster();
+    assertEquals(MASTER, getDataSourceName());
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
 
     onSlowReplica(() -> {
       assertEquals(SLOW, getDataSourceName());
@@ -56,12 +54,8 @@ public class DataSourceContextTest extends TransactionTestBase {
       return null;
     });
 
-    assertIsCurrentDataSourceMaster();
-  }
-
-  private static void assertIsCurrentDataSourceMaster() {
     assertEquals(MASTER, getDataSourceName());
-    assertEquals(MASTER, MDC.get(DataSourceContextUnsafe.MDC_KEY));
+    assertNull(MDC.get(DataSourceContextUnsafe.MDC_KEY));
   }
 
   @Test

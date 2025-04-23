@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpHeaderNames;
+import ru.hh.requestid.RequestIdGenerator;
 
 public class IdGeneratorImpl implements IdGenerator {
   private static final Logger LOGGER = LoggerFactory.getLogger(IdGeneratorImpl.class);
@@ -31,15 +32,15 @@ public class IdGeneratorImpl implements IdGenerator {
     List<String> requestIdHolder = getRequestIdHolder();
     if (requestIdHolder == null || requestIdHolder.isEmpty()) {
       LOGGER.debug("unavailable requestId");
-      return IdGenerator.random().generateTraceId();
+      return RequestIdGenerator.makeRequestId("");
     } else if (requestIdHolder.get(0).length() < 32) {
       LOGGER.debug("invalid requestId = {} is less than 32 character", requestIdHolder.get(0));
-      return IdGenerator.random().generateTraceId();
+      return RequestIdGenerator.makeRequestId("");
     } else {
       String requestId = requestIdHolder.get(0).substring(0, 32);
       if (!TraceId.isValid(requestId)) {
         LOGGER.debug("invalid requestId for telemetry {}", requestId);
-        return IdGenerator.random().generateTraceId();
+        return RequestIdGenerator.makeRequestId("");
       } else {
         return requestId;
       }

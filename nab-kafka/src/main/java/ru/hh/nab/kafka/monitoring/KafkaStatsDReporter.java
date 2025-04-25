@@ -43,6 +43,11 @@ public class KafkaStatsDReporter implements MetricsReporter {
       "producer-metrics.record-queue-time-avg",
       "producer-metrics.compression-rate-avg",
       "producer-metrics.produce-throttle-time-max",
+      "producer-metrics.bufferpool-wait-ratio",
+      "producer-metrics.bufferpool-wait-time-total",
+      "producer-metrics.bufferpool-wait-time-ns-total",
+      "producer-metrics.buffer-exhausted-rate",
+      "producer-metrics.buffer-exhausted-total",
 
       "producer-topic-metrics.record-send-rate",
       "producer-topic-metrics.record-retry-rate",

@@ -161,7 +161,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
   }
 
   private void startConsumerWithRetries() {
-    ConsumeStrategy<String> consumeStrategy = ConsumeStrategy.atLeastOnceWithBatchAck(mockService::accept);
+    ConsumeStrategy<String> consumeStrategy = ConsumeStrategy.atLeastOnceWithBatchAckWithRetries(mockService::accept);
     consumer = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("testOperation")

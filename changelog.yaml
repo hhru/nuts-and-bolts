@@ -1,3 +1,10 @@
+-   name: 13.0.4
+    date: '2025-05-05T16:45:46.902544+03:00'
+    description: возвращаем sendCounters без varargs для совместимости либ, скомпиленных
+        под старый наб
+    instructions: ''
+    compatible: true
+
 -   name: 13.0.3
     date: '2025-04-23T19:13:09.374506+03:00'
     description: Исправлена генерация traceId - traceId генерируется, основываясь

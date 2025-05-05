@@ -41,6 +41,10 @@ public class StatsDSender {
     statsDClient.count(getFullMetricName(metricName, tags), delta);
   }
 
+  public void sendCounters(String metricName, Counters counters) {
+    sendCounters(metricName, counters, new Tag[0]);
+  }
+
   public void sendCounters(String metricName, Counters counters, Tag... additionalTags) {
     Map<Tags, Integer> counterAggregatorSnapshot = counters.getSnapshotAndReset();
     counterAggregatorSnapshot.forEach(

@@ -26,8 +26,12 @@ public class ScheduledExecutor implements ScheduledExecutorService {
   private final ScheduledExecutorService scheduledExecutorService;
 
   public ScheduledExecutor() {
+    this("hh_scheduled_executor");
+  }
+
+  public ScheduledExecutor(String threadName) {
     ThreadFactory threadFactory = runnable -> {
-      Thread thread = new Thread(runnable, "hh_scheduled_executor");
+      Thread thread = new Thread(runnable, threadName);
       thread.setDaemon(true);
       return thread;
     };
@@ -130,7 +134,10 @@ public class ScheduledExecutor implements ScheduledExecutorService {
       try {
         runnable.run();
       } catch (RuntimeException e) {
-        logger.error("failed to run task: {}", e.toString(), e);
+        logger.error("Task execution failed", e);
+      } catch (Error e) {
+        logger.error("Task execution failed and will not be rescheduled", e);
+        throw e;
       }
     };
   }

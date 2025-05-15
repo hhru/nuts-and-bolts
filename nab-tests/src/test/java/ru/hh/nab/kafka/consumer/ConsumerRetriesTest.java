@@ -2,6 +2,7 @@ package ru.hh.nab.kafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -10,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,6 +42,11 @@ public class ConsumerRetriesTest extends KafkaConsumerTestbase {
     @Override
     public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
       return sendToKafka(record);
+    }
+
+    @Override
+    public List<PartitionInfo> partitionsFor(String topic) {
+      return List.of();
     }
   };
 

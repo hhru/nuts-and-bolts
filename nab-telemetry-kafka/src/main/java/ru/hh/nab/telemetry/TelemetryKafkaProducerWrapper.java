@@ -14,9 +14,11 @@ import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSA
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_SYSTEM;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MessagingDestinationKindValues.TOPIC;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 
@@ -68,5 +70,10 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
 
           span.end();
         });
+  }
+
+  @Override
+  public List<PartitionInfo> partitionsFor(String topic) {
+    return producer.partitionsFor(topic);
   }
 }

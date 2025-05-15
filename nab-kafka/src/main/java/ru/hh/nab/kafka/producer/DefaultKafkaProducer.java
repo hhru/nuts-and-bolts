@@ -1,9 +1,11 @@
 package ru.hh.nab.kafka.producer;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
@@ -22,6 +24,11 @@ public class DefaultKafkaProducer extends KafkaProducer {
         .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
         .thenCompose(Function.identity())
         .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
+  }
+
+  @Override
+  public List<PartitionInfo> partitionsFor(String topic) {
+    return kafkaTemplate.partitionsFor(topic);
   }
 
   private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult, Class<T> messageType) {

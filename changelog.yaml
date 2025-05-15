@@ -1,8 +1,8 @@
 -   name: 14.0.0
     date: '2025-05-13T12:52:01.570761+03:00'
-    description: ''
-    instructions: ''
-    compatible: true
+    description: 'поднимаем версию postgres в nab-testbase c 13.5 до 15.10'
+    instructions: 'проверить драйвер postgresql на совместимость с 15-й версией'
+    compatible: false
 
 -   name: 13.1.0
     date: '2025-05-06T16:13:19.926324+03:00'

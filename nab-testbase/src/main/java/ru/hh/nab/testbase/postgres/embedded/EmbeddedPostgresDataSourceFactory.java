@@ -21,7 +21,7 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   public static final String DEFAULT_DATABASE = "postgres";
   public static final String DEFAULT_PASSWORD = "test";
 
-  private static final String DEFAULT_PG_IMAGE = "postgres:13.5";
+  private static final String DEFAULT_PG_IMAGE = "postgres:15.10";
   private static final String PG_IMAGE_ENV_VARIABLE = "EXT_POSTGRES_IMAGE";
 
   public EmbeddedPostgresDataSourceFactory() {

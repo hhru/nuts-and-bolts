@@ -18,10 +18,11 @@ public class DefaultKafkaProducer extends KafkaProducer {
   @Override
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<KafkaSendResult<T>> sendMessage(ProducerRecord<String, T> record, Executor executor) {
+    Class<T> messageType = record.value() == null ? null : (Class<T>) record.value().getClass();
     return CompletableFuture
         .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
         .thenCompose(Function.identity())
-        .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
+        .thenApply(springResult -> convertSpringSendResult(springResult, messageType));
   }
 
   private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult, Class<T> messageType) {
@@ -37,7 +38,7 @@ public class DefaultKafkaProducer extends KafkaProducer {
         initial.partition(),
         initial.timestamp(),
         initial.key(),
-        messageType.cast(initial.value()),
+        initial.value() == null ? null : messageType.cast(initial.value()),
         initial.headers()
     );
   }

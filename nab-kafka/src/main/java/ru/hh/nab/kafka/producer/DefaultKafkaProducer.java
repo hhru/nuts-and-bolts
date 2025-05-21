@@ -21,23 +21,23 @@ public class DefaultKafkaProducer extends KafkaProducer {
     return CompletableFuture
         .supplyAsync(() -> kafkaTemplate.send((ProducerRecord<String, Object>) record), executor)
         .thenCompose(Function.identity())
-        .thenApply(springResult -> convertSpringSendResult(springResult, (Class<T>) record.value().getClass()));
+        .thenApply(this::convertSpringSendResult);
   }
 
-  private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult, Class<T> messageType) {
+  private <T> KafkaSendResult<T> convertSpringSendResult(SendResult<String, Object> springResult) {
     return new KafkaSendResult<>(
-        convertProducerRecord(springResult.getProducerRecord(), messageType),
+        convertProducerRecord(springResult.getProducerRecord()),
         springResult.getRecordMetadata()
     );
   }
 
-  private <T> ProducerRecord<String, T> convertProducerRecord(ProducerRecord<String, Object> initial, Class<T> messageType) {
+  private <T> ProducerRecord<String, T> convertProducerRecord(ProducerRecord<String, Object> initial) {
     return new ProducerRecord<>(
         initial.topic(),
         initial.partition(),
         initial.timestamp(),
         initial.key(),
-        messageType.cast(initial.value()),
+        (T) initial.value(),
         initial.headers()
     );
   }

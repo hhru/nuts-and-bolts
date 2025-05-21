@@ -93,7 +93,7 @@ class KafkaInternalTopicAck<T> implements Ack<T> {
   @Override
   public void retry(ConsumerRecord<String, T> message, Throwable error) {
     if (retryQueue == null) {
-      throw new ConfigurationException("Attempt to retry message without proper configuration. See ConsumerBuilder#withRetries.");
+      throw new ConfigurationException("Attempt to retry message without proper configuration. See ConsumerBuilder#withRetries.", error);
     }
 
     consumerContext.addFutureMessage(retryQueue.retry(message, error), message);

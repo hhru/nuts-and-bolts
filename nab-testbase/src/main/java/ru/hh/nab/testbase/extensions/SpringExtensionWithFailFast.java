@@ -96,7 +96,7 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
 
   private static void executeIfNotExecutedBefore(ExtensionContext context, ThrowingConsumer<ExtensionContext> action) throws Exception {
     ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
-    boolean theFirstLaunch = store.get(THE_FIRST_LAUNCH_KEY, Boolean.class);
+    boolean theFirstLaunch = Boolean.TRUE.equals(store.get(THE_FIRST_LAUNCH_KEY, Boolean.class));
     if (theFirstLaunch) {
       executeWithListeners(context, action, store);
     }

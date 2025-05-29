@@ -15,7 +15,7 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
   private static final ExtensionContext.Namespace LOCAL_NAMESPACE = ExtensionContext.Namespace.create(SpringExtensionWithFailFast.class);
   private static final ExtensionContext.Namespace PARENT_NAMESPACE = ExtensionContext.Namespace.create(SpringExtension.class);
 
-  private static final String THE_FIRST_LAUNCH_KEY = "THE_FIRST_LAUNCH";
+  private static final String BEFORE_MAIN_SPRING_EXTENSION_KEY = "BEFORE_MAIN_SPRING_EXTENSION";
   private static final String LISTENERS_KEY = "LISTENERS";
 
   private static boolean springContextFailed = false;
@@ -77,12 +77,14 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
 
   private void executePossibleEntryPoint(ExtensionContext context, ThrowingConsumer<ExtensionContext> action) throws Exception {
     ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
-    boolean realFirstLaunch = getTestContextManager(context) == null;
-    boolean theFirstLaunch = store.getOrComputeIfAbsent(THE_FIRST_LAUNCH_KEY, ignored -> realFirstLaunch, Boolean.class);
-    if (realFirstLaunch) {
+    // true - no Spring extension has been executed before, and this is the first callback call for this extension
+    boolean isEntrypoint = getTestContextManager(context) == null;
+    // true - no Spring extension was executed before the first callback call for this extension
+    boolean beforeMainSpringExtension = store.getOrComputeIfAbsent(BEFORE_MAIN_SPRING_EXTENSION_KEY, ignored -> isEntrypoint, Boolean.class);
+    if (isEntrypoint) {
       action.acceptWithException(context);
       storeListenersToContextAndClearGlobal(context, store);
-    } else if (theFirstLaunch) {
+    } else if (beforeMainSpringExtension) {
       executeWithListeners(context, action, store);
     }
   }
@@ -96,8 +98,8 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
 
   private static void executeIfNotExecutedBefore(ExtensionContext context, ThrowingConsumer<ExtensionContext> action) throws Exception {
     ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
-    boolean theFirstLaunch = Boolean.TRUE.equals(store.get(THE_FIRST_LAUNCH_KEY, Boolean.class));
-    if (theFirstLaunch) {
+    boolean beforeMainSpringExtension = Boolean.TRUE.equals(store.get(BEFORE_MAIN_SPRING_EXTENSION_KEY, Boolean.class));
+    if (beforeMainSpringExtension) {
       executeWithListeners(context, action, store);
     }
   }

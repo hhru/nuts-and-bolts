@@ -22,14 +22,8 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
-    TestContextManager testContextManager = getTestContextManager(context);
-    boolean theFirstLaunch = testContextManager == null;
-    ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
-    store.put(THE_FIRST_LAUNCH_KEY, theFirstLaunch);
-    if (theFirstLaunch) {
-      super.beforeAll(context);
-      storeListenersToContextAndClearGlobal(context, store);
-    }
+    // this method is entrypoint to extension if test instance lifecycle = per_method
+    executePossibleEntryPoint(context, super::beforeAll);
   }
 
   @Override
@@ -63,7 +57,8 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
     Assumptions.assumeFalse(springContextFailed, "Spring context failed to load");
 
     try {
-      executeIfNotExecutedBefore(context, (c) -> super.postProcessTestInstance(testInstance, context));
+      // this method is entrypoint to extension if test instance lifecycle = per_class
+      executePossibleEntryPoint(context, (c) -> super.postProcessTestInstance(testInstance, context));
     } catch (Exception e) {
       springContextFailed = true;
       throw e;
@@ -80,6 +75,18 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
     return ConditionEvaluationResult.enabled(null);
   }
 
+  private void executePossibleEntryPoint(ExtensionContext context, ThrowingConsumer<ExtensionContext> action) throws Exception {
+    ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
+    boolean realFirstLaunch = getTestContextManager(context) == null;
+    boolean theFirstLaunch = store.getOrComputeIfAbsent(THE_FIRST_LAUNCH_KEY, ignored -> realFirstLaunch, Boolean.class);
+    if (realFirstLaunch) {
+      action.acceptWithException(context);
+      storeListenersToContextAndClearGlobal(context, store);
+    } else if (theFirstLaunch) {
+      executeWithListeners(context, action, store);
+    }
+  }
+
   private static void storeListenersToContextAndClearGlobal(ExtensionContext context, ExtensionContext.Store store) {
     TestContextManager testContextManager = getTestContextManager(context);
     List<TestExecutionListener> copiedListeners = List.copyOf(testContextManager.getTestExecutionListeners());
@@ -91,21 +98,29 @@ public class SpringExtensionWithFailFast extends SpringExtension implements Exec
     ExtensionContext.Store store = context.getStore(LOCAL_NAMESPACE);
     boolean theFirstLaunch = store.get(THE_FIRST_LAUNCH_KEY, Boolean.class);
     if (theFirstLaunch) {
-      TestContextManager testContextManager = getTestContextManager(context);
-      if (testContextManager == null) {
-        action.acceptWithException(context);
-        return;
-      }
+      executeWithListeners(context, action, store);
+    }
+  }
 
-      List<TestExecutionListener> listeners = store.get(LISTENERS_KEY, List.class);
-      if (listeners != null && !listeners.isEmpty()) {
-        testContextManager.getTestExecutionListeners().addAll(listeners);
-      }
-      try {
-        action.acceptWithException(context);
-      } finally {
-        testContextManager.getTestExecutionListeners().clear();
-      }
+  private static void executeWithListeners(
+      ExtensionContext context,
+      ThrowingConsumer<ExtensionContext> action,
+      ExtensionContext.Store store
+  ) throws Exception {
+    TestContextManager testContextManager = getTestContextManager(context);
+    if (testContextManager == null) {
+      action.acceptWithException(context);
+      return;
+    }
+
+    List<TestExecutionListener> listeners = store.get(LISTENERS_KEY, List.class);
+    if (listeners != null && !listeners.isEmpty()) {
+      testContextManager.getTestExecutionListeners().addAll(listeners);
+    }
+    try {
+      action.acceptWithException(context);
+    } finally {
+      testContextManager.getTestExecutionListeners().clear();
     }
   }
 

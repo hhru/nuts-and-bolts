@@ -1,3 +1,11 @@
+- name: 14.1.1.spring-boot-rc2
+  date: '2025-05-29T15:21:00.000000+03:00'
+  description: "
+    Исправлена ошибка, которая возникала при использовании `SpringExtensionWithFailFast` вместе с `@Transactional` из-за повторного вызова junit обработчиков
+  "
+  instructions: ''
+  compatible: true
+
 - name: 10.1.6.jakarta-rc2.spring-boot-rc4
   date: '2025-02-14T16:19:00.000000+03:00'
   description: "

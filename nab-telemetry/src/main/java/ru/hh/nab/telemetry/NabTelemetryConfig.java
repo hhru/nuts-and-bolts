@@ -45,9 +45,14 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, IdGenerator idGenerator,
-                                             @Named(SERVICE_NAME) String serviceName, @Named(NODE_NAME) String nodeName,
-                                             @Named(DATACENTER) String datacenter, Properties projectProperties) {
+  public SdkTracerProvider sdkTracerProvider(
+      FileSettings fileSettings,
+      IdGenerator idGenerator,
+      @Named(SERVICE_NAME) String serviceName,
+      @Named(NODE_NAME) String nodeName,
+      @Named(DATACENTER) String datacenter,
+      Properties projectProperties
+  ) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
       return SdkTracerProvider.builder().build();
@@ -110,14 +115,21 @@ public class NabTelemetryConfig {
     return new TelemetryFilter(
         openTelemetry.getTracer("nab"),
         telemetryPropagator,
-        fileSettings.getBoolean("opentelemetry.enabled", false));
+        fileSettings.getBoolean("opentelemetry.enabled", false)
+    );
   }
 
   @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator,
-                                                      HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
-    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
-        telemetryPropagator);
+  TelemetryProcessorFactory telemetryProcessorFactory(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      HttpClientContextThreadLocalSupplier contextSupplier,
+      FileSettings fileSettings
+  ) {
+    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(
+        openTelemetry.getTracer("jclient"),
+        telemetryPropagator
+    );
     if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
       contextSupplier.register(new ContextStorage());
       contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);

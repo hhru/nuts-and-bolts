@@ -73,13 +73,13 @@ public class NabTelemetryConfig {
               .put(ResourceAttributes.CLOUD_REGION, datacenter)
               .build()
       );
-      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter
+      OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter
           .builder()
           .setEndpoint(url)
           .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
       BatchSpanProcessor spanProcessor = BatchSpanProcessor
-          .builder(jaegerExporter)
+          .builder(spanExporter)
           .setExporterTimeout(batchTimeout, TimeUnit.MILLISECONDS)
           .setScheduleDelay(batchDelay, TimeUnit.MILLISECONDS)
           .setMaxExportBatchSize(batchMaxSize)

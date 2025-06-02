@@ -38,6 +38,7 @@ import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.nab.starter.logging.LogLevelOverrideApplier;
 import ru.hh.nab.starter.logging.LogLevelOverrideExtension;
+import ru.hh.nab.starter.sentry.SentryScopeConfigurator;
 import ru.hh.nab.starter.server.jetty.JettyLifeCycleListener;
 import ru.hh.nab.starter.server.jetty.JettyServer;
 import ru.hh.nab.starter.server.jetty.JettyServerFactory;
@@ -140,6 +141,8 @@ public final class NabApplication {
         options.setRelease(System.getProperty(SENTRY_RELEASE_ENV));
         options.addEventProcessor(new SentryEventProcessor());
       });
+      // Sentry.init generates a random traceId, so we reset it to default value
+      SentryScopeConfigurator.clearTraceId();
     }
   }
 

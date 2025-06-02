@@ -29,13 +29,10 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 public class NabTelemetryConfig {
 
   @Bean
-  public OpenTelemetry telemetry(FileSettings fileSettings, SdkTracerProvider tracerProvider) {
+  public OpenTelemetry telemetry(SdkTracerProvider tracerProvider) {
     OpenTelemetrySdkBuilder openTelemetrySdkBuilder = OpenTelemetrySdk.builder();
     openTelemetrySdkBuilder.setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()));
-
-    if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
-      openTelemetrySdkBuilder.setTracerProvider(tracerProvider);
-    }
+    openTelemetrySdkBuilder.setTracerProvider(tracerProvider);
     return openTelemetrySdkBuilder.buildAndRegisterGlobal();
   }
 
@@ -45,12 +42,17 @@ public class NabTelemetryConfig {
   }
 
   @Bean(destroyMethod = "shutdown")
-  public SdkTracerProvider sdkTracerProvider(FileSettings fileSettings, IdGenerator idGenerator,
-                                             @Named(SERVICE_NAME) String serviceName, @Named(NODE_NAME) String nodeName,
-                                             @Named(DATACENTER) String datacenter, Properties projectProperties) {
+  public SdkTracerProvider sdkTracerProvider(
+      FileSettings fileSettings,
+      IdGenerator idGenerator,
+      @Named(SERVICE_NAME) String serviceName,
+      @Named(NODE_NAME) String nodeName,
+      @Named(DATACENTER) String datacenter,
+      Properties projectProperties
+  ) {
     boolean telemetryEnabled = fileSettings.getBoolean("opentelemetry.enabled", false);
     if (!telemetryEnabled) {
-      return SdkTracerProvider.builder().build();
+      return SdkTracerProvider.builder().setIdGenerator(idGenerator).build();
     } else {
       String url = fileSettings.getString("opentelemetry.collector.url");
       int timeout = fileSettings.getInteger("opentelemetry.export.timeoutMs", 10_000);
@@ -73,13 +75,13 @@ public class NabTelemetryConfig {
               .put(ResourceAttributes.CLOUD_REGION, datacenter)
               .build()
       );
-      OtlpGrpcSpanExporter jaegerExporter = OtlpGrpcSpanExporter
+      OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter
           .builder()
           .setEndpoint(url)
           .setTimeout(timeout, TimeUnit.SECONDS)
           .build();
       BatchSpanProcessor spanProcessor = BatchSpanProcessor
-          .builder(jaegerExporter)
+          .builder(spanExporter)
           .setExporterTimeout(batchTimeout, TimeUnit.MILLISECONDS)
           .setScheduleDelay(batchDelay, TimeUnit.MILLISECONDS)
           .setMaxExportBatchSize(batchMaxSize)
@@ -106,22 +108,25 @@ public class NabTelemetryConfig {
   }
 
   @Bean
-  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator, FileSettings fileSettings) {
+  TelemetryFilter telemetryFilter(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator) {
     return new TelemetryFilter(
         openTelemetry.getTracer("nab"),
-        telemetryPropagator,
-        fileSettings.getBoolean("opentelemetry.enabled", false));
+        telemetryPropagator
+    );
   }
 
   @Bean
-  TelemetryProcessorFactory telemetryProcessorFactory(OpenTelemetry openTelemetry, TelemetryPropagator telemetryPropagator,
-                                                      HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
-    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(openTelemetry.getTracer("jclient"),
-        telemetryPropagator);
-    if (fileSettings.getBoolean("opentelemetry.enabled", false)) {
-      contextSupplier.register(new ContextStorage());
-      contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
-    }
+  TelemetryProcessorFactory telemetryProcessorFactory(
+      OpenTelemetry openTelemetry,
+      TelemetryPropagator telemetryPropagator,
+      HttpClientContextThreadLocalSupplier contextSupplier
+  ) {
+    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(
+        openTelemetry.getTracer("jclient"),
+        telemetryPropagator
+    );
+    contextSupplier.register(new ContextStorage());
+    contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
     return telemetryRequestDebug;
   }
 }

@@ -34,12 +34,10 @@ public class TelemetryFilter implements Filter {
 
   private final TelemetryPropagator telemetryPropagator;
   private final Tracer tracer;
-  private final boolean enabled;
 
-  public TelemetryFilter(Tracer tracer, TelemetryPropagator telemetryPropagator, boolean enabled) {
+  public TelemetryFilter(Tracer tracer, TelemetryPropagator telemetryPropagator) {
     this.telemetryPropagator = telemetryPropagator;
     this.tracer = tracer;
-    this.enabled = enabled;
   }
 
   @Override
@@ -47,7 +45,7 @@ public class TelemetryFilter implements Filter {
     HttpServletRequest httpServletRequest = (HttpServletRequest) request;
     URL url = getFullUrl(httpServletRequest);
 
-    if (!enabled || url == null || STATUS_URL.equals(url.getPath())) {
+    if (url == null || STATUS_URL.equals(url.getPath())) {
       chain.doFilter(request, response);
     } else {
       Map<String, String> requestHeadersMap = getRequestHeadersMap(request);

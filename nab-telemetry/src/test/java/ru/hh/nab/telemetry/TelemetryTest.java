@@ -245,8 +245,7 @@ public class TelemetryTest {
 
       TelemetryFilter telemetryFilter = new TelemetryFilter(
           openTelemetry.getTracer("nab"),
-          new TelemetryPropagator(openTelemetry),
-          true
+          new TelemetryPropagator(openTelemetry)
       );
 
       return new FilterRegistrationBean<>(telemetryFilter);

@@ -1,3 +1,17 @@
+-   name: 14.1.3
+    date: '2025-06-02T17:24:41.961413+03:00'
+    description: Добавлена очистка traceId в SentryFilter после выполнения запроса
+    instructions: ''
+    compatible: true
+
+-   name: 14.1.2
+    date: '2025-06-02T14:20:13.196614+03:00'
+    description: Телеметрийный заголовок traceparent всегда обрабатывается на стороне
+        сервиса и пропагейтится в апстримы, даже если opentelemetry.enabled=False.
+        Настройка opentelemetry.enabled теперь отвечает только за экспорт спанов.
+    instructions: ''
+    compatible: true
+
 -   name: 14.1.1
     date: '2025-05-21T17:24:29.844354+03:00'
     description: Исправлена ошибка NullPointerException, возникающая при отправке

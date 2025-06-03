@@ -23,6 +23,8 @@ public class SentryInitializer {
         options.setRelease(properties.getProperty(RELEASE_PROPERTY));
         options.addEventProcessor(new SentryEventProcessor());
       });
+      // Sentry.init generates a random traceId, so we reset it to default value
+      SentryScopeConfigurator.clearTraceId();
     }
   }
 }

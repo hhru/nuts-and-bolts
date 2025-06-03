@@ -17,12 +17,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextListener;
 import ru.hh.nab.common.component.NabServletFilter;
-import ru.hh.nab.starter.filters.CommonHeadersFilter;
-import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
-import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.servlet.NabJerseyConfig;
 import ru.hh.nab.starter.servlet.NabServletConfig;
 import ru.hh.nab.starter.servlet.StatusServletConfig;
@@ -53,37 +51,11 @@ public class NabServletContextConfig {
     webAppContext.setContextPath(getContextPath());
     webAppContext.setClassLoader(getClassLoader());
     webAppContext.addEventListener(new RequestContextListener());
-    registerFilter(
-        webAppContext.getServletContext(),
-        RequestIdLoggingFilter.class.getName(),
-        RequestIdLoggingFilter.class,
-        Collections.emptyMap(),
-        EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING,
-        DEFAULT_SERVLET_NAMES
-    );
-    registerFilter(
-        webAppContext.getServletContext(),
-        SentryFilter.class.getName(),
-        SentryFilter.class,
-        Collections.emptyMap(),
-        EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING,
-        DEFAULT_SERVLET_NAMES
-    );
-    registerFilter(
-        webAppContext.getServletContext(),
-        CommonHeadersFilter.class.getName(),
-        CommonHeadersFilter.class,
-        Collections.emptyMap(),
-        EnumSet.allOf(DispatcherType.class),
-        DEFAULT_MAPPING,
-        DEFAULT_SERVLET_NAMES
-    );
     rootCtx
         .getBeansOfType(NabServletFilter.class)
         .entrySet()
         .stream()
+        .sorted((e1, e2) -> AnnotationAwareOrderComparator.INSTANCE.compare(e1.getValue(), e2.getValue()))
         .map(entry -> Map.entry(entry.getKey(), (Filter) entry.getValue()))
         .forEach(entry -> registerFilter(
             webAppContext.getServletContext(),

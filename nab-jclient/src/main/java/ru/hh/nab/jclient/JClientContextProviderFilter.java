@@ -1,5 +1,6 @@
 package ru.hh.nab.jclient;
 
+import jakarta.annotation.Priority;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,8 +20,11 @@ import static java.util.stream.Collectors.toMap;
 import java.util.stream.StreamSupport;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
 import ru.hh.nab.common.component.NabServletFilter;
+import ru.hh.nab.common.servlet.ServletFilterPriorities;
 import ru.hh.nab.common.servlet.UriComponent;
 
+// TODO: after https://jira.hh.ru/browse/HH-263087 change priority to ServletFilterPriorities.HEADER_DECORATOR
+@Priority(ServletFilterPriorities.OBSERVABILITY - 1)
 public class JClientContextProviderFilter implements Filter, NabServletFilter {
   private final HttpClientContextThreadLocalSupplier contextThreadLocalSupplier;
 

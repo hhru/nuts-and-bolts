@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import ru.hh.nab.common.executor.ScheduledExecutor;
 import ru.hh.nab.common.properties.FileSettings;
@@ -19,12 +20,20 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import static ru.hh.nab.metrics.StatsDConstants.STATSD_DEFAULT_PERIODIC_SEND_INTERVAL;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.clients.JvmMetricsSender;
+import ru.hh.nab.starter.filters.CommonHeadersFilter;
+import ru.hh.nab.starter.filters.RequestIdLoggingFilter;
+import ru.hh.nab.starter.filters.SentryFilter;
 import ru.hh.nab.starter.qualifier.Service;
 import static ru.hh.nab.starter.server.jetty.JettyServerFactory.createJettyThreadPool;
 import static ru.hh.nab.starter.server.jetty.JettySettingsConstants.JETTY;
 import ru.hh.nab.starter.server.jetty.MonitoredQueuedThreadPool;
 
 @Configuration
+@Import({
+    RequestIdLoggingFilter.class,
+    CommonHeadersFilter.class,
+    SentryFilter.class,
+})
 public class NabCommonConfig {
   private static final String NODE_NAME_ENV = "NODE_NAME";
 

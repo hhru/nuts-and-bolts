@@ -1,38 +1,47 @@
 package ru.hh.nab.common.servlet;
 
 /**
- * Servlet filters are invoked before jax-rs filters (see jax-rs filter priorities in ru.hh.nab.starter.jersey.NabPriorities)
+ * Priority constants for servlet filters.
+ * It's a copy of {@link ru.hh.nab.web.jersey.NabPriorities}.
+ * Please note servlet filters are invoked before jax-rs filters.
  */
 public final class ServletFilterPriorities {
 
-  private ServletFilterPriorities() {
-  }
+  /**
+   * Observability filter/interceptor priority.
+   */
+  public static final int OBSERVABILITY = 500;
 
   /**
-   * Security authentication filter priority
+   * Cache filter/interceptor priority.
+   */
+  public static final int CACHE = 750;
+
+  /**
+   * Security authentication filter/interceptor priority.
    */
   public static final int AUTHENTICATION = 1000;
 
   /**
-   * Security authorization filter priority
+   * Security authorization filter/interceptor priority.
    */
   public static final int AUTHORIZATION = 2000;
 
   /**
-   * Header decorator filter priority
+   * Header decorator filter/interceptor priority.
    */
   public static final int HEADER_DECORATOR = 3000;
 
   /**
-   * Message encoder or decoder filter priority
+   * Message encoder or decoder filter/interceptor priority.
    */
   public static final int ENTITY_CODER = 4000;
 
   /**
-   * User-level filter priority. This value is also used as a default priority
+   * User-level filter/interceptor priority.
    */
   public static final int USER = 5000;
 
-  public static final int LOWEST_PRIORITY = Integer.MAX_VALUE;
-  public static final int HIGHEST_PRIORITY = Integer.MIN_VALUE;
+  private ServletFilterPriorities() {
+  }
 }

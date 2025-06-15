@@ -48,7 +48,7 @@ public class TelemetryFilter implements Filter {
     if (url == null || STATUS_URL.equals(url.getPath())) {
       chain.doFilter(request, response);
     } else {
-      Map<String, String> requestHeadersMap = getRequestHeadersMap(request);
+      Map<String, String> requestHeadersMap = getRequestHeadersMap(httpServletRequest);
       Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
 
       Span span = tracer
@@ -106,8 +106,7 @@ public class TelemetryFilter implements Filter {
     }
   }
 
-  private static Map<String, String> getRequestHeadersMap(ServletRequest req) {
-    HttpServletRequest request = (HttpServletRequest) req;
+  private static Map<String, String> getRequestHeadersMap(HttpServletRequest request) {
     Enumeration<String> names = request.getHeaderNames();
 
     if (names == null) {

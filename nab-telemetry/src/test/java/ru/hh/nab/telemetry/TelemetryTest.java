@@ -24,6 +24,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -38,8 +39,11 @@ import org.springframework.context.annotation.Configuration;
 import static org.springframework.http.RequestEntity.get;
 import static org.springframework.http.RequestEntity.head;
 import org.springframework.http.ResponseEntity;
+import ru.hh.nab.common.constants.RequestHeaders;
 import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
 import ru.hh.nab.web.resource.StatusResource;
+import ru.hh.trace.TraceContextImpl;
+import ru.hh.trace.TraceIdValidator;
 
 @SpringBootTest(classes = TelemetryTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest {
@@ -199,6 +203,27 @@ public class TelemetryTest {
     assertEquals("fcf9c5cc0345247a", span.getParentSpanId());
   }
 
+  @Test
+  public void testTraceId() {
+    final String testRequestId = "123";
+
+    ResponseEntity<String> response = testRestTemplate.exchange(
+        get("/").header(RequestHeaders.REQUEST_ID, testRequestId).build(),
+        String.class
+    );
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
+    assertEquals(List.of(testRequestId), response.getHeaders().get(RequestHeaders.REQUEST_ID));
+  }
+
+  @Test
+  public void testNoTraceId() {
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/", String.class);
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
+    assertTrue(TraceIdValidator.isValidTraceId(response.getHeaders().get(RequestHeaders.REQUEST_ID).get(0)));
+  }
+
   private void awaitAtLeastOneSpan() {
     await().atMost(1000, TimeUnit.MILLISECONDS).untilAsserted(() -> assertFalse(SPAN_EXPORTER.getFinishedSpanItems().isEmpty()));
   }
@@ -245,7 +270,8 @@ public class TelemetryTest {
 
       TelemetryFilter telemetryFilter = new TelemetryFilter(
           openTelemetry.getTracer("nab"),
-          new TelemetryPropagator(openTelemetry)
+          new TelemetryPropagator(openTelemetry),
+          new TraceContextImpl()
       );
 
       return new FilterRegistrationBean<>(telemetryFilter);

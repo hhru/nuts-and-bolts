@@ -15,6 +15,8 @@ import static java.util.stream.Collectors.toMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.hh.nab.common.properties.PropertiesUtils;
+import ru.hh.trace.Scope;
+import ru.hh.trace.TraceContext;
 
 public class LogLevelOverrideApplier {
 
@@ -26,13 +28,15 @@ public class LogLevelOverrideApplier {
 
   private final Map<String, LogInfo> initialLogLevelsInfo = new HashMap<>();
   private final Map<String, String> previousOverrides = new HashMap<>();
+  private final TraceContext traceContext;
 
   private final LogLevelOverrideExtension extension;
   private final long updateInterval;
 
-  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, Properties properties) {
+  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, Properties properties, TraceContext traceContext) {
     this.extension = extension;
     this.updateInterval = PropertiesUtils.getInteger(properties, UPDATE_INTERVAL_IN_MINUTES_PROPERTY, DEFAULT_INTERVAL_IN_MINUTES);
+    this.traceContext = traceContext;
   }
 
   public void run() {
@@ -43,12 +47,14 @@ public class LogLevelOverrideApplier {
     });
 
     executor.scheduleWithFixedDelay(() -> {
-      try {
-        applyOverrides(getOrThrow(extension.loadLogLevelOverrides()));
-      } catch (SkipLogLevelOverrideException e) {
-        LOGGER.debug("Log level overriding skipped", e);
-      } catch (RuntimeException e) {
-        LOGGER.error("Could not apply log level overrides", e);
+      try (Scope ignored = traceContext.generateAndSetTraceId()) {
+        try {
+          applyOverrides(getOrThrow(extension.loadLogLevelOverrides()));
+        } catch (SkipLogLevelOverrideException e) {
+          LOGGER.debug("Log level overriding skipped", e);
+        } catch (RuntimeException e) {
+          LOGGER.error("Could not apply log level overrides", e);
+        }
       }
     }, updateInterval, updateInterval, TimeUnit.MINUTES);
   }

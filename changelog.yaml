@@ -1,3 +1,9 @@
+-   name: 14.1.5
+    date: '2025-06-16T14:39:41.501527+03:00'
+    description: Обновление kafka-test-utils до 1.0.2
+    instructions: ''
+    compatible: true
+
 -   name: 14.1.4
     date: '2025-06-05T12:54:08.647899+03:00'
     description: Добавлены приоритеты для системных фильтров. Jclient обновлен до

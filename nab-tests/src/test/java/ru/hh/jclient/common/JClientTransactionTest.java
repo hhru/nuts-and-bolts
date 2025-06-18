@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import java.util.concurrent.atomic.LongAdder;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
@@ -37,20 +38,21 @@ import ru.hh.nab.jpa.JpaTestConfig;
     classes = {JpaTestConfig.class, NabJClientConfig.class, JClientTransactionTest.TestConfig.class}
 )
 public class JClientTransactionTest {
-  private static final TestRequestDebug DEBUG = new TestRequestDebug(true);
+  private static final TransactionalCheck TRANSACTIONAL_CHECK = new TransactionalCheck(
+      TransactionalCheck.Action.LOG,
+      10,
+      Executors.newScheduledThreadPool(1),
+      MINUTES.toMillis(1),
+      Set.of()
+  );
   private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(
       Collections.emptyMap(),
       Collections.emptyMap(),
-      List.of(() -> DEBUG)
+      List.of(() -> TRANSACTIONAL_CHECK)
   );
 
   @Inject
   private TransactionalScope transactionalScope;
-  @Inject
-  private List<HttpClientEventListener> eventListeners;
-  @Inject
-  private TransactionalCheck transactionalCheck;
-
   private AsyncHttpClient httpClient;
   private HttpClientFactory httpClientFactory;
 
@@ -70,14 +72,13 @@ public class JClientTransactionTest {
         new SingletonStorage<>(HTTP_CLIENT_CONTEXT),
         Set.of(),
         Runnable::run,
-        new DefaultRequestStrategy(),
-        eventListeners
+        new DefaultRequestStrategy()
     );
   }
 
   @Test
   public void testJClientRequestInReadScope() {
-    transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
+    TRANSACTIONAL_CHECK.setAction(TransactionalCheck.Action.RAISE);
     transactionalScope.read(() -> {
       try {
         return httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
@@ -89,7 +90,7 @@ public class JClientTransactionTest {
 
   @Test
   public void testJClientRequestDoNotRaiseExceptionInWriteScope() {
-    transactionalCheck.setAction(TransactionalCheck.Action.LOG);
+    TRANSACTIONAL_CHECK.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
         httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
@@ -102,7 +103,7 @@ public class JClientTransactionTest {
 
   @Test
   public void testJClientRequestRaiseActionInWriteScope() {
-    transactionalCheck.setAction(TransactionalCheck.Action.RAISE);
+    TRANSACTIONAL_CHECK.setAction(TransactionalCheck.Action.RAISE);
     Exception raisedException = transactionalScope.write(() -> {
       try {
         httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
@@ -118,7 +119,7 @@ public class JClientTransactionTest {
 
   @Test
   public void testLogSkipsDefaultPackages() throws Exception {
-    transactionalCheck.setAction(TransactionalCheck.Action.LOG);
+    TRANSACTIONAL_CHECK.setAction(TransactionalCheck.Action.LOG);
     transactionalScope.write(() -> {
       try {
         httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result().get();
@@ -127,7 +128,7 @@ public class JClientTransactionTest {
       }
       return null;
     });
-    Map<String, LongAdder> callInTxStatistics = transactionalCheck.getCallInTxStatistics();
+    Map<String, LongAdder> callInTxStatistics = TRANSACTIONAL_CHECK.getCallInTxStatistics();
     callInTxStatistics.forEach((stack, counter) -> assertFalse(
         stack.lines().anyMatch(line -> TransactionalCheck.DEFAULT_PACKAGES_TO_SKIP.stream().anyMatch(line::contains))
     ));

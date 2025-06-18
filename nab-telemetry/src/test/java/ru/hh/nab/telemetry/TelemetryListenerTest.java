@@ -74,11 +74,11 @@ public class TelemetryListenerTest {
 
     HttpClientContextThreadLocalSupplier contextSupplier = new HttpClientContextThreadLocalSupplier(() -> httpClientContext);
     contextSupplier.register(new ContextStorage());
-    contextSupplier.registerRequestDebugSupplier(telemetryProcessorFactory::createRequestDebug);
+    contextSupplier.registerEventListenerSupplier(telemetryProcessorFactory::createHttpClientEventListener);
     contextSupplier.addContext(Map.of(), Map.of());
 
     httpClientFactory = new HttpClientFactory(
-        new DefaultAsyncHttpClient(), contextSupplier, Set.of(), Runnable::run, new DefaultRequestStrategy(), List.of());
+        new DefaultAsyncHttpClient(), contextSupplier, Set.of(), Runnable::run, new DefaultRequestStrategy());
   }
 
   @BeforeEach

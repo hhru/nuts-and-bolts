@@ -14,13 +14,12 @@ import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_
 import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
-import ru.hh.jclient.common.RequestDebug;
 import ru.hh.jclient.common.Uri;
-import ru.hh.jclient.common.exception.ResponseConverterException;
 
-public class TelemetryListenerImpl implements RequestDebug {
+public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
   private static final String UNKNOWN = "unknown";
 
@@ -109,18 +108,6 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   public static String getNetloc(Uri uri) {
     return uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
-  }
-
-  @Override
-  public void onResponseConverted(@Nullable Object result) {
-  }
-
-  @Override
-  public void onConverterProblem(ResponseConverterException e) {
-  }
-
-  @Override
-  public void onProcessingFinished() {
   }
 
   private String getExactUriHost(Uri uri) {

@@ -121,12 +121,12 @@ public class NabTelemetryConfig {
       TelemetryPropagator telemetryPropagator,
       HttpClientContextThreadLocalSupplier contextSupplier
   ) {
-    TelemetryProcessorFactory telemetryRequestDebug = new TelemetryProcessorFactory(
+    TelemetryProcessorFactory telemetryFactory = new TelemetryProcessorFactory(
         openTelemetry.getTracer("jclient"),
         telemetryPropagator
     );
     contextSupplier.register(new ContextStorage());
-    contextSupplier.registerRequestDebugSupplier(telemetryRequestDebug::createRequestDebug);
-    return telemetryRequestDebug;
+    contextSupplier.registerEventListenerSupplier(telemetryFactory::createHttpClientEventListener);
+    return telemetryFactory;
   }
 }

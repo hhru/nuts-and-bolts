@@ -34,7 +34,7 @@
     </modules>
 
     <properties>
-        <jclient.version>10.0.0</jclient.version>
+        <jclient.version>10.0.2-SNAPSHOT</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>2.0.0</consul.client.version>
     </properties>

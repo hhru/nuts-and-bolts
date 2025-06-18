@@ -4,6 +4,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 public enum HttpStatus implements Response.StatusType {
+  INSUFFICIENT_TIMEOUT(477, "Insufficient timeout"),
+  SERVER_TIMEOUT(577, "Server timeout"),
   SERVICE_PARTIALLY_UNAVAILABLE(597, "Service partially unavailable");
 
   private final int statusCode;

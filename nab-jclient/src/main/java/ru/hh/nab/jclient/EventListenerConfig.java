@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import org.springframework.context.annotation.Configuration;
 import ru.hh.jclient.common.HttpClientContextThreadLocalSupplier;
+import ru.hh.jclient.common.listener.DeadlineCheckerAndPropagator;
 import ru.hh.jclient.common.listener.GlobalTimeoutCheck;
 import ru.hh.nab.common.properties.FileSettings;
 import static ru.hh.nab.jclient.UriCompactionUtil.compactUri;
@@ -21,6 +22,7 @@ public class EventListenerConfig {
   ) {
     registerGlobalTimeoutCheck(scheduledExecutorService, contextSupplier, fileSettings);
     registerTransactionalCheck(scheduledExecutorService, contextSupplier, fileSettings);
+    registerDeadlineCheckerAndPropagator(contextSupplier, fileSettings);
   }
 
   void registerGlobalTimeoutCheck(
@@ -61,5 +63,13 @@ public class EventListenerConfig {
         packagesToSkip
     );
     contextSupplier.registerEventListenerSupplier(() -> checker);
+  }
+
+  void registerDeadlineCheckerAndPropagator(HttpClientContextThreadLocalSupplier contextSupplier, FileSettings fileSettings) {
+    var subSettings = fileSettings.getSubSettings("jclient.listener.deadline");
+    boolean enabled = ofNullable(subSettings.getBoolean("enabled")).orElse(Boolean.FALSE);
+    if (enabled) {
+      contextSupplier.registerEventListenerSupplier(() -> new DeadlineCheckerAndPropagator(contextSupplier));
+    }
   }
 }

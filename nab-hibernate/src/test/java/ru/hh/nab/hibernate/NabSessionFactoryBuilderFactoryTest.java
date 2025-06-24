@@ -3,6 +3,7 @@ package ru.hh.nab.hibernate;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.persistence.Tuple;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -81,7 +82,7 @@ public class NabSessionFactoryBuilderFactoryTest {
         try {
           ref.set(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection());
           verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(0)).close();
-          session.createNativeQuery("select 1 from dual").uniqueResult();
+          session.createNativeQuery("select mock", Tuple.class).uniqueResult();
           verify(session.unwrap(SharedSessionContractImplementor.class).getJdbcConnectionAccess().obtainConnection(), times(1)).close();
         } catch (SQLException e) {
           throw new RuntimeException(e);

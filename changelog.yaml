@@ -1,3 +1,12 @@
+-   name: 15.0.0
+    date: '2025-06-24T11:41:17.952182+03:00'
+    description: Обновление версии jclient до 10.0.0, добавление отправки типа балансировки
+        в statsd.
+    instructions: В методе `countRequest()` классов `KafkaUpstreamMonitoring` и `UpstreamMonitoring`
+        добавлен параметр `String balancingStrategyType`, куда нужно передавать тип
+        балансировки конкретного запроса.
+    compatible: false
+
 -   name: 14.1.5
     date: '2025-06-16T14:39:41.501527+03:00'
     description: Обновление kafka-test-utils до 1.0.2

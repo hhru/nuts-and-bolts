@@ -2,6 +2,7 @@ package ru.hh.nab.hibernate;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Tuple;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -77,7 +78,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     transactionalScope.read(() -> {
       try {
         verify(connection, times(0)).close();
-        session.createNativeQuery("select 1 from dual").uniqueResult();
+        session.createNativeQuery("select mock", Tuple.class).uniqueResult();
         verify(connection, times(1)).close();
       } catch (SQLException e) {
         throw new RuntimeException(e);
@@ -91,7 +92,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     transactionalScope.write(() -> {
       try {
         verify(connection, times(0)).close();
-        session.createNativeQuery("select 1 from dual").uniqueResult();
+        session.createNativeQuery("select mock", Tuple.class).uniqueResult();
         verify(connection, times(1)).close();
       } catch (SQLException e) {
         throw new RuntimeException(e);

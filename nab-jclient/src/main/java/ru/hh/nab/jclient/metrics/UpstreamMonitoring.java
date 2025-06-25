@@ -2,6 +2,7 @@ package ru.hh.nab.jclient.metrics;
 
 import java.util.HashMap;
 import java.util.Map;
+import static java.util.Objects.requireNonNullElse;
 import ru.hh.jclient.common.Monitoring;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
@@ -24,14 +25,19 @@ public class UpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequest(String upstreamName, String serverDatacenter,
+  public void countRequest(
+      String upstreamName,
+      String serverDatacenter,
       String serverAddress,
       int statusCode,
       long requestTimeMillis,
-      boolean isRequestFinal) {
+      boolean isRequestFinal,
+      String balancingStrategyType
+  ) {
     Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
     tags.put("status", String.valueOf(statusCode));
     tags.put("final", String.valueOf(isRequestFinal));
+    tags.put("balancing", requireNonNullElse(balancingStrategyType, "unknown"));
     statsDSender.sendCount("http.client.requests", 1, toTagsArray(tags));
   }
 

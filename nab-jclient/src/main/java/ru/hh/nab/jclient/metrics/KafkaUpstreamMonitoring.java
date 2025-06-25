@@ -41,14 +41,22 @@ public class KafkaUpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequest(String upstreamName, String dc, String hostname, int statusCode, long requestTimeMillis, boolean isRequestFinal) {
+  public void countRequest(
+      String upstreamName,
+      String serverDatacenter,
+      String serverAddress,
+      int statusCode,
+      long requestTimeMillis,
+      boolean isRequestFinal,
+      String balancingStrategyType
+  ) {
     if (sendingEnabled && isRequestFinal) {
       RequestInfo requestInfo = new RequestInfo(
           TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
           serviceName,
           upstreamName,
-          StringUtil.isNullOrEmpty(dc) ? localDc : dc,
-          hostname,
+          StringUtil.isNullOrEmpty(serverDatacenter) ? localDc : serverDatacenter,
+          serverAddress,
           statusCode,
           ofNullable(MDC.get("rid")).orElse("")
       );

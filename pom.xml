@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>14.1.5.spring-boot-rc2-SNAPSHOT</version>
+    <version>15.0.0.spring-boot-rc1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -33,7 +33,7 @@
     </modules>
 
     <properties>
-        <jclient.version>9.0.1</jclient.version>
+        <jclient.version>10.0.0</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>2.0.0</consul.client.version>
         <kafka-test-utils.version>1.0.2</kafka-test-utils.version>

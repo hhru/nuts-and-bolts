@@ -3,6 +3,7 @@ package ru.hh.nab.jclient.metrics;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
+import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
@@ -29,6 +30,7 @@ public class UpstreamMonitoring implements Monitoring {
       String upstreamName,
       String serverDatacenter,
       String serverAddress,
+      HttpHeaders requestHeaders,
       int statusCode,
       long requestTimeMillis,
       boolean isRequestFinal,
@@ -42,13 +44,21 @@ public class UpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequestTime(String upstreamName, String serverDatacenter, long requestTimeMillis) {
+  public void countRequestTime(String upstreamName, String serverDatacenter, HttpHeaders requestHeaders, long requestTimeMillis) {
     Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
     statsDSender.sendTime("http.client.request.time", requestTimeMillis, toTagsArray(tags));
   }
 
   @Override
-  public void countRetry(String upstreamName, String serverDatacenter, String serverAddress, int statusCode, int firstStatusCode, int triesUsed) {
+  public void countRetry(
+      String upstreamName,
+      String serverDatacenter,
+      String serverAddress,
+      HttpHeaders requestHeaders,
+      int statusCode,
+      int firstStatusCode,
+      int triesUsed
+  ) {
     Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
     tags.put("status", String.valueOf(statusCode));
     tags.put("first_status", String.valueOf(firstStatusCode));

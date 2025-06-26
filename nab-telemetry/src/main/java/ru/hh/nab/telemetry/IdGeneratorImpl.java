@@ -1,24 +1,15 @@
 package ru.hh.nab.telemetry;
 
-import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.sdk.trace.IdGenerator;
-import jakarta.annotation.Nullable;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.hh.jclient.common.HttpClientContext;
-import ru.hh.jclient.common.HttpHeaderNames;
-import ru.hh.requestid.RequestIdGenerator;
+import ru.hh.trace.TraceContextUnsafe;
+import ru.hh.trace.TraceIdGenerator;
 
 public class IdGeneratorImpl implements IdGenerator {
-  private static final Logger LOGGER = LoggerFactory.getLogger(IdGeneratorImpl.class);
 
-  private final Supplier<HttpClientContext> contextSupplier;
+  private final TraceContextUnsafe traceContext;
 
-  public IdGeneratorImpl(Supplier<HttpClientContext> contextSupplier) {
-    this.contextSupplier = contextSupplier;
+  public IdGeneratorImpl(TraceContextUnsafe traceContext) {
+    this.traceContext = traceContext;
   }
 
   @Override
@@ -28,30 +19,6 @@ public class IdGeneratorImpl implements IdGenerator {
 
   @Override
   public String generateTraceId() {
-    // TODO: https://jira.hh.ru/browse/HH-233805
-    List<String> requestIdHolder = getRequestIdHolder();
-    if (requestIdHolder == null || requestIdHolder.isEmpty()) {
-      LOGGER.debug("unavailable requestId");
-      return RequestIdGenerator.makeRequestId("");
-    } else if (requestIdHolder.get(0).length() < 32) {
-      LOGGER.debug("invalid requestId = {} is less than 32 character", requestIdHolder.get(0));
-      return RequestIdGenerator.makeRequestId("");
-    } else {
-      String requestId = requestIdHolder.get(0).substring(0, 32);
-      if (!TraceId.isValid(requestId)) {
-        LOGGER.debug("invalid requestId for telemetry {}", requestId);
-        return RequestIdGenerator.makeRequestId("");
-      } else {
-        return requestId;
-      }
-    }
-  }
-
-  @Nullable
-  private List<String> getRequestIdHolder() {
-    return Optional
-        .ofNullable(contextSupplier.get())
-        .map(context -> context.getHeaders().get(HttpHeaderNames.X_REQUEST_ID))
-        .orElse(null);
+    return traceContext.getStrictTraceId().orElseGet(TraceIdGenerator::generateTraceId);
   }
 }

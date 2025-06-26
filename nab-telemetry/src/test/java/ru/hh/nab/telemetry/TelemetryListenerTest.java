@@ -44,6 +44,7 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
+import ru.hh.trace.TraceContextImpl;
 
 @SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryListenerTest {
@@ -70,7 +71,10 @@ public class TelemetryListenerTest {
         .build();
 
     TelemetryProcessorFactory telemetryProcessorFactory = new TelemetryProcessorFactory(
-        telemetry.getTracer("jclient"), new TelemetryPropagator(telemetry));
+        telemetry.getTracer("jclient"),
+        new TelemetryPropagator(telemetry),
+        new TraceContextImpl()
+    );
     httpClientContext = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(), List.of());
 
     HttpClientContextThreadLocalSupplier contextSupplier = new HttpClientContextThreadLocalSupplier(() -> httpClientContext);

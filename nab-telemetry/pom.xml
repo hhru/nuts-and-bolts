@@ -19,11 +19,6 @@
             <artifactId>nab-jclient</artifactId>
         </dependency>
         <dependency>
-            <groupId>ru.hh.commons</groupId>
-            <artifactId>hh-requestid-generator</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
         </dependency>

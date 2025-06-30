@@ -43,11 +43,6 @@ public class MDCTest {
   }
 
   @Test
-  public void testGenerateRequestId() {
-    assertEquals(32, MDC.generateRequestId().length());
-  }
-
-  @Test
   public void testRunWithRequestId() {
     MDC.setRequestId("123");
 

@@ -41,6 +41,7 @@ public class ConsulService {
   public static final String SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String AUTO_RESOLVE_ADDRESS_VALUE = "resolve";
   public static final String WAIT_AFTER_DEREGISTRATION_PROPERTY = "consul.wait.after.deregistration.millis";
+  public static final String CONSUL_CHECK_TYPE_PROPERTY = "consul.check.type";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_TAGS_PROPERTY = "consul.tags";
   public static final String CONSUL_ENABLED_PROPERTY = "consul.enabled";
@@ -106,9 +107,13 @@ public class ConsulService {
     }
     this.registrationEnabled = fileSettings.getBoolean(CONSUL_REGISTRATION_ENABLED_PROPERTY, fileSettings.getBoolean(CONSUL_ENABLED_PROPERTY, true));
     if (registrationEnabled) {
-      Registration.RegCheck regCheck = ImmutableRegCheck
-          .builder()
-          .http("http://" + applicationHost + ":" + applicationPort + "/status")
+      var regCheckBuilder = ImmutableRegCheck.builder();
+      if ("tcp".equals(fileSettings.getString(CONSUL_CHECK_TYPE_PROPERTY))) {
+        regCheckBuilder.tcp(applicationHost + ":" + applicationPort);
+      } else {
+        regCheckBuilder.http("http://" + applicationHost + ":" + applicationPort + "/status");
+      }
+      Registration.RegCheck regCheck = regCheckBuilder
           .status(Optional.ofNullable(fileSettings.getBoolean(CONSUL_CHECK_PASSING)).filter(Boolean.TRUE::equals).map(ignored -> "passing"))
           .interval(fileSettings.getString(CONSUL_CHECK_INTERVAL_PROPERTY, "5s"))
           .timeout(fileSettings.getString(CONSUL_CHECK_TIMEOUT_PROPERTY, "5s"))

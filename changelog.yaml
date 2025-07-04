@@ -1,3 +1,9 @@
+-   name: 15.0.1
+    date: '2025-07-04T16:04:55.311195+03:00'
+    description: ''
+    instructions: ''
+    compatible: true
+
 -   name: 15.0.0
     date: '2025-06-24T11:41:17.952182+03:00'
     description: Обновление версии jclient до 10.0.0, добавление отправки типа балансировки

@@ -1,3 +1,16 @@
+-   name: 16.0.0
+    date: '2025-07-08T18:58:38.903280+03:00'
+    description: "Обновлен jclient. Смержены интерфейсы RequestDebug и HttpClientEventListener\r\
+        \nДобавлен DeadlineCheckerAndPropagator(проверка дедлайн таймаутов)"
+    instructions: "Заменить использование RequestDebug на HttpClientEventListener\r\
+        \nУбрать из конструкторов и методов добавление реализаций HttpClientEventListener\
+        \ в классах: HttpClientFactory, HttpClientFactoryBuilder.\r\nПереименовать\
+        \ TestRequestDebug-> TestEventListener\r\nУдалить использование RequestDebug.DISABLED\r\
+        \nПодключить конфиг EventListenerConfig, если требуются GlobalTimeoutCheck,\
+        \ TransactionalCheck\r\nДля включения DeadlineCheckerAndPropagator нужно добавить\
+        \ в конфигурацию jclient.listener.deadline=true"
+    compatible: false
+
 -   name: 15.0.1
     date: '2025-07-04T16:04:55.311195+03:00'
     description: ''

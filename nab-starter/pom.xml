@@ -32,6 +32,12 @@
             <artifactId>nab-metrics</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ru.hh.deadline</groupId>
+            <artifactId>deadline-context</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- Jersey -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

@@ -12,15 +12,16 @@ import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
 import jakarta.annotation.Nullable;
+import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.jclient.common.HttpClientEventListener;
+import ru.hh.jclient.common.HttpHeaderNames;
 import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
-import ru.hh.jclient.common.RequestDebug;
 import ru.hh.jclient.common.Uri;
-import ru.hh.jclient.common.exception.ResponseConverterException;
 
-public class TelemetryListenerImpl implements RequestDebug {
+public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
   private static final String UNKNOWN = "unknown";
 
@@ -57,8 +58,8 @@ public class TelemetryListenerImpl implements RequestDebug {
         .setAttribute(HTTP_URL, request.getUrl())
         .setAttribute(HTTP_METHOD, request.getMethod())
         .setAttribute("http.request.timeout", request.getRequestTimeout())
+        .setAttribute("http.request.original.timeout", ofNullable(request.getHeaders().get(HttpHeaderNames.X_OUTER_TIMEOUT_MS)).orElse("-1"))
         .setAttribute(PEER_SERVICE, host);
-
 
     builder.setAttribute("http.request.cloud.region", context.getDestinationDatacenter());
     builder.setAttribute(
@@ -109,18 +110,6 @@ public class TelemetryListenerImpl implements RequestDebug {
 
   public static String getNetloc(Uri uri) {
     return uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
-  }
-
-  @Override
-  public void onResponseConverted(@Nullable Object result) {
-  }
-
-  @Override
-  public void onConverterProblem(ResponseConverterException e) {
-  }
-
-  @Override
-  public void onProcessingFinished() {
   }
 
   private String getExactUriHost(Uri uri) {

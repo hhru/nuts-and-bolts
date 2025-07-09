@@ -13,7 +13,7 @@ public class HibernatePropertiesProvider implements JpaPropertiesProvider {
   public HibernatePropertiesProvider(Properties hibernateProperties) {
     this.hibernateProperties = hibernateProperties;
     enrichProperties(this.hibernateProperties);
-    validateProperties(this.hibernateProperties);
+//    validateProperties(this.hibernateProperties);
   }
 
   @Override

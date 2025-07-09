@@ -10,25 +10,21 @@ public class SqlRequestIdCommenterTest {
   public void testSqlRequestIds() {
     String SQL = "SELECT * FROM resume;";
 
-    MDC.runWithRequestId("Valid-rid_0123", () -> {
-      assertEquals("/* Valid-rid_0123 */ SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
-      return null;
-    });
+    MDC.setRequestId("Valid-rid_0123");
+    assertEquals("/* Valid-rid_0123 */ SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
+    MDC.clearRequestId();
 
     String rid = RandomStringUtils.randomAlphanumeric(100);
-    MDC.runWithRequestId(rid, () -> {
-      assertEquals(String.format("/* %s */ SELECT * FROM resume;", rid), SqlRequestIdCommenter.addRequestIdComment(SQL));
-      return null;
-    });
+    MDC.setRequestId(rid);
+    assertEquals(String.format("/* %s */ SELECT * FROM resume;", rid), SqlRequestIdCommenter.addRequestIdComment(SQL));
+    MDC.clearRequestId();
 
-    MDC.runWithRequestId(RandomStringUtils.randomAlphanumeric(101), () -> {
-      assertEquals("SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
-      return null;
-    });
+    MDC.setRequestId(RandomStringUtils.randomAlphanumeric(101));
+    assertEquals("SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
+    MDC.clearRequestId();
 
-    MDC.runWithRequestId("*/ DELETE FROM resume; /*", () -> {
-      assertEquals("SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
-      return null;
-    });
+    MDC.setRequestId("*/ DELETE FROM resume; /*");
+    assertEquals("SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
+    MDC.clearRequestId();
   }
 }

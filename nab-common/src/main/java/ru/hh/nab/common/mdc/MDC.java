@@ -1,9 +1,6 @@
 package ru.hh.nab.common.mdc;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import ru.hh.nab.common.util.ExceptionUtils;
-import ru.hh.trace.TraceIdGenerator;
 
 public class MDC {
   public static final String REQUEST_ID_MDC_KEY = "rid";
@@ -43,22 +40,6 @@ public class MDC {
 
   public static void deleteKey(String key) {
     org.slf4j.MDC.remove(key);
-  }
-
-
-  /**
-   * @param rid use {@link TraceIdGenerator#generateTraceId()} to generate valid request ids
-   * @param operation a callable
-   * @return callable result
-   */
-  public static <T> T runWithRequestId(String rid, Callable<T> operation) {
-    String previousRequestId = MDC.getRequestId().orElse(null);
-    try {
-      MDC.setRequestId(rid);
-      return ExceptionUtils.getOrThrow(operation);
-    } finally {
-      MDC.setRequestId(previousRequestId);
-    }
   }
 
   private MDC() {

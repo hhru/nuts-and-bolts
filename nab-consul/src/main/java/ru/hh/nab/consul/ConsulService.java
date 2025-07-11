@@ -34,6 +34,7 @@ public class ConsulService {
   public static final String CONSUL_SERVICE_ADDRESS_PROPERTY = "consul.service.address";
   public static final String CONSUL_WAIT_AFTER_DEREGISTRATION_MILLIS_PROPERTY = "consul.wait.after.deregistration.millis";
   public static final String CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY = "consul.deregisterCritical.timeout";
+  public static final String CONSUL_CHECK_TYPE_PROPERTY = "consul.check.type";
   public static final String CONSUL_CHECK_HOST_PROPERTY = "consul.check.host";
   public static final String CONSUL_CHECK_INTERVAL_PROPERTY = "consul.check.interval";
   public static final String CONSUL_CHECK_TIMEOUT_PROPERTY = "consul.check.timeout";
@@ -109,6 +110,18 @@ public class ConsulService {
     Optional<String> address = resolveAddress(properties);
     var applicationHost = properties.getProperty(CONSUL_CHECK_HOST_PROPERTY, address.orElse(DEFAULT_CHECK_HOST));
 
+    var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
+    if (logLevelOverrideExtension != null) {
+      tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
+    }
+
+    var regCheckBuilder = ImmutableRegCheck.builder();
+    if ("tcp".equals(fileSettings.getString(CONSUL_CHECK_TYPE_PROPERTY))) {
+      regCheckBuilder.tcp(applicationHost + ":" + applicationPort);
+    } else {
+      regCheckBuilder.http("http://" + applicationHost + ":" + applicationPort + "/status");
+    }
+
     Registration.RegCheck regCheck = ImmutableRegCheck
         .builder()
         .http("http://" + applicationHost + ":" + applicationPort + "/status")
@@ -135,7 +148,6 @@ public class ConsulService {
         .tags(tags)
         .meta(Map.of(META_SERVICE_VERSION_KEY, serviceVersion))
         .build();
-  }
 
   public void register() {
     try {

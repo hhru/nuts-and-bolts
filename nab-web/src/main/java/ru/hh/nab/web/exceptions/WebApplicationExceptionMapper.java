@@ -10,8 +10,10 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import ru.hh.errors.common.Errors;
+import ru.hh.jclient.common.HttpStatuses;
 import static ru.hh.jclient.common.HttpStatuses.BAD_GATEWAY;
 import static ru.hh.jclient.common.HttpStatuses.INTERNAL_SERVER_ERROR;
+import ru.hh.nab.starter.http.HttpStatus;
 import static ru.hh.nab.web.jersey.NabPriorities.LOW_PRIORITY;
 
 @Priority(LOW_PRIORITY)
@@ -63,6 +65,10 @@ public class WebApplicationExceptionMapper extends NabExceptionMapper<WebApplica
 
   @Override
   protected Response serializeException(Response.StatusType statusCode, WebApplicationException exception) {
-    return exception.getResponse();
+    return switch (exception.getResponse().getStatus()) {
+      case HttpStatuses.SERVER_TIMEOUT -> Response.status(Response.Status.GATEWAY_TIMEOUT).build();
+      case HttpStatuses.INSUFFICIENT_TIMEOUT -> Response.status(HttpStatus.SERVER_TIMEOUT).build();
+      default -> exception.getResponse();
+    };
   }
 }

@@ -6,7 +6,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import ru.hh.deadline.context.ServerTimeoutException;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.starter.http.HttpStatus;
+import ru.hh.nab.web.exceptions.NabExceptionMapper;
+import ru.hh.nab.web.http.HttpStatus;
 
 @APIResponse(
     responseCode = "577",

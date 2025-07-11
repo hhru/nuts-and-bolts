@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.exceptions;
+package ru.hh.nab.web.exceptions;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.hh.jclient.common.HttpStatuses;
-import ru.hh.nab.starter.http.HttpStatus;
+import ru.hh.nab.web.http.HttpStatus;
 
 public class WebApplicationExceptionMapperTest {
 

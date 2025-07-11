@@ -47,6 +47,11 @@ public class TransactionalCheckTest {
       MINUTES.toMillis(1),
       Set.of()
   );
+  private static final HttpClientContext HTTP_CLIENT_CONTEXT = new HttpClientContext(
+      Collections.emptyMap(),
+      Collections.emptyMap(),
+      List.of(() -> transactionalCheck)
+  );
 
   private static Runnable jClientRequest;
 
@@ -60,11 +65,10 @@ public class TransactionalCheckTest {
 
     HttpClientFactory httpClientFactory = new HttpClientFactory(
         httpClient,
-        new SingletonStorage<>(new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(), List.of())),
+        new SingletonStorage<>(HTTP_CLIENT_CONTEXT),
         Set.of(),
         Runnable::run,
-        new DefaultRequestStrategy(),
-        List.of(transactionalCheck)
+        new DefaultRequestStrategy()
     );
 
     jClientRequest = () -> httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result();

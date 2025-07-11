@@ -107,23 +107,17 @@ public class ConsulService {
         CONSUL_WAIT_AFTER_DEREGISTRATION_MILLIS_PROPERTY,
         DEFAULT_WAIT_AFTER_DEREGISTRATION_MILLIS
     );
+
     Optional<String> address = resolveAddress(properties);
     var applicationHost = properties.getProperty(CONSUL_CHECK_HOST_PROPERTY, address.orElse(DEFAULT_CHECK_HOST));
 
-    var tags = new ArrayList<>(fileSettings.getStringList(CONSUL_TAGS_PROPERTY));
-    if (logLevelOverrideExtension != null) {
-      tags.add(LOG_LEVEL_OVERRIDE_EXTENSION_TAG);
-    }
-
     var regCheckBuilder = ImmutableRegCheck.builder();
-    if ("tcp".equals(fileSettings.getString(CONSUL_CHECK_TYPE_PROPERTY))) {
+    if ("tcp".equals(properties.getProperty(CONSUL_CHECK_TYPE_PROPERTY))) {
       regCheckBuilder.tcp(applicationHost + ":" + applicationPort);
     } else {
       regCheckBuilder.http("http://" + applicationHost + ":" + applicationPort + "/status");
     }
-
-    Registration.RegCheck regCheck = ImmutableRegCheck
-        .builder()
+    Registration.RegCheck regCheck = regCheckBuilder
         .http("http://" + applicationHost + ":" + applicationPort + "/status")
         .status(
             Optional
@@ -148,6 +142,7 @@ public class ConsulService {
         .tags(tags)
         .meta(Map.of(META_SERVICE_VERSION_KEY, serviceVersion))
         .build();
+  }
 
   public void register() {
     try {

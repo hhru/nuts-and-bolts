@@ -6,7 +6,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import ru.hh.deadline.context.InsufficientTimeoutException;
 import ru.hh.errors.common.Errors;
-import static ru.hh.nab.starter.http.HttpStatus.INSUFFICIENT_TIMEOUT;
+import ru.hh.nab.web.exceptions.NabExceptionMapper;
+import static ru.hh.nab.web.http.HttpStatus.INSUFFICIENT_TIMEOUT;
 
 @APIResponse(
     responseCode = "477",

@@ -131,7 +131,17 @@ public final class HHServerConnector extends ServerConnector {
       Executor executor = getExecutor();
       if (executor instanceof QueuedThreadPool) {
         QueuedThreadPool queuedThreadPool = (QueuedThreadPool) executor;
-        if (queuedThreadPool.isLowOnThreads()) {
+        int maxThreads = queuedThreadPool.getMaxThreads();
+        int threads = queuedThreadPool.getThreads();
+        int readyThreads = queuedThreadPool.getReadyThreads();
+        int queueSize = queuedThreadPool.getQueueSize();
+        int lowThreadsThreshold = queuedThreadPool.getLowThreadsThreshold();
+        boolean lowOnThreads = queuedThreadPool.isLowOnThreads();
+        logger.info(
+            "Thread pool status: maxThreads={}, currentThreads={}, readyThreads={}, queueSize={}, lowThreadsThreshold={}, lowOnThreads={}",
+            maxThreads, threads, readyThreads, queueSize, lowThreadsThreshold, lowOnThreads
+        );
+        if (lowOnThreads) {
           statsDSender.sendCount(LOW_ON_THREADS_METRIC_NAME, 1);
           logger.debug("low on threads, closing accepted socket");
           try {

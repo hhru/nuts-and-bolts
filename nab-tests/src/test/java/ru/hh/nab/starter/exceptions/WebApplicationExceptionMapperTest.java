@@ -7,6 +7,8 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.hh.deadline.context.InsufficientTimeoutException;
+import ru.hh.deadline.context.ServerTimeoutException;
 import ru.hh.jclient.common.HttpStatuses;
 import ru.hh.nab.starter.http.HttpStatus;
 
@@ -22,12 +24,11 @@ public class WebApplicationExceptionMapperTest {
   @Test
   void testToResponseInternalWithServerTimeout() {
     // Given
-    WebApplicationException exception = createWebApplicationException(HttpStatuses.SERVER_TIMEOUT);
-    Response.StatusType status = INTERNAL_SERVER_ERROR;
+    WebApplicationException exception = new ServerTimeoutException();
     NabExceptionMapper.LoggingLevel loggingLevel = NabExceptionMapper.LoggingLevel.ERROR_WITH_STACK_TRACE;
 
     // When
-    Response response = mapper.toResponseInternal(status, loggingLevel, exception);
+    Response response = mapper.toResponseInternal(INTERNAL_SERVER_ERROR, loggingLevel, exception);
 
     // Then
     assertEquals(GATEWAY_TIMEOUT.getStatusCode(), response.getStatus());
@@ -36,12 +37,11 @@ public class WebApplicationExceptionMapperTest {
   @Test
   void testToResponseInternalWithInsufficientTimeout() {
     // Given
-    WebApplicationException exception = createWebApplicationException(HttpStatuses.INSUFFICIENT_TIMEOUT);
-    Response.StatusType status = INTERNAL_SERVER_ERROR;
+    WebApplicationException exception = new InsufficientTimeoutException();
     NabExceptionMapper.LoggingLevel loggingLevel = NabExceptionMapper.LoggingLevel.ERROR_WITH_STACK_TRACE;
 
     // When
-    Response response = mapper.toResponseInternal(status, loggingLevel, exception);
+    Response response = mapper.toResponseInternal(INTERNAL_SERVER_ERROR, loggingLevel, exception);
 
     // Then
     assertEquals(HttpStatus.SERVER_TIMEOUT.getStatusCode(), response.getStatus());

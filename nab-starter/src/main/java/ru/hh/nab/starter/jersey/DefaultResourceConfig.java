@@ -8,8 +8,10 @@ import ru.hh.nab.starter.exceptions.CompletionExceptionMapper;
 import ru.hh.nab.starter.exceptions.ExecutionExceptionMapper;
 import ru.hh.nab.starter.exceptions.IllegalArgumentExceptionMapper;
 import ru.hh.nab.starter.exceptions.IllegalStateExceptionMapper;
+import ru.hh.nab.starter.exceptions.InsufficientTimeoutExceptionMapper;
 import ru.hh.nab.starter.exceptions.NotFoundExceptionMapper;
 import ru.hh.nab.starter.exceptions.SecurityExceptionMapper;
+import ru.hh.nab.starter.exceptions.ServerTimeoutExceptionMapper;
 import ru.hh.nab.starter.exceptions.WebApplicationExceptionMapper;
 import ru.hh.nab.starter.filters.ErrorAcceptFilter;
 import ru.hh.nab.starter.filters.ResourceInformationFilter;
@@ -33,5 +35,7 @@ public final class DefaultResourceConfig extends ResourceConfig {
     register(ErrorAcceptFilter.class);
 
     register(ResourceInformationFilter.class);
+    register(InsufficientTimeoutExceptionMapper.class);
+    register(ServerTimeoutExceptionMapper.class);
   }
 }

@@ -28,6 +28,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   private static final Logger SLOW_REQUESTS = LoggerFactory.getLogger("slowRequests");
 
   private static final String UNKNOWN_URI = "unknown";
+  private static final String UNKNOWN_HTTP_ROUTE = "unknownHttpRoute";
 
   @Override
   public void log(Request request, Response response) {
@@ -53,7 +54,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
             .map(HttpURI::getPathQuery)
             .orElse(UNKNOWN_URI)
     );
-    String httpRoute = ofNullable((String) request.getAttribute(HTTP_ROUTE)).orElse(UNKNOWN_URI);
+    String httpRoute = ofNullable((String) request.getAttribute(HTTP_ROUTE)).orElse(UNKNOWN_HTTP_ROUTE);
     context.put(HTTP_ROUTE, httpRoute);
 
     LOGGER.info(appendEntries(context), null);

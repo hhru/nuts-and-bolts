@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
+import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_REQUEST_ID;
 import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_USER_AGENT;
 import static ru.hh.nab.common.constants.RequestHeaders.REQUEST_ID;
@@ -52,6 +53,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
             .map(HttpURI::getPathQuery)
             .orElse(UNKNOWN_URI)
     );
+    context.put(HTTP_ROUTE, String.valueOf(request.getAttribute(HTTP_ROUTE)));
 
     LOGGER.info(appendEntries(context), null);
     ofNullable(outerTimoutMs)

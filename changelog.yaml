@@ -1,6 +1,6 @@
 -   name: 16.0.3
     date: '2025-07-31T14:57:01.684700+03:00'
-    description: ''
+    description: 'Добавлен httpRoute в request логи'
     instructions: ''
     compatible: true
 

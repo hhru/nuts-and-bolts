@@ -1,6 +1,248 @@
+-   name: 17.0.0
+    date: '2025-08-01T13:54:31.857689+03:00'
+    description: "Из кода удалены конфигурации спринговых бинов. Теперь nab представляет\
+        \ собой набор библиотек. Добавлены новые модули nab-web, nab-consul, nab-sentry.\r\
+        \n1. Модуль nab-starter - удален.\r\n       - класс NabApplication - удален\r\
+        \n       - класс NabApplicationBuilder - удален\r\n       - класс NabCommonConfig\
+        \ - удален\r\n       - класс NabProdConfig - удален\r\n       - класс AppMetadata\
+        \ - удален\r\n       - класс NabServletContextConfig - удален\r\n       -\
+        \ класс DefaultResourceConfig - удален\r\n       - класс NabJerseyConfig -\
+        \ удален\r\n       - интерфейс NabServletConfig - удален\r\n       - класс\
+        \ StatusServletConfig - удален\r\n       - аннотация Service - удалена\r\n\
+        \       - класс JettyServer - удален\r\n       - класс JettyServerFactory\
+        \ - удален\r\n       - класс JettyWebAppContext - удален\r\n       - класс\
+        \ JettySettingsConstants - удален\r\n       - класс JettyBeforeStopEvent -\
+        \ удален\r\n       - класс JettyStartedEvent - удален\r\n       - класс JettyEventListener\
+        \ - удален\r\n       - класс JettyLifeCycleListener - удален\r\n       - класс\
+        \ JettyServerException - удален\r\n       - класс ChannelsReadyChecker - удален\r\
+        \n       - интерфейс WebAppInitializer - удален\r\n       - класс HierarchicalWebApplicationContext\
+        \ - удален\r\n       - класс NabLogbackBaseConfigurator - удален\r\n     \
+        \  - класс HHServerConnector - переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jetty`.\
+        \ \r\n         Также удалены некоторые конструкторы, удален оверрайд метода\
+        \ shutdown\r\n       - класс StatusResource переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.resource`. Также изменена сигнатура конструктора\r\
+        \n       - класс NabExceptionMapper переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.exceptions`\r\n       - класс AnyExceptionMapper переехал\
+        \ в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\n       - класс\
+        \ CompletionExceptionMapper переехал в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\
+        \n       - класс ExecutionExceptionMapper переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.exceptions`\r\n       - класс IllegalArgumentExceptionMapper\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\n \
+        \      - класс IllegalStateExceptionMapper переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.exceptions`\r\n       - класс NabMappableException\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\n \
+        \      - класс NotFoundExceptionMapper переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.exceptions`\r\n       - класс SecurityExceptionMapper переехал\
+        \ в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\n       - класс\
+        \ UnwrappingExceptionMapper переехал в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\
+        \n       - класс WebApplicationExceptionMapper переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.exceptions`\r\n       - интерфейс ExceptionSerializer\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.exceptions`\r\n \
+        \      - класс MappableExceptionUtils переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.exceptions`\r\n       - класс CacheUtils переехал в новый\
+        \ модуль nab-web в пакет `ru.hh.nab.web.http`\r\n       - класс HttpStatus\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.http`\r\n       -\
+        \ класс RequestContext переехал в новый модуль nab-web в пакет `ru.hh.nab.web.http`\r\
+        \n       - класс RequestInfo переехал в новый модуль nab-web в пакет `ru.hh.nab.web.http`\r\
+        \n       - класс CachedResponse переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.filter.cache`\r\
+        \n       - класс CachingOutputStream переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.jersey.filter.cache`\r\n       - класс Header переехал в\
+        \ новый модуль nab-web в пакет `ru.hh.nab.web.jersey.filter.cache`\r\n   \
+        \    - класс Serializer переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.filter.cache`\r\
+        \n       - класс CacheFilter переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.filter`.\
+        \ Также изменена сигнатура конструктора\r\n       - класс ErrorAcceptFilter\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.filter`\r\n\
+        \       - класс ResourceInformationFilter переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.jersey.filter`\r\n       - класс CommonHeadersFilter\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.servlet.filter`\r\
+        \n       - класс RequestIdLoggingFilter переехал в новый модуль nab-web в\
+        \ пакет `ru.hh.nab.web.servlet.filter`\r\n       - класс SkippableFilter переехал\
+        \ в новый модуль nab-web в пакет `ru.hh.nab.web.servlet.filter`\r\n      \
+        \ - класс SentryAppenderInterceptor переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.jersey.interceptor`\r\n       - класс CharacterEscapeBase\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.resolver`\r\
+        \n       - класс JsonCharacterEscapes переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.jersey.resolver`\r\n       - класс MarshallerContextResolver\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.resolver`.\
+        \ Также изменена сигнатура конструктора\r\n       - класс ObjectMapperContextResolver\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.resolver`\
+        \ \r\n       - класс PartiallyOverflowingCache переехал в новый модуль nab-web\
+        \ в пакет `ru.hh.nab.web.jersey.resolver` \r\n       - класс XmlEscapeHandler\
+        \ переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jersey.resolver`\
+        \ \r\n       - класс NabPriorities переехал в новый модуль nab-web в пакет\
+        \ `ru.hh.nab.web.jersey` \r\n       - класс MonitoredQueuedThreadPool переехал\
+        \ в новый модуль nab-web в пакет `ru.hh.nab.web.jetty` \r\n       - класс\
+        \ StructuredRequestLogger переехал в новый модуль nab-web в пакет `ru.hh.nab.web.jetty`\
+        \ \r\n       - класс ConsulFetcher переехал в новый модуль nab-consul в пакет\
+        \ `ru.hh.nab.consul`. Также изменена сигнатура конструктора  \r\n       -\
+        \ класс ConsulMetricsTracker переехал в новый модуль nab-consul в пакет `ru.hh.nab.consul`\
+        \  \r\n       - класс ConsulService переехал в новый модуль nab-consul в пакет\
+        \ `ru.hh.nab.consul`. Также изменена сигнатура конструктора; в методах register\
+        \ и deregister удалена обработка флага `consul.registration.enabled` \r\n\
+        \       - класс ConsulServiceException переехал в новый модуль nab-consul\
+        \ в пакет `ru.hh.nab.consul` \r\n       - класс HostPort переехал в новый\
+        \ модуль nab-consul в пакет `ru.hh.nab.consul` \r\n       - интерфейс HostsFetcher\
+        \ переехал в новый модуль nab-consul в пакет `ru.hh.nab.consul` \r\n     \
+        \  - класс LogLevelOverrideApplier переехал в модуль nab-logging в пакет `ru.hh.nab.logging.override`.\
+        \ Также изменена сигнатура конструктора и метода run\r\n       - интерфейс\
+        \ LogLevelOverrideExtension переехал в модуль nab-logging в пакет `ru.hh.nab.logging.override`\
+        \ \r\n       - класс SkipLogLevelOverrideException переехал в модуль nab-logging\
+        \ в пакет `ru.hh.nab.logging.override` \r\n       - класс RequestHeaders переехал\
+        \ в модуль nab-common в пакет `ru.hh.nab.common.constants`\r\n       - класс\
+        \ SentryFilter переехал в новый модуль nab-sentry в пакет `ru.hh.nab.sentry`\
+        \ \r\n       - класс NabApplication.SentryEventProcessor переехал в новый\
+        \ модуль nab-sentry в пакет `ru.hh.nab.sentry` \r\n        \r\n2. Модуль nab-web\
+        \ - помимо классов, которые были перенесены из nab-starter, в него также добавлены:\r\
+        \n       - класс NoopSecurityHandler, который наследуется от ConstraintSecurityHandler\
+        \ и овверайдит метод handle (в реализации просто вызывается следующий в цепочке\
+        \ handler)\r\n       - класс SecurityConfiguration, который наследуется от\
+        \ AbstractConfiguration и оверрайдит метод configure (в реализации в WebAppContext\
+        \ сеттится NoopSecurityHandler, если флаг securityEnabled=false). Данный класс\
+        \ может использоваться для настройки WebAppContext\r\n       - класс NoopSessionHandler,\
+        \ который наследуется от SessionHandler и оверрайдит методы doScope и doHandle\
+        \ (в реализации просто вызывается следующий в цепочке handler)\r\n       -\
+        \ класс SessionConfiguration, который наследуется от AbstractConfiguration\
+        \ и оверрайдит метод configure (в реализации в WebAppContext сеттится NoopSessionHandler,\
+        \ если флаг sessionEnabled=false). Данный класс может использоваться для настройки\
+        \ WebAppContext\r\n         \r\n3. Модуль nab-websocket - удален.\r\n    \r\
+        \n4. Модуль nab-common:\r\n       - интерфейс NabServletFilter - удален\r\n\
+        \       - класс FileSystemUtils - удален\r\n       - класс MonitoredThreadPoolExecutor\
+        \ - переехал в модуль nab-metrics в пакет `ru.hh.nab.metrics.executor`. Также\
+        \ изменена сигнатура статического метода create\r\n       - класс ThreadDiagnosticRejectedExecutionHandler\
+        \ - переехал в модуль nab-metrics в пакет `ru.hh.nab.metrics.executor`\r\n\
+        \       - класс FileSettings - помечен как deprecated\r\n       - класс PropertiesUtils\
+        \ - добавлены различные утилитные методы для более удобной работы с Properties,\
+        \ а метод fromFilesInSettingsDir помечен как deprecated\r\n       - класс\
+        \ NamedQualifier - добавлены константы SERVICE_VERSION и DATACENTERS\r\n \
+        \      - добавлен класс ServletFilterPriorities, содержащий константные значения,\
+        \ которые могут быть использованы в сервисах при регистрации сервлетных фильтров,\
+        \ чтобы упорядочить их\r\n         \r\n5. Модуль nab-logging - помимо классов,\
+        \ которые были перенесены из nab-starter:\r\n       - в классе NabLoggingConfiguratorTemplate\
+        \ удален метод loadPropertiesFile\r\n        \r\n6. Модуль nab-sentry - помимо\
+        \ классов, которые были перенесены из nab-starter: \r\n       - добавлен класс\
+        \ SentryInitializer, который может быть использован для конфигурации sentry\r\
+        \n        \r\n7. Модуль nab-metrics - помимо классов, которые были перенесены\
+        \ из nab-common:\r\n       - константы из StatsDConstants переехали в класс\
+        \ StatsDClientFactory\r\n       - в классе JvmMetricsSender удален статический\
+        \ метод create\r\n       - класс StatsDClientFactory - изменена сигнатура\
+        \ статического метода createNonBlockingClient\r\n       \r\n8. Модуль nab-data-source:\r\
+        \n       - класс NabDataSourceCommonConfig - удален\r\n       - класс NabDataSourceProdConfig\
+        \ - удален\r\n       - интерфейс MetricsTrackerFactoryProvider - изменена\
+        \ сигнатура метода create\r\n       - класс NabMetricsTrackerFactoryProvider\
+        \ - изменена сигнатура метода create\r\n       - класс NabMetricsTrackerFactory\
+        \ - изменена сигнатура конструктора\r\n       - класс DataSourceFactory -\
+        \ изменена сигнатура методов create и createDataSource\r\n       \r\n9. Модуль\
+        \ nab-jpa:\r\n       - класс NabJpaCommonConfig - удален\r\n       - класс\
+        \ NabJpaProdConfig - удален\r\n       \r\n10. Модуль nab-hibernate:\r\n  \
+        \     - класс NabHibernateCommonConfig - удален\r\n       - класс NabHibernateProdConfig\
+        \ - удален\r\n        \r\n11. Модуль nab-jclient: \r\n       - класс NabJClientConfig\
+        \ - удален\r\n       \r\n12. Модуль nab-kafka:\r\n       - класс ConfigProvider\
+        \ - изменена сигнатура конструктора   \r\n        \r\n13. Модуль nab-telemetry:\r\
+        \n       - класс NabTelemetryConfig - удален\r\n       \r\n14. Модуль nab-telemetry-jdbc:\r\
+        \n       - класс NabTelemetryJdbcProdConfig - удален\r\n       - аннотация\
+        \ Connection - удалена\r\n       - аннотация Statement - удалена \r\n    \
+        \   - класс NabTelemetryDataSourceFactory - изменена сигнатура конструктора;\
+        \ в методе wrap удалена обработка флага `opentelemetry.jdbc.enabled`\r\n \
+        \       \r\n15. Модуль nab-testbase: \r\n        - класс OverrideNabApplication\
+        \ - удален\r\n        - аннотация @NabJunitWebConfig - удалена\r\n       \
+        \ - аннотация @NabTestServer - удалена\r\n        - класс NabTestConfig -\
+        \ удален\r\n        - класс NabDataSourceTestBaseConfig - удален \r\n    \
+        \    - класс NabHibernateTestBaseConfig - удален \r\n        - класс TestLogbackBaseConfigurator\
+        \ - удален\r\n        - файл hibernate-test.properties - удален\r\n      \
+        \  - файл project.properties - удален\r\n        - файл service-test.properties\
+        \ - удален\r\n        - класс EmbeddedPostgresDataSourceFactory - изменена\
+        \ сигнатура метода createDataSource\r\n        - класс ResourceHelper - переехал\
+        \ в пакет `ru.hh.nab.testbase.web`. Также изменена сигнатура конструктора\r\
+        \n        - добавлен класс WebTestBase, в котором подключается SpringExtensionWithFailFast\
+        \ и инжектится ResourceHelper. В сервисах можно наследовать тестовые классы\
+        \ от WebTestBase\r\n           \r\n16. Модуль nab-example - удален"
+    instructions: "1. Для старта приложения, поднятия веб сервера, регистрации сервлетов,\
+        \ фильтров и тд использовать иной фреймворк (например Spring Boot) и api,\
+        \ который он предоставляет.\r\n2. Для конфигурации вебсокетов необходимо использовать\
+        \ api, предоставляемый фреймворком, который используется для поднятия веб\
+        \ сервера (например, Spring Boot'ом).\r\n3. Для поднятия веб сервера в юинт\
+        \ тестах использовать api, предоставляемый фреймворком (например, Spring Boot'ом).\r\
+        \n4. Подключить в помнике новые артефакты (nab-web, nab-consul, nab-sentry),\
+        \ если в них есть необходимость.\r\n5. Поправить импорты.\r\n6. При создании\
+        \ объекта LogLevelOverrideApplier в конструктор необходимо передавать:\r\n\
+        \       - LogLevelOverrideExtension extension, Properties properties\r\n7.\
+        \ При вызове метода LogLevelOverrideApplier#run не нужно ничего передавать.\r\
+        \n8. Скопировать метод NabLoggingConfiguratorTemplate#loadPropertiesFile,\
+        \ если в нем есть необходимость.\r\n9. Самостоятельно реализовать LogbackBaseConfigurator\
+        \ (в том числе для тестов), унаследовавшись от NabLoggingConfiguratorTemplate,\
+        \ если в этом есть необходимость.\r\n10. Для конфигурации sentry использовать\
+        \ SentryInitializer.\r\n11. При создании объекта StatusResource в конструктор\
+        \ необходимо передавать: \r\n        - String serviceName, String serviceVersion,\
+        \ Supplier<Duration> upTimeSupplier.\r\n12. При создании объекта HHServerConnector\
+        \ в конструктор необходимо передавать: \r\n        - Server server, int acceptors,\
+        \ int selectors, StatsDSender statsDSender, String serviceName\r\n       \
+        \ - Server server, Executor executor, Scheduler scheduler, ByteBufferPool\
+        \ bufferPool, int acceptors, int selectors, StatsDSender statsDSender, String\
+        \ serviceName, ConnectionFactory... factories\r\n        Также самостоятельно\
+        \ заоверрайдить метод shutdown, если в этом есть необходимость.\r\n13. При\
+        \ создании объекта CacheFilter в конструктор необходимо передавать:\r\n  \
+        \      - String serviceName, DataSize size, StatsDSender statsDSender \r\n\
+        14. При создании объекта MarshallerContextResolver в конструктор необходимо\
+        \ передавать:\r\n        - Properties properties, String serviceName, StatsDSender\
+        \ statsDSender\r\n15. При создании объекта ConsulFetcher в конструктор необходимо\
+        \ передавать:\r\n        - HealthClient healthClient, String serviceName,\
+        \ List<String> datacenters\r\n16. При создании объекта ConsulService в конструктор\
+        \ необходимо передавать:\r\n        - AgentClient agentClient, KeyValueClient\
+        \ kvClient, String serviceName, String serviceVersion, String nodeName, int\
+        \ applicationPort, Properties properties, Set<String> tags\r\n17. Самостоятельно\
+        \ обрабатывать флаг `consul.registration.enabled` и не вызывать методы ConsulService#register\
+        \ и ConsulService#deregister, если у флага значение false.\r\n18. При вызове\
+        \ метода MonitoredThreadPoolExecutor#create необходимо передавать:\r\n   \
+        \     - Properties threadPoolProperties, String threadPoolName, StatsDSender\
+        \ statsDSender, String serviceName\r\n        - Properties threadPoolProperties,\
+        \ String threadPoolName, StatsDSender statsDSender, String serviceName, RejectedExecutionHandler\
+        \ rejectedExecutionHandler\r\n19. При вызове метода StatsDClientFactory#createNonBlockingClient\
+        \ необходимо передавать:\r\n        - Properties properties \r\n20. Удалить\
+        \ вызов метода JvmMetricsSender#create - вместо этого необходимо создавать\
+        \ объект JvmMetricsSender с помощью конструктора.\r\n21. Если используются\
+        \ константы из StatsDConstants, то необходимо поправить импорты, так как константы\
+        \ переехали в класс StatsDClientFactory.\r\n22. Если у вас есть классы, которые\
+        \ имплементируют интерфейс MetricsTrackerFactoryProvider, то необходимо поправить\
+        \ сигнатуру метода create: вместо FileSettings использовать Properties.\r\n\
+        23. При вызове метода NabMetricsTrackerFactoryProvider#create необходимо передавать:\r\
+        \n        - Properties dataSourceProperties   \r\n24. При создании объекта\
+        \ NabMetricsTrackerFactory в конструктор необходимо передавать:\r\n      \
+        \  - String serviceName, StatsDSender statsDSender, Properties dataSourceProperties\r\
+        \n25. При вызове метода DataSourceFactory#create необходимо передавать:\r\n\
+        \        - String dataSourceName, boolean isReadonly, Properties properties\
+        \ \r\n        - String databaseName, String dataSourceType, boolean isReadonly,\
+        \ Properties properties\r\n        - HikariConfig hikariConfig, Properties\
+        \ dataSourceProperties, boolean isReadonly\r\n26. При вызове метода DataSourceFactory#createDataSource\
+        \ необходимо передавать:\r\n        - String dataSourceName, boolean isReadonly,\
+        \ Properties dataSourceProperties \r\n27. При создании объекта ConfigProvider\
+        \ в конструктор необходимо передавать:\r\n        - String serviceName, String\
+        \ kafkaClusterName, Properties properties, StatsDSender statsDSender\r\n28.\
+        \ При создании объекта NabTelemetryDataSourceFactory в конструктор необходимо\
+        \ передавать:\r\n        - Instrumenter<NabDataSourceInfo, Void> connectionInstrumenter,\
+        \ Instrumenter<NabDbRequest, Void> statementInstrumenter\r\n29. Самостоятельно\
+        \ обрабатывать флаг `opentelemetry.jdbc.enabled` и не вызывать метод NabTelemetryDataSourceFactory#wrap,\
+        \ если у флага значение false. \r\n30. При вызове метода EmbeddedPostgresDataSourceFactory#createDataSource\
+        \ необходимо передавать:\r\n        - String dataSourceName, boolean isReadonly,\
+        \ Properties dataSourceSettings\r\n31. При создании объекта ResourceHelper\
+        \ в конструктор необходимо передавать:\r\n        - int serverPort\r\n   \
+        \     - Supplier<Integer> serverPort\r\n32. Если в тестах выполняется чтение\
+        \ настроек из файлов service-test.properties, project.properties, hibernate-test.properties,\
+        \ необходимо добавить данные файлы с нужными пропертями в src/test/resources,\
+        \ либо использовать api, предоставляемый фреймворком (например, Spring Boot'ом)\
+        \ для работы с пропертями. \r\n33. Скопировать класс FileSystemUtils, если\
+        \ в нем есть необходимость.\r\n34. При необходимости скопировать бины из следующих\
+        \ конфигураций:\r\n        - NabCommonConfig\r\n        - NabProdConfig\r\n\
+        \        - NabDataSourceCommonConfig\r\n        - NabDataSourceProdConfig\r\
+        \n        - NabJpaCommonConfig\r\n        - NabJpaProdConfig\r\n        -\
+        \ NabHibernateCommonConfig\r\n        - NabHibernateProdConfig\r\n       \
+        \ - NabJClientConfig\r\n        - NabTelemetryConfig\r\n        - NabTelemetryJdbcProdConfig\r\
+        \n        - NabTestConfig (в тестах)\r\n        - NabDataSourceTestBaseConfig\
+        \ (в тестах)\r\n        - NabHibernateTestBaseConfig (в тестах)"
+    compatible: false
+
 -   name: 16.0.3
     date: '2025-07-31T14:57:01.684700+03:00'
-    description: 'Добавлен httpRoute в request логи'
+    description: Добавлен httpRoute в request логи
     instructions: ''
     compatible: true
 

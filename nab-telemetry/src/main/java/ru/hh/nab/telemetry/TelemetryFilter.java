@@ -6,7 +6,6 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import jakarta.annotation.Priority;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,15 +23,12 @@ import static java.util.Optional.ofNullable;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.component.NabServletFilter;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
-import ru.hh.nab.common.servlet.ServletFilterPriorities;
 
-@Priority(ServletFilterPriorities.OBSERVABILITY)
-public class TelemetryFilter implements Filter, NabServletFilter {
+public class TelemetryFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryFilter.class);
   public static final String STATUS_URL = "/status";
 

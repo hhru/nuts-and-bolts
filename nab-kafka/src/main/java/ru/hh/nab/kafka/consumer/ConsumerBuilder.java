@@ -12,6 +12,20 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public interface ConsumerBuilder<T> {
 
+  /**
+   * Decorate consume strategy to process messages only when they are ready for retry.
+   *
+   * @see HeadersMessageMetadataProvider#getNextRetryTime
+   * @see SimpleDelayedConsumeStrategy
+   */
+  static <T> SimpleDelayedConsumeStrategy<T> decorateForDelayedRetry(ConsumeStrategy<T> delegate, Duration sleepIfNotReadyDuration) {
+    return new SimpleDelayedConsumeStrategy<>(
+        delegate,
+        message -> HeadersMessageMetadataProvider.getNextRetryTime(message.headers()).orElse(Instant.EPOCH),
+        sleepIfNotReadyDuration
+    );
+  }
+
   ConsumerBuilder<T> withClientId(String clientId);
 
   ConsumerBuilder<T> withOperationName(String operationName);
@@ -30,7 +44,7 @@ public interface ConsumerBuilder<T> {
    * @see RetryPolicy
    * @see RetryPolicyResolver
    * @see HeadersMessageMetadataProvider
-   * */
+   */
   ConsumerBuilder<T> withRetries(KafkaProducer retryProducer, RetryPolicyResolver<T> retryPolicyResolver);
 
   /**
@@ -69,22 +83,8 @@ public interface ConsumerBuilder<T> {
    * called from these two instances must be thread-safe.
    *
    * @see HeadersMessageMetadataProvider
-   * */
+   */
   ConsumerBuilder<T> withRetryConsumeStrategy(ConsumeStrategy<T> retryConsumeStrategy);
-
-  /**
-   * Decorate consume strategy to process messages only when they are ready for retry.
-   *
-   * @see  HeadersMessageMetadataProvider#getNextRetryTime
-   * @see SimpleDelayedConsumeStrategy
-   * */
-  static <T> SimpleDelayedConsumeStrategy<T> decorateForDelayedRetry(ConsumeStrategy<T> delegate, Duration sleepIfNotReadyDuration) {
-    return new SimpleDelayedConsumeStrategy<>(
-        delegate,
-        message -> HeadersMessageMetadataProvider.getNextRetryTime(message.headers()).orElse(Instant.EPOCH),
-        sleepIfNotReadyDuration
-    );
-  }
 
   /**
    * Dead letter queue. Defines destination where messages will be sent in case of unexpected situations.
@@ -102,6 +102,7 @@ public interface ConsumerBuilder<T> {
 
   /**
    * Consumer будет включен в consumer-group: одновременно одна партиция топика не будет обрабатываться больше чем одним consumer-ом.
+   *
    * @return this
    */
   ConsumerBuilder<T> withConsumerGroup();
@@ -110,7 +111,8 @@ public interface ConsumerBuilder<T> {
    * Consumer подпишется на все партиции, которые есть в топике.
    * Метод нужен в ситуациях, когда нужно не использовать consumer-group, а в каждом инстансе сервиса читать все партиции.
    * Обычно это нужно statetul-сервисам, которые поддерживают какое-то состояние внутри себя на основе сообщений из kafka.
-   * @param seekPosition - Указывает откуда начинать читать сообщения - с начала и конца топика
+   *
+   * @param seekPosition               - Указывает откуда начинать читать сообщения - с начала и конца топика
    * @param checkNewPartitionsInterval - Как часто проверять наличие новых партиций в топике.
    *                                   Если null - проверяться не будут. По-умолчанию - 5 минут.
    * @return this
@@ -123,7 +125,7 @@ public interface ConsumerBuilder<T> {
 
   /**
    * @deprecated Use {@link #build()} and then {@link KafkaConsumer#start()}
-   * */
+   */
   @Deprecated(forRemoval = true)
   default KafkaConsumer<T> start() {
     KafkaConsumer<T> consumer = build();

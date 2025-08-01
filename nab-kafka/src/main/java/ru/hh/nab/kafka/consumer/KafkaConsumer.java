@@ -23,13 +23,12 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> implements SmartLifecycle {
+  final KafkaConsumer<T> retryKafkaConsumer;
   private final Logger logger;
-  private volatile boolean running = false;
   private final Lock restartLock = new ReentrantLock();
   private final ConsumerMetadata consumerMetadata;
   private final Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider;
   private final BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider;
-  final KafkaConsumer<T> retryKafkaConsumer;
   private final AckProvider<T> ackProvider;
   private final ConsumeStrategy<T> consumeStrategy;
   private final RetryQueue<T> retryQueue;
@@ -37,6 +36,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final ConsumerContext<T> consumerContext;
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
+  private volatile boolean running = false;
   private List<PartitionInfo> assignedPartitions;
   private volatile ScheduledFuture<?> checkPartitionsChangeFuture;
   private volatile AbstractMessageListenerContainer<String, T> currentSpringKafkaContainer;

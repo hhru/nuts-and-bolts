@@ -2,13 +2,14 @@ package ru.hh.nab.jclient.metrics;
 
 import io.netty.util.internal.StringUtil;
 import static java.util.Optional.ofNullable;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import ru.hh.jclient.common.Monitoring;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 
 public class KafkaUpstreamMonitoring implements Monitoring {
@@ -29,14 +30,14 @@ public class KafkaUpstreamMonitoring implements Monitoring {
       String localDc,
       KafkaProducer kafkaProducer,
       Executor kafkaExecutor,
-      FileSettings settings
+      Properties properties
   ) {
     this.serviceName = serviceName;
     this.localDc = localDc;
     this.kafkaProducer = kafkaProducer;
     this.kafkaExecutor = kafkaExecutor;
-    this.topicName = settings.getString(REQUEST_TOPIC_KEY, DEFAULT_REQUEST_TOPIC);
-    this.sendingEnabled = settings.getBoolean(ENABLED_PROPERTY_KEY, false);
+    this.topicName = properties.getProperty(REQUEST_TOPIC_KEY, DEFAULT_REQUEST_TOPIC);
+    this.sendingEnabled = PropertiesUtils.getBoolean(properties, ENABLED_PROPERTY_KEY, false);
   }
 
   @Override

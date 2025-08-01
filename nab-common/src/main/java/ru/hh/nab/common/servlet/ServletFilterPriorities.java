@@ -2,9 +2,10 @@ package ru.hh.nab.common.servlet;
 
 /**
  * Priority constants for servlet filters.
- * It's a copy of {@link ru.hh.nab.starter.jersey.NabPriorities}.
+ * It's a copy of {@link ru.hh.nab.web.jersey.NabPriorities}.
+ * Please note servlet filters are invoked before jax-rs filters.
  */
-public class ServletFilterPriorities {
+public final class ServletFilterPriorities {
 
   /**
    * Observability filter/interceptor priority.

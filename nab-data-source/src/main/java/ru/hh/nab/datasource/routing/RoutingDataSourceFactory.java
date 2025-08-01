@@ -1,8 +1,6 @@
 package ru.hh.nab.datasource.routing;
 
-import jakarta.inject.Named;
 import javax.sql.DataSource;
-import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class RoutingDataSourceFactory {
@@ -10,7 +8,7 @@ public class RoutingDataSourceFactory {
   private final String serviceName;
   private final StatsDSender statsDSender;
 
-  public RoutingDataSourceFactory(@Named(SERVICE_NAME) String serviceName, StatsDSender statsDSender) {
+  public RoutingDataSourceFactory(String serviceName, StatsDSender statsDSender) {
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
   }

@@ -14,43 +14,50 @@ import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertFalse;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import ru.hh.nab.starter.NabApplication;
-import ru.hh.nab.testbase.NabTestConfig;
-import ru.hh.nab.testbase.ResourceHelper;
-import ru.hh.nab.testbase.extensions.NabJunitWebConfig;
-import ru.hh.nab.testbase.extensions.NabTestServer;
-import ru.hh.nab.testbase.extensions.OverrideNabApplication;
+import static org.springframework.http.RequestEntity.get;
+import static org.springframework.http.RequestEntity.head;
+import org.springframework.http.ResponseEntity;
+import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
+import ru.hh.nab.web.resource.StatusResource;
 
-@NabJunitWebConfig(NabTestConfig.class)
+@SpringBootTest(classes = TelemetryTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryTest {
   private static final InMemorySpanExporter SPAN_EXPORTER = InMemorySpanExporter.create();
 
-  @NabTestServer(overrideApplication = SpringCtxForJersey.class)
-  ResourceHelper resourceHelper;
+  @Inject
+  private TestRestTemplate testRestTemplate;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     SPAN_EXPORTER.reset();
   }
 
   @Test
   public void testStatusIgnored() {
-    Response response = resourceHelper
-        .target("/status")
-        .request()
-        .get();
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/status", String.class);
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(0, spans.size());
   }
@@ -58,14 +65,13 @@ public class TelemetryTest {
   @Test
   public void testSimpleRequest() {
     String userAgent = "my-test-service";
-    Response response = resourceHelper
-        .target("/simple")
-        .request()
-        .header("User-Agent", userAgent)
-        .get();
+    ResponseEntity<String> response = testRestTemplate.exchange(
+        get("/simple").header("User-Agent", userAgent).build(),
+        String.class
+    );
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    assertEquals("Hello, world!", response.readEntity(String.class));
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
+    assertEquals("Hello, world!", response.getBody());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -79,7 +85,7 @@ public class TelemetryTest {
     assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_ROUTE));
     assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
-    assertEquals("127.0.0.1", attributes.get(SemanticAttributes.HTTP_HOST));
+    assertEquals("localhost", attributes.get(SemanticAttributes.HTTP_HOST));
     assertEquals("simple", attributes.get(SemanticAttributes.CODE_FUNCTION));
     assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
     assertEquals(userAgent, attributes.get(AttributeKey.stringKey("user_agent.original")));
@@ -88,12 +94,9 @@ public class TelemetryTest {
   @Test
   public void testRouteCalculation() {
     String template = "/simple/{name}/greeting";
-    Response response = resourceHelper
-        .target(resourceHelper.jerseyUrl(template, "telemetry"))
-        .request()
-        .get();
+    ResponseEntity<String> response = testRestTemplate.getForEntity(template, String.class, "telemetry");
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -106,12 +109,9 @@ public class TelemetryTest {
   @Test
   public void testRouteCalculationForParentThatHasSubresource() {
     String template = "/resource/simple/{name}/greeting";
-    Response response = resourceHelper
-        .target(resourceHelper.jerseyUrl(template, "telemetry"))
-        .request()
-        .get();
+    ResponseEntity<String> response = testRestTemplate.getForEntity(template, String.class, "telemetry");
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -124,12 +124,9 @@ public class TelemetryTest {
   @Test
   public void testRouteCalculationForSubresource() {
     String template = "/resource/sub/simple/{name}/greeting";
-    Response response = resourceHelper
-        .target(resourceHelper.jerseyUrl(template, "telemetry"))
-        .request()
-        .get();
+    ResponseEntity<String> response = testRestTemplate.getForEntity(template, String.class, "telemetry");
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -142,12 +139,9 @@ public class TelemetryTest {
   @Test
   public void testRouteCalculationWithBasePath() {
     String template = "/app/resource/sub/simple/{name}/greeting";
-    Response response = resourceHelper
-        .target(resourceHelper.jerseyUrl(template, "telemetry"))
-        .request()
-        .get();
+    ResponseEntity<String> response = testRestTemplate.getForEntity(template, String.class, "telemetry");
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -160,12 +154,9 @@ public class TelemetryTest {
   @Test
   public void testRouteWithDuplicatedPath() {
     String template = "/resource/sub/simple";
-    Response response = resourceHelper
-        .target(template)
-        .request()
-        .head();
+    ResponseEntity<String> response = testRestTemplate.exchange(head(template).build(), String.class);
 
-    assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -178,12 +169,9 @@ public class TelemetryTest {
   @Test
   public void testRouteCalculatedForRoot() {
     String template = "/";
-    Response response = resourceHelper
-        .target(template)
-        .request()
-        .head();
+    ResponseEntity<String> response = testRestTemplate.exchange(head(template).build(), String.class);
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -195,14 +183,13 @@ public class TelemetryTest {
 
   @Test
   public void testRequestWithParentSpan() {
-    Response response = resourceHelper
-        .target("/simple")
-        .request()
-        .header("Traceparent", "00-1641597707000dfd4c0f1f07ea6cc943-fcf9c5cc0345247a-01")
-        .get();
+    ResponseEntity<String> response = testRestTemplate.exchange(
+        get("/simple").header("Traceparent", "00-1641597707000dfd4c0f1f07ea6cc943-fcf9c5cc0345247a-01").build(),
+        String.class
+    );
 
-    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    assertEquals("Hello, world!", response.readEntity(String.class));
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode().value());
+    assertEquals("Hello, world!", response.getBody());
     awaitAtLeastOneSpan();
 
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
@@ -217,14 +204,35 @@ public class TelemetryTest {
   }
 
   @Configuration
-  @Import({
-      TestResource.class,
-      TestResourceWithSubResource.class,
-      TestResourceWithSubResource.SubResource.class,
+  @ImportAutoConfiguration({
+      ServletWebServerFactoryAutoConfiguration.class,
+      JerseyAutoConfiguration.class,
   })
-  public static class SpringCtxForJersey implements OverrideNabApplication {
-    @Override
-    public NabApplication getNabApplication() {
+  public static class TestConfiguration {
+
+    @Bean
+    public ResourceConfig resourceConfig() {
+      ResourceConfig resourceConfig = new ResourceConfig();
+      resourceConfig.register(TestResource.class);
+      resourceConfig.register(TestResourceWithSubResource.class);
+      resourceConfig.register(TestResourceWithSubResource.SubResource.class);
+      resourceConfig.register(ResourceInformationFilter.class);
+      return resourceConfig;
+    }
+
+    @Bean
+    public ServletRegistrationBean<ServletContainer> statusServletRegistration() {
+      StatusResource statusResource = new StatusResource("", "", () -> Duration.ofSeconds(5));
+      return new ServletRegistrationBean<>(new ServletContainer(new ResourceConfig().register(statusResource)), "/status");
+    }
+
+    @Bean
+    public ServletRegistrationBean<ServletContainer> jerseyServletRegistration(ResourceConfig resourceConfig) {
+      return new ServletRegistrationBean<>(new ServletContainer(resourceConfig), "/*", "/app/*");
+    }
+
+    @Bean
+    public FilterRegistrationBean<TelemetryFilter> telemetryFilter() {
       SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider
           .builder()
           .addSpanProcessor(SimpleSpanProcessor.create(SPAN_EXPORTER))
@@ -240,13 +248,7 @@ public class TelemetryTest {
           new TelemetryPropagator(openTelemetry)
       );
 
-      return NabApplication
-          .builder()
-          .addFilter(telemetryFilter)
-          .bindToRoot()
-          .configureJersey(SpringCtxForJersey.class)
-          .bindTo("/*", "/app/*")
-          .build();
+      return new FilterRegistrationBean<>(telemetryFilter);
     }
   }
 }

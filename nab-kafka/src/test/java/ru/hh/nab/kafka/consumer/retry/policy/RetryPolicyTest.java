@@ -43,11 +43,13 @@ class RetryPolicyTest {
         arguments(
             fixed(seconds(10)).withRetryLimit(10).withDeadline(NOW.plusSeconds(50)),
             history(4, NOW.plusSeconds(30)),
-            NOW.plusSeconds(40)),
+            NOW.plusSeconds(40)
+        ),
         arguments(
             fixed(seconds(10)).withRetryLimit(10).withDeadline(NOW.plusSeconds(50)),
             history(5, NOW.plusSeconds(40)),
-            null),
+            null
+        ),
 
         arguments(
             fixed(seconds(10)).withRetryLimit(10).withTtl(seconds(20)),
@@ -67,12 +69,6 @@ class RetryPolicyTest {
     );
   }
 
-  @ParameterizedTest
-  @MethodSource("policyTestData")
-  void testNextRetryTime(RetryPolicy policy, MessageProcessingHistory history, Instant expected) {
-    assertEquals(Optional.ofNullable(expected), policy.getNextRetryTime(history));
-  }
-
   static MessageProcessingHistory history(long retryNumber) {
     return history(retryNumber, NOW);
   }
@@ -87,5 +83,11 @@ class RetryPolicyTest {
 
   static Duration seconds(long number) {
     return Duration.ofSeconds(number);
+  }
+
+  @ParameterizedTest
+  @MethodSource("policyTestData")
+  void testNextRetryTime(RetryPolicy policy, MessageProcessingHistory history, Instant expected) {
+    assertEquals(Optional.ofNullable(expected), policy.getNextRetryTime(history));
   }
 }

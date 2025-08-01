@@ -7,7 +7,6 @@ import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.commons.text.StringSubstitutor;
 import org.testcontainers.containers.PostgreSQLContainer;
-import ru.hh.nab.common.properties.FileSettings;
 import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
 import static ru.hh.nab.datasource.DataSourceSettings.PASSWORD;
@@ -45,8 +44,9 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
   }
 
   @Override
-  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, FileSettings dataSourceSettings) {
-    Properties properties = dataSourceSettings.getProperties();
+  protected DataSource createDataSource(String dataSourceName, boolean isReadonly, Properties dataSourceSettings) {
+    Properties properties = new Properties();
+    properties.putAll(dataSourceSettings);
 
     PostgreSQLContainer<?> embeddedPostgres = getEmbeddedPostgres();
     final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
@@ -54,12 +54,12 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
         "host", embeddedPostgres.getHost(),
         "database", DEFAULT_DATABASE
     ));
-    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getString(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
+    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getProperty(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
     properties.setProperty(JDBC_URL, jdbcUrl);
     properties.setProperty(USER, DEFAULT_USER);
     properties.setProperty(PASSWORD, DEFAULT_PASSWORD);
 
-    return super.createDataSource(dataSourceName, isReadonly, new FileSettings(properties));
+    return super.createDataSource(dataSourceName, isReadonly, properties);
   }
 
   public static PostgreSQLContainer<?> getEmbeddedPostgres() {

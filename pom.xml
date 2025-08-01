@@ -4,25 +4,23 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>2.1.0</version>
+        <version>2.1.1</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>16.0.4-SNAPSHOT</version>
+    <version>16.0.3.spring-boot-rc2-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
     <modules>
         <module>nab-common</module>
-        <module>nab-starter</module>
+        <module>nab-web</module>
         <module>nab-data-source</module>
-        <module>nab-example</module>
         <module>nab-jpa</module>
         <module>nab-hibernate</module>
         <module>nab-testbase</module>
-        <module>nab-tests</module>
         <module>nab-logging</module>
         <module>nab-jclient</module>
         <module>nab-metrics</module>
@@ -30,13 +28,15 @@
         <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
-        <module>nab-websocket</module>
+        <module>nab-sentry</module>
+        <module>nab-consul</module>
     </modules>
 
     <properties>
         <jclient.version>11.0.0</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>2.0.0</consul.client.version>
+        <kafka-test-utils.version>1.0.2</kafka-test-utils.version>
     </properties>
 
     <dependencyManagement>
@@ -48,7 +48,7 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-starter</artifactId>
+                <artifactId>nab-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -108,9 +108,15 @@
             </dependency>
             <dependency>
                 <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-websocket</artifactId>
+                <artifactId>nab-sentry</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-consul</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>ru.hh.consul</groupId>
                 <artifactId>consul-client</artifactId>

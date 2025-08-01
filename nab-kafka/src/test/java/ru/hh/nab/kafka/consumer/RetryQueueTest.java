@@ -51,6 +51,26 @@ class RetryQueueTest {
   @Captor
   ArgumentCaptor<ProducerRecord<String, String>> producerRecordCaptor;
 
+  private static ConsumerRecord<String, String> message() {
+    return message(MESSAGE);
+  }
+
+  private static ConsumerRecord<String, String> message(String message) {
+    return new ConsumerRecord<>(
+        TOPIC,
+        0,
+        offset++,
+        CREATION_TIME.toEpochMilli(),
+        TimestampType.CREATE_TIME,
+        0,
+        0,
+        KEY,
+        message,
+        new RecordHeaders(),
+        Optional.empty()
+    );
+  }
+
   @Test
   void firstRetryAddsHeaders() {
     RetryQueue<String> retryQueue = createRetryQueue(RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))));
@@ -72,7 +92,8 @@ class RetryQueueTest {
   void firstRetryWithRetryTopicsSingleDoesNotAddRetryReceiveTopicToHeaders() {
     RetryQueue<String> retryQueue = createRetryQueue(
         RetryPolicyResolver.always(RetryPolicy.fixed(Duration.ofSeconds(10))),
-        RetryTopics.single(TOPIC));
+        RetryTopics.single(TOPIC)
+    );
     MessageProcessingHistory processingHistory = MessageProcessingHistory.initial(CREATION_TIME, NOW);
 
     retryQueue.retry(message(), null);
@@ -103,7 +124,7 @@ class RetryQueueTest {
     assertEquals(RETRY_TOPICS.retrySendTopic(), retryMessage.topic());
     assertEquals(KEY, retryMessage.key());
     assertEquals(MESSAGE, retryMessage.value());
-    assertNotEquals(oldProcessingHistory,  getMessageProcessingHistory(retryMessage.headers()).get());
+    assertNotEquals(oldProcessingHistory, getMessageProcessingHistory(retryMessage.headers()).get());
     assertEquals(oldProcessingHistory.withOneMoreFail(NOW), getMessageProcessingHistory(retryMessage.headers()).get());
     assertEquals(NOW.plusSeconds(10), getNextRetryTime(retryMessage.headers()).get());
     assertEquals(RETRY_TOPICS.retryReceiveTopic(), getRetryReceiveTopic(retryMessage.headers()).get());
@@ -155,26 +176,6 @@ class RetryQueueTest {
         retryTopics,
         retryPolicyResolver,
         Clock.fixed(NOW, ZoneId.systemDefault())
-    );
-  }
-
-  private static ConsumerRecord<String, String> message() {
-    return message(MESSAGE);
-  }
-
-  private static ConsumerRecord<String, String> message(String message) {
-    return new ConsumerRecord<>(
-        TOPIC,
-        0,
-        offset++,
-        CREATION_TIME.toEpochMilli(),
-        TimestampType.CREATE_TIME,
-        0,
-        0,
-        KEY,
-        message,
-        new RecordHeaders(),
-        Optional.empty()
     );
   }
 }

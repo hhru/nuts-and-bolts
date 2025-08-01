@@ -1,6 +1,6 @@
 package ru.hh.nab.datasource.monitoring;
 
-import ru.hh.nab.common.properties.FileSettings;
+import java.util.Properties;
 import ru.hh.nab.metrics.StatsDSender;
 
 public class NabMetricsTrackerFactoryProvider implements MetricsTrackerFactoryProvider<NabMetricsTrackerFactory> {
@@ -13,7 +13,7 @@ public class NabMetricsTrackerFactoryProvider implements MetricsTrackerFactoryPr
   }
 
   @Override
-  public NabMetricsTrackerFactory create(FileSettings dataSourceSettings) {
-    return new NabMetricsTrackerFactory(serviceName, statsDSender, dataSourceSettings);
+  public NabMetricsTrackerFactory create(Properties dataSourceProperties) {
+    return new NabMetricsTrackerFactory(serviceName, statsDSender, dataSourceProperties);
   }
 }

@@ -6,9 +6,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -170,16 +167,6 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="
         + appenders.stream().map(Appender::getName).collect(Collectors.joining(",")));
     return new LoggerWrapper(logger);
-  }
-
-  protected static Properties loadPropertiesFile(Path path) {
-    var properties = new Properties();
-    try {
-      properties.load(Files.newBufferedReader(path));
-      return properties;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   protected static void setPropertyIfNotSet(Properties properties, String key, String value) {

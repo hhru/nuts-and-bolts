@@ -3,12 +3,12 @@ package ru.hh.nab.datasource.monitoring;
 import com.zaxxer.hikari.metrics.IMetricsTracker;
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import com.zaxxer.hikari.metrics.PoolStats;
-import static java.util.Optional.ofNullable;
+import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.FileSettings;
+import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_SIZE;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS;
@@ -46,16 +46,16 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
 
   private final String serviceName;
   private final StatsDSender statsDSender;
-  private final FileSettings dataSourceSettings;
+  private final Properties dataSourceProperties;
 
   public NabMetricsTrackerFactory(
       String serviceName,
       StatsDSender statsDSender,
-      FileSettings dataSourceSettings
+      Properties dataSourceProperties
   ) {
     this.serviceName = serviceName;
     this.statsDSender = statsDSender;
-    this.dataSourceSettings = dataSourceSettings;
+    this.dataSourceProperties = dataSourceProperties;
   }
 
   @Override
@@ -77,30 +77,36 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
 
     MonitoringMetricsTracker(String poolName, PoolStats poolStats) {
       this.poolName = poolName;
-      this.samplePoolUsageStats = ofNullable(dataSourceSettings.getBoolean(MONITORING_SAMPLE_POOL_USAGE_STATS)).orElse(Boolean.FALSE);
-      this.longConnectionUsageMs = dataSourceSettings.getInteger(MONITORING_LONG_CONNECTION_USAGE_MS);
+      this.samplePoolUsageStats = PropertiesUtils.getBoolean(dataSourceProperties, MONITORING_SAMPLE_POOL_USAGE_STATS, Boolean.FALSE);
+      this.longConnectionUsageMs = PropertiesUtils.getInteger(dataSourceProperties, MONITORING_LONG_CONNECTION_USAGE_MS);
       this.datasourceTag = new Tag(DATASOURCE_TAG_NAME, poolName);
       this.appTag = new Tag(APP_TAG_NAME, serviceName);
       Tag[] jdbcTags = new Tag[]{datasourceTag, appTag};
 
       creationHistogram = new CompactHistogram(
-          ofNullable(dataSourceSettings.getInteger(MONITORING_CREATION_HISTOGRAM_SIZE)).orElse(2048),
-          ofNullable(dataSourceSettings.getInteger(MONITORING_CREATION_HISTOGRAM_COMPACTION_RATIO)).orElse(1)
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_CREATION_HISTOGRAM_SIZE, 2048),
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_CREATION_HISTOGRAM_COMPACTION_RATIO, 1)
       );
       acquisitionHistogram = new CompactHistogram(
-          ofNullable(dataSourceSettings.getInteger(MONITORING_ACQUISITION_HISTOGRAM_SIZE)).orElse(2048),
-          ofNullable(dataSourceSettings.getInteger(MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO)).orElse(1)
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_ACQUISITION_HISTOGRAM_SIZE, 2048),
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO, 1)
       );
       usageHistogram = new CompactHistogram(
-          ofNullable(dataSourceSettings.getInteger(MONITORING_USAGE_HISTOGRAM_SIZE)).orElse(2048),
-          ofNullable(dataSourceSettings.getInteger(MONITORING_USAGE_HISTOGRAM_COMPACTION_RATIO)).orElse(1)
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_USAGE_HISTOGRAM_SIZE, 2048),
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_USAGE_HISTOGRAM_COMPACTION_RATIO, 1)
       );
-      timeoutCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS)).orElse(500));
+      timeoutCounters = new Counters(
+          PropertiesUtils.getInteger(dataSourceProperties, MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS, 500)
+      );
 
       if (samplePoolUsageStats) {
-        usageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_SAMPLED_USAGE_MAX_NUM_OF_COUNTERS)).orElse(2000));
+        usageCounters = new Counters(
+            PropertiesUtils.getInteger(dataSourceProperties, MONITORING_SAMPLED_USAGE_MAX_NUM_OF_COUNTERS, 2000)
+        );
       } else {
-        usageCounters = new Counters(ofNullable(dataSourceSettings.getInteger(MONITORING_TOTAL_USAGE_MAX_NUM_OF_COUNTERS)).orElse(500));
+        usageCounters = new Counters(
+            PropertiesUtils.getInteger(dataSourceProperties, MONITORING_TOTAL_USAGE_MAX_NUM_OF_COUNTERS, 500)
+        );
       }
 
       statsDSender.sendPeriodically(() -> {

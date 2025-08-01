@@ -34,8 +34,7 @@ public class TransactionalCheck implements HttpClientEventListener {
 
 
   /**
-   * @deprecated use {@link TransactionalCheck#TransactionalCheck(ru.hh.nab.jclient.checks.TransactionalCheck.Action,
-   * int, java.util.concurrent.ScheduledExecutorService, long, java.lang.String...)}
+   * @deprecated use {@link TransactionalCheck#TransactionalCheck(Action, int, ScheduledExecutorService, long, Set)}
    */
   @Deprecated(forRemoval = true)
   public TransactionalCheck() {

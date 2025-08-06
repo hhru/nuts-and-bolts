@@ -5,8 +5,8 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
+import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -92,7 +92,7 @@ public class HhSyslogAppenderTest {
   }
 
   protected void testLogging(
-      Function<Context, ? extends AppenderBase<ILoggingEvent>> appenderCreateFunction,
+      Function<Context, ? extends UnsynchronizedAppenderBase<ILoggingEvent>> appenderCreateFunction,
       String pid,
       String expected,
       String message

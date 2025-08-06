@@ -73,17 +73,6 @@
             <version>6.5</version>
         </dependency>
         <dependency>
-            <groupId>com.papertrailapp</groupId>
-            <artifactId>logback-syslog4j</artifactId>
-            <version>1.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.syslog4j</groupId>
-                    <artifactId>syslog4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-logback</artifactId>
         </dependency>

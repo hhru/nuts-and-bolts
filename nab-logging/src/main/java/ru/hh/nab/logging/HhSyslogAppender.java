@@ -3,14 +3,13 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Layout;
-import com.papertrailapp.logback.Syslog4jAppender;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.productivity.java.syslog4j.SyslogConstants;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import static ru.hh.nab.logging.HhMultiAppender.LOG_PATTERN_PROPERTY_KEY;
 
-public class HhSyslogAppender extends Syslog4jAppender<ILoggingEvent> {
+public class HhSyslogAppender extends UnsynchronizedSyslog4jAppender<ILoggingEvent> {
 
   private static final int DEFAULT_MSG_LENGTH = 60000;
   public static final String SYSLOG_HOST_ENV = "SYSLOG_HOST";

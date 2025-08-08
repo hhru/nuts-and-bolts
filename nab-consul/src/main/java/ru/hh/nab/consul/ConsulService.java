@@ -118,7 +118,6 @@ public class ConsulService {
       regCheckBuilder.http("http://" + applicationHost + ":" + applicationPort + "/status");
     }
     Registration.RegCheck regCheck = regCheckBuilder
-        .http("http://" + applicationHost + ":" + applicationPort + "/status")
         .status(
             Optional
                 .ofNullable(PropertiesUtils.getBoolean(properties, CONSUL_CHECK_PASSING_PROPERTY))

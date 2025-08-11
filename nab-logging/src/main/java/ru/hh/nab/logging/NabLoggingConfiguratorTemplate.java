@@ -51,8 +51,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     boolean logToConsole = PropertiesUtils.getBoolean(contextWrapper.properties, HhMultiAppender.LOG_TO_CONSOLE_PROPERTY_KEY, false);
     if (forceConsole && !logToConsole) {
       ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
-      NabTSOnlyJsonEncoder nabTSOnlyJsonEncoder = new NabTSOnlyJsonEncoder();
-      consoleAppender.setEncoder(nabTSOnlyJsonEncoder);
+      consoleAppender.setEncoder(new NabTSOnlyJsonEncoder());
       defaultAppenders.add(consoleAppender);
     }
   }

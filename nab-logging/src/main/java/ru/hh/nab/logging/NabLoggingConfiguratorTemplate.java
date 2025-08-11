@@ -47,7 +47,7 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
   }
 
   private void addDefaultAppenders(LoggingContextWrapper contextWrapper) {
-    boolean forceConsole = PropertiesUtils.getBoolean(contextWrapper.properties, "log.forceConsole", false);
+    boolean forceConsole = PropertiesUtils.getBoolean(contextWrapper.properties, "log.duplicateToConsole", false);
     boolean logToConsole = PropertiesUtils.getBoolean(contextWrapper.properties, HhMultiAppender.LOG_TO_CONSOLE_PROPERTY_KEY, false);
     if (forceConsole && !logToConsole) {
       ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
@@ -181,8 +181,10 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     logger.setLevel(ch.qos.logback.classic.Level.toLevel(level));
     logger.setAdditive(additivity);
     if (!defaultAppenders.isEmpty()) {
-      defaultAppenders.addAll(appenders);
-      appenders = defaultAppenders;
+      HashSet<Appender> allAppenders = new HashSet<>();
+      allAppenders.addAll(appenders);
+      allAppenders.addAll(defaultAppenders);
+      appenders = allAppenders;
     }
     appenders.forEach(logger::addAppender);
     addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="

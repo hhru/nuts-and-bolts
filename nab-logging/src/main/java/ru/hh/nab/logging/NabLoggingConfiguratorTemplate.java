@@ -3,11 +3,14 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.BasicConfigurator;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,9 +23,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
+import ru.hh.nab.common.properties.PropertiesUtils;
+import ru.hh.nab.logging.json.NabTSOnlyJsonEncoder;
 
 @SuppressWarnings("rawtypes")
 public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
+  private final Set<Appender> defaultAppenders = new HashSet<>();
   private Map<String, Appender> appenders = new HashMap<>();
 
   @Override
@@ -32,11 +38,22 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
       statusListener(context, properties);
       LoggingContextWrapper contextWrapper = new LoggingContextWrapper(context, properties);
       configure(contextWrapper);
+      addDefaultAppenders(contextWrapper);
     } catch (Exception e) {
       throw new AssertionError(e);
     }
     appenders = null;
     return ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY;
+  }
+
+  private void addDefaultAppenders(LoggingContextWrapper contextWrapper) {
+    boolean forceConsole = PropertiesUtils.getBoolean(contextWrapper.properties, "log.forceConsole", false);
+    if (forceConsole) {
+      ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
+      NabTSOnlyJsonEncoder nabTSOnlyJsonEncoder = new NabTSOnlyJsonEncoder();
+      consoleAppender.setEncoder(nabTSOnlyJsonEncoder);
+      defaultAppenders.add(consoleAppender);
+    }
   }
 
   protected void statusListener(LoggerContext context, Properties properties) {
@@ -163,6 +180,10 @@ public abstract class NabLoggingConfiguratorTemplate extends BasicConfigurator {
     var logger = context.getContext().getLogger(name);
     logger.setLevel(ch.qos.logback.classic.Level.toLevel(level));
     logger.setAdditive(additivity);
+    if (!defaultAppenders.isEmpty()) {
+      defaultAppenders.addAll(appenders);
+      appenders = defaultAppenders;
+    }
     appenders.forEach(logger::addAppender);
     addInfo("Created logger for name " + name + ", level=" + level + ", additivity=" + additivity + ". appenders="
         + appenders.stream().map(Appender::getName).collect(Collectors.joining(",")));

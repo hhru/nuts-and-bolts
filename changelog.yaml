@@ -1,3 +1,9 @@
+-   name: 17.0.4
+    date: '2025-08-21T16:38:55.601806+03:00'
+    description: Обновление jclient до 11.0.3
+    instructions: ''
+    compatible: true
+
 -   name: 17.0.3
     date: '2025-08-08T12:12:20.325679+03:00'
     description: поправить ошибку мёржа, отключающую tcp health check

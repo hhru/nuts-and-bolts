@@ -22,7 +22,7 @@ public class ContextStorage implements Storage<Context> {
     return new PreparedContextTransfer();
   }
 
-  private static class PreparedContextTransfer implements Transfer {
+  public static class PreparedContextTransfer implements Transfer {
     private final Context context = Context.current();
     private Scope scope;
 

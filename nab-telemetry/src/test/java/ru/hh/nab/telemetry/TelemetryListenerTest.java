@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
@@ -44,7 +45,7 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
-import ru.hh.trace.TraceContextImpl;
+import ru.hh.trace.TraceContext;
 
 @SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TelemetryListenerTest {
@@ -72,8 +73,7 @@ public class TelemetryListenerTest {
 
     TelemetryProcessorFactory telemetryProcessorFactory = new TelemetryProcessorFactory(
         telemetry.getTracer("jclient"),
-        new TelemetryPropagator(telemetry),
-        new TraceContextImpl()
+        new TelemetryPropagator(telemetry)
     );
     httpClientContext = new HttpClientContext(Collections.emptyMap(), Collections.emptyMap(), List.of());
 
@@ -83,7 +83,7 @@ public class TelemetryListenerTest {
     contextSupplier.addContext(Map.of(), Map.of());
 
     httpClientFactory = new HttpClientFactory(
-        new DefaultAsyncHttpClient(), contextSupplier, Set.of(), Runnable::run, new DefaultRequestStrategy());
+        new DefaultAsyncHttpClient(), contextSupplier, Set.of(), Runnable::run, new DefaultRequestStrategy(), mock(TraceContext.class));
   }
 
   @BeforeEach

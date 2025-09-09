@@ -21,23 +21,18 @@ import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
-import ru.hh.trace.TraceContextUnsafe;
-import ru.hh.trace.TraceIdGenerator;
 
 public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
   private static final String UNKNOWN = "unknown";
-  private static final String NULL_TRACE_ID_ERROR_MESSAGE = "Trace context doesn't contain new trace id so trace id will be generated";
 
   private final Tracer tracer;
   private final TelemetryPropagator telemetryPropagator;
-  private final TraceContextUnsafe traceContext;
   private Span span;
 
-  public TelemetryListenerImpl(Tracer tracer, TelemetryPropagator telemetryPropagator, TraceContextUnsafe traceContext) {
+  public TelemetryListenerImpl(Tracer tracer, TelemetryPropagator telemetryPropagator) {
     this.tracer = tracer;
     this.telemetryPropagator = telemetryPropagator;
-    this.traceContext = traceContext;
   }
 
   @Override
@@ -83,13 +78,6 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
     try (Scope ignore = span.makeCurrent()) {
       telemetryPropagator.propagate(request);
     }
-
-    String traceId = traceContext.getTraceId().orElseGet(() -> {
-      IllegalStateException error = new IllegalStateException(NULL_TRACE_ID_ERROR_MESSAGE);
-      LOGGER.error(error.getMessage(), error);
-      return TraceIdGenerator.generateTraceId();
-    });
-    request.getHeaders().set(HttpHeaderNames.X_REQUEST_ID, traceId);
   }
 
   @Override

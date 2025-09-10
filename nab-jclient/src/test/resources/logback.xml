@@ -7,4 +7,5 @@
     <root level="${rootLoggingLevel:-ERROR}">
         <appender-ref ref="CONSOLE" />
     </root>
+    <logger name="HttpClientTraceContext" level="OFF"/>
 </configuration>

@@ -119,7 +119,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   }
 
   private abstract static class AppenderConfigurer<T extends Appender<ILoggingEvent>> {
-    private static final String LOG_PATTERN_WITH_APPENDER_NAME = "[\"appender\":\"%s\"] %s";
+    private static final String RAW_LOG_PATTERN_WITH_APPENDER_NAME = "[\"appender\":\"%s.rlog\"] %s";
     private final T appender;
     private final HhMultiAppender optionsHolder;
 
@@ -170,7 +170,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
           .map(pattern -> {
             var layout = new PatternLayout();
             if (optionsHolder.includeAppenderName) {
-              pattern = LOG_PATTERN_WITH_APPENDER_NAME.formatted(optionsHolder.getName(), pattern);
+              pattern = RAW_LOG_PATTERN_WITH_APPENDER_NAME.formatted(optionsHolder.getName(), pattern);
             }
             layout.setPattern(pattern);
             return layout;

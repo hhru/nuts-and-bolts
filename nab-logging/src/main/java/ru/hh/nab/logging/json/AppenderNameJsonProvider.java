@@ -21,7 +21,7 @@ public class AppenderNameJsonProvider extends AbstractFieldJsonProvider<ILogging
   @Override
   public void writeTo(JsonGenerator generator, ILoggingEvent event) throws IOException {
     if (appenderName != null && !appenderName.isEmpty()) {
-      generator.writeStringField(getFieldName(), appenderName);
+      generator.writeStringField(getFieldName(), appenderName + ".slog");
     }
   }
 }

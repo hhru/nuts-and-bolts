@@ -170,7 +170,7 @@ public class HhMultiAppenderTest {
     
     // Проверяем, что JSON содержит поле "appender"
     assertTrue(jsonNode.has("appender"), "JSON должен содержать поле 'appender'");
-    assertEquals("service-appender", jsonNode.get("appender").asText(), "Значение поля 'appender' должно быть 'service-appender'");
+    assertEquals("service-appender.slog", jsonNode.get("appender").asText(), "Значение поля 'appender' должно быть 'service-appender'");
     
     // Проверяем другие поля
     assertTrue(jsonNode.has("msg"), "JSON должен содержать поле 'msg'");
@@ -260,7 +260,7 @@ public class HhMultiAppenderTest {
     String logOutput = new String(logBytes);
     
     // Проверяем, что вывод содержит форматирование с именем appender'а
-    String expectedOutput = "[\"appender\":\"test-appender\"] Test message with appender name\n";
+    String expectedOutput = "[\"appender\":\"test-appender.rlog\"] Test message with appender name\n";
     assertEquals(expectedOutput, logOutput);
     
     System.out.println("Generated log with appender name: " + logOutput);
@@ -333,7 +333,7 @@ public class HhMultiAppenderTest {
     
     // Проверяем, что вывод содержит форматирование с именем appender'а и кастомным паттерном
     // Ожидаем что-то вроде: ["appender":"custom-appender"] [1970-01-01 03:00:00,000] INFO - Custom pattern test message
-    assertTrue(logOutput.contains("[\"appender\":\"custom-appender\"]"), "Лог должен содержать форматирование с именем appender'а");
+    assertTrue(logOutput.contains("[\"appender\":\"custom-appender.rlog\"]"), "Лог должен содержать форматирование с именем appender'а");
     assertTrue(logOutput.contains("Custom pattern test message"), "Лог должен содержать сообщение");
     assertTrue(logOutput.contains("INFO"), "Лог должен содержать уровень логирования");
     
@@ -370,7 +370,7 @@ public class HhMultiAppenderTest {
     String logOutput = new String(logBytes);
     
     // Проверяем, что вывод НЕ содержит форматирование с именем appender'а, но содержит кастомный паттерн
-    assertTrue(!logOutput.contains("[\"appender\":\"custom-appender\"]"), "Лог не должен содержать форматирование с именем appender'а");
+    assertTrue(!logOutput.contains("[\"appender\":\"custom-appender.rlog\"]"), "Лог не должен содержать форматирование с именем appender'а");
     assertTrue(logOutput.contains("Custom pattern test message"), "Лог должен содержать сообщение");
     assertTrue(logOutput.contains("INFO"), "Лог должен содержать уровень логирования");
     

@@ -22,6 +22,7 @@ import ru.hh.nab.logging.json.NabJsonLayout;
 
 public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
+  public static final String WRITE_APPENDER_NAME_PROPERTY_KEY = "log.writeAppenderName";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
   protected Appender<ILoggingEvent> appender;
@@ -35,12 +36,8 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   }
 
   public HhMultiAppender(boolean json) {
-    this(json, false);
-  }
-
-  public HhMultiAppender(boolean json, boolean includeAppenderName) {
     this.json = json;
-    this.includeAppenderName = includeAppenderName;
+    this.includeAppenderName = Boolean.parseBoolean(getContext().getProperty(WRITE_APPENDER_NAME_PROPERTY_KEY));
   }
 
   @Override

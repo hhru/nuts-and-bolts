@@ -22,6 +22,7 @@ import ru.hh.nab.logging.json.NabJsonLayout;
 
 public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
+  public static final String WRITE_APPENDER_NAME_PROPERTY_KEY = "log.writeAppenderName";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
 
   protected Appender<ILoggingEvent> appender;
@@ -29,12 +30,14 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   protected Supplier<Encoder<ILoggingEvent>> encoderSupplier;
   protected String pattern;
   protected boolean json;
+  protected boolean includeAppenderName;
 
   public HhMultiAppender() {
   }
 
   public HhMultiAppender(boolean json) {
     this.json = json;
+    this.includeAppenderName = Boolean.parseBoolean(getContext().getProperty(WRITE_APPENDER_NAME_PROPERTY_KEY));
   }
 
   @Override
@@ -116,6 +119,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   }
 
   private abstract static class AppenderConfigurer<T extends Appender<ILoggingEvent>> {
+    private static final String RAW_LOG_PATTERN_WITH_APPENDER_NAME = "[\"appender\":\"%s.rlog\"] %s";
     private final T appender;
     private final HhMultiAppender optionsHolder;
 
@@ -151,7 +155,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       if (optionsHolder.encoderSupplier != null) {
         encoder = optionsHolder.encoderSupplier.get();
       } else if (optionsHolder.json) {
-        encoder = new NabJsonEncoder();
+        encoder = new NabJsonEncoder(optionsHolder.getName(), optionsHolder.includeAppenderName);
       } else {
         encoder = new LayoutWrappingEncoder<>();
         ((LayoutWrappingEncoder<ILoggingEvent>) encoder).setLayout(buildLayout());
@@ -165,6 +169,9 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
           .or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
           .map(pattern -> {
             var layout = new PatternLayout();
+            if (optionsHolder.includeAppenderName) {
+              pattern = RAW_LOG_PATTERN_WITH_APPENDER_NAME.formatted(optionsHolder.getName(), pattern);
+            }
             layout.setPattern(pattern);
             return layout;
             //need to throw Error because logback logs and ignores any Exception type

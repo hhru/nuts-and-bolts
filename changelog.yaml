@@ -1,3 +1,9 @@
+-   name: 17.1.0
+    date: '2025-09-12T18:06:31.193761+03:00'
+    description: В HhMultiAppender добавлена опция писать имя апендера в лог.
+    instructions: Для того чтобы писать имя апендера в консоль нужно поставить log.writeAppenderName=true
+    compatible: false
+
 -   name: 17.0.4
     date: '2025-08-21T16:38:55.601806+03:00'
     description: Обновление jclient до 11.0.3

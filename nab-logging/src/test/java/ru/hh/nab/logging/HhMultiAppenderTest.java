@@ -180,8 +180,6 @@ public class HhMultiAppenderTest {
     assertEquals("Starting HhNotesApp using Java 17.0.7 with PID 1", jsonNode.get("msg").asText());
     assertEquals("ru.hh.notes.HhNotesApp", jsonNode.get("logger").asText());
     assertEquals("INFO", jsonNode.get("lvl").asText());
-    
-    System.out.println("Generated JSON: " + jsonString);
   }
 
   @Test
@@ -225,8 +223,6 @@ public class HhMultiAppenderTest {
     assertTrue(jsonNode.has("msg"), "JSON должен содержать поле 'msg'");
     assertTrue(jsonNode.has("logger"), "JSON должен содержать поле 'logger'");
     assertTrue(jsonNode.has("lvl"), "JSON должен содержать поле 'lvl'");
-    
-    System.out.println("Generated JSON without appender: " + jsonString);
   }
 
 

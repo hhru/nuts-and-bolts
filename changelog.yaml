@@ -1,3 +1,9 @@
+-   name: 17.1.1
+    date: '2025-09-15T13:04:16.080392+03:00'
+    description: fix log circular reference
+    instructions: ''
+    compatible: true
+
 -   name: 17.1.0
     date: '2025-09-12T18:06:31.193761+03:00'
     description: В HhMultiAppender добавлена опция писать имя апендера в лог.

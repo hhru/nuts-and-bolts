@@ -135,11 +135,11 @@ public class HhMultiAppenderTest {
   public void testJsonLogContainsAppenderField() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "true");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
-    multiAppender.includeAppenderName = true;
     multiAppender.setName("service-appender");
     multiAppender.start();
 
@@ -180,19 +180,17 @@ public class HhMultiAppenderTest {
     assertEquals("Starting HhNotesApp using Java 17.0.7 with PID 1", jsonNode.get("msg").asText());
     assertEquals("ru.hh.notes.HhNotesApp", jsonNode.get("logger").asText());
     assertEquals("INFO", jsonNode.get("lvl").asText());
-    
-    System.out.println("Generated JSON: " + jsonString);
   }
 
   @Test
   public void testJsonLogWithoutAppenderField() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "false");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
-    multiAppender.includeAppenderName = false; // Не включаем appender name
     multiAppender.setName("service-appender");
     multiAppender.start();
 
@@ -225,8 +223,6 @@ public class HhMultiAppenderTest {
     assertTrue(jsonNode.has("msg"), "JSON должен содержать поле 'msg'");
     assertTrue(jsonNode.has("logger"), "JSON должен содержать поле 'logger'");
     assertTrue(jsonNode.has("lvl"), "JSON должен содержать поле 'lvl'");
-    
-    System.out.println("Generated JSON without appender: " + jsonString);
   }
 
 
@@ -234,10 +230,10 @@ public class HhMultiAppenderTest {
   public void testNonJsonWithAppenderNameEnabled() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "true");
     context.putProperty("log.pattern", "%msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
-    multiAppender.includeAppenderName = true; // Включаем appender name
     multiAppender.setName("test-appender");
     multiAppender.start();
 
@@ -270,10 +266,10 @@ public class HhMultiAppenderTest {
   public void testConsoleWithAppenderNameDisabled() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "false");
     context.putProperty("log.pattern", "%msg%n");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
-    multiAppender.includeAppenderName = false; // Отключаем appender name
     multiAppender.setName("test-appender");
     multiAppender.start();
 
@@ -306,10 +302,10 @@ public class HhMultiAppenderTest {
   public void testPatternLayoutWithCustomPatternAndAppenderNameEnabled() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "true");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setPattern("[%date] %level - %msg%n"); // Кастомный паттерн
-    multiAppender.includeAppenderName = true; // Включаем appender name
     multiAppender.setName("custom-appender");
     multiAppender.start();
 
@@ -344,10 +340,10 @@ public class HhMultiAppenderTest {
   public void testPatternLayoutWithCustomPatternAndAppenderNameDisabled() throws Exception {
     LoggerContext context = new LoggerContext();
     context.putProperty("log.toConsole", "true");
+    context.putProperty("log.writeAppenderName", "false");
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setPattern("[%date] %level - %msg%n"); // Кастомный паттерн
-    multiAppender.includeAppenderName = false; // Отключаем appender name
     multiAppender.setName("custom-appender");
     multiAppender.start();
 

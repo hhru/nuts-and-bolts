@@ -30,14 +30,12 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   protected Supplier<Encoder<ILoggingEvent>> encoderSupplier;
   protected String pattern;
   protected boolean json;
-  protected boolean includeAppenderName;
 
   public HhMultiAppender() {
   }
 
   public HhMultiAppender(boolean json) {
     this.json = json;
-    this.includeAppenderName = Boolean.parseBoolean(getContext().getProperty(WRITE_APPENDER_NAME_PROPERTY_KEY));
   }
 
   @Override
@@ -81,7 +79,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   protected AppenderConfigurer<?> createAppender() {
     boolean logToConsole = Boolean.parseBoolean(getContext().getProperty(LOG_TO_CONSOLE_PROPERTY_KEY));
     if (logToConsole) {
-      return new AppenderConfigurer<>(new ConsoleAppender<ILoggingEvent>(), this) {
+      return new AppenderConfigurer<>(new ConsoleAppender<>(), this, getContext()) {
         @Override
         protected void configure(ConsoleAppender<ILoggingEvent> appender) {
           appender.setEncoder(buildEncoder());
@@ -92,7 +90,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     String host = Optional.ofNullable(System.getenv(SYSLOG_HOST_ENV)).orElseGet(() -> getContext().getProperty(SYSLOG_HOST_PROPERTY_KEY));
     String port = getContext().getProperty(HhSyslogAppender.SYSLOG_PORT_PROPERTY_KEY);
     if (StringUtils.isNotEmpty(host) && StringUtils.isNumeric(port)) {
-      return new AppenderConfigurer<>(new HhSyslogAppender(this.json), this) {
+      return new AppenderConfigurer<>(new HhSyslogAppender(this.json), this, getContext()) {
         @Override
         protected void configure(HhSyslogAppender appender) {
           appender.setLayout(buildLayout());
@@ -100,7 +98,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       };
     }
 
-    return new AppenderConfigurer<>(new HhRollingAppender(), this) {
+    return new AppenderConfigurer<>(new HhRollingAppender(), this, getContext()) {
       @Override
       protected void configure(HhRollingAppender appender) {
         appender.setEncoder(buildEncoder());
@@ -122,10 +120,12 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     private static final String RAW_LOG_PATTERN_WITH_APPENDER_NAME = "[\"appender\":\"%s.rlog\"] %s";
     private final T appender;
     private final HhMultiAppender optionsHolder;
+    private final Context context;
 
-    private AppenderConfigurer(T appender, HhMultiAppender optionsHolder) {
+    private AppenderConfigurer(T appender, HhMultiAppender optionsHolder, Context context) {
       this.appender = appender;
       this.optionsHolder = optionsHolder;
+      this.context = context;
     }
 
     protected Appender<ILoggingEvent> configureAndGet() {
@@ -144,7 +144,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       } else if (optionsHolder.json) {
         layout = new NabJsonLayout();
       } else {
-        layout = createPatternLayout(optionsHolder);
+        layout = createPatternLayout(optionsHolder, context);
       }
       initIfNeeded(layout, optionsHolder.getContext());
       return layout;
@@ -155,7 +155,7 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       if (optionsHolder.encoderSupplier != null) {
         encoder = optionsHolder.encoderSupplier.get();
       } else if (optionsHolder.json) {
-        encoder = new NabJsonEncoder(optionsHolder.getName(), optionsHolder.includeAppenderName);
+        encoder = new NabJsonEncoder(optionsHolder.getName(), Boolean.parseBoolean(context.getProperty(WRITE_APPENDER_NAME_PROPERTY_KEY)));
       } else {
         encoder = new LayoutWrappingEncoder<>();
         ((LayoutWrappingEncoder<ILoggingEvent>) encoder).setLayout(buildLayout());
@@ -164,12 +164,12 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       return encoder;
     }
 
-    private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder) {
+    private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder, Context context) {
       return ofNullable(optionsHolder.pattern)
           .or(() -> ofNullable(optionsHolder.getContext().getProperty(LOG_PATTERN_PROPERTY_KEY)))
           .map(pattern -> {
             var layout = new PatternLayout();
-            if (optionsHolder.includeAppenderName) {
+            if (Boolean.parseBoolean(context.getProperty(WRITE_APPENDER_NAME_PROPERTY_KEY))) {
               pattern = RAW_LOG_PATTERN_WITH_APPENDER_NAME.formatted(optionsHolder.getName(), pattern);
             }
             layout.setPattern(pattern);

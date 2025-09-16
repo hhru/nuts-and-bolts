@@ -22,7 +22,9 @@
                     <reportsDirectory>target/logs</reportsDirectory>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <useFile>false</useFile>
-                    <disableXmlReport>true</disableXmlReport>
+                    <statelessTestsetReporter>
+                        <disable>true</disable>
+                    </statelessTestsetReporter>
                 </configuration>
             </plugin>
         </plugins>

@@ -7,10 +7,10 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_METHOD;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_STATUS_CODE;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_URL;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
+import io.opentelemetry.semconv.HttpAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
+import io.opentelemetry.semconv.incubating.DestinationIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.PeerIncubatingAttributes;
 import jakarta.annotation.Nullable;
 import static java.util.Optional.ofNullable;
 import org.slf4j.Logger;
@@ -21,6 +21,9 @@ import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
+import ru.hh.nab.telemetry.semconv.NabHttpAttributes;
+import ru.hh.nab.telemetry.semconv.NabPeerAttributes;
+import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 
 public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
@@ -56,15 +59,25 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
         .spanBuilder(request.getMethod() + " " + host)
         .setParent(Context.current())
         .setSpanKind(SpanKind.CLIENT)
-        .setAttribute(HTTP_URL, request.getUrl())
-        .setAttribute(HTTP_METHOD, request.getMethod())
-        .setAttribute("http.request.timeout", request.getRequestTimeout())
-        .setAttribute("http.request.original.timeout", ofNullable(request.getHeaders().get(HttpHeaderNames.X_OUTER_TIMEOUT_MS)).orElse("-1"))
-        .setAttribute(PEER_SERVICE, host);
 
-    builder.setAttribute("http.request.cloud.region", context.getDestinationDatacenter());
+        .setAttribute(SemanticAttributesForRemoval.HTTP_URL, request.getUrl())
+        .setAttribute(UrlAttributes.URL_FULL, request.getUrl())
+
+        .setAttribute(SemanticAttributesForRemoval.HTTP_METHOD, request.getMethod())
+        .setAttribute(HttpAttributes.HTTP_REQUEST_METHOD, request.getMethod())
+
+        .setAttribute(NabHttpAttributes.HTTP_REQUEST_TIMEOUT, request.getRequestTimeout())
+        .setAttribute(
+            NabHttpAttributes.HTTP_REQUEST_ORIGINAL_TIMEOUT,
+            ofNullable(request.getHeaders().get(HttpHeaderNames.X_OUTER_TIMEOUT_MS)).orElse("-1")
+        )
+        .setAttribute(PeerIncubatingAttributes.PEER_SERVICE, host);
+
+    builder.setAttribute(SemanticAttributesForRemoval.HTTP_REQUEST_CLOUD_REGION, context.getDestinationDatacenter());
+    builder.setAttribute(NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE, context.getDestinationDatacenter());
+
     builder.setAttribute(
-        "destination.address",
+        DestinationIncubatingAttributes.DESTINATION_ADDRESS,
         context.getDestinationHost() == null ? getExactUriHost(request.getUri()) : context.getDestinationHost()
     );
 
@@ -89,7 +102,10 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
 
     StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode(), false);
     span.setStatus(otelStatus, StatusCode.ERROR == otelStatus ? response.getStatusText() : "");
-    span.setAttribute(HTTP_STATUS_CODE, response.getStatusCode());
+
+    span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, response.getStatusCode());
+    span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, response.getStatusCode());
+
     span.end();
 
     LOGGER.trace("span closed: {}", span);

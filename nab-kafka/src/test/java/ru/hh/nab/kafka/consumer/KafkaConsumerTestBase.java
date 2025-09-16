@@ -4,7 +4,6 @@ import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
@@ -18,6 +17,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import static ru.hh.nab.common.util.ExceptionUtils.getOrThrow;
 import ru.hh.nab.kafka.KafkaTestConfig;
@@ -34,8 +34,8 @@ public abstract class KafkaConsumerTestBase {
   protected String topicName;
 
   @BeforeEach
-  public void initializeTopic() {
-    topicName = UUID.randomUUID().toString();
+  public void initializeTopic() throws ExecutionException, InterruptedException {
+    topicName = KafkaTestUtils.createTopic(testKafka.getBootstrapServers());
   }
 
   protected <T> KafkaConsumer<T> startMessagesConsumer(Class<T> messageClass, ConsumeStrategy<T> consumerMock) {

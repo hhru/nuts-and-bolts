@@ -14,6 +14,7 @@ import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.nab.kafka.KafkaTestConfig;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
@@ -57,6 +59,11 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @BeforeEach
+  public void initializeRetryTopic() throws ExecutionException, InterruptedException {
+    KafkaTestUtils.createTopic(getDefaultRetryTopic(), testKafka.getBootstrapServers());
   }
 
   @AfterEach

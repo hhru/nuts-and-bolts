@@ -17,7 +17,22 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>java-dogstatsd-client</artifactId>
-            <version>4.4.2</version>
+            <version>4.4.5</version>
+            <exclusions>
+                <!-- TODO Take a look on jnr-ffi override for jar-hell fix below -->
+                <exclusion>
+                    <groupId>com.github.jnr</groupId>
+                    <artifactId>jnr-ffi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
+                 Remove this override when new version of jnr-ffi will appear in java-dogstatsd-client -->
+            <groupId>com.github.jnr</groupId>
+            <artifactId>jnr-ffi</artifactId>
+            <version>2.2.17</version>
         </dependency>
 
         <dependency>
@@ -52,7 +67,9 @@
                     <reportsDirectory>target/logs</reportsDirectory>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <useFile>false</useFile>
-                    <disableXmlReport>true</disableXmlReport>
+                    <statelessTestsetReporter>
+                        <disable>true</disable>
+                    </statelessTestsetReporter>
                 </configuration>
             </plugin>
         </plugins>

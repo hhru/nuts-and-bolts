@@ -1,29 +1,23 @@
 package ru.hh.nab.telemetry.jdbc.internal.getter;
 
-import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
-import io.opentelemetry.instrumentation.jdbc.internal.JdbcNetAttributesGetter;
+import io.opentelemetry.instrumentation.api.semconv.network.ServerAttributesGetter;
+import io.opentelemetry.instrumentation.jdbc.internal.JdbcNetworkAttributesGetter;
 import jakarta.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 
-public class NabJdbcNetworkAttributesGetter implements NetClientAttributesGetter<NabDbRequest, Void> {
+public class NabJdbcNetworkAttributesGetter implements ServerAttributesGetter<NabDbRequest> {
 
-  private static final JdbcNetAttributesGetter jdbcNetAttributesGetter = new JdbcNetAttributesGetter();
+  private static final JdbcNetworkAttributesGetter jdbcNetAttributesGetter = new JdbcNetworkAttributesGetter();
 
   @Nullable
   @Override
-  public String getTransport(NabDbRequest request, @Nullable Void unused) {
-    return jdbcNetAttributesGetter.getTransport(request.getDbRequest(), unused);
+  public String getServerAddress(NabDbRequest request) {
+    return jdbcNetAttributesGetter.getServerAddress(request.getDbRequest());
   }
 
   @Nullable
   @Override
-  public String getPeerName(NabDbRequest request) {
-    return jdbcNetAttributesGetter.getPeerName(request.getDbRequest());
-  }
-
-  @Nullable
-  @Override
-  public Integer getPeerPort(NabDbRequest request) {
-    return jdbcNetAttributesGetter.getPeerPort(request.getDbRequest());
+  public Integer getServerPort(NabDbRequest request) {
+    return jdbcNetAttributesGetter.getServerPort(request.getDbRequest());
   }
 }

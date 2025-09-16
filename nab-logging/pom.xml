@@ -70,7 +70,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>6.5</version>
+            <version>8.1</version>
         </dependency>
         <dependency>
             <groupId>io.sentry</groupId>

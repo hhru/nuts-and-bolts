@@ -4,13 +4,13 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>2.1.1</version>
+        <version>2.1.1.boot-3.5-alpha4</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>20.0.1-SNAPSHOT</version>
+    <version>20.0.0.boot-3.5-alpha1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -33,10 +33,10 @@
     </modules>
 
     <properties>
-        <jclient.version>14.0.0</jclient.version>
+        <jclient.version>14.0.0.boot-3.5-alpha1</jclient.version>
         <java.version>17</java.version>
-        <consul.client.version>2.0.1</consul.client.version>
-        <kafka-test-utils.version>1.0.2</kafka-test-utils.version>
+        <consul.client.version>2.0.1.boot-3.5-alpha1</consul.client.version>
+        <kafka-test-utils.version>1.0.2.boot-3.5-alpha1</kafka-test-utils.version>
     </properties>
 
     <dependencyManagement>
@@ -126,7 +126,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
-                <version>1.9</version>
+                <version>1.13.1</version>
             </dependency>
 
             <dependency>

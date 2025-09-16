@@ -1,33 +1,21 @@
 package ru.hh.nab.web.jetty.session;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 // TODO: https://jira.hh.ru/browse/HH-237202
 public class NoopSessionHandler extends SessionHandler {
 
   @Override
-  public void doScope(
-      String target,
-      Request baseRequest,
-      HttpServletRequest request,
-      HttpServletResponse response
-  ) throws IOException, ServletException {
-    nextScope(target, baseRequest, request, response);
-  }
+  public boolean handle(Request request, Response response, Callback callback) throws Exception {
+    Handler next = getHandler();
+    if (next == null) {
+      return false;
+    }
 
-  @SuppressWarnings("RedundantMethodOverride")
-  @Override
-  public void doHandle(
-      String target,
-      Request baseRequest,
-      HttpServletRequest request,
-      HttpServletResponse response
-  ) throws IOException, ServletException {
-    nextHandle(target, baseRequest, request, response);
+    return next.handle(request, response, callback);
   }
 }

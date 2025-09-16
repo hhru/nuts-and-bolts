@@ -14,12 +14,12 @@ public class SqlRequestIdCommenterTest {
     assertEquals("/* Valid-rid_0123 */ SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
     MDC.clearRequestId();
 
-    String rid = RandomStringUtils.randomAlphanumeric(100);
+    String rid = RandomStringUtils.secure().nextAlphanumeric(100);
     MDC.setRequestId(rid);
     assertEquals(String.format("/* %s */ SELECT * FROM resume;", rid), SqlRequestIdCommenter.addRequestIdComment(SQL));
     MDC.clearRequestId();
 
-    MDC.setRequestId(RandomStringUtils.randomAlphanumeric(101));
+    MDC.setRequestId(RandomStringUtils.secure().nextAlphanumeric(101));
     assertEquals("SELECT * FROM resume;", SqlRequestIdCommenter.addRequestIdComment(SQL));
     MDC.clearRequestId();
 

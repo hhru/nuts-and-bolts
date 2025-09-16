@@ -1,8 +1,8 @@
 package ru.hh.nab.telemetry.jdbc.internal.getter;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.opentelemetry.instrumentation.api.incubator.semconv.db.DbClientSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;
-import io.opentelemetry.instrumentation.api.instrumenter.db.DbClientSpanNameExtractor;
 import io.opentelemetry.instrumentation.jdbc.internal.DbRequest;
 import io.opentelemetry.instrumentation.jdbc.internal.dbinfo.DbInfo;
 import static org.junit.jupiter.api.Assertions.assertEquals;

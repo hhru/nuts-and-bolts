@@ -1,7 +1,153 @@
 -   name: 20.0.0.boot-3.5-alpha1
     date: '2025-09-19T18:00:00.000000+03:00'
-    description: Удаление TopicPartitionsMonitoring
+    description: |
+        1. Обновление public-pom до 2.1.1.boot-3.5-alpha3
+        2. Обновление consul-client до 2.0.0.boot-3.5-alpha1
+        3. Обновление JClient до 14.0.0.boot-3.5-alpha1
+        4. Обновление kafka-test-utils до 1.0.2.boot-3.5-alpha1.2
+        5. Обновление logstash-logback-encoder до 8.1
+        6. Обновление commons-text до 1.13.1  
+        7. Начиная с этой версии некоторые span атрибуты OpenTelemetry помечаются как deprecated и будут удалены в будущих версиях.
+           Вместе со старыми атрибутами будут добавлены новые аналоги, что приведёт к увеличению потребляемого места в вашем хранилище OpenTelemetry.
+           Если вы не знаете зачем вам могли бы понадобиться сразу 2 набора атрибутов в этой переходной версии - сразу обновляйтесь на последующие
+           версии, с целью экономии места в хранилища.
+           Изменения в атрибутах:
+            1. Вместо SemanticAttributes.CODE_FUNCTION (здесь и далее в скобках будет приводиться текстовое значение, которое нужно поискать в коде
+               текстовым поиском помимо константы; если вы нашли такое текстовое значение, то рекомендуется заменить его на константу; "code.function")
+               и SemanticAttributes.CODE_NAMESPACE ("code.namespace") нужно использовать 1 общий атрибут
+               CodeAttributes.CODE_FUNCTION_NAME ("code.function.name"). Смотри подробнее в Javadoc SemanticAttributesForRemoval.CODE_FUNCTION,
+               SemanticAttributesForRemoval.CODE_NAMESPACE как они соотносятся.  
+            2. Вместо SemanticAttributes.HTTP_CLIENT_IP ("http.client_ip") нужно использовать ClientAttributes.CLIENT_ADDRESS ("client.address").
+            3. Вместо SemanticAttributes.HTTP_HOST ("http.host") нужно использовать ServerAttributes.SERVER_ADDRESS ("server.address").
+            4. Вместо SemanticAttributes.HTTP_METHOD ("http.method") нужно использовать HttpAttributes.HTTP_REQUEST_METHOD ("http.request.method").
+            5. Вместо текстового атрибута "http.request.cloud.region" (константы раньше не было) нужно использовать
+               NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE ("peer.cloud.availability_zone").
+            6. Вместо SemanticAttributes.HTTP_SCHEME ("http.scheme") нужно использовать UrlAttributes.URL_SCHEME ("url.scheme").
+            7. Вместо SemanticAttributes.HTTP_STATUS_CODE ("http.status_code") нужно использовать
+               HttpAttributes.HTTP_RESPONSE_STATUS_CODE ("http.response.status_code").
+            8. Вместо SemanticAttributes.HTTP_TARGET ("http.target") нужно использовать 2 атрибута: UrlAttributes.URL_PATH ("url.path") и
+               UrlAttributes.URL_QUERY ("url.query"). Смотри подробнее в Javadoc SemanticAttributesForRemoval.HTTP_TARGET как они соотносятся.
+            9. Вместо SemanticAttributes.HTTP_URL ("http.url") нужно использовать UrlAttributes.URL_FULL ("url.full").
+           10. Вместо SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID ("messaging.kafka.client_id") нужно использовать
+               MessagingIncubatingAttributes.MESSAGING_CLIENT_ID ("messaging.client.id").
+           11. Вместо SemanticAttributes.MESSAGING_KAFKA_CONSUMER_GROUP ("messaging.kafka.consumer.group") нужно использовать
+               MessagingIncubatingAttributes.MESSAGING_CONSUMER_GROUP_NAME ("messaging.consumer.group.name").
+           12. Вместо SemanticAttributes.MESSAGING_OPERATION ("messaging.operation") нужно использовать
+               MessagingIncubatingAttributes.MESSAGING_OPERATION_TYPE (""messaging.operation.type"").
+               При этом константа значений тоже меняется: вместо SemanticAttributes.MessagingOperationValues надо использовать
+               MessagingIncubatingAttributes.MessagingOperationTypeIncubatingValues.
+        8. Для некоторых span-атрибутов OpenTelemetry раньше не было констант, которые теперь добавлены. Рекомендуется поискать их текстовым поиском
+           и заменить на константы.
+           1. Вместо "destination.address" рекомендуется использовать константу DestinationIncubatingAttributes.DESTINATION_ADDRESS
+           2. Вместо "user_agent.original" рекомендуется использовать константу UserAgentAttributes.USER_AGENT_ORIGINAL.
+           3. Вместо "http.request.original.timeout" рекомендуется использовать константу NabHttpAttributes.HTTP_REQUEST_ORIGINAL_TIMEOUT.
+           4. Вместо "http.request.timeout" рекомендуется использовать константу NabHttpAttributes.HTTP_REQUEST_TIMEOUT.
+        9. Удаление TopicPartitionsMonitoring
     instructions: |
-        1. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
-           не нужно передавать в конструктор KafkaConsumer.
+         1. Обновление Spring Framework до 6.2.10. Мигрировать в соответствии с Release notes:
+            https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes,
+            https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.2-Release-Notes.
+            Из основных изменений:
+            1. Если использовался статический метод org.springframework.http.HttpMethod.resolve, то его надо заменить на
+               org.springframework.http.HttpMethod.valueOf. Разница в том, что в последнем больше нельзя передавать null - сделайте проверку
+               самостоятельно если требуется.  
+            2. Если использовался метод org.springframework.http.HttpRequest.getMethodValue(), то его надо заменить на
+               org.springframework.http.HttpRequest.getMethod().name().
+            3. Если использовали org.springframework.http.client.HttpComponentsClientHttpRequestFactory.setReadTimeout(int), то теперь вместо него
+               надо передавать предварительно настроенный HttpClient в конструкторе HttpComponentsClientHttpRequestFactory(HttpClient). В цепочке
+               настройки необходимо вызвать SocketConfig.Builder.setSoTimeout(Timeout) для правильного SocketConfig, после чего пробросить его в
+               org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder.setDefaultSocketConfig(SocketConfig), затем connection
+               manager в org.apache.hc.client5.http.impl.classic.HttpClientBuilder.setConnectionManager(HttpClientConnectionManager).
+            4. Если использовался метод org.springframework.http.client.reactive.ClientHttpResponse.getRawStatusCode(), то его надо заменить на
+               org.springframework.http.client.reactive.ClientHttpResponse.getStatusCode().value().
+            5. Удалено несколько конструкторов в org.springframework.web.HttpRequestMethodNotSupportedException; если использовали их, то замените
+               на HttpRequestMethodNotSupportedException(String, Collection).
+            6. Замена аннотаций @MockBean и @SpyBean на @MockitoBean и @MockitoSpyBean соответственно.
+         2. Обновление Jetty до 12.0.25. Мигрировать в соответствии с гайдом:
+            https://jetty.org/docs/jetty/12/programming-guide/migration/11-to-12.html.
+            Из основных изменений:
+             1. Если использовалась зависимость org.eclipse.jetty.websocket:websocket-jakarta-server, то её надо заменить на
+                org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server.
+             2. Если использовалась зависимость org.eclipse.jetty.websocket:websocket-jetty-server, то вместо неё надо добавить 2 артефакта
+                org.eclipse.jetty.websocket:jetty-websocket-jetty-server и org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server.
+             3. Если использовалась зависимость org.eclipse.jetty:apache-jsp, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-apache-jsp.
+             4. Если использовалась зависимость org.eclipse.jetty:jetty-annotations, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-annotations.
+             5. Если использовалась зависимость org.eclipse.jetty:jetty-jspc-maven-plugin, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-jspc-maven-plugin.
+             6. Если использовалась зависимость org.eclipse.jetty:jetty-maven-plugin, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-maven-plugin.
+             7. Если использовалась зависимость org.eclipse.jetty:jetty-plus, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-plus.
+             8. Если использовалась зависимость org.eclipse.jetty:jetty-runner, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-runner.
+             9. Если использовалась зависимость org.eclipse.jetty:jetty-servlet, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-servlet.
+            10. Если использовалась зависимость org.eclipse.jetty:jetty-webapp, то её надо заменить на
+                org.eclipse.jetty.ee10:jetty-ee10-webapp.
+            11. Обновить import'ы.
+            12. Поменялись сигнатуры классов AbstractConfiguration, SecurityHandler, SessionHandler - обновить на аналоги.
+         3. Обновление Logback до 1.5.18. Если в тестах появились ошибки, связанные с MDCAdapter, то необходимо
+            1. Убедиться, что в LoggingEvent установлен LoggerContext -> event.setLoggerContext(context);
+            2. Убедиться, что в LoggerContext установлен MDCAdapter -> адаптер по умолчанию из старых версий:
+               context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
+               Подробнее https://github.com/spring-projects/spring-boot/issues/36177.
+         4. Обновление Hibernate до 6.6.26.Final. Мигрировать в соответствии с гайдами:
+            https://docs.jboss.org/hibernate/orm/6.4/migration-guide/migration-guide.html,
+            https://docs.jboss.org/hibernate/orm/6.5/migration-guide/migration-guide.html,
+            https://docs.jboss.org/hibernate/orm/6.6/migration-guide/migration-guide.html
+            Из основных изменений:
+            1. Если аннотация @GeneratedValue навешивается на поле, на котором нет аннотации @Id, то @GeneratedValue нужно удалить.
+            2. Перейти на новый стиль id generator'ов
+               Было:
+               @GeneratedValue(generator = "my_seq_gen")
+               @GenericGenerator(
+                 name = "my_seq_gen",
+                 strategy = "sequence",
+                 parameters = {
+                   @Parameter(name = SequenceStyleGenerator.SEQUENCE_PARAM, value = "my_sequence"),
+                   @Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1")
+                 }
+               )
+               Стало:
+               @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "my_seq_gen")
+               @SequenceGenerator(name = "my_seq_gen", sequenceName = "my_sequence", allocationSize = 1)
+                Было:
+               @GeneratedValue(generator = "uuid")
+               @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+               Стало:
+               @UuidGenerator
+               Для остальных стратегий смотри Javadoc IdGeneratorType
+            3. Найти использования ResultCheckStyle и заменить на Expectation
+               Было:
+               @SQLInsert(check=ResultCheckStyle.COUNT)
+               Стало:
+               @SQLInsert(verify=Expectation.RowCount.class)
+         5. Обновлена сигнатура NoopSecurityHandler в соответствии с общими изменениями ConstraintSecurityHandler в Jetty. Если делали override,
+            то нужно использовать обновлённую сигнатуру в методе handle.
+         6. Обновлена сигнатура NoopSessionHandler в соответствии с общими изменениями SessionHandler в Jetty. Если делали override, то нужно
+            использовать обновлённую сигнатуру в методе handle.
+         7. Вместо SemanticAttributes.HTTP_ROUTE нужно использовать HttpAttributes.HTTP_ROUTE. Внутреннее значение спана при этом не меняется.
+         8. Вместо SemanticAttributes.MESSAGING_DESTINATION_NAME нужно использовать MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME.
+            Внутреннее значение спана при этом не меняется.
+         9. Вместо SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY нужно использовать MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY.
+            Внутреннее значение спана при этом не меняется.
+        10. Вместо SemanticAttributes.MESSAGING_SYSTEM нужно использовать MessagingIncubatingAttributes.MESSAGING_SYSTEM.
+            Внутреннее значение спана при этом не меняется.
+            Для значений атрибута теперь нужно использовать константу MessagingIncubatingAttributes.MessagingSystemIncubatingValues.
+        11. Вместо SemanticAttributes.PEER_SERVICE нужно использовать PeerIncubatingAttributes.PEER_SERVICE. Внутреннее значение спана при этом не
+            меняется.
+        12. Вместо ResourceAttributes.SERVICE_NAME нужно использовать ServiceAttributes.SERVICE_NAME. Внутреннее значение спана при этом не
+            меняется. 
+        13. Для всех остальных deprecated атрибутов вида SemanticAttributes.CODE_FUNCTION нужно поменять префикс констант на
+            SemanticAttributesForRemoval.CODE_FUNCTION. Внутренние значение спанов при этом не меняются. Это нужно делать только если вы не можете
+            мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной совместимости.
+        14. Меняется формат значения в span атрибуте SemanticAttributesForRemoval.CODE_NAMESPACE ("code.namespace"). Вместо class.getCanonicalName()
+            теперь используется class.getName(). Т.е. вместо "ru.hh.nab.MyClass.MyInnerStaticClass" будет "ru.hh.nab.MyClass$MyInnerStaticClass"
+            Адаптируйте код если у вас были завязки на старый формат.
+        15. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
+            `.addAttributesExtractor(ServerAttributesExtractor.create(new NabJdbcNetworkAttributesGetter()))`
+        16. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
+            не нужно передавать в конструктор KafkaConsumer.
     compatible: false

@@ -4,13 +4,13 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
@@ -24,8 +24,8 @@ public class KafkaProducerFactoryTest {
   private String topicName;
 
   @BeforeEach
-  public void createTempTopic() {
-    topicName = UUID.randomUUID().toString();
+  public void createTempTopic() throws ExecutionException, InterruptedException {
+    topicName = KafkaTestUtils.createTopic(testKafka.getBootstrapServers());
   }
 
   @Test

@@ -54,10 +54,6 @@ public class StatsDMetricsConsumer implements MetricsConsumer {
           metricsProvider.usedHeapMemory().get()
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.numActiveTinyAllocations", nameTag),
-          metricsProvider.numActiveTinyAllocations().get()
-      );
-      statsDSender.sendGauge(
           getFullMetricName("async.client.numActiveSmallAllocations", nameTag),
           metricsProvider.numActiveSmallAllocations().get()
       );

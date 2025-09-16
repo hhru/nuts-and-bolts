@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.monitoring;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -238,6 +239,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
   @Configuration
   public static class CompanionConfiguration extends KafkaTestConfig {
     @Bean
+    @Named(KAFKA)
     public Properties properties() {
       Properties properties = super.properties();
       // See ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE

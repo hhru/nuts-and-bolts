@@ -3,6 +3,7 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -20,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import ru.hh.nab.logging.json.NabJsonEncoder;
 import ru.hh.nab.logging.json.NabJsonLayout;
 
@@ -137,6 +140,7 @@ public class HhMultiAppenderTest {
     context.putProperty("log.toConsole", "true");
     context.putProperty("log.writeAppenderName", "true");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
+    context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
@@ -147,6 +151,8 @@ public class HhMultiAppenderTest {
     LoggingEvent event = new LoggingEvent();
     event.setMessage("Starting HhNotesApp using Java 17.0.7 with PID 1");
     event.setLoggerName("ru.hh.notes.HhNotesApp");
+    event.setInstant(Instant.now());
+    event.setLoggerContext(context);
     event.setLevel(ch.qos.logback.classic.Level.INFO);
 
     // Создаем StringWriter для захвата JSON
@@ -188,6 +194,7 @@ public class HhMultiAppenderTest {
     context.putProperty("log.toConsole", "true");
     context.putProperty("log.writeAppenderName", "false");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
+    context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
@@ -199,6 +206,8 @@ public class HhMultiAppenderTest {
     event.setMessage("Starting HhNotesApp using Java 17.0.7 with PID 1");
     event.setLoggerName("ru.hh.notes.HhNotesApp");
     event.setLevel(ch.qos.logback.classic.Level.INFO);
+    event.setInstant(Instant.now());
+    event.setLoggerContext(context);
 
     // Получаем encoder
     ThrowableSupplier encoderSupplier = createEncoderSupplier(multiAppender.appender);
@@ -351,6 +360,7 @@ public class HhMultiAppenderTest {
     LoggingEvent event = new LoggingEvent();
     event.setMessage("Custom pattern test message");
     event.setLoggerName("ru.hh.test.Logger");
+    event.setInstant(Instant.now());
     event.setLevel(ch.qos.logback.classic.Level.INFO);
 
     // Получаем encoder

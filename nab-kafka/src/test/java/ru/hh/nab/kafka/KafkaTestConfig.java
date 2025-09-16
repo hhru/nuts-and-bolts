@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.inject.Named;
 import java.util.Map;
 import java.util.Properties;
 import static org.mockito.Mockito.mock;
@@ -23,6 +24,7 @@ import ru.hh.nab.metrics.StatsDSender;
 public class KafkaTestConfig {
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  protected static final String KAFKA = "kafka";
   private static final TestKafkaWithJsonMessages TEST_KAFKA = KafkaTestUtils.startKafkaWithJsonMessages(
       OBJECT_MAPPER,
       Map.of("num.partitions", "5")
@@ -39,7 +41,7 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  public ConfigProvider configProvider(Properties properties, StatsDSender statsDSender) {
+  public ConfigProvider configProvider(@Named(KAFKA) Properties properties, StatsDSender statsDSender) {
     return new ConfigProvider("service", "kafka", properties, statsDSender);
   }
 
@@ -63,6 +65,7 @@ public class KafkaTestConfig {
   }
 
   @Bean
+  @Named(KAFKA)
   public Properties properties() {
     Properties properties = new Properties();
     properties.put("kafka.common.security.protocol", "PLAINTEXT");

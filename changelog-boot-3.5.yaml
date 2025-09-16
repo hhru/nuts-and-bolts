@@ -1,0 +1,90 @@
+-   name: 17.1.2.boot-3.5-alpha1
+    date: '2025-09-19T18:00:00.000000+03:00'
+    description: |
+        1. Обновление public-pom до 2.1.1.boot-3.5-alpha1
+    instructions: |
+        1. Обновление Spring Framework до 6.2.10. Мигрировать в соответствии с Release notes:
+           https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes,
+           https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.2-Release-Notes.
+           Из основных изменений:
+           1.1. Если использовался статический метод org.springframework.http.HttpMethod.resolve, то его надо заменить на
+                org.springframework.http.HttpMethod.valueOf. Разница в том, что в последнем больше нельзя передавать null - сделайте проверку
+                самостоятельно если требуется.  
+           1.2. Если использовался метод org.springframework.http.HttpRequest.getMethodValue(), то его надо заменить на
+                org.springframework.http.HttpRequest.getMethod().name().
+           1.3. Если использовали org.springframework.http.client.HttpComponentsClientHttpRequestFactory.setReadTimeout(int), то теперь вместо него
+                надо передавать предварительно настроенный HttpClient в конструкторе HttpComponentsClientHttpRequestFactory(HttpClient). В цепочке
+                настройки необходимо вызвать SocketConfig.Builder.setSoTimeout(Timeout) для правильного SocketConfig, после чего пробросить его в
+                org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder.setDefaultSocketConfig(SocketConfig), затем connection
+                manager в org.apache.hc.client5.http.impl.classic.HttpClientBuilder.setConnectionManager(HttpClientConnectionManager).
+           1.4. Если использовался метод org.springframework.http.client.reactive.ClientHttpResponse.getRawStatusCode(), то его надо заменить на
+                org.springframework.http.client.reactive.ClientHttpResponse.getStatusCode().value().
+           1.5. Удалено несколько конструкторов в org.springframework.web.HttpRequestMethodNotSupportedException; если использовали их, то замените
+                на HttpRequestMethodNotSupportedException(String, Collection).
+           1.6. Замена аннотаций @MockBean и @SpyBean на @MockitoBean и @MockitoSpyBean соответственно.
+        2. Обновление Spring Boot до 3.5.5 Мигрировать в соответствии с Release notes:
+           https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes,
+           https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.3-Release-Notes,
+           https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes,
+           https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.5-Release-Notes
+           Из основных изменений:
+           2.1. Если в ваших настройках была строка 'spring.mvc.throw-exception-if-no-handler-found' - её надо удалить.
+           2.2. Если в ваших настройках была строка 'spring.mvc.ignore-default-model-on-redirect' - её надо удалить и мигрировать на
+                RedirectAttributes; Подробнее про RedirectAttributes -
+                https://docs.spring.io/spring-framework/docs/6.0.15/javadoc-api/org/springframework/web/servlet/mvc/support/RedirectAttributes.html.
+        3. Обновление Jetty до 12.0.25. Мигрировать в соответствии с гайдом:
+           https://jetty.org/docs/jetty/12/programming-guide/migration/11-to-12.html.
+           Из основных изменений:
+           3.1.  Если использовалась зависимость org.eclipse.jetty.websocket:websocket-jakarta-server, то её надо заменить на
+                 org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server.
+           3.2.  Если использовалась зависимость org.eclipse.jetty.websocket:websocket-jetty-server, то вместо неё надо добавить 2 артефакта
+                 org.eclipse.jetty.websocket:jetty-websocket-jetty-server и org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server.
+           3.3.  Если использовалась зависимость org.eclipse.jetty:apache-jsp, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-apache-jsp.
+           3.4.  Если использовалась зависимость org.eclipse.jetty:jetty-annotations, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-annotations.
+           3.5.  Если использовалась зависимость org.eclipse.jetty:jetty-jspc-maven-plugin, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-jspc-maven-plugin.
+           3.6.  Если использовалась зависимость org.eclipse.jetty:jetty-maven-plugin, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-maven-plugin.
+           3.7.  Если использовалась зависимость org.eclipse.jetty:jetty-plus, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-plus.
+           3.8.  Если использовалась зависимость org.eclipse.jetty:jetty-runner, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-runner.
+           3.9.  Если использовалась зависимость org.eclipse.jetty:jetty-servlet, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-servlet.
+           3.10. Если использовалась зависимость org.eclipse.jetty:jetty-webapp, то её надо заменить на
+                 org.eclipse.jetty.ee10:jetty-ee10-webapp.
+           3.11. Обновить import'ы.
+        4. Обновление Hibernate до 6.5.3.Final. Мигрировать в соответствии с гайдами:
+           https://docs.jboss.org/hibernate/orm/6.4/migration-guide/migration-guide.html,
+           https://docs.jboss.org/hibernate/orm/6.5/migration-guide/migration-guide.html,
+           https://docs.jboss.org/hibernate/orm/6.6/migration-guide/migration-guide.html
+           Из основных изменений:
+           6.1. Если аннотация @GeneratedValue навешивается на поле, на котором нет аннотации @Id, то @GeneratedValue нужно удалить.
+           6.2. Перейти на новый стиль id generator'ов
+                Было:
+                @GeneratedValue(generator = "my_seq_gen")
+                @GenericGenerator(
+                  name = "my_seq_gen",
+                  strategy = "sequence",
+                  parameters = {
+                    @Parameter(name = SequenceStyleGenerator.SEQUENCE_PARAM, value = "my_sequence"),
+                    @Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1")
+                  }
+                )
+                Стало:
+                @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "my_seq_gen")
+                @SequenceGenerator(name = "my_seq_gen", sequenceName = "my_sequence", allocationSize = 1)
+                Было:
+                @GeneratedValue(generator = "uuid")
+                @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+                Стало:
+                @UuidGenerator
+                Для остальных стратегий смотри Javadoc IdGeneratorType
+           6.3. Найти использования ResultCheckStyle и заменить на Expectation
+                Было:
+                @SQLInsert(check=ResultCheckStyle.COUNT)
+                Стало:
+                @SQLInsert(verify=Expectation.RowCount.class)
+    compatible: false

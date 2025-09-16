@@ -80,8 +80,8 @@
 
         <!-- Jetty -->
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-webapp</artifactId>
         </dependency>
 
         <!--Jackson-->
@@ -113,6 +113,14 @@
             <groupId>org.caffinitas.ohc</groupId>
             <artifactId>ohc-core</artifactId>
             <version>0.7.4</version>
+            <exclusions>
+                <!-- TODO Latest ohc-core version doesn't has (on a moment of writing) modern asm to resolve jar-hell with
+                     spring-boot-starter-test. Update ohc-core when it will appear and remove this exclusion. -->
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--Testing-->
@@ -148,6 +156,14 @@
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
             <scope>test</scope>
+            <exclusions>
+                <!-- TODO Latest reflections version doesn't has (on a moment of writing) modern javaassist to resolve jar-hell with
+                     spring-boot-starter-jersey. Update reflections when it will appear and remove this exclusion. -->
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>org.javassist</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

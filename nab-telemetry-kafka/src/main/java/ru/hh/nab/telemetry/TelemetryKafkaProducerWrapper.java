@@ -7,18 +7,19 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_KIND;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_DESTINATION_NAME;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MESSAGING_SYSTEM;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.MessagingDestinationKindValues.TOPIC;
-import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.PEER_SERVICE;
+import io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes;
+import static io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes.MESSAGING_CLIENT_ID;
+import static io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME;
+import static io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY;
+import static io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes.MessagingSystemIncubatingValues.KAFKA;
+import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
+import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND;
+import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID;
 
 public class TelemetryKafkaProducerWrapper extends KafkaProducer {
   private final String clusterName;
@@ -42,10 +43,12 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
         .setParent(Context.current())
         .setSpanKind(SpanKind.PRODUCER)
         .setAttribute(PEER_SERVICE, clusterName)
-        .setAttribute(MESSAGING_SYSTEM, "kafka")
+        .setAttribute(MessagingIncubatingAttributes.MESSAGING_SYSTEM, KAFKA)
         .setAttribute(MESSAGING_DESTINATION_NAME, record.topic())
-        .setAttribute(MESSAGING_DESTINATION_KIND, TOPIC)
-        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, clientId);
+        .setAttribute(MESSAGING_DESTINATION_KIND, "topic")
+
+        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, clientId)
+        .setAttribute(MESSAGING_CLIENT_ID, clientId);
 
     if (record.key() != null) {
       builder.setAttribute(MESSAGING_KAFKA_MESSAGE_KEY, record.key());

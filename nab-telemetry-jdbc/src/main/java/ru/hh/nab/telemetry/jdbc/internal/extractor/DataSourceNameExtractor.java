@@ -1,8 +1,8 @@
 package ru.hh.nab.telemetry.jdbc.internal.extractor;
 
+import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesGetter;
+import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;
-import io.opentelemetry.instrumentation.api.instrumenter.code.CodeAttributesGetter;
-import io.opentelemetry.instrumentation.api.instrumenter.code.CodeSpanNameExtractor;
 import javax.sql.DataSource;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDataSourceInfo;
 

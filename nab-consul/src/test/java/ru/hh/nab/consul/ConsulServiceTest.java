@@ -34,6 +34,7 @@ import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_INTERVAL_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_PASSING_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_SUCCESS_COUNT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_TIMEOUT_PROPERTY;
+import static ru.hh.nab.consul.ConsulService.CONSUL_CHECK_TYPE_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY;
 import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_FAIL_COUNT;
 import static ru.hh.nab.consul.ConsulService.DEFAULT_CHECK_HOST;
@@ -52,7 +53,8 @@ public class ConsulServiceTest {
   private static final String TEST_NODE_NAME = "testNode";
   private static final int TEST_APPLICATION_PORT = 8090;
 
-  private static final String CHECK_ENDPOINT_TEMPLATE = "http://%s:%s/status";
+  private static final String HTTP_CHECK_TEMPLATE = "http://%s:%s/status";
+  private static final String TCP_CHECK_TEMPLATE = "%s:%s";
 
   private static AgentClient agentClient;
   private static KeyValueClient keyValueClient;
@@ -81,6 +83,7 @@ public class ConsulServiceTest {
     String testDeregisterCriticalTimeout = "13m";
     Set<String> testTags = Set.of("tag1", "tag2");
     int testWight = 204;
+    String testCheckType = "tcp";
 
     Properties consulProperties = new Properties();
     consulProperties.put(CONSUL_CHECK_HOST_PROPERTY, testCheckHost);
@@ -90,6 +93,7 @@ public class ConsulServiceTest {
     consulProperties.put(CONSUL_CHECK_FAIL_COUNT_PROPERTY, Integer.toString(testCheckFailCount));
     consulProperties.put(CONSUL_DEREGISTER_CRITICAL_TIMEOUT_PROPERTY, testDeregisterCriticalTimeout);
     consulProperties.put(CONSUL_CHECK_PASSING_PROPERTY, Boolean.TRUE.toString());
+    consulProperties.put(CONSUL_CHECK_TYPE_PROPERTY, testCheckType);
 
     Value weightValue = mock(Value.class);
     when(weightValue.getValueAsString()).thenReturn(Optional.of(Integer.toString(testWight)));
@@ -111,7 +115,8 @@ public class ConsulServiceTest {
     Registration registration = getRegistration();
 
     Registration.RegCheck regCheck = registration.getCheck().get();
-    assertEquals(CHECK_ENDPOINT_TEMPLATE.formatted(testCheckHost, TEST_APPLICATION_PORT), regCheck.getHttp().get());
+    assertTrue(regCheck.getHttp().isEmpty());
+    assertEquals(TCP_CHECK_TEMPLATE.formatted(testCheckHost, TEST_APPLICATION_PORT), regCheck.getTcp().get());
     assertEquals(testCheckInterval, regCheck.getInterval().get());
     assertEquals(testCheckTimeout, regCheck.getTimeout().get());
     assertEquals(testDeregisterCriticalTimeout, regCheck.getDeregisterCriticalServiceAfter().get());
@@ -154,7 +159,8 @@ public class ConsulServiceTest {
     Registration registration = getRegistration();
 
     Registration.RegCheck regCheck = registration.getCheck().get();
-    assertEquals(CHECK_ENDPOINT_TEMPLATE.formatted(DEFAULT_CHECK_HOST, TEST_APPLICATION_PORT), regCheck.getHttp().get());
+    assertEquals(HTTP_CHECK_TEMPLATE.formatted(DEFAULT_CHECK_HOST, TEST_APPLICATION_PORT), regCheck.getHttp().get());
+    assertTrue(regCheck.getTcp().isEmpty());
     assertEquals(DEFAULT_CHECK_INTERVAL, regCheck.getInterval().get());
     assertEquals(DEFAULT_CHECK_TIMEOUT, regCheck.getTimeout().get());
     assertEquals(DEFAULT_DEREGISTER_CRITICAL_TIMEOUT, regCheck.getDeregisterCriticalServiceAfter().get());

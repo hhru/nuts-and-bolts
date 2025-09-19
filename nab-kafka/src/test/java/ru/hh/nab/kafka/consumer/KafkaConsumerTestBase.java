@@ -60,7 +60,7 @@ public abstract class KafkaConsumerTestBase {
     adminClient.createPartitions(Map.of(topic, NewPartitions.increaseTo(finalPartitionsCount))).all().get();
     waitUntil(() -> assertEquals(
             finalPartitionsCount,
-            getOrThrow(() -> adminClient.describeTopics(List.of(topic)).values().get(topic).get().partitions().size())
+            getOrThrow(() -> adminClient.describeTopics(List.of(topic)).topicNameValues().get(topic).get().partitions().size())
         )
     );
   }
@@ -71,7 +71,7 @@ public abstract class KafkaConsumerTestBase {
 
   protected long countMessagesInTopic(String topic) {
     try (AdminClient adminClient = kafkaTestUtils.getAdminClient()) {
-      List<TopicPartitionInfo> partitions = adminClient.describeTopics(List.of(topic)).values().get(topic).get().partitions();
+      List<TopicPartitionInfo> partitions = adminClient.describeTopics(List.of(topic)).topicNameValues().get(topic).get().partitions();
       Map<TopicPartition, OffsetSpec> topicPartitionOffsetSpecs = partitions
           .stream()
           .map(TopicPartitionInfo::partition)

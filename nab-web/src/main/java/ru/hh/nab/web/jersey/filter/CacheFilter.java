@@ -14,6 +14,7 @@ import static jakarta.ws.rs.core.HttpHeaders.CACHE_CONTROL;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import jakarta.ws.rs.ext.WriterInterceptor;
 import jakarta.ws.rs.ext.WriterInterceptorContext;
 import java.io.ByteArrayInputStream;
@@ -143,7 +144,7 @@ public class CacheFilter implements ContainerRequestFilter, ContainerResponseFil
     }
 
     try {
-      return CacheControl.valueOf(cacheHeaderValue.get()).getMaxAge();
+      return RuntimeDelegate.getInstance().createHeaderDelegate(CacheControl.class).fromString(cacheHeaderValue.get()).getMaxAge();
     } catch (IllegalArgumentException e) {
       LOGGER.error("Invalid Cache-Control header value {}", cacheHeaderValue, e);
       return NO_CACHE;

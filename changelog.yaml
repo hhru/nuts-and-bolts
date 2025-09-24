@@ -1,3 +1,9 @@
+-   name: 17.1.3
+    date: '2025-09-24T16:19:51.998911+03:00'
+    description: Обновление jclient до 11.0.5
+    instructions: ''
+    compatible: true
+
 -   name: 17.1.2
     date: '2025-09-16T17:03:14.708975+03:00'
     description: багфикс в jclient

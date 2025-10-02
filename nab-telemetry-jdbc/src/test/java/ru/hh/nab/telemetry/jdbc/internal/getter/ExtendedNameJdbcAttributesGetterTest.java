@@ -15,8 +15,6 @@ public class ExtendedNameJdbcAttributesGetterTest {
 
   @Test
   public void testGetNameContainsNameIfSpecifiedInRequest() {
-    DbClientSpanNameExtractor.create(new ExtendedNameJdbcAttributesGetter());
-
     var info = new NabDataSourceInfo().setDataSource(new HikariDataSource()).setDataSourceName("readonly").setWritableDataSource(false);
     var nabRequest = new NabDbRequest().setNabDataSourceInfo(info).setDbRequest(createSelectHhVerificationDbRequest());
     String extracted = nameExtractor.extract(nabRequest);

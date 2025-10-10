@@ -12,9 +12,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.concurrent.Exchanger;
@@ -25,6 +24,9 @@ import org.junit.jupiter.api.Test;
 
 public class HhSyslogAppenderTest {
 
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS");
+  private static final String EPOCH = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).format(FORMATTER);
+
   @Test
   public void testLoadPattern() throws Exception {
     Function<Context, HhSyslogAppender> hhSyslogAppenderFunction = context -> {
@@ -32,12 +34,11 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",
         "<11>test/test.rlog/: ["
-            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + EPOCH
             + "] ERROR logger:1 mdc={} - message",
         "message"
     );
@@ -50,12 +51,11 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",
         "<11>test/test.slog/: ["
-            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + EPOCH
             + "] ERROR logger:1 mdc={} - message",
         "message"
     );
@@ -68,12 +68,11 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",
         "<11>test/test.rlog/: ["
-            + epochStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+            + EPOCH
             + "] ERROR logger:1 mdc={} - сообщение", "сообщение"
     );
   }

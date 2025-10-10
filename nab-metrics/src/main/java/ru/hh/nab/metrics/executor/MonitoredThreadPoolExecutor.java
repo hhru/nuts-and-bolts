@@ -40,7 +40,6 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitoredThreadPoolExecutor.class);
   private static final ThreadFactory DEFAULT_THREAD_FACTORY = defaultThreadFactory();
 
-  private final Max maxPoolSizeMetric = new Max(0);
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
@@ -84,7 +83,6 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
   @Override
   protected void beforeExecute(Thread t, Runnable r) {
-    maxPoolSizeMetric.save(getMaximumPoolSize());
     poolSizeMetric.save(getPoolSize());
     activeCountMetric.save(getActiveCount());
     queueSizeMetric.save(getQueue().size());
@@ -173,7 +171,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName), new Tag("pool", threadPoolName)));
 
     statsDSender.sendPeriodically(() -> {
-      sender.sendMax(maxPoolSizeMetricName, threadPoolExecutor.maxPoolSizeMetric);
+      sender.sendGauge(maxPoolSizeMetricName, threadPoolExecutor.getMaximumPoolSize());
       sender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
       sender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
       sender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);

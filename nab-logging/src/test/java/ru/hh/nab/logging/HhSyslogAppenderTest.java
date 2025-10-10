@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.concurrent.Exchanger;
@@ -30,7 +32,7 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
+    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",
@@ -48,7 +50,7 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
+    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",
@@ -66,7 +68,7 @@ public class HhSyslogAppenderTest {
       appender.setContext(context);
       return appender;
     };
-    LocalDateTime epochStart = LocalDateTime.ofEpochSecond(0, 0, OffsetDateTime.now().getOffset());
+    OffsetDateTime epochStart = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.systemDefault());
     testLogging(
         hhSyslogAppenderFunction,
         "test",

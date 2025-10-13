@@ -20,6 +20,7 @@ import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_REQUEST_ID;
 import static ru.hh.nab.common.constants.RequestHeaders.EMPTY_USER_AGENT;
 import static ru.hh.nab.common.constants.RequestHeaders.REQUEST_ID;
+import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 import static ru.hh.nab.web.http.RequestInfo.CACHE_ATTRIBUTE;
 import static ru.hh.nab.web.http.RequestInfo.NO_CACHE;
 
@@ -54,6 +55,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
             .orElse(UNKNOWN_URI)
     );
     context.put(HTTP_ROUTE, String.valueOf(request.getAttribute(HTTP_ROUTE)));
+    context.put(CONTROLLER_MDC_KEY, String.valueOf(request.getAttribute(CONTROLLER_MDC_KEY)));
 
     LOGGER.info(appendEntries(context), null);
     ofNullable(outerTimoutMs)

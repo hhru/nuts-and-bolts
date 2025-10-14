@@ -1,3 +1,43 @@
+-   name: 18.0.0
+    date: '2025-10-14T12:26:20.915149+03:00'
+    description: Для работы с requestId / traceId теперь используется библиотека trace-context.
+        При генерации телеметрийных спанов traceId берется из TraceContext, а не из
+        jclient'овского HttpClientContext'а. Удалены фильтры SentryFilter и RequestIdLoggingFilter.
+        Удалены методы MDC.generateRequestId и MDC.runWithRequestId. У классов LogLevelOverrideApplier,
+        IdGeneratorImpl и TelemetryFilter изменена сигнатура конструктора - теперь
+        в конструктор необходимо передавать объект TraceContext. Jclient обновлен
+        до версии 12.0.0. При отправке запроса значение заголовка X-Request-Id берется
+        из traceContext'а. Удален метод HttpClientContextThreadLocalSupplier.ContextBuilder#withRequestId.
+        Также из реализации HttpClientContextThreadLocalSupplier.ContextBuilder удалена
+        логика получения rid из MDC / установка rid в MDC. То есть при вызове метода
+        HttpClientContextThreadLocalSupplier#forCurrentThread rid не будет браться
+        из MDC и добавляться в заголовок запроса. В конструкторы классов HttpClientFactory
+        и HttpClientFactoryBuilder добавлен еще один аргумент - TraceContext. В методы
+        интерфейса Monitoring добавлен еще один аргумент - HttpHeaders. Удален класс
+        ResponseWrapper, вместо него добавлен RequestResponseWrapper.
+    instructions: При создании объектов LogLevelOverrideApplier, IdGeneratorImpl,
+        и TelemetryFilter в конструктор необходимо передавать объект TraceContextImpl.
+        Вместо вызова MDC.generateRequestId() необходимо использовать TraceIdGenerator.generateTraceId().
+        Вместо вызова MDC.runWithRequestId необходимо использовать api TraceContext.
+        Удалить подключение фильтров SentryFilter и RequestIdLoggingFilter. В коде
+        сервиса и клиентов необходимо удалить добавление заголовка X-Request-Id -
+        вместо этого необходимо перед отправкой запроса где то по стеку выше вызывать
+        метод TraceContext#setTraceId или его аналоги (более подробное описание всех
+        методов, которые предоставляет TraceContext, и примеры их использования можно
+        посмотреть в javadoc). То есть не нужно больше при создании объекта HttpClientContext,
+        при вызове методов HttpClientContextThreadLocalSupplier#addContext, HttpClientContextThreadLocalSupplier.ContextBuilder#withHeaders,
+        RequestBuilder#addHeader и тд передавать заголовок X-Request-Id - он добавится
+        автоматически. Перед вызовом метода HttpClientContextThreadLocalSupplier#forCurrentThread
+        тоже должен вызываться TraceContext#setTraceId или его аналоги. Использование
+        метода HttpClientContextThreadLocalSupplier.ContextBuilder#withRequestId необходимо
+        удалить. При создании объектов HttpClientFactory и HttpClientFactoryBuilder
+        необходимо передать в конструктор объект TraceContext. Вместо класса ResponseWrapper
+        необходимо использовать RequestResponseWrapper. В классах, имплементирующих
+        интерфейс Monitoring, необходимо поправить сигнатуру методов countRequest,
+        countRequestTime и countRetry - теперь они принимают еще один аргумент HttpHeaders.
+        В помнике удалить зависимость hh-requestid-generator.
+    compatible: false
+
 -   name: 17.1.3
     date: '2025-09-24T16:19:51.998911+03:00'
     description: Обновление jclient до 11.0.5

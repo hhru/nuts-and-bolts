@@ -32,7 +32,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   @Override
   public void log(Request request, Response response) {
     final String outerTimoutMs = request.getHeader(X_OUTER_TIMEOUT_MS);
-    final String requestId = request.getHeader(REQUEST_ID);
+    final String requestId = response.getHeader(REQUEST_ID);
     final String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
     final String cache = (String) request.getAttribute(CACHE_ATTRIBUTE);
 

@@ -19,6 +19,7 @@ import ru.hh.jclient.common.HttpClientEventListener;
 import ru.hh.jclient.common.HttpHeaderNames;
 import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
+import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
 
 public class TelemetryListenerImpl implements HttpClientEventListener {
@@ -80,7 +81,7 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
   }
 
   @Override
-  public ru.hh.jclient.common.Response onResponse(ru.hh.jclient.common.Response response) {
+  public Response onResponse(Response response) {
     if (span == null) {
       LOGGER.error("span not exist for {}", response.getUri());
       return response;

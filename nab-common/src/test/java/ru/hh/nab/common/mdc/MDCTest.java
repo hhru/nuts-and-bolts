@@ -41,23 +41,4 @@ public class MDCTest {
 
     assertFalse(MDC.getRequestId().isPresent());
   }
-
-  @Test
-  public void testGenerateRequestId() {
-    assertEquals(32, MDC.generateRequestId().length());
-  }
-
-  @Test
-  public void testRunWithRequestId() {
-    MDC.setRequestId("123");
-
-    MDC.runWithRequestId("456", () -> {
-      assertEquals("456", MDC.getRequestId().get());
-      return null;
-    });
-
-    assertEquals("123", MDC.getRequestId().get());
-
-    MDC.clearRequestId();
-  }
 }

@@ -15,6 +15,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.hh.trace</groupId>
+            <artifactId>trace-context</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
         </dependency>

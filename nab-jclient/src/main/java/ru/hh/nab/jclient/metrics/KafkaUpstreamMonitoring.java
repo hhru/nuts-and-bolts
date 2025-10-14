@@ -7,7 +7,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import ru.hh.jclient.common.HttpHeaderNames;
+import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
 import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.producer.KafkaProducer;
@@ -45,6 +46,7 @@ public class KafkaUpstreamMonitoring implements Monitoring {
       String upstreamName,
       String serverDatacenter,
       String serverAddress,
+      HttpHeaders requestHeaders,
       int statusCode,
       long requestTimeMillis,
       boolean isRequestFinal,
@@ -58,7 +60,7 @@ public class KafkaUpstreamMonitoring implements Monitoring {
           StringUtil.isNullOrEmpty(serverDatacenter) ? localDc : serverDatacenter,
           serverAddress,
           statusCode,
-          ofNullable(MDC.get("rid")).orElse("")
+          ofNullable(requestHeaders.get(HttpHeaderNames.X_REQUEST_ID)).orElse("")
       );
       LOGGER.debug("Sending countRequest {}", requestInfo);
       kafkaProducer
@@ -72,11 +74,19 @@ public class KafkaUpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequestTime(String upstreamName, String dc, long requestTimeMillis) {
+  public void countRequestTime(String upstreamName, String dc, HttpHeaders requestHeaders, long requestTimeMillis) {
   }
 
   @Override
-  public void countRetry(String upstreamName, String dc, String serverAddress, int statusCode, int firstStatusCode, int triesUsed) {
+  public void countRetry(
+      String upstreamName,
+      String dc,
+      String serverAddress,
+      HttpHeaders requestHeaders,
+      int statusCode,
+      int firstStatusCode,
+      int triesUsed
+  ) {
   }
 
   @Override

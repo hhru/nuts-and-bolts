@@ -36,6 +36,7 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
 import ru.hh.nab.common.executor.ScheduledExecutor;
+import ru.hh.trace.TraceContext;
 
 @SpringBootTest(classes = TransactionalCheckTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class TransactionalCheckTest {
@@ -68,7 +69,8 @@ public class TransactionalCheckTest {
         new SingletonStorage<>(HTTP_CLIENT_CONTEXT),
         Set.of(),
         Runnable::run,
-        new DefaultRequestStrategy()
+        new DefaultRequestStrategy(),
+        mock(TraceContext.class)
     );
 
     jClientRequest = () -> httpClientFactory.with(new RequestBuilder().setUrl("http://test").build()).expectNoContent().result();

@@ -1,3 +1,10 @@
+-   name: 18.0.1
+    date: '2025-10-14T14:06:12.609828+03:00'
+    description: Исправлена ошибка, которая отображала метрики threadPool.maxSize
+        и maxThreads как 0 в сценариях, когда thread pool-ы не использовались
+    instructions: ''
+    compatible: true
+
 -   name: 18.0.0
     date: '2025-10-14T12:26:20.915149+03:00'
     description: Для работы с requestId / traceId теперь используется библиотека trace-context.

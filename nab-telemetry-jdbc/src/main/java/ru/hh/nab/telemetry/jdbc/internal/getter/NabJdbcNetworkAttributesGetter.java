@@ -5,7 +5,7 @@ import io.opentelemetry.instrumentation.jdbc.internal.JdbcNetAttributesGetter;
 import jakarta.annotation.Nullable;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 
-public class NabJdbcNetAttributesGetter implements NetClientAttributesGetter<NabDbRequest, Void> {
+public class NabJdbcNetworkAttributesGetter implements NetClientAttributesGetter<NabDbRequest, Void> {
 
   private static final JdbcNetAttributesGetter jdbcNetAttributesGetter = new JdbcNetAttributesGetter();
 

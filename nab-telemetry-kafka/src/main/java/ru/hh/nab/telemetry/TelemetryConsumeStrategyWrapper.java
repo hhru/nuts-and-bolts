@@ -31,8 +31,12 @@ public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
   private final Tracer tracer;
   private final KafkaTelemetryPropagator propagator;
 
-  TelemetryConsumeStrategyWrapper(String clusterName, ConsumeStrategy<T> consumeStrategy,
-                                  ConsumerMetadata consumerMetadata, OpenTelemetry telemetry) {
+  TelemetryConsumeStrategyWrapper(
+      String clusterName,
+      ConsumeStrategy<T> consumeStrategy,
+      ConsumerMetadata consumerMetadata,
+      OpenTelemetry telemetry
+  ) {
     this.clusterName = clusterName;
     this.consumeStrategy = consumeStrategy;
     this.consumerMetadata = consumerMetadata;

@@ -2,6 +2,8 @@ package ru.hh.nab.kafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Duration;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -9,11 +11,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -56,6 +62,19 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
       );
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @BeforeEach
+  public void initializeRetryTopic() throws ExecutionException, InterruptedException {
+    String retryTopicName = getDefaultRetryTopic();
+
+    Properties props = new Properties();
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaTestUtils.getBootstrapServers());
+
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      NewTopic newTopic = new NewTopic(retryTopicName, 5, (short) 1);
+      adminClient.createTopics(List.of(newTopic)).all().get();
     }
   }
 

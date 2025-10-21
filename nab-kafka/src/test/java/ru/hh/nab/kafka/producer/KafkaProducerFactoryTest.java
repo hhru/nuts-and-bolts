@@ -4,8 +4,12 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.NewTopic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +28,16 @@ public class KafkaProducerFactoryTest {
   private String topicName;
 
   @BeforeEach
-  public void createTempTopic() {
+  public void createTempTopic() throws ExecutionException, InterruptedException {
     topicName = UUID.randomUUID().toString();
+
+    Properties props = new Properties();
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, testKafka.getBootstrapServers());
+
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      NewTopic newTopic = new NewTopic(topicName, 5, (short) 1);
+      adminClient.createTopics(List.of(newTopic)).all().get();
+    }
   }
 
   @Test

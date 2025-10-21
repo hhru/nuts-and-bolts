@@ -35,8 +35,8 @@
     <properties>
         <jclient.version>12.0.0.boot-3.5-alpha1-SNAPSHOT</jclient.version>
         <java.version>17</java.version>
-        <consul.client.version>2.0.0</consul.client.version>
-        <kafka-test-utils.version>1.0.2</kafka-test-utils.version>
+        <consul.client.version>2.0.0.boot-3.5-alpha1-SNAPSHOT</consul.client.version>
+        <kafka-test-utils.version>1.0.2.boot-3.5-alpha1-SNAPSHOT</kafka-test-utils.version>
     </properties>
 
     <dependencyManagement>

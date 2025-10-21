@@ -4,13 +4,16 @@ import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.NewPartitions;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -34,8 +37,16 @@ public abstract class KafkaConsumerTestBase {
   protected String topicName;
 
   @BeforeEach
-  public void initializeTopic() {
+  public void initializeTopic() throws ExecutionException, InterruptedException {
     topicName = UUID.randomUUID().toString();
+
+    Properties props = new Properties();
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaTestUtils.getBootstrapServers());
+
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      NewTopic newTopic = new NewTopic(topicName, 5, (short) 1);
+      adminClient.createTopics(List.of(newTopic)).all().get();
+    }
   }
 
   protected <T> KafkaConsumer<T> startMessagesConsumer(Class<T> messageClass, ConsumeStrategy<T> consumerMock) {

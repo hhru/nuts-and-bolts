@@ -1,3 +1,12 @@
+-   name: 18.0.2
+    date: '2025-10-24T18:06:39.113766+03:00'
+    description: "version change: MINOR\r\ndescription: в MonitoredThreadPoolExecutor\
+        \ добавлена возможность задавать другие типы очередей при помощи указания\
+        \ существующего параметра queueSize. При 0 это SynchronousQueue, при отрицательных\
+        \ значениях LinkedBlockingQueue\r\nrequires_changes_in_hh : false"
+    instructions: ''
+    compatible: true
+
 -   name: 18.0.1
     date: '2025-10-14T14:06:12.609828+03:00'
     description: Исправлена ошибка, которая отображала метрики threadPool.maxSize

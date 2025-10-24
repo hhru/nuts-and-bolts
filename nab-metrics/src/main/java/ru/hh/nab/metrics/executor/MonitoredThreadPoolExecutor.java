@@ -7,8 +7,10 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import static java.util.concurrent.Executors.defaultThreadFactory;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -145,13 +147,20 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       thread.setDaemon(true);
       return thread;
     };
-
+    BlockingQueue<Runnable> workQueue;
+    if (queueSize < 0) {
+      workQueue = new LinkedBlockingQueue<>();
+    } else if (queueSize == 0) {
+      workQueue = new SynchronousQueue<>();
+    } else {
+      workQueue = new ArrayBlockingQueue<>(queueSize);
+    }
     var threadPoolExecutor = new MonitoredThreadPoolExecutor(
         coreThreads,
         maxThreads,
         keepAliveTimeSec,
         TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(queueSize),
+        workQueue,
         threadFactory,
         rejectedExecutionHandler,
         threadPoolName,

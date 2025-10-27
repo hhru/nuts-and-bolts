@@ -1,8 +1,14 @@
+-   name: 18.0.3
+    date: '2025-10-27T18:26:04.166197+03:00'
+    description: Обновление consul-client до 2.0.1
+    instructions: ''
+    compatible: true
+
 -   name: 18.0.2
     date: '2025-10-24T18:06:39.113766+03:00'
-    description: В MonitoredThreadPoolExecutor добавлена возможность задавать другие типы 
-        очередей при помощи указания существующего параметра queueSize. 
-        При 0 это SynchronousQueue, при отрицательных значениях LinkedBlockingQueue
+    description: В MonitoredThreadPoolExecutor добавлена возможность задавать другие
+        типы очередей при помощи указания существующего параметра queueSize. При 0
+        это SynchronousQueue, при отрицательных значениях LinkedBlockingQueue
     instructions: ''
     compatible: true
 

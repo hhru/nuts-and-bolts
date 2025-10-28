@@ -122,7 +122,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String payload = UUID.randomUUID().toString();
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
     var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     Assertions.assertNotEquals((double) observedMetric.metricValue(), 0, 0.1);
@@ -136,12 +136,12 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String payload = UUID.randomUUID().toString();
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
     var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     double earliestObservedValue = (double) observedMetric.metricValue();
     Assertions.assertNotEquals(earliestObservedValue, 0, 0.1);
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
     Awaitility.await().atMost(Duration.ofSeconds(5L)).untilAsserted(() -> {
       double latestObservedValue = (double) observedMetric.metricValue();
@@ -185,7 +185,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String payload = UUID.randomUUID().toString();
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
     var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
     Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
@@ -211,7 +211,7 @@ class KafkaStatsDReporterTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String payload = UUID.randomUUID().toString();
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
 
     Set<String> enabledMetricsNames = ENABLED_METRICS

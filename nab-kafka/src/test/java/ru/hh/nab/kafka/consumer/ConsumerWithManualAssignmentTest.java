@@ -401,7 +401,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       String body = "body" + ID_SEQUENCE.incrementAndGet();
-      kafkaTestUtils.sendMessage(topicName, body);
+      testKafka.sendMessage(topicName, body);
       messages.add(body);
     }
     return messages;
@@ -411,7 +411,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       String body = "body" + ID_SEQUENCE.incrementAndGet();
-      kafkaTestUtils.sendMessage(new ProducerRecord<>(topicName, partition, null, KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(body)));
+      testKafka.sendMessage(new ProducerRecord<>(topicName, partition, null, KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(body)));
       messages.add(body);
     }
     return messages;

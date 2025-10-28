@@ -69,7 +69,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
   @Test
   void retryOnceUsingSingleTopic() throws InterruptedException {
     doThrow(new RuntimeException()).doNothing().when(mockService).accept(anyString());
-    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    testKafka.sendMessage(topicName, "first pancake");
     startConsumerWithRetries();
     waitUntil(() -> {
       checkPartitionsAssigned();
@@ -81,7 +81,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
   @Test
   void retry3TimesUsingSingleTopic() throws InterruptedException {
     doThrow(new RuntimeException(), new RuntimeException(), new RuntimeException()).doNothing().when(mockService).accept(anyString());
-    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    testKafka.sendMessage(topicName, "first pancake");
     startConsumerWithRetries();
     waitUntil(() -> {
       checkPartitionsAssigned();
@@ -94,10 +94,10 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
   void retry3MessagesInARow() throws InterruptedException {
     Stream.of("first pancake", "two left feet", "three know it").forEach(message -> {
       doThrow(new RuntimeException()).doNothing().when(mockService).accept(eq(message));
-      kafkaTestUtils.sendMessage(topicName, message);
+      testKafka.sendMessage(topicName, message);
     });
     doNothing().when(mockService).accept(eq("four-letter word"));
-    kafkaTestUtils.sendMessage(topicName, "four-letter word");
+    testKafka.sendMessage(topicName, "four-letter word");
     startConsumerWithRetries();
     waitUntil(() -> {
       checkPartitionsAssigned();
@@ -111,7 +111,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
 
   @Test
   void retryFailsInConsumerWithAllPartitionsAssigned() throws InterruptedException {
-    kafkaTestUtils.sendMessage(topicName, "first pancake");
+    testKafka.sendMessage(topicName, "first pancake");
     AtomicBoolean exceptionThrown = new AtomicBoolean(false);
     consumer = consumerFactory
         .builder(topicName, String.class)
@@ -138,7 +138,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
     waitUntil(() -> {
       checkPartitionsAssigned();
     });
-    kafkaTestUtils.sendMessage(getDefaultRetryTopic(), "retry message");
+    testKafka.sendMessage(getDefaultRetryTopic(), "retry message");
     waitUntil(() -> {
       verify(mockService, times(1)).accept(eq("retry message"));
     });
@@ -193,7 +193,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {
     try {
-      kafkaTestUtils.sendMessage(toBinaryRecord(record)).get(); //TODO Add sending ProducerRecord with JSON value to kafka-test-utils
+      testKafka.sendMessage(toBinaryRecord(record)).get(); //TODO Add sending ProducerRecord with JSON value to kafka-test-utils
     } catch (InterruptedException | ExecutionException e) {
       return CompletableFuture.failedFuture(e);
     }

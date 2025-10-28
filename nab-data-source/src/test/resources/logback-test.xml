@@ -1,0 +1,6 @@
+<!-- TODO replace with java config after https://jira.hh.ru/browse/PORTFOLIO-33636 -->
+<configuration>
+    <root level="OFF">
+        <!-- Tests are silent by default -->
+    </root>
+</configuration>

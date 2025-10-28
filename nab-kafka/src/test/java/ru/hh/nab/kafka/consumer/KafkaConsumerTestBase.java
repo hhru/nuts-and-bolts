@@ -26,7 +26,7 @@ import ru.hh.nab.kafka.KafkaTestConfig;
 public abstract class KafkaConsumerTestBase {
 
   @Inject
-  protected TestKafkaWithJsonMessages kafkaTestUtils;
+  protected TestKafkaWithJsonMessages testKafka;
 
   @Inject
   protected KafkaConsumerFactory consumerFactory;
@@ -56,7 +56,7 @@ public abstract class KafkaConsumerTestBase {
   }
 
   public void addPartitions(String topic, int finalPartitionsCount) throws InterruptedException, ExecutionException {
-    AdminClient adminClient = kafkaTestUtils.getAdminClient();
+    AdminClient adminClient = testKafka.getAdminClient();
     adminClient.createPartitions(Map.of(topic, NewPartitions.increaseTo(finalPartitionsCount))).all().get();
     waitUntil(() -> assertEquals(
             finalPartitionsCount,
@@ -70,7 +70,7 @@ public abstract class KafkaConsumerTestBase {
   }
 
   protected long countMessagesInTopic(String topic) {
-    try (AdminClient adminClient = kafkaTestUtils.getAdminClient()) {
+    try (AdminClient adminClient = testKafka.getAdminClient()) {
       List<TopicPartitionInfo> partitions = adminClient.describeTopics(List.of(topic)).topicNameValues().get(topic).get().partitions();
       Map<TopicPartition, OffsetSpec> topicPartitionOffsetSpecs = partitions
           .stream()

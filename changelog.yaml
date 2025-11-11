@@ -1,3 +1,9 @@
+-   name: 18.0.4
+    date: '2025-11-11T12:19:04.778988+03:00'
+    description: Обновление trace-context до 2.0.0, jclient до 12.0.1
+    instructions: ''
+    compatible: true
+
 -   name: 18.0.3
     date: '2025-10-27T18:26:04.166197+03:00'
     description: Обновление consul-client до 2.0.1

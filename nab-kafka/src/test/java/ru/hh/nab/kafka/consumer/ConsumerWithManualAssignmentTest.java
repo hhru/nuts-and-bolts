@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.hasItems;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
@@ -310,8 +310,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     assertEquals(9, consumer2.getAssignedPartitions().size());
   }
 
-  @Test
-  @Disabled // TODO fix before review
+  @RepeatedTest(10)
   public void testAssignNewPartitionsForTopicProcessedFromEnd() throws InterruptedException, ExecutionException, JsonProcessingException {
     List<String> processedMessages1 = new ArrayList<>();
     List<String> processedMessages2 = new ArrayList<>();
@@ -330,7 +329,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     consumer1.start();
     startedConsumers.add(consumer1);
 
-    KafkaConsumer<String> consumer2 = consumerFactory
+    KafkaConsumer<String> consumer2 = consumerFactory1
         .builder(topicName, String.class)
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))

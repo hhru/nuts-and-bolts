@@ -30,6 +30,8 @@ public abstract class KafkaConsumerTestBase {
 
   @Inject
   protected KafkaConsumerFactory consumerFactory;
+  @Inject
+  protected KafkaConsumerFactory consumerFactory1;
 
   protected String topicName;
 

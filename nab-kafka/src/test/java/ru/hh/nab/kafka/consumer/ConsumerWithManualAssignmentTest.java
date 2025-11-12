@@ -329,7 +329,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     consumer1.start();
     startedConsumers.add(consumer1);
 
-    KafkaConsumer<String> consumer2 = consumerFactory1
+    KafkaConsumer<String> consumer2 = consumerFactory
         .builder(topicName, String.class)
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))

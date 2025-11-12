@@ -39,6 +39,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   private boolean isConsumerGroup;
   private SeekPosition seekPositionIfNoConsumerGroup;
   private Duration checkNewPartitionsInterval;
+  private TopicPartitionsMonitoring topicPartitionsMonitoring;
 
   private ConsumeStrategy<T> consumeStrategy;
   private RetryPolicyResolver<T> retryPolicyResolver;
@@ -115,6 +116,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     this.seekPositionIfNoConsumerGroup = seekPosition;
     this.ackProvider = (kafkaConsumer, nativeKafkaConsumer) -> new InMemorySeekOnlyAck<>(kafkaConsumer);
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
+    this.topicPartitionsMonitoring = new TopicPartitionsMonitoring(consumerFactory.getClusterMetadataProvider());
     return this;
   }
 
@@ -278,7 +280,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         deadLetterQueue,
         springContainerProvider,
-        consumerFactory.getTopicPartitionsMonitoring(),
+        topicPartitionsMonitoring,
         consumerFactory.getClusterMetadataProvider(),
         ackProvider,
         logger,

@@ -80,7 +80,7 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
           "postgres",
           "-c", "fsync=off",
           "-c", "autovacuum=off",
-          "-c", "max_connections=1000"
+          "-c", "max_connections=200"
       );
 
       container.start();

@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.hasItems;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.kafka.KafkaTestConfig;
 
@@ -300,7 +301,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     assertEquals(9, consumer2.getAssignedPartitions().size());
   }
 
-  @Test
+  @RepeatedTest(20)
   public void testAssignNewPartitionsForTopicProcessedFromEnd() throws InterruptedException, ExecutionException, JsonProcessingException {
     List<String> processedMessages1 = new ArrayList<>();
     List<String> processedMessages2 = new ArrayList<>();

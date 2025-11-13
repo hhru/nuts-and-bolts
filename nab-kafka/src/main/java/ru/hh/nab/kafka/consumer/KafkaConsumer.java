@@ -37,7 +37,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final TopicPartitionsMonitoring topicPartitionsMonitoring;
   private final Duration checkNewPartitionsInterval;
   private volatile boolean running = false;
-  private List<PartitionInfo> assignedPartitions;
+  private volatile List<PartitionInfo> assignedPartitions;
   private volatile ScheduledFuture<?> checkPartitionsChangeFuture;
   private volatile AbstractMessageListenerContainer<String, T> currentSpringKafkaContainer;
 
@@ -132,10 +132,12 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.checkPartitionsChangeFuture = topicPartitionsMonitoring.subscribeOnPartitionsChange(
         consumerMetadata.getTopic(),
         checkNewPartitionsInterval,
-        assignedPartitions,
         newPartitions -> {
           restartLock.lock();
           try {
+            if (newPartitions.size() == assignedPartitions.size()) {
+              return;
+            }
             if (!running) {
               stopPartitionsMonitoring();
               return;

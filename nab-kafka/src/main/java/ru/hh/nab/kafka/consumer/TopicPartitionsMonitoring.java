@@ -29,17 +29,11 @@ public class TopicPartitionsMonitoring {
     this.executor = executor;
   }
 
-  public ScheduledFuture<?> subscribeOnPartitionsChange(
-      String topic, Duration checkInterval, List<PartitionInfo> currentPartitions, Consumer<List<PartitionInfo>> onPartitionsChange
-  ) {
+  public ScheduledFuture<?> subscribeOnPartitionsChange(String topic, Duration checkInterval, Consumer<List<PartitionInfo>> onPartitionsChange) {
     return executor.scheduleAtFixedRate(
         () -> {
           try {
             List<PartitionInfo> newPartitions = clusterMetadataProvider.getPartitionsInfo(topic);
-            if (newPartitions.size() == currentPartitions.size()) {
-              return;
-            }
-            LOGGER.info("Got partitions change for topic prev={}, new={}", currentPartitions.size(), newPartitions.size());
             onPartitionsChange.accept(newPartitions);
           } catch (RuntimeException e) {
             LOGGER.error("Error while running partitions monitoring", e);

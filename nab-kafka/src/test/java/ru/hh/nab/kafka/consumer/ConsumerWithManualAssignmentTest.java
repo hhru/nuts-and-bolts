@@ -334,9 +334,12 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
 
     putMessagesIntoKafka(40);
 
+    waitUntil(() -> assertEquals(40, processedMessages1.size()));
+    waitUntil(() -> assertEquals(40, processedMessages2.size()));
+
     addPartitions(topicName, 7);
-    waitUntil(() -> assertEquals(7, consumer1.getAssignedPartitions().size()));
-    waitUntil(() -> assertEquals(7, consumer2.getAssignedPartitions().size()));
+    waitUntil(() -> assertEquals(7, consumer1.getAssignedPartitions2().size()));
+    waitUntil(() -> assertEquals(7, consumer2.getAssignedPartitions2().size()));
 
     for (int i = 0; i < 7; i++) {
       putMessagesIntoKafka(10, i);
@@ -346,8 +349,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
 
     addPartitions(topicName, 9);
-    waitUntil(() -> assertEquals(9, consumer1.getAssignedPartitions().size()));
-    waitUntil(() -> assertEquals(9, consumer2.getAssignedPartitions().size()));
+    waitUntil(() -> assertEquals(9, consumer1.getAssignedPartitions2().size()));
+    waitUntil(() -> assertEquals(9, consumer2.getAssignedPartitions2().size()));
     for (int i = 0; i < 9; i++) {
       putMessagesIntoKafka(10, i);
     }

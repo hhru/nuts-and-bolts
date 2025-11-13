@@ -189,6 +189,23 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     return currentSpringKafkaContainer.getAssignedPartitions();
   }
 
+  public Collection<TopicPartition> getAssignedPartitions2() {
+    restartLock.lock();
+    try {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      if (assignedPartitions != null) {
+        return assignedPartitions.stream().map(p -> new TopicPartition(p.topic(), p.partition())).toList();
+      }
+      return currentSpringKafkaContainer.getAssignedPartitions();
+    } finally {
+      restartLock.unlock();
+    }
+  }
+
   public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
     consumerContext.prepareForNextBatch(messages);
     Ack<T> ack = ackProvider.createAck(this, consumer);

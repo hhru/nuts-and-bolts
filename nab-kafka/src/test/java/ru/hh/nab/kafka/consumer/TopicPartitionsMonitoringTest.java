@@ -22,7 +22,7 @@ public class TopicPartitionsMonitoringTest extends KafkaConsumerTestBase {
     assertEquals(5, initialPartitions.size());
 
     CountDownLatch latch = new CountDownLatch(1);
-    topicPartitionsMonitoring.subscribeOnPartitionsChange(topicName, Duration.ofSeconds(1), initialPartitions, (newPartitions) -> {
+    topicPartitionsMonitoring.subscribeOnPartitionsChange(topicName, Duration.ofSeconds(1), () -> initialPartitions, (newPartitions) -> {
       if (newPartitions.size() == 7) {
         latch.countDown();
       }

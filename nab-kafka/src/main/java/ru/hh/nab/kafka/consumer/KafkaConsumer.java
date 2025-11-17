@@ -132,7 +132,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     this.checkPartitionsChangeFuture = topicPartitionsMonitoring.subscribeOnPartitionsChange(
         consumerMetadata.getTopic(),
         checkNewPartitionsInterval,
-        assignedPartitions,
+        () -> assignedPartitions,
         newPartitions -> {
           restartLock.lock();
           try {

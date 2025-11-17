@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.apache.kafka.common.PartitionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,18 +30,23 @@ public class TopicPartitionsMonitoring {
     this.executor = executor;
   }
 
+  /**
+   * @param actualPartitionsProvider should provide actual list in multi-thread environment
+   */
   public ScheduledFuture<?> subscribeOnPartitionsChange(
-      String topic, Duration checkInterval, List<PartitionInfo> currentPartitions, Consumer<List<PartitionInfo>> onPartitionsChange
+      String topic, Duration checkInterval, Supplier<List<PartitionInfo>> actualPartitionsProvider, Consumer<List<PartitionInfo>> onPartitionsChange
   ) {
+    List<PartitionInfo>[] partitionsSnapshot = new List[]{actualPartitionsProvider.get()};
     return executor.scheduleAtFixedRate(
         () -> {
           try {
             List<PartitionInfo> newPartitions = clusterMetadataProvider.getPartitionsInfo(topic);
-            if (newPartitions.size() == currentPartitions.size()) {
+            if (newPartitions.size() == partitionsSnapshot[0].size()) {
               return;
             }
-            LOGGER.info("Got partitions change for topic prev={}, new={}", currentPartitions.size(), newPartitions.size());
+            LOGGER.info("Got partitions change for topic prev={}, new={}", actualPartitionsProvider.get().size(), newPartitions.size());
             onPartitionsChange.accept(newPartitions);
+            partitionsSnapshot[0] = actualPartitionsProvider.get();
           } catch (RuntimeException e) {
             LOGGER.error("Error while running partitions monitoring", e);
           }
@@ -50,5 +56,4 @@ public class TopicPartitionsMonitoring {
         TimeUnit.MILLISECONDS
     );
   }
-
 }

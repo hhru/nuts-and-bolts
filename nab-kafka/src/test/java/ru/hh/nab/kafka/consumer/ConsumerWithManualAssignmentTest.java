@@ -335,6 +335,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     putMessagesIntoKafka(40);
 
     addPartitions(topicName, 7);
+    Thread.sleep(1000); // Partition change triggers Spring consumer full recreation
     waitUntil(() -> assertEquals(7, consumer1.getAssignedPartitions().size()));
     waitUntil(() -> assertEquals(7, consumer2.getAssignedPartitions().size()));
 
@@ -346,6 +347,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
 
     addPartitions(topicName, 9);
+    Thread.sleep(1000); // Partition change triggers Spring consumer full recreation
     waitUntil(() -> assertEquals(9, consumer1.getAssignedPartitions().size()));
     waitUntil(() -> assertEquals(9, consumer2.getAssignedPartitions().size()));
     for (int i = 0; i < 9; i++) {

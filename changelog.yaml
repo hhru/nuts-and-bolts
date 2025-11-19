@@ -1,3 +1,10 @@
+-   name: 19.0.0
+    date: '2025-11-19T11:35:51.595896+03:00'
+    description: Обновлен jclient до 13.0.0
+    instructions: Заменить использование ru.hh.jclient.common.RequestBuilder#setExternalRequest
+        на ru.hh.jclient.common.HttpClient#external()
+    compatible: false
+
 -   name: 18.0.4
     date: '2025-11-11T12:19:04.778988+03:00'
     description: Обновление trace-context до 2.0.0, jclient до 12.0.1

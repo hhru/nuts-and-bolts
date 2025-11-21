@@ -1,3 +1,9 @@
+-   name: 19.0.1
+    date: '2025-11-21T14:50:23.049977+03:00'
+    description: Обновление jclient до 13.0.1.
+    instructions: ''
+    compatible: true
+
 -   name: 19.0.0
     date: '2025-11-19T11:35:51.595896+03:00'
     description: Обновлен jclient до 13.0.0

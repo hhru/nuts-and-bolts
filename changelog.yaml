@@ -1,3 +1,11 @@
+-   name: 20.0.0
+    date: '2025-11-21T18:40:33.735127+03:00'
+    description: Удалена фабрика MonitoringBalancingUpstreamManagerFactory, jclient
+        обновлен до 14.0.0
+    instructions: Для создания инстанса BalancingUpstreamManager необходимо вместо
+        фабрики MonitoringBalancingUpstreamManagerFactory вызывать конструктор напрямую
+    compatible: false
+
 -   name: 19.0.1
     date: '2025-11-21T14:50:23.049977+03:00'
     description: Обновление jclient до 13.0.1.

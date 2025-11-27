@@ -1,3 +1,9 @@
+-   name: 21.0.1
+    date: '2025-11-27T13:20:25.330794+03:00'
+    description: Обновление jclient до 14.0.1, trace-context до 2.0.1
+    instructions: ''
+    compatible: true
+
 -   name: 21.0.0
     date: '2025-11-25T16:07:30.276548+03:00'
     description: Удалены NoopSecurityHandler, SecurityConfiguration, NoopSessionHandler,

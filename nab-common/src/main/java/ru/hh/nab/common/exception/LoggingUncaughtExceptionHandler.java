@@ -1,5 +1,6 @@
 package ru.hh.nab.common.exception;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,11 +8,14 @@ public final class LoggingUncaughtExceptionHandler implements Thread.UncaughtExc
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LoggingUncaughtExceptionHandler.class);
 
-  private static Thread.UncaughtExceptionHandler replacedDefaultExceptionHandler;
+  private static volatile Thread.UncaughtExceptionHandler replacedDefaultExceptionHandler;
+  private static final AtomicBoolean registered = new AtomicBoolean(false);
 
   public static void registerAsDefault() {
-    replacedDefaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-    Thread.setDefaultUncaughtExceptionHandler(new LoggingUncaughtExceptionHandler());
+    if (registered.compareAndSet(false, true)) {
+      replacedDefaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+      Thread.setDefaultUncaughtExceptionHandler(new LoggingUncaughtExceptionHandler());
+    }
   }
 
   @Override

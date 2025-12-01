@@ -1,3 +1,9 @@
+-   name: 22.0.1
+    date: '2025-12-01T13:20:44.740286+03:00'
+    description: обновлен jclient
+    instructions: ''
+    compatible: true
+
 -   name: 22.0.0
     date: '2025-11-28T17:52:08.940886+03:00'
     description: Добавлена реализация UncaughtExceptionHandler с логированием ошибки,

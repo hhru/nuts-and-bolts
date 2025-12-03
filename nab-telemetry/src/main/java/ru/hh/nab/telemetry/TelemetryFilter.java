@@ -21,6 +21,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import static java.util.Optional.ofNullable;
 import java.util.TreeMap;
+import static java.util.function.Predicate.not;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
@@ -59,7 +60,10 @@ public class TelemetryFilter implements Filter {
       Map<String, String> requestHeadersMap = getRequestHeadersMap(httpServletRequest);
       Context telemetryContext = telemetryPropagator.getTelemetryContext(Context.current(), requestHeadersMap);
 
-      String traceId = ofNullable(requestHeadersMap.get(RequestHeaders.REQUEST_ID)).orElseGet(TraceIdGenerator::generateTraceId);
+      String traceId = ofNullable(requestHeadersMap.get(RequestHeaders.REQUEST_ID))
+          .filter(not(String::isBlank))
+          .orElseGet(TraceIdGenerator::generateTraceId);
+
       String strictTraceId = Span.fromContext(telemetryContext).getSpanContext().getTraceId();
       try (ru.hh.trace.Scope ignoredTraceContextScope = traceContext.setTraceIdWithStrictTraceIdCorrection(traceId, strictTraceId)) {
         //noinspection OptionalGetWithoutIsPresent

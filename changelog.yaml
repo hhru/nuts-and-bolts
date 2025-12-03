@@ -1,3 +1,9 @@
+-   name: 22.0.3
+    date: '2025-12-03T17:37:55.142088+03:00'
+    description: Добавлена обработка пустого заголовка X-Request-Id
+    instructions: ''
+    compatible: true
+
 -   name: 22.0.2
     date: '2025-12-01T14:09:54.669774+03:00'
     description: Обновление jclient до 14.0.3

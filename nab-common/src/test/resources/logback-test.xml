@@ -1,0 +1,12 @@
+<!-- TODO replace with java config after https://jira.hh.ru/browse/PORTFOLIO-33636 -->
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date %-5level [%thread] MDC[%mdc] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- Tests are silent by default -->
+    <root level="OFF">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

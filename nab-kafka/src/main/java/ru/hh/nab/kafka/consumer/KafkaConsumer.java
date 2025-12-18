@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -139,37 +138,30 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   private void subscribeForAssignedPartitionsChange() {
-    Supplier<List<PartitionInfo>> actualPartitionsProvider = () -> assignedPartitions;
-    java.util.function.Consumer<List<PartitionInfo>> onPartitionsChange = newPartitions -> {
-      restartLock.lock();
-      try {
-        if (!running) {
-          stopPartitionsMonitoring();
-          return;
-        }
-        if (!currentSpringKafkaContainer.isRunning()) {
-          return;
-        }
-        currentSpringKafkaContainer.stop();
-        this.assignedPartitions = newPartitions;
-        createNewSpringContainer();
-        currentSpringKafkaContainer.start();
-      } finally {
-        restartLock.unlock();
-      }
-    };
-
-    List<PartitionInfo>[] partitionsSnapshot = new List[]{actualPartitionsProvider.get()};
     this.checkPartitionsChangeFuture = scheduledExecutorService.scheduleAtFixedRate(
         () -> {
           try {
             List<PartitionInfo> newPartitions = clusterMetadataProvider.getPartitionsInfo(consumerMetadata.getTopic());
-            if (newPartitions.size() == partitionsSnapshot[0].size()) {
+            if (newPartitions.size() == assignedPartitions.size()) {
               return;
             }
-            LOGGER.info("Got partitions change for topic prev={}, new={}", actualPartitionsProvider.get().size(), newPartitions.size());
-            onPartitionsChange.accept(newPartitions);
-            partitionsSnapshot[0] = actualPartitionsProvider.get();
+            LOGGER.info("Got partitions change for topic prev={}, new={}", assignedPartitions.size(), newPartitions.size());
+            restartLock.lock();
+            try {
+              if (!running) {
+                stopPartitionsMonitoring();
+                return;
+              }
+              if (!currentSpringKafkaContainer.isRunning()) {
+                return;
+              }
+              currentSpringKafkaContainer.stop();
+              assignedPartitions = newPartitions;
+              createNewSpringContainer();
+              currentSpringKafkaContainer.start();
+            } finally {
+              restartLock.unlock();
+            }
           } catch (RuntimeException e) {
             LOGGER.error("Error while running partitions monitoring", e);
           }

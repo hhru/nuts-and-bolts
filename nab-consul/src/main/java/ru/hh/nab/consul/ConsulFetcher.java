@@ -3,9 +3,7 @@ package ru.hh.nab.consul;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import ru.hh.consul.HealthClient;
-import ru.hh.consul.model.health.ServiceHealth;
 import ru.hh.consul.option.ImmutableQueryOptions;
 import ru.hh.consul.option.QueryOptions;
 
@@ -28,7 +26,7 @@ public class ConsulFetcher implements HostsFetcher {
             .getHealthyServiceInstances(serviceName, buildQueryOptions(dc))
             .getResponse()
             .stream()
-            .map(hs -> new HostPort(getAddress(hs), hs.getService().getPort()))
+            .map(hs -> new HostPort(hs.getActualServiceAddress(), hs.getService().getPort()))
         )
         .collect(Collectors.toSet());
   }
@@ -40,11 +38,5 @@ public class ConsulFetcher implements HostsFetcher {
         .caller(serviceName);
 
     return queryOptions.build();
-  }
-
-  private String getAddress(ServiceHealth serviceHealth) {
-    String address = serviceHealth.getService().getAddress();
-
-    return StringUtils.isBlank(address) ? serviceHealth.getNode().getAddress() : address;
   }
 }

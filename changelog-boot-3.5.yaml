@@ -158,4 +158,6 @@
             Адаптируйте код если у вас были завязки на старый формат.
         16. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
             `.addAttributesExtractor(ServerAttributesExtractor.create(new NabJdbcNetworkAttributesGetter()))`
+        17. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
+            не нужно передавать в конструктор KafkaConsumer.
     compatible: false

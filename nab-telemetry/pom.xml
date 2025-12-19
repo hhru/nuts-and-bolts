@@ -29,13 +29,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <exclusions>
-                <exclusion>
-                    <!-- TODO remove this exclusion when annotation will have version 17.0.0 or above-->
-                    <groupId>org.jetbrains</groupId>
-                    <artifactId>annotations</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <!-- TODO Override for com.squareup.okhttp3:okhttp. Remove it when new version will appear in the com.squareup.okhttp3:okhttp -->

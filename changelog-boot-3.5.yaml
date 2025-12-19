@@ -63,17 +63,7 @@
             5. Удалено несколько конструкторов в org.springframework.web.HttpRequestMethodNotSupportedException; если использовали их, то замените
                на HttpRequestMethodNotSupportedException(String, Collection).
             6. Замена аннотаций @MockBean и @SpyBean на @MockitoBean и @MockitoSpyBean соответственно.
-         2. Обновление Spring Boot до 3.5.5 Мигрировать в соответствии с Release notes:
-            https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes,
-            https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.3-Release-Notes,
-            https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes,
-            https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.5-Release-Notes
-            Из основных изменений:
-            1. Если в ваших настройках была строка 'spring.mvc.throw-exception-if-no-handler-found' - её надо удалить.
-            2. Если в ваших настройках была строка 'spring.mvc.ignore-default-model-on-redirect' - её надо удалить и мигрировать на
-               RedirectAttributes; Подробнее про RedirectAttributes -
-               https://docs.spring.io/spring-framework/docs/6.0.15/javadoc-api/org/springframework/web/servlet/mvc/support/RedirectAttributes.html.
-         3. Обновление Jetty до 12.0.25. Мигрировать в соответствии с гайдом:
+         2. Обновление Jetty до 12.0.25. Мигрировать в соответствии с гайдом:
             https://jetty.org/docs/jetty/12/programming-guide/migration/11-to-12.html.
             Из основных изменений:
              1. Если использовалась зависимость org.eclipse.jetty.websocket:websocket-jakarta-server, то её надо заменить на
@@ -98,12 +88,12 @@
                 org.eclipse.jetty.ee10:jetty-ee10-webapp.
             11. Обновить import'ы.
             12. Поменялись сигнатуры классов AbstractConfiguration, SecurityHandler, SessionHandler - обновить на аналоги.
-         4. Обновление Logback до 1.5.18. Если в тестах появились ошибки, связанные с MDCAdapter, то необходимо
+         3. Обновление Logback до 1.5.18. Если в тестах появились ошибки, связанные с MDCAdapter, то необходимо
             1. Убедиться, что в LoggingEvent установлен LoggerContext -> event.setLoggerContext(context);
             2. Убедиться, что в LoggerContext установлен MDCAdapter -> адаптер по умолчанию из старых версий:
                context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
                Подробнее https://github.com/spring-projects/spring-boot/issues/36177.
-         5. Обновление Hibernate до 6.5.3.Final. Мигрировать в соответствии с гайдами:
+         4. Обновление Hibernate до 6.5.3.Final. Мигрировать в соответствии с гайдами:
             https://docs.jboss.org/hibernate/orm/6.4/migration-guide/migration-guide.html,
             https://docs.jboss.org/hibernate/orm/6.5/migration-guide/migration-guide.html,
             https://docs.jboss.org/hibernate/orm/6.6/migration-guide/migration-guide.html
@@ -134,30 +124,30 @@
                @SQLInsert(check=ResultCheckStyle.COUNT)
                Стало:
                @SQLInsert(verify=Expectation.RowCount.class)
-         6. Обновлена сигнатура NoopSecurityHandler в соответствии с общими изменениями ConstraintSecurityHandler в Jetty. Если делали override,
+         5. Обновлена сигнатура NoopSecurityHandler в соответствии с общими изменениями ConstraintSecurityHandler в Jetty. Если делали override,
             то нужно использовать обновлённую сигнатуру в методе handle.
-         7. Обновлена сигнатура NoopSessionHandler в соответствии с общими изменениями SessionHandler в Jetty. Если делали override, то нужно
+         6. Обновлена сигнатура NoopSessionHandler в соответствии с общими изменениями SessionHandler в Jetty. Если делали override, то нужно
             использовать обновлённую сигнатуру в методе handle.
-         8. Вместо SemanticAttributes.HTTP_ROUTE нужно использовать HttpAttributes.HTTP_ROUTE. Внутреннее значение спана при этом не меняется.
-         9. Вместо SemanticAttributes.MESSAGING_DESTINATION_NAME нужно использовать MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME.
+         7. Вместо SemanticAttributes.HTTP_ROUTE нужно использовать HttpAttributes.HTTP_ROUTE. Внутреннее значение спана при этом не меняется.
+         8. Вместо SemanticAttributes.MESSAGING_DESTINATION_NAME нужно использовать MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME.
             Внутреннее значение спана при этом не меняется.
-        10. Вместо SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY нужно использовать MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY.
+         9. Вместо SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY нужно использовать MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY.
             Внутреннее значение спана при этом не меняется.
-        11. Вместо SemanticAttributes.MESSAGING_SYSTEM нужно использовать MessagingIncubatingAttributes.MESSAGING_SYSTEM.
+        10. Вместо SemanticAttributes.MESSAGING_SYSTEM нужно использовать MessagingIncubatingAttributes.MESSAGING_SYSTEM.
             Внутреннее значение спана при этом не меняется.
             Для значений атрибута теперь нужно использовать константу MessagingIncubatingAttributes.MessagingSystemIncubatingValues.
-        12. Вместо SemanticAttributes.PEER_SERVICE нужно использовать PeerIncubatingAttributes.PEER_SERVICE. Внутреннее значение спана при этом не
+        11. Вместо SemanticAttributes.PEER_SERVICE нужно использовать PeerIncubatingAttributes.PEER_SERVICE. Внутреннее значение спана при этом не
             меняется.
-        13. Вместо ResourceAttributes.SERVICE_NAME нужно использовать ServiceAttributes.SERVICE_NAME. Внутреннее значение спана при этом не
+        12. Вместо ResourceAttributes.SERVICE_NAME нужно использовать ServiceAttributes.SERVICE_NAME. Внутреннее значение спана при этом не
             меняется. 
-        14. Для всех остальных deprecated атрибутов вида SemanticAttributes.CODE_FUNCTION нужно поменять префикс констант на
+        13. Для всех остальных deprecated атрибутов вида SemanticAttributes.CODE_FUNCTION нужно поменять префикс констант на
             SemanticAttributesForRemoval.CODE_FUNCTION. Внутренние значение спанов при этом не меняются. Это нужно делать только если вы не можете
             мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной совместимости.
-        15. Меняется формат значения в span атрибуте SemanticAttributesForRemoval.CODE_NAMESPACE ("code.namespace"). Вместо class.getCanonicalName()
+        14. Меняется формат значения в span атрибуте SemanticAttributesForRemoval.CODE_NAMESPACE ("code.namespace"). Вместо class.getCanonicalName()
             теперь используется class.getName(). Т.е. вместо "ru.hh.nab.MyClass.MyInnerStaticClass" будет "ru.hh.nab.MyClass$MyInnerStaticClass"
             Адаптируйте код если у вас были завязки на старый формат.
-        16. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
+        15. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
             `.addAttributesExtractor(ServerAttributesExtractor.create(new NabJdbcNetworkAttributesGetter()))`
-        17. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
+        16. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
             не нужно передавать в конструктор KafkaConsumer.
     compatible: false

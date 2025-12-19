@@ -1,7 +1,7 @@
 -   name: 20.0.0.boot-3.5-alpha1
     date: '2025-09-19T18:00:00.000000+03:00'
     description: |
-        1. Обновление public-pom до 2.1.1.boot-3.5-alpha1
+        1. Обновление public-pom до 2.1.1.boot-3.5-alpha3
         2. Обновление consul-client до 2.0.0.boot-3.5-alpha1
         3. Обновление JClient до 14.0.0.boot-3.5-alpha1
         4. Обновление kafka-test-utils до 1.0.2.boot-3.5-alpha1.2

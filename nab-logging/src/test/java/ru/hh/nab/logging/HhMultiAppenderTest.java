@@ -3,7 +3,6 @@ package ru.hh.nab.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
@@ -140,7 +139,7 @@ public class HhMultiAppenderTest {
     context.putProperty("log.toConsole", "true");
     context.putProperty("log.writeAppenderName", "true");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
-    context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
+    context.setMDCAdapter(MDC.getMDCAdapter());
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
@@ -194,7 +193,7 @@ public class HhMultiAppenderTest {
     context.putProperty("log.toConsole", "true");
     context.putProperty("log.writeAppenderName", "false");
     context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
-    context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
+    context.setMDCAdapter(MDC.getMDCAdapter());
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);

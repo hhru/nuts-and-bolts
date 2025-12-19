@@ -116,7 +116,7 @@
             <version>0.7.4</version>
         </dependency>
         <!-- TODO This dependency is not intended to be used directly but override for org.caffinitas.ohc:ohc-core
-             Remove it when org.caffinitas.ohc:ohc-core will have new version -->
+               Remove it when org.caffinitas.ohc:ohc-core will have new version -->
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
@@ -165,7 +165,7 @@
             <scope>test</scope>
             <exclusions>
                 <!-- TODO Latest reflections version doesn't has (on a moment of writing) modern javaassist to resolve jar-hell with
-                     spring-boot-starter-jersey. Update reflections when it will appear and remove this exclusion. -->
+                       spring-boot-starter-jersey. Update reflections when it will appear and remove this exclusion. -->
                 <exclusion>
                     <artifactId>javassist</artifactId>
                     <groupId>org.javassist</groupId>

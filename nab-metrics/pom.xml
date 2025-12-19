@@ -21,35 +21,35 @@
         </dependency>
         <dependency>
             <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
-                 Remove this override when new version of asm will appear in java-dogstatsd-client -->
+                   Remove this override when new version of asm will appear in java-dogstatsd-client -->
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>${asm.version}</version>
         </dependency>
         <dependency>
             <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
-                 Remove this override when new version of asm will appear in java-dogstatsd-client -->
+                   Remove this override when new version of asm will appear in java-dogstatsd-client -->
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
             <version>${asm.version}</version>
         </dependency>
         <dependency>
             <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
-                 Remove this override when new version of asm will appear in java-dogstatsd-client -->
+                   Remove this override when new version of asm will appear in java-dogstatsd-client -->
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-analysis</artifactId>
             <version>${asm.version}</version>
         </dependency>
         <dependency>
             <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
-                 Remove this override when new version of asm will appear in java-dogstatsd-client -->
+                   Remove this override when new version of asm will appear in java-dogstatsd-client -->
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-tree</artifactId>
             <version>${asm.version}</version>
         </dependency>
         <dependency>
             <!-- TODO Only required to fix jar-hell with asm in java-dogstatsd-client.
-                 Remove this override when new version of asm will appear in java-dogstatsd-client -->
+                   Remove this override when new version of asm will appear in java-dogstatsd-client -->
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
             <version>${asm.version}</version>

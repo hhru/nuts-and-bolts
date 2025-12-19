@@ -158,19 +158,20 @@
             <version>1.37</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+            <!-- TODO check org.javassist:javassist override on next update -->
             <version>0.10.2</version>
             <scope>test</scope>
-            <exclusions>
-                <!-- TODO Latest reflections version doesn't has (on a moment of writing) modern javaassist to resolve jar-hell with
-                       spring-boot-starter-jersey. Update reflections when it will appear and remove this exclusion. -->
-                <exclusion>
-                    <artifactId>javassist</artifactId>
-                    <groupId>org.javassist</groupId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <!-- TODO This dependency is not intended to be used directly but override for org.reflections:reflections
+               Remove it when org.reflections:reflections will have new version -->
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.29.0-GA</version>
         </dependency>
     </dependencies>
 

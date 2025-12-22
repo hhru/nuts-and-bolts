@@ -91,7 +91,7 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
         }
       }
       this.lastInterval.set(interval);
-      if (interval > 0) {
+      if (interval > 0 && container.isRunning()) {
         try {
           Thread.sleep(interval);
         } catch (@SuppressWarnings("unused") InterruptedException e) {

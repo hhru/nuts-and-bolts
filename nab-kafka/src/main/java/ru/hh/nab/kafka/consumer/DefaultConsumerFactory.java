@@ -1,6 +1,7 @@
 package ru.hh.nab.kafka.consumer;
 
 import java.util.Properties;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -18,6 +19,10 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERV
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MULTIPLIER;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor;
+import static ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor.MAX_SIZE_PROPERTY;
+import static ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor.MIN_SIZE_PROPERTY;
+import static ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor.QUEUE_SIZE_PROPERTY;
 
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
   protected final ConfigProvider configProvider;
@@ -93,6 +98,14 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
     );
     backOff.setMaxInterval(PropertiesUtils.getLong(settings, BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL));
     return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer, configProvider.getServiceName(), statsDSender);
+  }
+
+  ThreadPoolExecutor getMessageProcessingExecutor(String threadPoolName, int poolSize) {
+    Properties properties = new Properties();
+    properties.put(MIN_SIZE_PROPERTY, String.valueOf(poolSize));
+    properties.put(MAX_SIZE_PROPERTY, String.valueOf(poolSize));
+    properties.put(QUEUE_SIZE_PROPERTY, String.valueOf(0));
+    return MonitoredThreadPoolExecutor.create(properties, threadPoolName, statsDSender, configProvider.getServiceName());
   }
 
   <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {

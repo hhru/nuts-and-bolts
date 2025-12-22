@@ -44,8 +44,13 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  public KafkaConsumerFactory consumerFactory(ConfigProvider configProvider, DeserializerSupplier deserializerSupplier, TestKafka testKafka) {
-    return new DefaultConsumerFactory(configProvider, deserializerSupplier, null, testKafka::getBootstrapServers);
+  public KafkaConsumerFactory consumerFactory(
+      ConfigProvider configProvider,
+      StatsDSender statsDSender,
+      DeserializerSupplier deserializerSupplier,
+      TestKafka testKafka
+  ) {
+    return new DefaultConsumerFactory(configProvider, deserializerSupplier, statsDSender, testKafka::getBootstrapServers);
   }
 
   @Bean

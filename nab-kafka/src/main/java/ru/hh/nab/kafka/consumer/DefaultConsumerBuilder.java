@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.kafka.common.PartitionInfo;
@@ -27,9 +29,15 @@ import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_SHUTDOWN_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
+import static ru.hh.nab.kafka.util.ConfigProvider.SHUTDOWN_TIMEOUT_MS;
+import ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor;
 
 public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
+
+  private static final String KAFKA_CONSUMER_THREAD_POOL_NAME_TEMPLATE = "kafka-consumer-%s%s-%s";
+  private static final String KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_TEMPLATE = "kafka-message-processor-%s%s-%s";
 
   private final String topicName;
   private final Class<T> messageClass;
@@ -176,14 +184,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
-    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
-      ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
-          configProvider,
-          consumerMetadata,
-          (BatchConsumerAwareMessageListener<String, T>) nabKafkaConsumer::onMessagesBatch
-      );
-      return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
-    };
+    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
+        configProvider,
+        springConsumerFactory,
+        consumerMetadata
+    );
 
     RetryQueue<T> retryQueue = null;
     KafkaConsumer<T> retryKafkaConsumer = null;
@@ -223,14 +228,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
-    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (nabKafkaConsumer) -> {
-      ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
-          configProvider,
-          consumerMetadata,
-          (BatchConsumerAwareMessageListener<String, T>) nabKafkaConsumer::onMessagesBatch
-      );
-      return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
-    };
+    Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
+        configProvider,
+        springConsumerFactory,
+        consumerMetadata
+    );
     ConsumeStrategy<T> retryReceiveConsumeStrategy = getRetryReceiveConsumeStrategy();
     return new KafkaConsumer<>(
         consumerMetadata,
@@ -256,21 +258,71 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     return ConsumerBuilder.decorateForDelayedRetry(consumeStrategy, Duration.ofMillis(pollTimeout * 9 / 10));
   }
 
+  private Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> createSpringContainerProviderForConsumerGroup(
+      ConfigProvider configProvider,
+      ConsumerFactory<String, T> springConsumerFactory,
+      ConsumerMetadata consumerMetadata
+  ) {
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
+    int concurrency = getConcurrency(nabConsumerSettings);
+    AtomicInteger containersCount = new AtomicInteger(0);
+    return (nabKafkaConsumer) -> {
+      int containerIndex = containersCount.getAndIncrement();
+      ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
+          concurrency,
+          0,
+          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
+          consumerFactory.getStatsDSender(),
+          configProvider.getServiceName()
+      );
+      ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
+          nabConsumerSettings,
+          consumerMetadata,
+          getMessageListener(nabKafkaConsumer, messageProcessingExecutor)
+      );
+      return getSpringKafkaListenerContainer(
+          springConsumerFactory,
+          nabKafkaConsumer,
+          containerProperties,
+          messageProcessingExecutor,
+          getKafkaConsumerThreadPoolName(consumerMetadata, containerIndex)
+      );
+    };
+  }
+
   private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(
       ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
+    int concurrency = getConcurrency(nabConsumerSettings);
+    AtomicInteger containersCount = new AtomicInteger(0);
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (
         nabKafkaConsumer,
         partitionsInfo
     ) -> {
+      int containerIndex = containersCount.getAndIncrement();
+      ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
+          // When specific partitions are provided, the pool size must be less than or equal to the number of partitions
+          Math.min(concurrency, partitionsInfo.size()),
+          0,
+          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
+          consumerFactory.getStatsDSender(),
+          configProvider.getServiceName()
+      );
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
-          configProvider,
-          (BatchConsumerAwareMessageListener<String, T>) nabKafkaConsumer::onMessagesBatch,
+          nabConsumerSettings,
+          getMessageListener(nabKafkaConsumer, messageProcessingExecutor),
           partitionsInfo,
           nabKafkaConsumer
       );
-      return getSpringKafkaListenerContainer(configProvider, springConsumerFactory, nabKafkaConsumer, containerProperties);
+      return getSpringKafkaListenerContainer(
+          springConsumerFactory,
+          nabKafkaConsumer,
+          containerProperties,
+          messageProcessingExecutor,
+          getKafkaConsumerThreadPoolName(consumerMetadata, containerIndex)
+      );
     };
 
     return new KafkaConsumer<>(
@@ -288,23 +340,31 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
 
   private ConcurrentMessageListenerContainer<String, T> getSpringKafkaListenerContainer(
-      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, KafkaConsumer<T> nabKafkaConsumer,
-      ContainerProperties containerProperties
+      ConsumerFactory<String, T> springConsumerFactory,
+      KafkaConsumer<T> nabKafkaConsumer,
+      ContainerProperties containerProperties,
+      ThreadPoolExecutor messageProcessingExecutor,
+      String kafkaConsumerThreadPoolName
   ) {
     SeekToFirstNotAckedMessageErrorHandler<T> errorHandler = consumerFactory.getCommonErrorHandler(
         topicName,
         nabKafkaConsumer,
         logger
     );
-    ConcurrentMessageListenerContainer<String, T> container = new ConcurrentMessageListenerContainer<>(springConsumerFactory, containerProperties);
+    NabConcurrentMessageListenerContainer<String, T> container = new NabConcurrentMessageListenerContainer<>(
+        springConsumerFactory,
+        containerProperties,
+        messageProcessingExecutor,
+        logger
+    );
+    container.setBeanName(kafkaConsumerThreadPoolName);
     container.setCommonErrorHandler(errorHandler);
-    Properties settings = configProvider.getNabConsumerSettings(topicName);
-    container.setConcurrency(PropertiesUtils.getInteger(settings, CONCURRENCY, 1));
+    container.setConcurrency(messageProcessingExecutor.getMaximumPoolSize());
     return container;
   }
 
   private ContainerProperties getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
-      ConfigProvider configProvider,
+      Properties nabConsumerSettings,
       GenericMessageListener<?> messageListener,
       List<PartitionInfo> partitionsInfo,
       KafkaConsumer<T> nabKafkaConsumer
@@ -319,16 +379,16 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         )
         .toArray(TopicPartitionOffset[]::new);
 
-    Properties settings = configProvider.getNabConsumerSettings(topicName);
     var containerProperties = new ContainerProperties(partitions);
-    addCommonContainerProperties(messageListener, containerProperties, settings);
+    addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
     return containerProperties;
   }
 
   private ContainerProperties getSpringConsumerContainerPropertiesWithConsumerGroup(
-      ConfigProvider configProvider, ConsumerMetadata consumerMetadata, GenericMessageListener<?> messageListener
+      Properties nabConsumerSettings,
+      ConsumerMetadata consumerMetadata,
+      GenericMessageListener<?> messageListener
   ) {
-    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     var containerProperties = new ContainerProperties(consumerMetadata.getTopic());
     containerProperties.setGroupId(consumerMetadata.getConsumerGroupId());
     addCommonContainerProperties(messageListener, containerProperties, nabConsumerSettings);
@@ -347,6 +407,33 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         AUTH_EXCEPTION_RETRY_INTERVAL,
         DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS
     )));
+    containerProperties.setShutdownTimeout(PropertiesUtils.getLong(settings, SHUTDOWN_TIMEOUT_MS, DEFAULT_SHUTDOWN_TIMEOUT_MS));
   }
 
+  private int getConcurrency(Properties nabConsumerSettings) {
+    return PropertiesUtils.getInteger(nabConsumerSettings, CONCURRENCY, 1);
+  }
+
+  private BatchConsumerAwareMessageListener<String, T> getMessageListener(
+      KafkaConsumer<T> kafkaConsumer,
+      ThreadPoolExecutor messageProcessingExecutor
+  ) {
+    return (messages, consumer) -> kafkaConsumer.onMessagesBatch(messages, consumer, messageProcessingExecutor);
+  }
+
+  private String getKafkaConsumerThreadPoolName(ConsumerMetadata consumerMetadata, int containerIndex) {
+    return getThreadPoolName(KAFKA_CONSUMER_THREAD_POOL_NAME_TEMPLATE, consumerMetadata, containerIndex);
+  }
+
+  private String getMessageProcessingThreadPoolName(ConsumerMetadata consumerMetadata, int containerIndex) {
+    return getThreadPoolName(KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_TEMPLATE, consumerMetadata, containerIndex);
+  }
+
+  private String getThreadPoolName(String threadPoolNameTemplate, ConsumerMetadata consumerMetadata, int containerIndex) {
+    return threadPoolNameTemplate.formatted(
+        consumerMetadata.getTopic(),
+        consumerMetadata.getOperation().isBlank() ? "" : "-" + consumerMetadata.getOperation(),
+        containerIndex
+    );
+  }
 }

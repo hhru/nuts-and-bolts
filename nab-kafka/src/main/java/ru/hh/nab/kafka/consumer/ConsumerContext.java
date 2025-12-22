@@ -79,4 +79,30 @@ class ConsumerContext<T> {
     return batchSeekedOffsets.get();
   }
 
+  Transfer<T> getTransfer() {
+    return new Transfer<>(
+        List.copyOf(getCurrentBatch()),
+        new ConcurrentHashMap<>(getBatchSeekedOffsets()),
+        new ArrayList<>(getBatchFutures()),
+        new ArrayList<>(getBatchFutureMessages()),
+        isWholeBatchAcked()
+    );
+  }
+
+  void propagate(Transfer<T> transfer) {
+    currentBatch.set(transfer.currentBatch());
+    batchSeekedOffsets.set(transfer.batchSeekedOffsets());
+    batchFutures.set(transfer.batchFutures());
+    batchFutureMessages.set(transfer.batchFutureMessages());
+    wholeBatchCommited.set(transfer.wholeBatchCommited());
+  }
+
+  record Transfer<T>(
+      List<ConsumerRecord<String, T>> currentBatch,
+      Map<TopicPartition, OffsetAndMetadata> batchSeekedOffsets,
+      List<CompletableFuture<?>> batchFutures,
+      List<ConsumerRecord<String, T>> batchFutureMessages,
+      boolean wholeBatchCommited
+  ) {
+  }
 }

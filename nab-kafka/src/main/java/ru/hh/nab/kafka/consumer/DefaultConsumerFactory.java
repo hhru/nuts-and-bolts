@@ -116,4 +116,8 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   TopicPartitionsMonitoring getTopicPartitionsMonitoring() {
     return topicPartitionsMonitoring;
   }
+
+  StatsDSender getStatsDSender() {
+    return statsDSender;
+  }
 }

@@ -2,6 +2,7 @@ package ru.hh.nab.testbase.kafka;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -34,7 +35,7 @@ public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
   }
 
   @Override
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
+  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer, ThreadPoolExecutor messageProcessingExecutor) {
     // do nothing
   }
 

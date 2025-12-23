@@ -40,7 +40,7 @@ public class KafkaTestConfig {
 
   @Bean
   public ConfigProvider configProvider(Properties properties, StatsDSender statsDSender) {
-    return new ConfigProvider("service", "kafka", properties, statsDSender);
+    return new ConfigProvider("service", "node", "kafka", properties, statsDSender);
   }
 
   @Bean

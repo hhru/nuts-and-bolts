@@ -36,6 +36,8 @@ public class ConfigProvider {
   public static final long DEFAULT_POLL_TIMEOUT_MS = 5000L;
   public static final String SHUTDOWN_TIMEOUT_MS = "shutdown.timeout.ms";
   public static final long DEFAULT_SHUTDOWN_TIMEOUT_MS = DEFAULT_SHUTDOWN_TIMEOUT;
+  public static final String GROUP_STATIC_MEMBERSHIP_ENABLED = "group.static.membership.enabled";
+  public static final boolean DEFAULT_GROUP_STATIC_MEMBERSHIP_ENABLED = false;
   public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
   public static final String CONCURRENCY = "concurrency";
@@ -53,12 +55,14 @@ public class ConfigProvider {
       KafkaStatsDReporter.METRICS_SEND_ALL
   );
   private final String serviceName;
+  private final String nodeName;
   private final String kafkaClusterName;
   private final Properties properties;
   private final StatsDSender statsDSender;
 
-  public ConfigProvider(String serviceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
+  public ConfigProvider(String serviceName, String nodeName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
     this.serviceName = serviceName;
+    this.nodeName = nodeName;
     this.kafkaClusterName = kafkaClusterName;
     this.properties = properties;
     this.statsDSender = statsDSender;
@@ -92,6 +96,10 @@ public class ConfigProvider {
 
   public String getServiceName() {
     return serviceName;
+  }
+
+  public String getNodeName() {
+    return nodeName;
   }
 
   public String getKafkaClusterName() {

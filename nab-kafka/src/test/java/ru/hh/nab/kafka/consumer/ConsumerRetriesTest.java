@@ -188,7 +188,7 @@ public class ConsumerRetriesTest extends KafkaConsumerTestBase {
   }
 
   private String getDefaultRetryTopic() {
-    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("service", topicName, "testOperation"));
+    return RetryTopics.defaultRetryReceiveTopic(new ConsumerMetadata("service", "node", topicName, "testOperation"));
   }
 
   private <T> CompletableFuture<KafkaSendResult<T>> sendToKafka(ProducerRecord<String, T> record) {

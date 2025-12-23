@@ -19,6 +19,7 @@ import ru.hh.nab.metrics.StatsDSender;
 public class ConfigProviderTest {
 
   private static final String SERVICE_NAME = "testService";
+  private static final String NODE_NAME = "testNode";
   private static final String KAFKA_CLUSTER_NAME = "kafka";
   private static final String CONSUMER_TEST_KEY = ConsumerConfig.CLIENT_RACK_CONFIG;
   private static final String PRODUCER_TEST_KEY = ProducerConfig.TRANSACTIONAL_ID_CONFIG;
@@ -41,7 +42,7 @@ public class ConfigProviderTest {
 
   private static ConfigProvider createConfigProvider(Properties settings) {
     StatsDSender statsDSender = new StatsDSender(new NoOpStatsDClient(), new ScheduledExecutor(), StatsDSender.DEFAULT_SEND_INTERVAL_SECONDS);
-    return new ConfigProvider(SERVICE_NAME, KAFKA_CLUSTER_NAME, settings, statsDSender);
+    return new ConfigProvider(SERVICE_NAME, NODE_NAME, KAFKA_CLUSTER_NAME, settings, statsDSender);
   }
 
   private static Properties createSettings(Map<String, Object> props) {

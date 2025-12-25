@@ -8,7 +8,6 @@ class RetryTopicsTest {
 
   static final ConsumerMetadata CONSUMER_METADATA = new ConsumerMetadata(
       "service-with-retries",
-      "node",
       "mainTopic",
       "FizzBuzzProcessing"
   );

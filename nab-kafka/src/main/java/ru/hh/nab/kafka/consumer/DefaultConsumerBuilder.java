@@ -183,11 +183,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
       ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
-    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
+        configProvider,
         springConsumerFactory,
-        consumerMetadata,
-        nabConsumerSettings
+        consumerMetadata
     );
 
     RetryQueue<T> retryQueue = null;
@@ -228,11 +227,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
-    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
+        configProvider,
         springConsumerFactory,
-        consumerMetadata,
-        nabConsumerSettings
+        consumerMetadata
     );
     ConsumeStrategy<T> retryReceiveConsumeStrategy = getRetryReceiveConsumeStrategy();
     return new KafkaConsumer<>(
@@ -260,13 +258,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> createSpringContainerProviderForConsumerGroup(
+      ConfigProvider configProvider,
       ConsumerFactory<String, T> springConsumerFactory,
-      ConsumerMetadata consumerMetadata,
-      Properties nabConsumerSettings
+      ConsumerMetadata consumerMetadata
   ) {
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     int concurrency = getConcurrency(nabConsumerSettings);
     AtomicInteger containersCount = new AtomicInteger(0);
-    return  (nabKafkaConsumer) -> {
+    return (nabKafkaConsumer) -> {
       int containerIndex = containersCount.getAndIncrement();
       ThreadPoolExecutor messageProcessingExecutor = consumerFactory.getMessageProcessingExecutor(
           getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),

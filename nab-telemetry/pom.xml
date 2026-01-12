@@ -31,12 +31,6 @@
             <artifactId>okhttp</artifactId>
         </dependency>
         <dependency>
-            <!-- TODO Override for com.squareup.okhttp3:okhttp. Remove it when new version will appear in the com.squareup.okhttp3:okhttp -->
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>17.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>io.opentelemetry.semconv</groupId>
             <artifactId>opentelemetry-semconv-incubating</artifactId>
         </dependency>

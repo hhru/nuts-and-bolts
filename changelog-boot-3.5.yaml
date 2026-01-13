@@ -92,7 +92,7 @@
             2. Убедиться, что в LoggerContext установлен MDCAdapter -> адаптер по умолчанию из старых версий:
                context.setMDCAdapter((LogbackMDCAdapter) MDC.getMDCAdapter());
                Подробнее https://github.com/spring-projects/spring-boot/issues/36177.
-         4. Обновление Hibernate до 6.5.3.Final. Мигрировать в соответствии с гайдами:
+         4. Обновление Hibernate до 6.6.26.Final. Мигрировать в соответствии с гайдами:
             https://docs.jboss.org/hibernate/orm/6.4/migration-guide/migration-guide.html,
             https://docs.jboss.org/hibernate/orm/6.5/migration-guide/migration-guide.html,
             https://docs.jboss.org/hibernate/orm/6.6/migration-guide/migration-guide.html

@@ -5,10 +5,9 @@
         2. Обновление consul-client до 2.0.0.boot-3.5-alpha1
         3. Обновление JClient до 14.0.0.boot-3.5-alpha1
         4. Обновление kafka-test-utils до 1.0.2.boot-3.5-alpha1.2
-        5. Обновление java-dogstatsd-client до 4.4.5
-        6. Обновление logstash-logback-encoder до 8.1
-        7. Обновление commons-text до 1.13.1  
-        8. Начиная с этой версии некоторые span атрибуты OpenTelemetry помечаются как deprecated и будут удалены в будущих версиях.
+        5. Обновление logstash-logback-encoder до 8.1
+        6. Обновление commons-text до 1.13.1  
+        7. Начиная с этой версии некоторые span атрибуты OpenTelemetry помечаются как deprecated и будут удалены в будущих версиях.
            Вместе со старыми атрибутами будут добавлены новые аналоги, что приведёт к увеличению потребляемого места в вашем хранилище OpenTelemetry.
            Если вы не знаете зачем вам могли бы понадобиться сразу 2 набора атрибутов в этой переходной версии - сразу обновляйтесь на последующие
            версии, с целью экономии места в хранилища.
@@ -37,7 +36,7 @@
                MessagingIncubatingAttributes.MESSAGING_OPERATION_TYPE (""messaging.operation.type"").
                При этом константа значений тоже меняется: вместо SemanticAttributes.MessagingOperationValues надо использовать
                MessagingIncubatingAttributes.MessagingOperationTypeIncubatingValues.
-        9. Для некоторых span-атрибутов OpenTelemetry раньше не было констант, которые теперь добавлены. Рекомендуется поискать их текстовым поиском
+        8. Для некоторых span-атрибутов OpenTelemetry раньше не было констант, которые теперь добавлены. Рекомендуется поискать их текстовым поиском
            и заменить на константы.
            1. Вместо "destination.address" рекомендуется использовать константу DestinationIncubatingAttributes.DESTINATION_ADDRESS
            2. Вместо "user_agent.original" рекомендуется использовать константу UserAgentAttributes.USER_AGENT_ORIGINAL.

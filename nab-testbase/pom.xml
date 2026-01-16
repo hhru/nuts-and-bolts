@@ -48,11 +48,6 @@
             <artifactId>hh-kafka-test-utils</artifactId>
             <version>${kafka-test-utils.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

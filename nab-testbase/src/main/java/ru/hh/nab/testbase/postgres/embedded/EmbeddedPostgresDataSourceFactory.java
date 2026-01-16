@@ -1,11 +1,9 @@
 package ru.hh.nab.testbase.postgres.embedded;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import javax.sql.DataSource;
-import org.apache.commons.text.StringSubstitutor;
 import org.testcontainers.containers.PostgreSQLContainer;
 import ru.hh.nab.datasource.DataSourceFactory;
 import static ru.hh.nab.datasource.DataSourceSettings.JDBC_URL;
@@ -49,12 +47,11 @@ public class EmbeddedPostgresDataSourceFactory extends DataSourceFactory {
     properties.putAll(dataSourceSettings);
 
     PostgreSQLContainer<?> embeddedPostgres = getEmbeddedPostgres();
-    final StringSubstitutor jdbcUrlParamsSubstitutor = new StringSubstitutor(Map.of(
-        "port", embeddedPostgres.getFirstMappedPort(),
-        "host", embeddedPostgres.getHost(),
-        "database", DEFAULT_DATABASE
-    ));
-    String jdbcUrl = jdbcUrlParamsSubstitutor.replace(Optional.ofNullable(dataSourceSettings.getProperty(JDBC_URL)).orElse(DEFAULT_JDBC_URL));
+    String jdbcUrl = Optional.ofNullable(dataSourceSettings.getProperty(JDBC_URL))
+        .orElse(DEFAULT_JDBC_URL)
+        .replace("${host}", embeddedPostgres.getHost())
+        .replace("${port}", String.valueOf(embeddedPostgres.getFirstMappedPort()))
+        .replace("${database}", DEFAULT_DATABASE);
     properties.setProperty(JDBC_URL, jdbcUrl);
     properties.setProperty(USER, DEFAULT_USER);
     properties.setProperty(PASSWORD, DEFAULT_PASSWORD);

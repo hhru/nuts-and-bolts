@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>20.0.1-SNAPSHOT</version>
+        <version>20.0.0.boot-3.5-alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -80,8 +80,8 @@
 
         <!-- Jetty -->
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-webapp</artifactId>
         </dependency>
 
         <!--Jackson-->
@@ -112,7 +112,6 @@
         <dependency>
             <groupId>org.caffinitas.ohc</groupId>
             <artifactId>ohc-core</artifactId>
-            <version>0.7.4</version>
         </dependency>
 
         <!--Testing-->
@@ -143,10 +142,20 @@
             <version>1.37</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+            <!-- TODO check org.javassist:javassist override on next update -->
             <version>0.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- TODO This dependency is not intended to be used directly but override for org.reflections:reflections
+               Remove it when org.reflections:reflections will have new version -->
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.30.2-GA</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -177,7 +186,9 @@
                     <reportsDirectory>target/logs</reportsDirectory>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <useFile>false</useFile>
-                    <disableXmlReport>true</disableXmlReport>
+                    <statelessTestsetReporter>
+                        <disable>true</disable>
+                    </statelessTestsetReporter>
                 </configuration>
             </plugin>
         </plugins>

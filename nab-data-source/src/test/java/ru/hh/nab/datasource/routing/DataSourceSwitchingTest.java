@@ -267,6 +267,15 @@ public class DataSourceSwitchingTest {
   @Configuration
   static class DataSourceSwitchingTestConfig {
 
+    private final static String DB1_MASTER = "db1Master";
+    private final static String DB1_READONLY = "db1ReadOnly";
+    private final static String DB1_SLOW = "db1Slow";
+    private final static String DB1_CRON = "db1Cron";
+    private final static String DB2_MASTER = "db2Master";
+    private final static String DB2_READONLY = "db2ReadOnly";
+    private final static String DB2_SLOW = "db2Slow";
+    private final static String DB2_CRON = "db2Cron";
+
     @Bean
     DatabaseSwitcher databaseSwitcher(DatabaseNameHolder databaseNameHolder) {
       return new DatabaseSwitcher(databaseNameHolder::getDatabaseName);
@@ -288,6 +297,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB1_MASTER)
     DataSource db1MasterDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.MASTER);
       Properties properties = createProperties(dataSourceName);
@@ -295,6 +305,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB1_READONLY)
     DataSource db1ReadOnlyDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.READONLY);
       Properties properties = createProperties(dataSourceName);
@@ -302,6 +313,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB1_SLOW)
     DataSource db1SlowDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, DataSourceType.SLOW);
       Properties properties = createProperties(dataSourceName);
@@ -310,6 +322,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB1_CRON)
     DataSource db1CronMasterDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB1, CRON_MASTER);
       Properties properties = createProperties(dataSourceName);
@@ -319,6 +332,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB2_MASTER)
     DataSource db2MasterDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.MASTER);
       Properties properties = createProperties(dataSourceName);
@@ -326,6 +340,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB2_READONLY)
     DataSource db2ReadOnlyDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.READONLY);
       Properties properties = createProperties(dataSourceName);
@@ -333,6 +348,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB2_SLOW)
     DataSource db2SlowDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, DataSourceType.SLOW);
       Properties properties = createProperties(dataSourceName);
@@ -341,6 +357,7 @@ public class DataSourceSwitchingTest {
     }
 
     @Bean
+    @Named(DB2_CRON)
     DataSource db2CronMasterDataSource(DataSourceFactory dataSourceFactory) {
       String dataSourceName = DATASOURCE_NAME_FORMAT.formatted(DB2, CRON_MASTER);
       Properties properties = createProperties(dataSourceName);
@@ -354,15 +371,15 @@ public class DataSourceSwitchingTest {
     RoutingDataSource dataSource(
         RoutingDataSourceFactory routingDataSourceFactory,
 
-        DataSource db1MasterDataSource,
-        DataSource db1ReadOnlyDataSource,
-        DataSource db1SlowDataSource,
-        DataSource db1CronMasterDataSource,
+        @Named(DB1_MASTER) DataSource db1MasterDataSource,
+        @Named(DB1_READONLY) DataSource db1ReadOnlyDataSource,
+        @Named(DB1_SLOW) DataSource db1SlowDataSource,
+        @Named(DB1_CRON) DataSource db1CronMasterDataSource,
 
-        DataSource db2MasterDataSource,
-        DataSource db2ReadOnlyDataSource,
-        DataSource db2SlowDataSource,
-        DataSource db2CronMasterDataSource
+        @Named(DB2_MASTER) DataSource db2MasterDataSource,
+        @Named(DB2_READONLY) DataSource db2ReadOnlyDataSource,
+        @Named(DB2_SLOW) DataSource db2SlowDataSource,
+        @Named(DB2_CRON) DataSource db2CronMasterDataSource
     ) {
       RoutingDataSource routingDataSource = routingDataSourceFactory.create();
       routingDataSource.addNamedDataSource(db1MasterDataSource);

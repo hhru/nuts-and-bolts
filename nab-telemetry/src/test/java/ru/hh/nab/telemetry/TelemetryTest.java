@@ -1,6 +1,5 @@
 package ru.hh.nab.telemetry;
 
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -13,7 +12,11 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.CodeAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
+import io.opentelemetry.semconv.ServerAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
+import io.opentelemetry.semconv.UserAgentAttributes;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
@@ -40,6 +43,7 @@ import static org.springframework.http.RequestEntity.get;
 import static org.springframework.http.RequestEntity.head;
 import org.springframework.http.ResponseEntity;
 import ru.hh.nab.common.constants.RequestHeaders;
+import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.trace.TraceContextImpl;
@@ -85,14 +89,19 @@ public class TelemetryTest {
     assertEquals(SpanKind.SERVER, span.getKind());
     assertEquals("TestResource#simple", span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
-    assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_TARGET));
-    assertEquals("/simple", attributes.get(SemanticAttributes.HTTP_ROUTE));
-    assertEquals(200, attributes.get(SemanticAttributes.HTTP_STATUS_CODE));
-    assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
-    assertEquals("localhost", attributes.get(SemanticAttributes.HTTP_HOST));
-    assertEquals("simple", attributes.get(SemanticAttributes.CODE_FUNCTION));
-    assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
-    assertEquals(userAgent, attributes.get(AttributeKey.stringKey("user_agent.original")));
+    assertEquals("/simple", attributes.get(SemanticAttributesForRemoval.HTTP_TARGET));
+    assertEquals("/simple", attributes.get(UrlAttributes.URL_PATH));
+    assertEquals("/simple", attributes.get(HttpAttributes.HTTP_ROUTE));
+    assertEquals(200, attributes.get(SemanticAttributesForRemoval.HTTP_STATUS_CODE));
+    assertEquals(200, attributes.get(HttpAttributes.HTTP_RESPONSE_STATUS_CODE));
+    assertEquals("GET", attributes.get(SemanticAttributesForRemoval.HTTP_METHOD));
+    assertEquals("GET", attributes.get(HttpAttributes.HTTP_REQUEST_METHOD));
+    assertEquals("localhost", attributes.get(SemanticAttributesForRemoval.HTTP_HOST));
+    assertEquals("localhost", attributes.get(ServerAttributes.SERVER_ADDRESS));
+    assertEquals("simple", attributes.get(SemanticAttributesForRemoval.CODE_FUNCTION));
+    assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributesForRemoval.CODE_NAMESPACE));
+    assertEquals("ru.hh.nab.telemetry.TestResource.simple", attributes.get(CodeAttributes.CODE_FUNCTION_NAME));
+    assertEquals(userAgent, attributes.get(UserAgentAttributes.USER_AGENT_ORIGINAL));
   }
 
   @Test
@@ -107,7 +116,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -122,7 +131,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -137,7 +146,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -152,7 +161,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -167,7 +176,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test
@@ -182,7 +191,7 @@ public class TelemetryTest {
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
     Attributes attributes = span.getAttributes();
-    assertEquals(template, attributes.get(SemanticAttributes.HTTP_ROUTE));
+    assertEquals(template, attributes.get(HttpAttributes.HTTP_ROUTE));
   }
 
   @Test

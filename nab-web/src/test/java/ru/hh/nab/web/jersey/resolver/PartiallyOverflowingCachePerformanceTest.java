@@ -24,7 +24,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.Scanners;
 import ru.hh.nab.web.jersey.resolver.variants.GenericCache;
 import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCache;
 import ru.hh.nab.web.jersey.resolver.variants.PartiallyOverflowingCacheOptional;
@@ -149,8 +149,9 @@ public class PartiallyOverflowingCachePerformanceTest {
   }
 
   private List<Class<?>> createClassData() {
-    Reflections reflectionsRu = new Reflections("ru", new SubTypesScanner(false));
-    final Set<String> allTypes = reflectionsRu.getAllTypes();
+
+    Reflections reflectionsRu = new Reflections("ru", Scanners.SubTypes.filterResultsBy(s -> true));
+    final Set<String> allTypes = reflectionsRu.getAll(Scanners.SubTypes);
     return allTypes
         .stream()
         .map(PartiallyOverflowingCachePerformanceTest::toClass)

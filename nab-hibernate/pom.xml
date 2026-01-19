@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>20.0.1-SNAPSHOT</version>
+        <version>20.0.0.boot-3.5-alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -22,7 +22,9 @@
                     <reportsDirectory>target/logs</reportsDirectory>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <useFile>false</useFile>
-                    <disableXmlReport>true</disableXmlReport>
+                    <statelessTestsetReporter>
+                        <disable>true</disable>
+                    </statelessTestsetReporter>
                 </configuration>
             </plugin>
         </plugins>

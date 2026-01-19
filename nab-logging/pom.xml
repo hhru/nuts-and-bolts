@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>20.0.1-SNAPSHOT</version>
+        <version>20.0.0.boot-3.5-alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>6.5</version>
+            <version>8.1</version>
         </dependency>
         <dependency>
             <groupId>io.sentry</groupId>

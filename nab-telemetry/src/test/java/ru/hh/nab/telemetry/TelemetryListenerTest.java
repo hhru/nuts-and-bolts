@@ -1,9 +1,7 @@
 package ru.hh.nab.telemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.internal.InternalAttributeKeyImpl;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -15,14 +13,14 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
+import io.opentelemetry.semconv.incubating.DestinationIncubatingAttributes;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,6 +43,8 @@ import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
+import ru.hh.nab.telemetry.semconv.NabPeerAttributes;
+import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.trace.TraceContext;
 
 @SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -104,9 +104,11 @@ public class TelemetryListenerTest {
     assertEquals(SpanKind.CLIENT, span.getKind());
     assertEquals("GET " + TelemetryListenerImpl.getNetloc(Uri.create(url)), span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
-    assertEquals(url, attributes.get(SemanticAttributes.HTTP_URL));
-    assertNull(attributes.get(InternalAttributeKeyImpl.create("http.request.cloud.region", AttributeType.STRING)));
-    assertEquals("localhost", attributes.get(InternalAttributeKeyImpl.create("destination.address", AttributeType.STRING)));
+    assertEquals(url, attributes.get(SemanticAttributesForRemoval.HTTP_URL));
+    assertEquals(url, attributes.get(UrlAttributes.URL_FULL));
+    assertNull(attributes.get(SemanticAttributesForRemoval.HTTP_REQUEST_CLOUD_REGION));
+    assertNull(attributes.get(NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE));
+    assertEquals("localhost", attributes.get(DestinationIncubatingAttributes.DESTINATION_ADDRESS));
   }
 
   @Test
@@ -148,7 +150,7 @@ public class TelemetryListenerTest {
     assertEquals(3, spans.size());
     assertEquals(1, spans.stream().filter(data -> "parent".equals(data.getName())).count());
 
-    List<SpanData> clientSpans = spans.stream().filter(data -> SpanKind.CLIENT.equals(data.getKind())).collect(Collectors.toList());
+    List<SpanData> clientSpans = spans.stream().filter(data -> SpanKind.CLIENT.equals(data.getKind())).toList();
     assertEquals(2, clientSpans.stream().filter(data -> parentSpan.getSpanContext().getSpanId().equals(data.getParentSpanId())).count());
   }
 

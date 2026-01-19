@@ -56,8 +56,10 @@ public class ResourceInformationFilterTest {
     assertEquals(OK.getStatusCode(), response.getStatusCode().value());
 
     Map<String, String> responseMap = response.getBody();
-    assertEquals("testContext", responseMap.get(RequestAttributes.CODE_FUNCTION));
-    assertEquals("ru.hh.nab.web.jersey.filter.ResourceInformationFilterTest.TestResource", responseMap.get(RequestAttributes.CODE_NAMESPACE));
+    assertEquals(
+        "ru.hh.nab.web.jersey.filter.ResourceInformationFilterTest$TestResource.testContext",
+        responseMap.get(RequestAttributes.CODE_FUNCTION_NAME)
+    );
     assertEquals(route, responseMap.get(RequestAttributes.HTTP_ROUTE));
   }
 
@@ -74,8 +76,7 @@ public class ResourceInformationFilterTest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response testContext(@Context HttpServletRequest request, @PathParam("name") String name) {
       Map<String, Object> result = new HashMap<>();
-      result.put(RequestAttributes.CODE_FUNCTION, request.getAttribute(RequestAttributes.CODE_FUNCTION));
-      result.put(RequestAttributes.CODE_NAMESPACE, request.getAttribute(RequestAttributes.CODE_NAMESPACE));
+      result.put(RequestAttributes.CODE_FUNCTION_NAME, request.getAttribute(RequestAttributes.CODE_FUNCTION_NAME));
       result.put(RequestAttributes.HTTP_ROUTE, request.getAttribute(RequestAttributes.HTTP_ROUTE));
       return Response.ok().entity(result).build();
     }

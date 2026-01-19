@@ -138,25 +138,6 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   private void subscribeForAssignedPartitionsChange() {
-    java.util.function.Consumer<List<PartitionInfo>> onPartitionsChange = newPartitions -> {
-      restartLock.lock();
-      try {
-        if (!running) {
-          stopPartitionsMonitoring();
-          return;
-        }
-        if (!currentSpringKafkaContainer.isRunning()) {
-          return;
-        }
-        currentSpringKafkaContainer.stop();
-        this.assignedPartitions = newPartitions;
-        createNewSpringContainer();
-        currentSpringKafkaContainer.start();
-      } finally {
-        restartLock.unlock();
-      }
-    };
-
     this.checkPartitionsChangeFuture = scheduledExecutorService.scheduleAtFixedRate(
         () -> {
           try {
@@ -165,7 +146,22 @@ public class KafkaConsumer<T> implements SmartLifecycle {
               return;
             }
             LOGGER.info("Got partitions change for topic prev={}, new={}", assignedPartitions.size(), newPartitions.size());
-            onPartitionsChange.accept(newPartitions);
+            restartLock.lock();
+            try {
+              if (!running) {
+                stopPartitionsMonitoring();
+                return;
+              }
+              if (!currentSpringKafkaContainer.isRunning()) {
+                return;
+              }
+              currentSpringKafkaContainer.stop();
+              this.assignedPartitions = newPartitions;
+              createNewSpringContainer();
+              currentSpringKafkaContainer.start();
+            } finally {
+              restartLock.unlock();
+            }
           } catch (RuntimeException e) {
             LOGGER.error("Error while running partitions monitoring", e);
           }

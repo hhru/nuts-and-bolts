@@ -119,7 +119,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     @Bean
     DataSourceContextTransactionManager primaryTransactionManager(EntityManagerFactory entityManagerFactory) {
       JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(entityManagerFactory);
-      return new DataSourceContextTransactionManager(jpaTransactionManager, null);
+      return new DataSourceContextTransactionManager(jpaTransactionManager);
     }
 
     @Bean

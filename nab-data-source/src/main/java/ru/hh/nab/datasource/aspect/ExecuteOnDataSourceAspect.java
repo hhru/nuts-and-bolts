@@ -60,7 +60,7 @@ public class ExecuteOnDataSourceAspect {
     transactionTemplate.setReadOnly(!executeOnDataSource.writableTx());
     try {
       return DataSourceContextUnsafe.executeOn(dataSourceType, executeOnDataSource.overrideByRequestScope(),
-          () -> transactionTemplate.execute(transactionManager.getTransactionCallbackFactory().create(pjp, executeOnDataSource)));
+          () -> transactionTemplate.execute(transactionStatus -> doInTransaction(pjp)));
     } catch (ExecuteOnDataSourceWrappedException e) {
       throw e.getCause();
     }
@@ -70,5 +70,15 @@ public class ExecuteOnDataSourceAspect {
     return Optional
         .ofNullable(txManagers.get(txManagerQualifier))
         .orElseThrow(() -> new IllegalStateException("TransactionManager <" + txManagerQualifier + "> is not found"));
+  }
+
+  private static Object doInTransaction(ProceedingJoinPoint pjp) {
+    try {
+      return pjp.proceed();
+    } catch (RuntimeException | Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new ExecuteOnDataSourceWrappedException(e);
+    }
   }
 }

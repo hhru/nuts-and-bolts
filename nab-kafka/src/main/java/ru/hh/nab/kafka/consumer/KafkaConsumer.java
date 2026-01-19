@@ -5,7 +5,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
@@ -18,11 +21,15 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
 
 public class KafkaConsumer<T> implements SmartLifecycle {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+
   final KafkaConsumer<T> retryKafkaConsumer;
   private final Logger logger;
   private final Lock restartLock = new ReentrantLock();
@@ -34,7 +41,8 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   private final RetryQueue<T> retryQueue;
   private final DeadLetterQueue<T> deadLetterQueue;
   private final ConsumerContext<T> consumerContext;
-  private final TopicPartitionsMonitoring topicPartitionsMonitoring;
+  private final ClusterMetadataProvider clusterMetadataProvider;
+  private final ScheduledExecutorService scheduledExecutorService;
   private final Duration checkNewPartitionsInterval;
   private volatile boolean running = false;
   private List<PartitionInfo> assignedPartitions;
@@ -62,7 +70,8 @@ public class KafkaConsumer<T> implements SmartLifecycle {
 
     this.springContainerProvider = springContainerProvider;
     this.springContainerForPartitionsProvider = null;
-    this.topicPartitionsMonitoring = null;
+    scheduledExecutorService = null;
+    clusterMetadataProvider = null;
     this.checkNewPartitionsInterval = null;
     this.assignedPartitions = null;
     createNewSpringContainer();
@@ -73,7 +82,6 @@ public class KafkaConsumer<T> implements SmartLifecycle {
       ConsumeStrategy<T> consumeStrategy,
       DeadLetterQueue<T> deadLetterQueue,
       BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerForPartitionsProvider,
-      TopicPartitionsMonitoring topicPartitionsMonitoring,
       ClusterMetadataProvider clusterMetadataProvider,
       AckProvider<T> ackProvider,
       Logger logger,
@@ -90,8 +98,9 @@ public class KafkaConsumer<T> implements SmartLifecycle {
 
     this.springContainerProvider = null;
     this.springContainerForPartitionsProvider = springContainerForPartitionsProvider;
-    this.topicPartitionsMonitoring = topicPartitionsMonitoring;
+    this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     this.checkNewPartitionsInterval = checkNewPartitionsInterval;
+    this.clusterMetadataProvider = clusterMetadataProvider;
     this.assignedPartitions = clusterMetadataProvider.getPartitionsInfo(consumerMetadata.getTopic());
     createNewSpringContainer();
   }
@@ -129,28 +138,41 @@ public class KafkaConsumer<T> implements SmartLifecycle {
   }
 
   private void subscribeForAssignedPartitionsChange() {
-    this.checkPartitionsChangeFuture = topicPartitionsMonitoring.subscribeOnPartitionsChange(
-        consumerMetadata.getTopic(),
-        checkNewPartitionsInterval,
-        assignedPartitions,
-        newPartitions -> {
-          restartLock.lock();
-          try {
-            if (!running) {
-              stopPartitionsMonitoring();
-              return;
-            }
-            if (!currentSpringKafkaContainer.isRunning()) {
-              return;
-            }
-            currentSpringKafkaContainer.stop();
-            this.assignedPartitions = newPartitions;
-            createNewSpringContainer();
-            currentSpringKafkaContainer.start();
-          } finally {
-            restartLock.unlock();
-          }
+    java.util.function.Consumer<List<PartitionInfo>> onPartitionsChange = newPartitions -> {
+      restartLock.lock();
+      try {
+        if (!running) {
+          stopPartitionsMonitoring();
+          return;
         }
+        if (!currentSpringKafkaContainer.isRunning()) {
+          return;
+        }
+        currentSpringKafkaContainer.stop();
+        this.assignedPartitions = newPartitions;
+        createNewSpringContainer();
+        currentSpringKafkaContainer.start();
+      } finally {
+        restartLock.unlock();
+      }
+    };
+
+    this.checkPartitionsChangeFuture = scheduledExecutorService.scheduleAtFixedRate(
+        () -> {
+          try {
+            List<PartitionInfo> newPartitions = clusterMetadataProvider.getPartitionsInfo(consumerMetadata.getTopic());
+            if (newPartitions.size() == assignedPartitions.size()) {
+              return;
+            }
+            LOGGER.info("Got partitions change for topic prev={}, new={}", assignedPartitions.size(), newPartitions.size());
+            onPartitionsChange.accept(newPartitions);
+          } catch (RuntimeException e) {
+            LOGGER.error("Error while running partitions monitoring", e);
+          }
+        },
+        checkNewPartitionsInterval.toMillis(),
+        checkNewPartitionsInterval.toMillis(),
+        TimeUnit.MILLISECONDS
     );
   }
 

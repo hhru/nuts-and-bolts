@@ -1,0 +1,7 @@
+-   name: 20.0.0.boot-3.5-alpha1
+    date: '2025-09-19T18:00:00.000000+03:00'
+    description: Удаление TopicPartitionsMonitoring
+    instructions: |
+        1. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
+           не нужно передавать в конструктор KafkaConsumer.
+    compatible: false

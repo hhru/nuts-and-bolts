@@ -81,4 +81,10 @@ public class ExecuteOnDataSourceAspect {
       throw new ExecuteOnDataSourceWrappedException(e);
     }
   }
+
+  private static final class ExecuteOnDataSourceWrappedException extends RuntimeException {
+    public ExecuteOnDataSourceWrappedException(Throwable cause) {
+      super("Checked exception from @ExecuteOnDataSource", requireNonNull(cause));
+    }
+  }
 }

@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>20.0.0.boot-3.5-alpha2</version>
+        <version>20.0.0.boot-3.5-alpha3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>20.0.0.boot-3.5-alpha2-SNAPSHOT</version>
+    <version>20.0.0.boot-3.5-alpha2</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -241,6 +241,6 @@
     <scm>
         <connection>scm:git:git@github.com:hhru/nuts-and-bolts.git</connection>
         <developerConnection>scm:git:git@github.com:hhru/nuts-and-bolts.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>20.0.0.boot-3.5-alpha2</tag>
     </scm>
 </project>

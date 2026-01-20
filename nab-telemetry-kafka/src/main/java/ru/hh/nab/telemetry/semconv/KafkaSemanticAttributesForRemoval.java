@@ -9,7 +9,7 @@ import io.opentelemetry.semconv.incubating.MessagingIncubatingAttributes;
  * @deprecated attributes from this class will be removed and only need for smooth transition
  */
 @Deprecated(forRemoval = true)
-public class SemanticAttributesForRemoval {
+public class KafkaSemanticAttributesForRemoval {
 
   /**
    * @deprecated TODO HH-278535 this attribute will be removed without any replacement, don't use it in your code.
@@ -38,5 +38,5 @@ public class SemanticAttributesForRemoval {
   @Deprecated(forRemoval = true)
   public static final AttributeKey<String> MESSAGING_OPERATION = MessagingIncubatingAttributes.MESSAGING_OPERATION;
 
-  private SemanticAttributesForRemoval() {}
+  private KafkaSemanticAttributesForRemoval() {}
 }

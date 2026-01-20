@@ -1,3 +1,11 @@
+-   name: 20.0.0.boot-3.5-alpha2
+    date: '2026-01-20T18:00:00.000000+03:00'
+    description: Исправлена коллизия имён в классе SemanticAttributesForRemoval
+    instructions: |
+        Для атрибутов MESSAGING_DESTINATION_KIND, MESSAGING_KAFKA_CLIENT_ID, MESSAGING_KAFKA_CONSUMER_GROUP, MESSAGING_OPERATION теперь нужно
+        использовать класс KafkaSemanticAttributesForRemoval
+    compatible: false
+
 -   name: 20.0.0.boot-3.5-alpha1
     date: '2025-09-19T18:00:00.000000+03:00'
     description: |

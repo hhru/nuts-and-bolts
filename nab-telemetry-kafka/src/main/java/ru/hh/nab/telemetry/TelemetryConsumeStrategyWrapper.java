@@ -21,10 +21,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerMetadata;
-import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND;
-import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID;
-import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_KAFKA_CONSUMER_GROUP;
-import static ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval.MESSAGING_OPERATION;
+import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND;
+import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID;
+import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CONSUMER_GROUP;
+import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_OPERATION;
 
 public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
 

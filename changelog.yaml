@@ -1,3 +1,15 @@
+-   name: 23.0.0
+    date: '2026-01-21T13:45:32.210173+03:00'
+    description: Из аннотации `ExecuteOnDataSource` удалён параметр `cacheMode`.
+    instructions: "Удалите использования параметра `cacheMode` в `@ExecuteOnDataSource`.\
+        \ Если вы передавали `ExecuteOnDataSourceTransactionCallbackFactory` в конструктор\
+        \ `DataSourceContextTransactionManager`, то надо удалить этот параметр, он\
+        \ больше не требуется.\r\nУдалены классы `DataSourceCacheMode`, `ExecuteOnDataSourceTransactionCallbackFactory`,\
+        \ `ExecuteOnDataSourceWrappedException`, `ExecuteOnDataSourceTransactionCallback`,\
+        \ `ExecuteOnDataSourceTransactionCallbackFactoryImpl` и метод `DataSourceContextTransactionManager.getTransactionCallbackFactory()`\
+        \ - если вы использовали их, то удалите использования."
+    compatible: false
+
 -   name: 22.0.5
     date: '2026-01-16T16:52:46.100420+03:00'
     description: Удаление зависимости commons-text из nab-testbase

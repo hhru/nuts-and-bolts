@@ -69,6 +69,30 @@ public class StatsDMetricsConsumer implements MetricsConsumer {
           getFullMetricName("async.client.numActiveHugeAllocations", nameTag),
           metricsProvider.numActiveHugeAllocations().get()
       );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.epollTotalPendingTasks", nameTag),
+          metricsProvider.epollTotalPendingTasks().get()
+      );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.nioTotalPendingTasks", nameTag),
+          metricsProvider.nioTotalPendingTasks().get()
+      );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.epollPendingThreads", nameTag),
+          metricsProvider.epollPendingThreads().get()
+      );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.nioPendingThreads", nameTag),
+          metricsProvider.nioPendingThreads().get()
+      );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.epollMaxThreads", nameTag),
+          metricsProvider.epollMaxThreads().get()
+      );
+      statsDSender.sendGauge(
+          getFullMetricName("async.client.nioMaxThreads", nameTag),
+          metricsProvider.nioMaxThreads().get()
+      );
     }, sendIntervalInSeconds);
 
     log.info("Successfully scheduled metrics sending");

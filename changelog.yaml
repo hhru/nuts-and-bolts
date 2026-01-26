@@ -1,3 +1,10 @@
+-   name: 23.2.0
+    date: '2026-01-26T14:48:35.562564+03:00'
+    description: 'up jclient: support native transport + monitor epoll&nio queue size
+        + add waitedGetOrThrow'
+    instructions: ''
+    compatible: true
+
 -   name: 23.1.0
     date: '2026-01-22T18:21:09.907358+03:00'
     description: "1. Обработка сообщений, полученных из кафки, теперь выполняется\

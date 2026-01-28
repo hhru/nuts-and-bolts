@@ -1,3 +1,10 @@
+-   name: 21.0.0
+    date: '2025-11-25T16:07:30.276548+03:00'
+    description: Удалены NoopSecurityHandler, SecurityConfiguration, NoopSessionHandler,
+        SessionConfiguration
+    instructions: При необходимости реализовать данные классы в своем коде
+    compatible: false
+
 -   name: 20.0.0
     date: '2025-11-21T18:40:33.735127+03:00'
     description: Удалена фабрика MonitoringBalancingUpstreamManagerFactory, jclient

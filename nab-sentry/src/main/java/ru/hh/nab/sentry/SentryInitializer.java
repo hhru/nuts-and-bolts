@@ -22,6 +22,7 @@ public class SentryInitializer {
         options.setDsn(dsn);
         options.setRelease(properties.getProperty(RELEASE_PROPERTY));
         options.addEventProcessor(new SentryEventProcessor());
+        options.setEnableUncaughtExceptionHandler(false);
       });
       // Sentry.init generates a random traceId, so we reset it to default value
       SentryScopeConfigurator.clearTraceId();

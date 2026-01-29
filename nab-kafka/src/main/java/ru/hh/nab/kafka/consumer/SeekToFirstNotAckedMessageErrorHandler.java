@@ -18,6 +18,9 @@ import ru.hh.nab.metrics.Tag;
 
 class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
   private static final String MALFORMED_MESSAGE_METRIC_NAME = "nab.kafka.errors.records.deserialization.count";
+  private static final long SMALL_INTERVAL_THRESHOLD = 500;
+  private static final int DEFAULT_SLEEP_INTERVAL = 100;
+  private static final int SMALL_SLEEP_INTERVAL = 10;
 
   private final ThreadLocal<BackOffExecution> backOffs = new ThreadLocal<>();
   private final ThreadLocal<Long> lastInterval = new ThreadLocal<>();
@@ -92,10 +95,16 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
       }
       this.lastInterval.set(interval);
       if (interval > 0) {
-        try {
-          Thread.sleep(interval);
-        } catch (@SuppressWarnings("unused") InterruptedException e) {
-          Thread.currentThread().interrupt();
+        long timeout = System.currentTimeMillis() + interval;
+        long sleepInterval = interval > SMALL_INTERVAL_THRESHOLD ? DEFAULT_SLEEP_INTERVAL : Math.min(interval, SMALL_SLEEP_INTERVAL);
+        while (System.currentTimeMillis() < timeout && container.isRunning()) {
+          try {
+            //noinspection BusyWait
+            Thread.sleep(sleepInterval);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            break;
+          }
         }
       }
     }

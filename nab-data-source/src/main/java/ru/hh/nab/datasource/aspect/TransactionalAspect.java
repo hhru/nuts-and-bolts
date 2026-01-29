@@ -1,5 +1,6 @@
 package ru.hh.nab.datasource.aspect;
 
+import static java.util.Objects.requireNonNull;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -23,12 +24,18 @@ public class TransactionalAspect {
             try {
               return pjp.proceed();
             } catch (Throwable e) {
-              throw new ExecuteOnDataSourceWrappedException(e);
+              throw new TransactionalAspectWrappedException(e);
             }
           }
       );
-    } catch (ExecuteOnDataSourceWrappedException e) {
+    } catch (TransactionalAspectWrappedException e) {
       throw e.getCause();
+    }
+  }
+
+  private static final class TransactionalAspectWrappedException extends RuntimeException {
+    public TransactionalAspectWrappedException(Throwable cause) {
+      super("Exception from TransactionalAspect", requireNonNull(cause));
     }
   }
 }

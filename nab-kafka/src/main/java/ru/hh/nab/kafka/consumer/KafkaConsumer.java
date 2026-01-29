@@ -6,9 +6,12 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
@@ -155,7 +158,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
               if (!currentSpringKafkaContainer.isRunning()) {
                 return;
               }
-              currentSpringKafkaContainer.stop();
+              currentSpringKafkaContainer.stop(false);
               this.assignedPartitions = newPartitions;
               createNewSpringContainer();
               currentSpringKafkaContainer.start();
@@ -179,7 +182,7 @@ public class KafkaConsumer<T> implements SmartLifecycle {
         return;
       }
       running = false;
-      currentSpringKafkaContainer.stop();
+      currentSpringKafkaContainer.stop(false);
       stopPartitionsMonitoring();
       if (retryKafkaConsumer != null) {
         retryKafkaConsumer.stop();
@@ -207,10 +210,25 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     return currentSpringKafkaContainer.getAssignedPartitions();
   }
 
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer) {
+  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer, ThreadPoolExecutor messageProcessingExecutor) {
     consumerContext.prepareForNextBatch(messages);
     Ack<T> ack = ackProvider.createAck(this, consumer);
-    processMessages(messages, ack);
+
+    AtomicReference<ConsumerContext.Transfer<T>> consumerContextTransfer = new AtomicReference<>(consumerContext.getTransfer());
+    Runnable onMessagesBatchTask = () -> {
+      consumerContext.propagate(consumerContextTransfer.get());
+      try {
+        processMessages(messages, ack);
+      } finally {
+        consumerContextTransfer.set(consumerContext.getTransfer());
+      }
+    };
+    try {
+      getOrThrow(CompletableFuture.runAsync(onMessagesBatchTask, messageProcessingExecutor)::get);
+    } finally {
+      consumerContext.propagate(consumerContextTransfer.get());
+    }
+
     rewindToLastAckedOffset(consumer);
   }
 

@@ -1,3 +1,85 @@
+-   name: 23.2.0
+    date: '2026-01-26T14:48:35.562564+03:00'
+    description: 'up jclient: support native transport + monitor epoll&nio queue size
+        + add waitedGetOrThrow'
+    instructions: ''
+    compatible: true
+
+-   name: 23.1.0
+    date: '2026-01-22T18:21:09.907358+03:00'
+    description: "1. Обработка сообщений, полученных из кафки, теперь выполняется\
+        \ в отдельных потоках kafka-message-processor-*, которые интерраптятся при\
+        \ остановке приложения.\r\n2. Потоки, в которых выполняется poll сообщений,\
+        \ переименованы в kafka-consumer-*.\r\n3. Добавлена возможность сконфигурировать\
+        \ shutdownTimeout для консьюмера (это максимальное время, на которое может\
+        \ заблокироваться поток, выполняющий остановку консьюмера). По дефолту shutdownTimeout\
+        \ = 10000мс."
+    instructions: "1. Если ранее при имплементации ConsumeStrategy вы добавляли какую\
+        \ то дополнительную логику по прерыванию обработки сообщений при остановке\
+        \ консьюмера, ее можно удалить и использовать стандартные механизмы java для\
+        \ обработки прерывания потока (например, проверка interrupted флага с помощью\
+        \ `Thread.currentThread().isInterrupted()`, обработка `InterruptedException`\
+        \ и тд).\r\n2. Сконфигурировать shutdownTimeout, если дефолтное значение 10000мс\
+        \ не подходит. Для этого в объект Properties, который передается в ConfigProvider,\
+        \ нужно добавить настройку `*.nab_setting.shutdown.timeout.ms`."
+    compatible: false
+
+-   name: 23.0.0
+    date: '2026-01-21T13:45:32.210173+03:00'
+    description: Из аннотации `ExecuteOnDataSource` удалён параметр `cacheMode`.
+    instructions: "Удалите использования параметра `cacheMode` в `@ExecuteOnDataSource`.\
+        \ Если вы передавали `ExecuteOnDataSourceTransactionCallbackFactory` в конструктор\
+        \ `DataSourceContextTransactionManager`, то надо удалить этот параметр, он\
+        \ больше не требуется.\r\nУдалены классы `DataSourceCacheMode`, `ExecuteOnDataSourceTransactionCallbackFactory`,\
+        \ `ExecuteOnDataSourceWrappedException`, `ExecuteOnDataSourceTransactionCallback`,\
+        \ `ExecuteOnDataSourceTransactionCallbackFactoryImpl` и метод `DataSourceContextTransactionManager.getTransactionCallbackFactory()`\
+        \ - если вы использовали их, то удалите использования."
+    compatible: false
+
+-   name: 22.0.5
+    date: '2026-01-16T16:52:46.100420+03:00'
+    description: Удаление зависимости commons-text из nab-testbase
+    instructions: ''
+    compatible: true
+
+-   name: 22.0.4
+    date: '2025-12-19T13:33:40.077456+03:00'
+    description: Обновление версии consul-client и jclient-common.
+    instructions: ''
+    compatible: true
+
+-   name: 22.0.3
+    date: '2025-12-03T17:37:55.142088+03:00'
+    description: Добавлена обработка пустого заголовка X-Request-Id
+    instructions: ''
+    compatible: true
+
+-   name: 22.0.2
+    date: '2025-12-01T14:09:54.669774+03:00'
+    description: Обновление jclient до 14.0.3
+    instructions: ''
+    compatible: true
+
+-   name: 22.0.1
+    date: '2025-12-01T13:20:44.740286+03:00'
+    description: обновлен jclient
+    instructions: ''
+    compatible: true
+
+-   name: 22.0.0
+    date: '2025-11-28T17:52:08.940886+03:00'
+    description: Добавлена реализация UncaughtExceptionHandler с логированием ошибки,
+        выключен сентревый UncaughtExceptionHandler
+    instructions: Если необходимо включить сентревый UncaughtExceptionHandler, то
+        нужно добавить настройку `uncaught.handler.enabled=true` в файл `sentry.properties`
+    compatible: false
+
+-   name: 21.0.1
+    date: '2025-11-27T13:20:25.330794+03:00'
+    description: Обновление jclient до 14.0.1, trace-context до 2.0.1
+    instructions: ''
+    compatible: true
+
 -   name: 21.0.0
     date: '2025-11-25T16:07:30.276548+03:00'
     description: Удалены NoopSecurityHandler, SecurityConfiguration, NoopSessionHandler,

@@ -17,6 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import static org.springframework.kafka.listener.ContainerProperties.DEFAULT_SHUTDOWN_TIMEOUT;
 import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
@@ -33,6 +34,8 @@ public class ConfigProvider {
   public static final double DEFAULT_BACKOFF_MULTIPLIER = 1.5;
   public static final String POLL_TIMEOUT = "poll.timeout.ms";
   public static final long DEFAULT_POLL_TIMEOUT_MS = 5000L;
+  public static final String SHUTDOWN_TIMEOUT_MS = "shutdown.timeout.ms";
+  public static final long DEFAULT_SHUTDOWN_TIMEOUT_MS = DEFAULT_SHUTDOWN_TIMEOUT;
   public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
   public static final String CONCURRENCY = "concurrency";

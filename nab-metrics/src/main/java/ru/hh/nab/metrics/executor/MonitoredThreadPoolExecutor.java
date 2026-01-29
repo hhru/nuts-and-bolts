@@ -42,6 +42,14 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitoredThreadPoolExecutor.class);
   private static final ThreadFactory DEFAULT_THREAD_FACTORY = defaultThreadFactory();
 
+  private static final int DEFAULT_MIN_SIZE = 4;
+  private static final int DEFAULT_MAX_SIZE = 16;
+  private static final int DEFAULT_KEEP_ALIVE_TIME_SEC = 60;
+  private static final int DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_SIZE = 512;
+  private static final int DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO = 1;
+  private static final int DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE = 512;
+  private static final int DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO = 1;
+
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
@@ -108,16 +116,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   }
 
   public static ThreadPoolExecutor create(Properties threadPoolProperties, String threadPoolName, StatsDSender statsDSender, String serviceName) {
-    return create(threadPoolProperties, threadPoolName, statsDSender, serviceName, (r, executor) -> {
-      LOGGER.warn(
-          "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
-          threadPoolName,
-          executor.getPoolSize(),
-          executor.getActiveCount(),
-          executor.getQueue().size()
-      );
-      throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
-    });
+    return create(threadPoolProperties, threadPoolName, statsDSender, serviceName, getRejectedExecutionHandler(threadPoolName));
   }
 
   public static ThreadPoolExecutor create(
@@ -127,19 +126,87 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       String serviceName,
       RejectedExecutionHandler rejectedExecutionHandler
   ) {
-    int coreThreads = PropertiesUtils.getInteger(threadPoolProperties, MIN_SIZE_PROPERTY, 4);
-    int maxThreads = PropertiesUtils.getInteger(threadPoolProperties, MAX_SIZE_PROPERTY, 16);
+    int coreThreads = PropertiesUtils.getInteger(threadPoolProperties, MIN_SIZE_PROPERTY, DEFAULT_MIN_SIZE);
+    int maxThreads = PropertiesUtils.getInteger(threadPoolProperties, MAX_SIZE_PROPERTY, DEFAULT_MAX_SIZE);
     int queueSize = PropertiesUtils.getInteger(threadPoolProperties, QUEUE_SIZE_PROPERTY, maxThreads);
-    int keepAliveTimeSec = PropertiesUtils.getInteger(threadPoolProperties, KEEP_ALIVE_TIME_SEC_PROPERTY, 60);
+    int keepAliveTimeSec = PropertiesUtils.getInteger(threadPoolProperties, KEEP_ALIVE_TIME_SEC_PROPERTY, DEFAULT_KEEP_ALIVE_TIME_SEC);
     Integer longTaskDurationMs = PropertiesUtils.getInteger(threadPoolProperties, LONG_TASK_DURATION_MS_PROPERTY);
-    int taskDurationHistogramSize = PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY, 512);
-    int taskDurationHistogramCompactionRatio =
-        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY, 1);
-    int taskExecutionStartLagHistogramSize =
-        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY, 512);
-    int taskExecutionStartLagHistogramCompactionRatio =
-        PropertiesUtils.getInteger(threadPoolProperties, MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY, 1);
+    int taskDurationHistogramSize = PropertiesUtils.getInteger(
+        threadPoolProperties,
+        MONITORING_TASK_DURATION_HISTOGRAM_SIZE_PROPERTY,
+        DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_SIZE
+    );
+    int taskDurationHistogramCompactionRatio = PropertiesUtils.getInteger(
+        threadPoolProperties,
+        MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO_PROPERTY,
+        DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO
+    );
+    int taskExecutionStartLagHistogramSize = PropertiesUtils.getInteger(
+        threadPoolProperties,
+        MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE_PROPERTY,
+        DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE
+    );
+    int taskExecutionStartLagHistogramCompactionRatio = PropertiesUtils.getInteger(
+        threadPoolProperties,
+        MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO_PROPERTY,
+        DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO
+    );
+    return create(
+        coreThreads,
+        maxThreads,
+        queueSize,
+        keepAliveTimeSec,
+        threadPoolName,
+        rejectedExecutionHandler,
+        serviceName,
+        statsDSender,
+        longTaskDurationMs,
+        taskDurationHistogramSize,
+        taskDurationHistogramCompactionRatio,
+        taskExecutionStartLagHistogramSize,
+        taskExecutionStartLagHistogramCompactionRatio
+    );
+  }
 
+  public static ThreadPoolExecutor create(
+      int poolSize,
+      int queueSize,
+      String threadPoolName,
+      StatsDSender statsDSender,
+      String serviceName
+  ) {
+    return create(
+        poolSize,
+        poolSize,
+        queueSize,
+        DEFAULT_KEEP_ALIVE_TIME_SEC,
+        threadPoolName,
+        getRejectedExecutionHandler(threadPoolName),
+        serviceName,
+        statsDSender,
+        null,
+        DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_SIZE,
+        DEFAULT_MONITORING_TASK_DURATION_HISTOGRAM_COMPACTION_RATIO,
+        DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE,
+        DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO
+    );
+  }
+
+  private static ThreadPoolExecutor create(
+      int coreThreads,
+      int maxThreads,
+      int queueSize,
+      int keepAliveTimeSec,
+      String threadPoolName,
+      RejectedExecutionHandler rejectedExecutionHandler,
+      String serviceName,
+      StatsDSender statsDSender,
+      Integer longTaskDurationMs,
+      int taskDurationHistogramSize,
+      int taskDurationHistogramCompactionRatio,
+      int taskExecutionStartLagHistogramSize,
+      int taskExecutionStartLagHistogramCompactionRatio
+  ) {
     var count = new AtomicLong(0);
     ThreadFactory threadFactory = r -> {
       Thread thread = DEFAULT_THREAD_FACTORY.newThread(r);
@@ -190,6 +257,19 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
     threadPoolExecutor.prestartAllCoreThreads();
     return threadPoolExecutor;
+  }
+
+  private static RejectedExecutionHandler getRejectedExecutionHandler(String threadPoolName) {
+    return (r, executor) -> {
+      LOGGER.warn(
+          "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
+          threadPoolName,
+          executor.getPoolSize(),
+          executor.getActiveCount(),
+          executor.getQueue().size()
+      );
+      throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
+    };
   }
 
   private static class RunnableWithCreationTime implements Runnable {

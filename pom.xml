@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>21.0.0.boot-3.5-alpha1-SNAPSHOT</version>
+    <version>23.2.0.boot-3.5-alpha1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -33,9 +33,9 @@
     </modules>
 
     <properties>
-        <jclient.version>14.0.0.boot-3.5-alpha1</jclient.version>
+        <jclient.version>14.1.0.boot-3.5-alpha1</jclient.version>
         <java.version>17</java.version>
-        <consul.client.version>2.0.1.boot-3.5-alpha1</consul.client.version>
+        <consul.client.version>3.0.0.boot-3.5-alpha1</consul.client.version>
         <kafka-test-utils.version>1.0.2.boot-3.5-alpha1</kafka-test-utils.version>
     </properties>
 
@@ -121,12 +121,6 @@
                 <groupId>ru.hh.consul</groupId>
                 <artifactId>consul-client</artifactId>
                 <version>${consul.client.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>1.13.1</version>
             </dependency>
 
             <dependency>

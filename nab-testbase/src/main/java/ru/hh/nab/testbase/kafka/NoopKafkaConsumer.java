@@ -35,7 +35,12 @@ public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
   }
 
   @Override
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer, ThreadPoolExecutor messageProcessingExecutor) {
+  public void onMessagesBatch(
+      List<ConsumerRecord<String, T>> messages,
+      Consumer<?, ?> consumer,
+      ThreadPoolExecutor messageProcessingExecutor,
+      String messageProcessingThreadPoolName
+  ) {
     // do nothing
   }
 

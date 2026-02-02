@@ -268,17 +268,18 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     AtomicInteger containersCount = new AtomicInteger(0);
     return (nabKafkaConsumer) -> {
       int containerIndex = containersCount.getAndIncrement();
+      String messageProcessingThreadPoolName = getMessageProcessingThreadPoolName(consumerMetadata, containerIndex);
       ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
           concurrency,
           0,
-          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
+          messageProcessingThreadPoolName,
           consumerFactory.getStatsDSender(),
           configProvider.getServiceName()
       );
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
           nabConsumerSettings,
           consumerMetadata,
-          getMessageListener(nabKafkaConsumer, messageProcessingExecutor)
+          getMessageListener(nabKafkaConsumer, messageProcessingExecutor, messageProcessingThreadPoolName)
       );
       return getSpringKafkaListenerContainer(
           springConsumerFactory,
@@ -302,17 +303,18 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         partitionsInfo
     ) -> {
       int containerIndex = containersCount.getAndIncrement();
+      String messageProcessingThreadPoolName = getMessageProcessingThreadPoolName(consumerMetadata, containerIndex);
       ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
           // When specific partitions are provided, the pool size must be less than or equal to the number of partitions
           Math.min(concurrency, partitionsInfo.size()),
           0,
-          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
+          messageProcessingThreadPoolName,
           consumerFactory.getStatsDSender(),
           configProvider.getServiceName()
       );
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
           nabConsumerSettings,
-          getMessageListener(nabKafkaConsumer, messageProcessingExecutor),
+          getMessageListener(nabKafkaConsumer, messageProcessingExecutor, messageProcessingThreadPoolName),
           partitionsInfo,
           nabKafkaConsumer
       );
@@ -416,9 +418,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   private BatchConsumerAwareMessageListener<String, T> getMessageListener(
       KafkaConsumer<T> kafkaConsumer,
-      ThreadPoolExecutor messageProcessingExecutor
+      ThreadPoolExecutor messageProcessingExecutor,
+      String messageProcessingThreadPoolName
   ) {
-    return (messages, consumer) -> kafkaConsumer.onMessagesBatch(messages, consumer, messageProcessingExecutor);
+    return (messages, consumer) -> kafkaConsumer.onMessagesBatch(messages, consumer, messageProcessingExecutor, messageProcessingThreadPoolName);
   }
 
   private String getKafkaConsumerThreadPoolName(ConsumerMetadata consumerMetadata, int containerIndex) {

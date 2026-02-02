@@ -193,7 +193,12 @@ public class KafkaConsumer<T> implements SmartLifecycle {
     return currentSpringKafkaContainer.getAssignedPartitions();
   }
 
-  public void onMessagesBatch(List<ConsumerRecord<String, T>> messages, Consumer<?, ?> consumer, ThreadPoolExecutor messageProcessingExecutor) {
+  public void onMessagesBatch(
+      List<ConsumerRecord<String, T>> messages,
+      Consumer<?, ?> consumer,
+      ThreadPoolExecutor messageProcessingExecutor,
+      String messageProcessingThreadPoolName
+  ) {
     consumerContext.prepareForNextBatch(messages);
     Ack<T> ack = ackProvider.createAck(this, consumer);
 
@@ -206,8 +211,33 @@ public class KafkaConsumer<T> implements SmartLifecycle {
         consumerContextTransfer.set(consumerContext.getTransfer());
       }
     };
+    String currentThreadName = Thread.currentThread().getName();
     try {
+      logger.info(
+          "Thread {}: sending task to {} thread pool (size={}, activeCount={})",
+          currentThreadName,
+          messageProcessingThreadPoolName,
+          messageProcessingExecutor.getPoolSize(),
+          messageProcessingExecutor.getActiveCount()
+      );
       getOrThrow(CompletableFuture.runAsync(onMessagesBatchTask, messageProcessingExecutor)::get);
+      logger.info(
+          "Thread {}: task in {} thread pool (size={}, activeCount={}) has been finished",
+          currentThreadName,
+          messageProcessingThreadPoolName,
+          messageProcessingExecutor.getPoolSize(),
+          messageProcessingExecutor.getActiveCount()
+      );
+    } catch (RuntimeException e) {
+      logger.error(
+          "Thread {}: error occurred while waiting for the task in {} thread pool (size={}, activeCount={}) to complete",
+          currentThreadName,
+          messageProcessingThreadPoolName,
+          messageProcessingExecutor.getPoolSize(),
+          messageProcessingExecutor.getActiveCount(),
+          e
+      );
+      throw e;
     } finally {
       consumerContext.propagate(consumerContextTransfer.get());
     }

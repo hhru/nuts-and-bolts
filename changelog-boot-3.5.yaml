@@ -133,6 +133,10 @@
                @SQLInsert(check=ResultCheckStyle.COUNT)
                Стало:
                @SQLInsert(verify=Expectation.RowCount.class)
+            4. ReflectHelper.classForName теперь возвращает Class<?> вместо Class. Если вам требуется продолжать использовать raw-типы, присвойте
+               возвращаемое значение промежуточной переменной:
+               Class clazz = ReflectHelper.classForName(enumClassName, this.getClass());
+               enumClass = clazz.asSubclass(Enum.class);
          5. [В версии 21.0.0 NoopSecurityHandler удалён, не нужно выполнять этот пункт если переходите с мастера версии 21.0.0 или выше. Также не
             нужно переносить этот пункт в финальный changelog при merge'э экспериментальной ветки в master] Обновлена сигнатура NoopSecurityHandler в
             соответствии с общими изменениями ConstraintSecurityHandler в Jetty. Если делали override, то нужно использовать обновлённую сигнатуру

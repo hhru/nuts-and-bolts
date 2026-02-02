@@ -96,6 +96,7 @@
                 org.eclipse.jetty.ee10:jetty-ee10-webapp.
             11. Обновить import'ы.
             12. Поменялись сигнатуры классов AbstractConfiguration, SecurityHandler, SessionHandler - обновить на аналоги.
+            13. Вместо метода WebAppContext.setResourceBase теперь нужно использовать WebAppContext.setBaseResourceAsString.
          3. Обновление Logback до 1.5.18. Если в тестах появились ошибки, связанные с MDCAdapter, то необходимо
             1. Убедиться, что в LoggingEvent установлен LoggerContext -> event.setLoggerContext(context);
             2. Убедиться, что в LoggerContext установлен MDCAdapter -> адаптер по умолчанию из старых версий:

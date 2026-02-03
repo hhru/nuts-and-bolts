@@ -5,8 +5,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.kafka.common.PartitionInfo;
@@ -32,7 +37,6 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_SHUTDOWN_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
 import static ru.hh.nab.kafka.util.ConfigProvider.SHUTDOWN_TIMEOUT_MS;
-import ru.hh.nab.metrics.executor.MonitoredThreadPoolExecutor;
 
 public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
@@ -268,12 +272,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     AtomicInteger containersCount = new AtomicInteger(0);
     return (nabKafkaConsumer) -> {
       int containerIndex = containersCount.getAndIncrement();
-      ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
+      ThreadPoolExecutor messageProcessingExecutor = createMessageProcessingExecutor(
           concurrency,
-          0,
-          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
-          consumerFactory.getStatsDSender(),
-          configProvider.getServiceName()
+          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex)
       );
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesWithConsumerGroup(
           nabConsumerSettings,
@@ -302,13 +303,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         partitionsInfo
     ) -> {
       int containerIndex = containersCount.getAndIncrement();
-      ThreadPoolExecutor messageProcessingExecutor = MonitoredThreadPoolExecutor.create(
+      ThreadPoolExecutor messageProcessingExecutor = createMessageProcessingExecutor(
           // When specific partitions are provided, the pool size must be less than or equal to the number of partitions
           Math.min(concurrency, partitionsInfo.size()),
-          0,
-          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex),
-          consumerFactory.getStatsDSender(),
-          configProvider.getServiceName()
+          getMessageProcessingThreadPoolName(consumerMetadata, containerIndex)
       );
       ContainerProperties containerProperties = getSpringConsumerContainerPropertiesSubscribedToAllPartitions(
           nabConsumerSettings,
@@ -412,6 +410,28 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
   private int getConcurrency(Properties nabConsumerSettings) {
     return PropertiesUtils.getInteger(nabConsumerSettings, CONCURRENCY, 1);
+  }
+
+  private ThreadPoolExecutor createMessageProcessingExecutor(int poolSize, String threadPoolName) {
+    BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(poolSize);
+
+    AtomicLong threadCount = new AtomicLong(0);
+    ThreadFactory threadFactory = r -> {
+      Thread thread = new Thread(r, threadPoolName + "-" + threadCount.getAndIncrement());
+      thread.setDaemon(true);
+      return thread;
+    };
+
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(
+        poolSize,
+        poolSize,
+        0L,
+        TimeUnit.SECONDS,
+        workQueue,
+        threadFactory
+    );
+    executor.prestartAllCoreThreads();
+    return executor;
   }
 
   private BatchConsumerAwareMessageListener<String, T> getMessageListener(

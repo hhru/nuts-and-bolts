@@ -1,3 +1,9 @@
+-   name: 23.2.1
+    date: '2026-02-03T17:32:50.794237+03:00'
+    description: Обновление consul-client до 3.1.0, jclient до 14.1.1
+    instructions: ''
+    compatible: true
+
 -   name: 23.2.0
     date: '2026-01-26T14:48:35.562564+03:00'
     description: 'up jclient: support native transport + monitor epoll&nio queue size

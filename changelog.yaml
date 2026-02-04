@@ -1,3 +1,10 @@
+-   name: 23.2.2
+    date: '2026-02-04T10:54:58.333676+03:00'
+    description: Для отправки задач из kafka-consumer-* потоков в kafka-message-processor-*
+        потоки вместо SynchronousQueue используется LinkedBlockingQueue
+    instructions: ''
+    compatible: true
+
 -   name: 23.2.1
     date: '2026-02-03T17:32:50.794237+03:00'
     description: Обновление consul-client до 3.1.0, jclient до 14.1.1

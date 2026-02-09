@@ -110,8 +110,4 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   ClusterMetadataProvider getClusterMetadataProvider() {
     return clusterMetadataProvider;
   }
-
-  StatsDSender getStatsDSender() {
-    return statsDSender;
-  }
 }

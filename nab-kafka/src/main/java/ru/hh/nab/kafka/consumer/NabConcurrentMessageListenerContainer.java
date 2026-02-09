@@ -27,6 +27,10 @@ public class NabConcurrentMessageListenerContainer<K, V> extends ConcurrentMessa
   @Override
   protected void doStop(Runnable callback, boolean normal) {
     if (isRunning()) {
+      long shutdownTimeout = getContainerProperties().getShutdownTimeout();
+      String consumer = getBeanName();
+      logger.info("Consumer shutdown started: consumer={}, shutdownTimeout={}ms", consumer, shutdownTimeout);
+
       final CountDownLatch latch = new CountDownLatch(1);
       long shutdownStart = System.currentTimeMillis();
       super.doStop(
@@ -38,16 +42,15 @@ public class NabConcurrentMessageListenerContainer<K, V> extends ConcurrentMessa
       );
       messageProcessingExecutor.shutdownNow();
       try {
-        long shutdownTimeout = getContainerProperties().getShutdownTimeout();
         if (latch.await(shutdownTimeout, TimeUnit.MILLISECONDS)) {
           logger.info(
               "Consumer shutdown took {}ms: consumer={}, shutdownTimeout={}ms",
               System.currentTimeMillis() - shutdownStart,
-              getBeanName(),
+              consumer,
               shutdownTimeout
           );
         } else {
-          logger.warn("Consumer shutdown timeout exceeded: consumer={}, shutdownTimeout={}ms", getBeanName(), shutdownTimeout);
+          logger.warn("Consumer shutdown timeout exceeded: consumer={}, shutdownTimeout={}ms", consumer, shutdownTimeout);
         }
       } catch (InterruptedException ignored) {
         Thread.currentThread().interrupt();

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,14 +35,12 @@ import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
-import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_SHUTDOWN_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
-import static ru.hh.nab.kafka.util.ConfigProvider.SHUTDOWN_TIMEOUT_MS;
 
 public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 
-  private static final String KAFKA_CONSUMER_THREAD_POOL_NAME_TEMPLATE = "kafka-consumer-%s%s-%s";
-  private static final String KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_TEMPLATE = "kafka-message-processor-%s%s-%s";
+  private static final String KAFKA_CONSUMER_THREAD_POOL_NAME_PREFIX = "kafka-consumer";
+  private static final String KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_PREFIX = "kafka-message-processor";
 
   private final String topicName;
   private final Class<T> messageClass;
@@ -352,8 +351,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     NabConcurrentMessageListenerContainer<String, T> container = new NabConcurrentMessageListenerContainer<>(
         springConsumerFactory,
         containerProperties,
-        messageProcessingExecutor,
-        logger
+        messageProcessingExecutor
     );
     container.setBeanName(kafkaConsumerThreadPoolName);
     container.setCommonErrorHandler(errorHandler);
@@ -405,7 +403,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         AUTH_EXCEPTION_RETRY_INTERVAL,
         DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS
     )));
-    containerProperties.setShutdownTimeout(PropertiesUtils.getLong(settings, SHUTDOWN_TIMEOUT_MS, DEFAULT_SHUTDOWN_TIMEOUT_MS));
   }
 
   private int getConcurrency(Properties nabConsumerSettings) {
@@ -442,18 +439,19 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private String getKafkaConsumerThreadPoolName(ConsumerMetadata consumerMetadata, int containerIndex) {
-    return getThreadPoolName(KAFKA_CONSUMER_THREAD_POOL_NAME_TEMPLATE, consumerMetadata, containerIndex);
+    return getThreadPoolName(KAFKA_CONSUMER_THREAD_POOL_NAME_PREFIX, consumerMetadata, containerIndex);
   }
 
   private String getMessageProcessingThreadPoolName(ConsumerMetadata consumerMetadata, int containerIndex) {
-    return getThreadPoolName(KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_TEMPLATE, consumerMetadata, containerIndex);
+    return getThreadPoolName(KAFKA_MESSAGE_PROCESSOR_THREAD_POOL_NAME_PREFIX, consumerMetadata, containerIndex);
   }
 
-  private String getThreadPoolName(String threadPoolNameTemplate, ConsumerMetadata consumerMetadata, int containerIndex) {
-    return threadPoolNameTemplate.formatted(
-        consumerMetadata.getTopic(),
-        consumerMetadata.getOperation().isBlank() ? "" : "-" + consumerMetadata.getOperation(),
-        containerIndex
-    );
+  private String getThreadPoolName(String threadPoolNamePrefix, ConsumerMetadata consumerMetadata, int containerIndex) {
+    return new StringJoiner("__")
+        .add(threadPoolNamePrefix)
+        .add(consumerMetadata.getTopic())
+        .add(consumerMetadata.getOperation())
+        .add(String.valueOf(containerIndex))
+        .toString();
   }
 }

@@ -1,0 +1,49 @@
+package ru.hh.nab.metrics.clients;
+
+import com.timgroup.statsd.StatsDClient;
+import java.lang.management.CompilationMXBean;
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.Executors;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.startsWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import ru.hh.nab.metrics.StatsDSender;
+
+public class JvmMetricsSenderTest {
+
+  @Test
+  public void testClassLoadingMetricsSent() {
+    StatsDClient statsDClient = Mockito.mock(StatsDClient.class);
+    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, Executors.newSingleThreadScheduledExecutor()));
+    doNothing().when(statsDSender).sendPeriodically(Mockito.any(Runnable.class));
+
+    JvmMetricsSender jvmMetricsSender = new JvmMetricsSender(statsDSender, "test-service");
+    jvmMetricsSender.sendJvmMetrics();
+
+    // current loaded classes and cumulative class loading counters
+    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.loadedClasses"), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.classes.loaded.total.count"), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.classes.unloaded.total.count"), anyLong());
+  }
+
+  @Test
+  public void testCompilationMetricsSent() {
+    StatsDClient statsDClient = Mockito.mock(StatsDClient.class);
+    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, Executors.newSingleThreadScheduledExecutor()));
+    doNothing().when(statsDSender).sendPeriodically(Mockito.any(Runnable.class));
+
+    JvmMetricsSender jvmMetricsSender = new JvmMetricsSender(statsDSender, "test-service");
+    jvmMetricsSender.sendJvmMetrics();
+
+    // compilation time metric is optional and depends on JVM support
+    CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
+    if (compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported()) {
+      verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.compilation.time.total.ms"), anyLong());
+    }
+  }
+}
+

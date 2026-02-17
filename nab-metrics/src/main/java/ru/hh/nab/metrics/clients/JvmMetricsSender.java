@@ -1,11 +1,14 @@
 package ru.hh.nab.metrics.clients;
 
 import java.lang.management.BufferPoolMXBean;
+import java.lang.management.ClassLoadingMXBean;
+import java.lang.management.CompilationMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
+import java.lang.management.ThreadMXBean;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 
@@ -21,6 +24,10 @@ public class JvmMetricsSender {
   private final StatsDSender statsDSender;
   private final Tag appTag;
   private final MemoryMXBean memoryMXBean;
+  private final ClassLoadingMXBean classLoadingMXBean;
+  private final ThreadMXBean threadMXBean;
+  private final CompilationMXBean compilationMXBean;
+  private final boolean isCompilationTimeMonitoringSupported;
   private final String heapUsedMetricName;
   private final String heapMaxMetricName;
   private final String heapCommitedMetricName;
@@ -31,11 +38,19 @@ public class JvmMetricsSender {
   private final String bufferPoolCapacityMetricName;
   private final String threadCountMetricName;
   private final String loadedClassesCountMetricName;
+  private final String totalLoadedClassesCountMetricName;
+  private final String unloadedClassesCountMetricName;
+  private final String totalCompilationTimeMetricName;
 
   public JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
     this.statsDSender = statsDSender;
     this.appTag = new Tag(Tag.APP_TAG_NAME, serviceName);
     this.memoryMXBean = ManagementFactory.getMemoryMXBean();
+    this.classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+    this.threadMXBean = ManagementFactory.getThreadMXBean();
+    this.compilationMXBean = ManagementFactory.getCompilationMXBean();
+    this.isCompilationTimeMonitoringSupported =
+        compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported();
     this.heapUsedMetricName = "jvm.heap.used";
     this.heapMaxMetricName = "jvm.heap.max";
     this.heapCommitedMetricName = "jvm.heap.commited";
@@ -46,11 +61,14 @@ public class JvmMetricsSender {
     this.bufferPoolCapacityMetricName = "jvm.bufferPool.capacity";
     this.threadCountMetricName = "jvm.threads";
     this.loadedClassesCountMetricName = "jvm.loadedClasses";
+    this.totalLoadedClassesCountMetricName = "jvm.classes.loaded.total.count";
+    this.unloadedClassesCountMetricName = "jvm.classes.unloaded.total.count";
+    this.totalCompilationTimeMetricName = "jvm.compilation.time.total.ms";
 
     statsDSender.sendPeriodically(this::sendJvmMetrics);
   }
 
-  private void sendJvmMetrics() {
+  void sendJvmMetrics() {
     MemoryUsage compressedClassSpaceUsage = ZERO_MEMORY_USAGE, metaspaceUsage = null;
 
     for (MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
@@ -76,14 +94,32 @@ public class JvmMetricsSender {
 
     sendNonHeapPoolMemoryUsageAdjusted(memoryMXBean.getNonHeapMemoryUsage(), compressedClassSpaceUsage, TOTAL_TAG);
     if (metaspaceUsage != null) {
-      
       sendNonHeapPoolMemoryUsageAdjusted(metaspaceUsage, compressedClassSpaceUsage, METASPACE_TAG);
     }
 
     sendBufferPoolsUsage();
 
-    statsDSender.sendGauge(loadedClassesCountMetricName, ManagementFactory.getClassLoadingMXBean().getLoadedClassCount(), appTag);
-    statsDSender.sendGauge(threadCountMetricName, ManagementFactory.getThreadMXBean().getThreadCount(), appTag);
+    sendClassLoadingMetrics();
+    sendCompilationMetrics();
+    statsDSender.sendGauge(threadCountMetricName, threadMXBean.getThreadCount(), appTag);
+  }
+
+  private void sendClassLoadingMetrics() {
+    statsDSender.sendGauge(loadedClassesCountMetricName, classLoadingMXBean.getLoadedClassCount(), appTag);
+
+    long totalLoaded = classLoadingMXBean.getTotalLoadedClassCount();
+    long unloaded = classLoadingMXBean.getUnloadedClassCount();
+    statsDSender.sendGauge(totalLoadedClassesCountMetricName, totalLoaded, appTag);
+    statsDSender.sendGauge(unloadedClassesCountMetricName, unloaded, appTag);
+  }
+
+  private void sendCompilationMetrics() {
+    if (!isCompilationTimeMonitoringSupported) {
+      return;
+    }
+
+    long totalCompilationTimeMs = compilationMXBean.getTotalCompilationTime();
+    statsDSender.sendGauge(totalCompilationTimeMetricName, totalCompilationTimeMs, appTag);
   }
 
   private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {

@@ -3,7 +3,7 @@ package ru.hh.nab.metrics.clients;
 import com.timgroup.statsd.StatsDClient;
 import java.lang.management.CompilationMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -18,7 +18,8 @@ public class JvmMetricsSenderTest {
   @Test
   public void testClassLoadingMetricsSent() {
     StatsDClient statsDClient = Mockito.mock(StatsDClient.class);
-    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, Executors.newSingleThreadScheduledExecutor()));
+    ScheduledExecutorService noopExecutor = Mockito.mock(ScheduledExecutorService.class);
+    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, noopExecutor));
     doNothing().when(statsDSender).sendPeriodically(Mockito.any(Runnable.class));
 
     JvmMetricsSender jvmMetricsSender = new JvmMetricsSender(statsDSender, "test-service");
@@ -33,7 +34,8 @@ public class JvmMetricsSenderTest {
   @Test
   public void testCompilationMetricsSent() {
     StatsDClient statsDClient = Mockito.mock(StatsDClient.class);
-    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, Executors.newSingleThreadScheduledExecutor()));
+    ScheduledExecutorService noopExecutor = Mockito.mock(ScheduledExecutorService.class);
+    StatsDSender statsDSender = Mockito.spy(new StatsDSender(statsDClient, noopExecutor));
     doNothing().when(statsDSender).sendPeriodically(Mockito.any(Runnable.class));
 
     JvmMetricsSender jvmMetricsSender = new JvmMetricsSender(statsDSender, "test-service");

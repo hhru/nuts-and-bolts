@@ -49,8 +49,7 @@ public class JvmMetricsSender {
     this.classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
     this.threadMXBean = ManagementFactory.getThreadMXBean();
     this.compilationMXBean = ManagementFactory.getCompilationMXBean();
-    this.isCompilationTimeMonitoringSupported =
-        compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported();
+    this.isCompilationTimeMonitoringSupported = compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported();
     this.heapUsedMetricName = "jvm.heap.used";
     this.heapMaxMetricName = "jvm.heap.max";
     this.heapCommitedMetricName = "jvm.heap.commited";
@@ -106,11 +105,8 @@ public class JvmMetricsSender {
 
   private void sendClassLoadingMetrics() {
     statsDSender.sendGauge(loadedClassesCountMetricName, classLoadingMXBean.getLoadedClassCount(), appTag);
-
-    long totalLoaded = classLoadingMXBean.getTotalLoadedClassCount();
-    long unloaded = classLoadingMXBean.getUnloadedClassCount();
-    statsDSender.sendGauge(totalLoadedClassesCountMetricName, totalLoaded, appTag);
-    statsDSender.sendGauge(unloadedClassesCountMetricName, unloaded, appTag);
+    statsDSender.sendGauge(totalLoadedClassesCountMetricName, classLoadingMXBean.getTotalLoadedClassCount(), appTag);
+    statsDSender.sendGauge(unloadedClassesCountMetricName, classLoadingMXBean.getUnloadedClassCount(), appTag);
   }
 
   private void sendCompilationMetrics() {

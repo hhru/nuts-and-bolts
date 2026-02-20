@@ -107,8 +107,7 @@ public class JvmMetricsSender {
       return;
     }
 
-    long totalCompilationTimeMs = compilationMXBean.getTotalCompilationTime();
-    statsDSender.sendGauge(TOTAL_COMPILATION_TIME_METRIC_NAME, totalCompilationTimeMs, appTag);
+    statsDSender.sendGauge(TOTAL_COMPILATION_TIME_METRIC_NAME, compilationMXBean.getTotalCompilationTime(), appTag);
   }
 
   private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {

@@ -27,7 +27,7 @@ public class JvmMetricsSenderTest {
     // current loaded classes and cumulative class loading counters
     verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.LOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
     verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
-    verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.UNLOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.TOTAL_UNLOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
   }
 
   @Test

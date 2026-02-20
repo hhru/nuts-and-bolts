@@ -36,7 +36,7 @@ public class JvmMetricsSender {
 
   public static final String LOADED_CLASSES_COUNT_METRIC_NAME = "jvm.loadedClasses";
   public static final String TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME = "jvm.classes.loaded.total.count";
-  public static final String UNLOADED_CLASSES_COUNT_METRIC_NAME = "jvm.classes.unloaded.total.count";
+  public static final String TOTAL_UNLOADED_CLASSES_COUNT_METRIC_NAME = "jvm.classes.unloaded.total.count";
 
   public static final String TOTAL_COMPILATION_TIME_METRIC_NAME = "jvm.compilation.time.total.ms";
 
@@ -99,7 +99,7 @@ public class JvmMetricsSender {
   private void sendClassLoadingMetrics() {
     statsDSender.sendGauge(LOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getLoadedClassCount(), appTag);
     statsDSender.sendGauge(TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getTotalLoadedClassCount(), appTag);
-    statsDSender.sendGauge(UNLOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getUnloadedClassCount(), appTag);
+    statsDSender.sendGauge(TOTAL_UNLOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getUnloadedClassCount(), appTag);
   }
 
   private void sendCompilationMetrics() {

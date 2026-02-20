@@ -25,9 +25,9 @@ public class JvmMetricsSenderTest {
     jvmMetricsSender.sendJvmMetrics();
 
     // current loaded classes and cumulative class loading counters
-    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.loadedClasses"), anyLong());
-    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.classes.loaded.total.count"), anyLong());
-    verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.classes.unloaded.total.count"), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.LOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
+    verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.UNLOADED_CLASSES_COUNT_METRIC_NAME), anyLong());
   }
 
   @Test
@@ -42,7 +42,7 @@ public class JvmMetricsSenderTest {
     // compilation time metric is optional and depends on JVM support
     CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
     if (compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported()) {
-      verify(statsDClient, atLeastOnce()).gauge(startsWith("jvm.compilation.time.total.ms"), anyLong());
+      verify(statsDClient, atLeastOnce()).gauge(startsWith(JvmMetricsSender.TOTAL_COMPILATION_TIME_METRIC_NAME), anyLong());
     }
   }
 }

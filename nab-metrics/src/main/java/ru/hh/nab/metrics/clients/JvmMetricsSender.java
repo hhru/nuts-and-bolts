@@ -1,11 +1,14 @@
 package ru.hh.nab.metrics.clients;
 
 import java.lang.management.BufferPoolMXBean;
+import java.lang.management.ClassLoadingMXBean;
+import java.lang.management.CompilationMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
+import java.lang.management.ThreadMXBean;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 
@@ -18,39 +21,46 @@ public class JvmMetricsSender {
   private static final Tag TOTAL_TAG = new Tag(POOL_TAG_NAME, "total");
   private static final MemoryUsage ZERO_MEMORY_USAGE = new MemoryUsage(0, 0, 0, 0);
 
+  public static final String HEAP_USED_METRIC_NAME = "jvm.heap.used";
+  public static final String HEAP_MAX_METRIC_NAME = "jvm.heap.max";
+  public static final String HEAP_COMMITED_METRIC_NAME = "jvm.heap.commited";
+
+  public static final String NON_HEAP_USED_METRIC_NAME = "jvm.nonHeap.used";
+  public static final String NON_HEAP_MAX_METRIC_NAME = "jvm.nonHeap.max";
+  public static final String NON_HEAP_COMMITED_METRIC_NAME = "jvm.nonHeap.commited";
+
+  public static final String BUFFER_POOL_USED_METRIC_NAME = "jvm.bufferPool.used";
+  public static final String BUFFER_POOL_CAPACITY_METRIC_NAME = "jvm.bufferPool.capacity";
+
+  public static final String THREAD_COUNT_METRIC_NAME = "jvm.threads";
+
+  public static final String LOADED_CLASSES_COUNT_METRIC_NAME = "jvm.loadedClasses";
+  public static final String TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME = "jvm.classes.loaded.total.count";
+  public static final String TOTAL_UNLOADED_CLASSES_COUNT_METRIC_NAME = "jvm.classes.unloaded.total.count";
+
+  public static final String TOTAL_COMPILATION_TIME_METRIC_NAME = "jvm.compilation.time.total.ms";
+
   private final StatsDSender statsDSender;
   private final Tag appTag;
   private final MemoryMXBean memoryMXBean;
-  private final String heapUsedMetricName;
-  private final String heapMaxMetricName;
-  private final String heapCommitedMetricName;
-  private final String nonHeapUsedMetricName;
-  private final String nonHeapMaxMetricName;
-  private final String nonHeapCommitedMetricName;
-  private final String bufferPoolUsedMetricName;
-  private final String bufferPoolCapacityMetricName;
-  private final String threadCountMetricName;
-  private final String loadedClassesCountMetricName;
+  private final ClassLoadingMXBean classLoadingMXBean;
+  private final ThreadMXBean threadMXBean;
+  private final CompilationMXBean compilationMXBean;
+  private final boolean isCompilationTimeMonitoringSupported;
 
   public JvmMetricsSender(StatsDSender statsDSender, String serviceName) {
     this.statsDSender = statsDSender;
     this.appTag = new Tag(Tag.APP_TAG_NAME, serviceName);
     this.memoryMXBean = ManagementFactory.getMemoryMXBean();
-    this.heapUsedMetricName = "jvm.heap.used";
-    this.heapMaxMetricName = "jvm.heap.max";
-    this.heapCommitedMetricName = "jvm.heap.commited";
-    this.nonHeapUsedMetricName = "jvm.nonHeap.used";
-    this.nonHeapMaxMetricName = "jvm.nonHeap.max";
-    this.nonHeapCommitedMetricName = "jvm.nonHeap.commited";
-    this.bufferPoolUsedMetricName = "jvm.bufferPool.used";
-    this.bufferPoolCapacityMetricName = "jvm.bufferPool.capacity";
-    this.threadCountMetricName = "jvm.threads";
-    this.loadedClassesCountMetricName = "jvm.loadedClasses";
+    this.classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+    this.threadMXBean = ManagementFactory.getThreadMXBean();
+    this.compilationMXBean = ManagementFactory.getCompilationMXBean();
+    this.isCompilationTimeMonitoringSupported = compilationMXBean != null && compilationMXBean.isCompilationTimeMonitoringSupported();
 
     statsDSender.sendPeriodically(this::sendJvmMetrics);
   }
 
-  private void sendJvmMetrics() {
+  void sendJvmMetrics() {
     MemoryUsage compressedClassSpaceUsage = ZERO_MEMORY_USAGE, metaspaceUsage = null;
 
     for (MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
@@ -76,40 +86,54 @@ public class JvmMetricsSender {
 
     sendNonHeapPoolMemoryUsageAdjusted(memoryMXBean.getNonHeapMemoryUsage(), compressedClassSpaceUsage, TOTAL_TAG);
     if (metaspaceUsage != null) {
-      
       sendNonHeapPoolMemoryUsageAdjusted(metaspaceUsage, compressedClassSpaceUsage, METASPACE_TAG);
     }
 
     sendBufferPoolsUsage();
 
-    statsDSender.sendGauge(loadedClassesCountMetricName, ManagementFactory.getClassLoadingMXBean().getLoadedClassCount(), appTag);
-    statsDSender.sendGauge(threadCountMetricName, ManagementFactory.getThreadMXBean().getThreadCount(), appTag);
+    sendClassLoadingMetrics();
+    sendCompilationMetrics();
+    statsDSender.sendGauge(THREAD_COUNT_METRIC_NAME, threadMXBean.getThreadCount(), appTag);
+  }
+
+  private void sendClassLoadingMetrics() {
+    statsDSender.sendGauge(LOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getLoadedClassCount(), appTag);
+    statsDSender.sendGauge(TOTAL_LOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getTotalLoadedClassCount(), appTag);
+    statsDSender.sendGauge(TOTAL_UNLOADED_CLASSES_COUNT_METRIC_NAME, classLoadingMXBean.getUnloadedClassCount(), appTag);
+  }
+
+  private void sendCompilationMetrics() {
+    if (!isCompilationTimeMonitoringSupported) {
+      return;
+    }
+
+    statsDSender.sendGauge(TOTAL_COMPILATION_TIME_METRIC_NAME, compilationMXBean.getTotalCompilationTime(), appTag);
   }
 
   private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
-    statsDSender.sendGauge(heapUsedMetricName, poolUsage.getUsed(), appTag, poolTag);
-    statsDSender.sendGauge(heapMaxMetricName, poolUsage.getMax(), appTag, poolTag);
-    statsDSender.sendGauge(heapCommitedMetricName, poolUsage.getCommitted(), appTag, poolTag);
+    statsDSender.sendGauge(HEAP_USED_METRIC_NAME, poolUsage.getUsed(), appTag, poolTag);
+    statsDSender.sendGauge(HEAP_MAX_METRIC_NAME, poolUsage.getMax(), appTag, poolTag);
+    statsDSender.sendGauge(HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted(), appTag, poolTag);
   }
 
   private void sendNonHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
-    statsDSender.sendGauge(nonHeapUsedMetricName, poolUsage.getUsed(), appTag, poolTag);
-    statsDSender.sendGauge(nonHeapMaxMetricName, poolUsage.getMax(), appTag, poolTag);
-    statsDSender.sendGauge(nonHeapCommitedMetricName, poolUsage.getCommitted(), appTag, poolTag);
+    statsDSender.sendGauge(NON_HEAP_USED_METRIC_NAME, poolUsage.getUsed(), appTag, poolTag);
+    statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, poolUsage.getMax(), appTag, poolTag);
+    statsDSender.sendGauge(NON_HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted(), appTag, poolTag);
   }
 
   // Non-heap usage JMX metric sums up Metaspace and Compressed Class Space, but in fact CCS is included in Metaspace
   private void sendNonHeapPoolMemoryUsageAdjusted(MemoryUsage poolUsage, MemoryUsage ccsUsage, Tag tag) {
-    statsDSender.sendGauge(nonHeapUsedMetricName, poolUsage.getUsed() - ccsUsage.getUsed(), appTag, tag);
-    statsDSender.sendGauge(nonHeapCommitedMetricName, poolUsage.getCommitted() - ccsUsage.getCommitted(), appTag, tag);
-    statsDSender.sendGauge(nonHeapMaxMetricName, Math.max(-1, poolUsage.getMax() - ccsUsage.getMax()), appTag, tag);
+    statsDSender.sendGauge(NON_HEAP_USED_METRIC_NAME, poolUsage.getUsed() - ccsUsage.getUsed(), appTag, tag);
+    statsDSender.sendGauge(NON_HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted() - ccsUsage.getCommitted(), appTag, tag);
+    statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, Math.max(-1, poolUsage.getMax() - ccsUsage.getMax()), appTag, tag);
   }
 
   private void sendBufferPoolsUsage() {
     for (BufferPoolMXBean bufferPool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
       Tag poolTag = new Tag(POOL_TAG_NAME, bufferPool.getName());
-      statsDSender.sendGauge(bufferPoolUsedMetricName, bufferPool.getMemoryUsed(), appTag, poolTag);
-      statsDSender.sendGauge(bufferPoolCapacityMetricName, bufferPool.getTotalCapacity(), appTag, poolTag);
+      statsDSender.sendGauge(BUFFER_POOL_USED_METRIC_NAME, bufferPool.getMemoryUsed(), appTag, poolTag);
+      statsDSender.sendGauge(BUFFER_POOL_CAPACITY_METRIC_NAME, bufferPool.getTotalCapacity(), appTag, poolTag);
     }
   }
 }

@@ -77,7 +77,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerMetadata consumerMetadata, ConsumeStrategy<T> consumeStrategy) {
-    return new MonitoringConsumeStrategy<>(statsDSender, consumerMetadata, consumeStrategy);
+    return new MonitoringConsumeStrategy<>(configProvider.getServiceName(), statsDSender, consumerMetadata, consumeStrategy);
   }
 
 

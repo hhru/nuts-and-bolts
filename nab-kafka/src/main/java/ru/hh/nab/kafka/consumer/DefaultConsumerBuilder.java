@@ -161,7 +161,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
-    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getOriginalServiceName(), topicName, operationName);
     Properties nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     boolean consumerEnabled = PropertiesUtils.getBoolean(nabConsumerSettings, CONSUMER_ENABLED, DEFAULT_CONSUMER_ENABLED);
     if (!consumerEnabled) {
@@ -239,7 +239,7 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
     Properties nabConsumerSettings = configProvider.getNabConsumerSettings(retryReceiveTopicName);
-    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
+    ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getOriginalServiceName(), retryReceiveTopicName, "");
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
         nabConsumerSettings,
         springConsumerFactory,

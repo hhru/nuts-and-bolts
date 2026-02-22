@@ -10,6 +10,8 @@ import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.nab.metrics.Tag;
+import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
 public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
 
@@ -20,12 +22,13 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final ConsumerMetadata consumerMetadata;
 
   public MonitoringConsumeStrategy(
+      String serviceName,
       StatsDSender statsDSender,
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy
   ) {
     this.consumerMetadata = consumerMetadata;
-    this.timings = buildTimings(statsDSender, consumerMetadata);
+    this.timings = buildTimings(statsDSender, consumerMetadata, serviceName);
     this.consumeStrategy = consumeStrategy;
   }
 
@@ -46,11 +49,13 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
     MDC.put("batchSize", String.valueOf(messages.size()));
   }
 
-  private Timings buildTimings(StatsDSender statsDSender, ConsumerMetadata identifier) {
-    Timings.Builder builder = new Timings.Builder()
+  private Timings buildTimings(StatsDSender statsDSender, ConsumerMetadata consumerMetadata, String serviceName) {
+    return new Timings.Builder()
         .withMetric("batchProcessingTime")
-        .withStatsDSender(statsDSender);
-    identifier.toMetricTags().forEach(builder::withTag);
-    return builder.start();
+        .withStatsDSender(statsDSender)
+        .withTag(new Tag(APP_TAG_NAME, serviceName))
+        .withTag(new Tag("topic", consumerMetadata.getTopic()))
+        .withTag(new Tag("operation", consumerMetadata.getOperation()))
+        .start();
   }
 }

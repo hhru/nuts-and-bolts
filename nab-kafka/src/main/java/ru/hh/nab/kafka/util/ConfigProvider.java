@@ -52,12 +52,18 @@ public class ConfigProvider {
       KafkaStatsDReporter.METRICS_SEND_ALL
   );
   private final String serviceName;
+  private final String originalServiceName;
   private final String kafkaClusterName;
   private final Properties properties;
   private final StatsDSender statsDSender;
 
   public ConfigProvider(String serviceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
+    this(serviceName, serviceName, kafkaClusterName, properties, statsDSender);
+  }
+
+  public ConfigProvider(String serviceName, String originalServiceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
     this.serviceName = serviceName;
+    this.originalServiceName = originalServiceName;
     this.kafkaClusterName = kafkaClusterName;
     this.properties = properties;
     this.statsDSender = statsDSender;
@@ -91,6 +97,10 @@ public class ConfigProvider {
 
   public String getServiceName() {
     return serviceName;
+  }
+
+  public String getOriginalServiceName() {
+    return originalServiceName;
   }
 
   public String getKafkaClusterName() {

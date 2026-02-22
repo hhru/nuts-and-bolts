@@ -20,23 +20,23 @@ public record RetryTopics(String retrySendTopic, String retryReceiveTopic) {
   public static RetryTopics DEFAULT_PAIR_OF_TOPICS = new RetryTopics(DEFAULT_RETRY_SEND_TOPIC, DEFAULT_RETRY_RECEIVE_TOPIC);
 
   /**
-   * Creates conventional name based on main topic name, service name and operation name:
+   * Creates conventional name based on main topic name, consumer name and operation name:
    * topicName_serviceName_operationName<b>_retry_send</b>
    */
   public static String defaultRetrySendTopic(ConsumerMetadata consumerMetadata) {
     return DEFAULT_RETRY_SEND_TOPIC
-        .formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation())
+        .formatted(consumerMetadata.getTopic(), consumerMetadata.getConsumerName(), consumerMetadata.getOperation())
         .toLowerCase()
         .replace('-', '_');
   }
 
   /**
-   * Creates conventional name based on main topic name, service name and operation name:
+   * Creates conventional name based on main topic name, consumer name and operation name:
    * topicName_serviceName_operationName<b>_retry_receive</b>
    */
   public static String defaultRetryReceiveTopic(ConsumerMetadata consumerMetadata) {
     return DEFAULT_RETRY_RECEIVE_TOPIC
-        .formatted(consumerMetadata.getTopic(), consumerMetadata.getServiceName(), consumerMetadata.getOperation())
+        .formatted(consumerMetadata.getTopic(), consumerMetadata.getConsumerName(), consumerMetadata.getOperation())
         .toLowerCase()
         .replace('-', '_');
   }

@@ -33,7 +33,9 @@ import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.AUTH_EXCEPTION_RETRY_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.CONCURRENCY;
+import static ru.hh.nab.kafka.util.ConfigProvider.CONSUMER_ENABLED;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_ENABLED;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
 
@@ -159,8 +161,14 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
-    ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), topicName, operationName);
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
+    boolean consumerEnabled = PropertiesUtils.getBoolean(nabConsumerSettings, CONSUMER_ENABLED, DEFAULT_CONSUMER_ENABLED);
+    if (!consumerEnabled) {
+      logger.info("Consumer with group id {} is disabled", consumerMetadata.getConsumerGroupId());
+      return new NoopKafkaConsumer<>();
+    }
+    ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);
 
     DeadLetterQueue<T> deadLetterQueue = null;
     if (usingDlq()) {
@@ -168,9 +176,9 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     return isConsumerGroup ?
-        buildKafkaConsumerForConsumerGroup(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue)
+        buildKafkaConsumerForConsumerGroup(nabConsumerSettings, springConsumerFactory, consumerMetadata, deadLetterQueue)
         :
-        buildKafkaConsumerForAllPartitions(configProvider, springConsumerFactory, consumerMetadata, deadLetterQueue);
+        buildKafkaConsumerForAllPartitions(nabConsumerSettings, springConsumerFactory, consumerMetadata, deadLetterQueue);
   }
 
   private boolean usingDlq() {
@@ -182,13 +190,13 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private KafkaConsumer<T> buildKafkaConsumerForConsumerGroup(
-      ConfigProvider configProvider,
+      Properties nabConsumerSettings,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
-        configProvider,
+        nabConsumerSettings,
         springConsumerFactory,
         consumerMetadata
     );
@@ -230,9 +238,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     ConfigProvider configProvider = consumerFactory.getConfigProvider();
     String retryReceiveTopicName = retryTopics.retryReceiveTopic();
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(retryReceiveTopicName, messageClass);
+    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(retryReceiveTopicName);
     ConsumerMetadata consumerMetadata = new ConsumerMetadata(configProvider.getServiceName(), retryReceiveTopicName, "");
     Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> springContainerProvider = createSpringContainerProviderForConsumerGroup(
-        configProvider,
+        nabConsumerSettings,
         springConsumerFactory,
         consumerMetadata
     );
@@ -262,11 +271,10 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private Function<KafkaConsumer<T>, AbstractMessageListenerContainer<String, T>> createSpringContainerProviderForConsumerGroup(
-      ConfigProvider configProvider,
+      Properties nabConsumerSettings,
       ConsumerFactory<String, T> springConsumerFactory,
       ConsumerMetadata consumerMetadata
   ) {
-    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     int concurrency = getConcurrency(nabConsumerSettings);
     AtomicInteger containersCount = new AtomicInteger(0);
     return (nabKafkaConsumer) -> {
@@ -291,10 +299,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
   }
 
   private KafkaConsumer<T> buildKafkaConsumerForAllPartitions(
-      ConfigProvider configProvider, ConsumerFactory<String, T> springConsumerFactory, ConsumerMetadata consumerMetadata,
+      Properties nabConsumerSettings,
+      ConsumerFactory<String, T> springConsumerFactory,
+      ConsumerMetadata consumerMetadata,
       DeadLetterQueue<T> deadLetterQueue
   ) {
-    Properties nabConsumerSettings = configProvider.getNabConsumerSettings(consumerMetadata.getTopic());
     int concurrency = getConcurrency(nabConsumerSettings);
     AtomicInteger containersCount = new AtomicInteger(0);
     BiFunction<KafkaConsumer<T>, List<PartitionInfo>, AbstractMessageListenerContainer<String, T>> springContainerProvider = (

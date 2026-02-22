@@ -25,14 +25,21 @@ import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 
 public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
 
+  private final String serviceName;
   private final String clusterName;
   private final ConsumeStrategy<T> consumeStrategy;
   private final ConsumerMetadata consumerMetadata;
   private final Tracer tracer;
   private final KafkaTelemetryPropagator propagator;
 
-  TelemetryConsumeStrategyWrapper(String clusterName, ConsumeStrategy<T> consumeStrategy,
-                                  ConsumerMetadata consumerMetadata, OpenTelemetry telemetry) {
+  TelemetryConsumeStrategyWrapper(
+      String serviceName,
+      String clusterName,
+      ConsumeStrategy<T> consumeStrategy,
+      ConsumerMetadata consumerMetadata,
+      OpenTelemetry telemetry
+  ) {
+    this.serviceName = serviceName;
     this.clusterName = clusterName;
     this.consumeStrategy = consumeStrategy;
     this.consumerMetadata = consumerMetadata;
@@ -51,7 +58,7 @@ public class TelemetryConsumeStrategyWrapper<T> implements ConsumeStrategy<T> {
         .setAttribute(MESSAGING_OPERATION, PROCESS)
         .setAttribute(MESSAGING_DESTINATION_NAME, consumerMetadata.getTopic())
         .setAttribute(MESSAGING_DESTINATION_KIND, TOPIC)
-        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, consumerMetadata.getServiceName())
+        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, serviceName)
         .setAttribute(MESSAGING_KAFKA_CONSUMER_GROUP, consumerMetadata.getConsumerGroupId());
 
     messages.forEach(record -> {

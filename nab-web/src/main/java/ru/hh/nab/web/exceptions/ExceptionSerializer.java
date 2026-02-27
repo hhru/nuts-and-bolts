@@ -10,5 +10,5 @@ public interface ExceptionSerializer {
    */
   boolean isCompatible(HttpServletRequest request, HttpServletResponse response);
 
-  Response serializeException(Response.StatusType statusCode, Exception exception);
+  Response serializeException(Response.StatusType statusCode, Throwable exception);
 }

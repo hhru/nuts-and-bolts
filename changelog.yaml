@@ -1,3 +1,14 @@
+-   name: 26.0.0
+    date: '2026-02-27T11:37:50.049208+03:00'
+    description: Добавлена возможность выключать консьюмеров (подписка на топики осуществляться
+        не будет). Для этого в объект Properties, который передается в ConfigProvider,
+        нужно добавить настройку `*.nab_setting.enabled` (например,`kafka.<cluster-name>.consumer.default.nab_setting.enabled`,
+        `kafka.<cluster-name>.consumer.topic.<topic-name>.default.nab_setting.enabled`)
+        со значением false. Класс NoopKafkaConsumer перенесен из модуля nab-testbase
+        в модуль nab-kafka в пакет `ru.hh.nab.kafka.consumer`
+    instructions: Поправить импорт NoopKafkaConsumer
+    compatible: false
+
 -   name: 25.0.0
     date: '2026-02-24T18:19:55.883661+03:00'
     description: Настройки для 'default' producer-а теперь являются настройками по

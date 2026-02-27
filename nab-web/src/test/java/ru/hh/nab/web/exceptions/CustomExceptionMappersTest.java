@@ -81,7 +81,7 @@ public class CustomExceptionMappersTest {
     }
 
     @Override
-    public Response serializeException(Response.StatusType statusCode, Exception exception) {
+    public Response serializeException(Response.StatusType statusCode, Throwable exception) {
       return Response.status(statusCode).entity(new Error(exception.getMessage())).type(APPLICATION_JSON_TYPE).build();
     }
 

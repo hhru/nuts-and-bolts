@@ -36,13 +36,13 @@ import static ru.hh.nab.web.jersey.NabPriorities.LOW_PRIORITY;
         )
     )
 )
-public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
+public class AnyExceptionMapper extends NabExceptionMapper<Throwable> {
   public AnyExceptionMapper() {
     super(INTERNAL_SERVER_ERROR, LoggingLevel.ERROR_WITH_STACK_TRACE);
   }
 
   @Override
-  protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
+  protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Throwable exception) {
     List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
     var serviceUnavailableTypeException = throwableList
         .stream()

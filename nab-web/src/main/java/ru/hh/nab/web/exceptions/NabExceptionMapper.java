@@ -20,7 +20,7 @@ import ru.hh.nab.web.jersey.NabPriorities;
  * — provide a mechanism to add generic exception serializers (see {@link ExceptionSerializer})
  * {@link ExceptionSerializer} beans must be present in application context.
  */
-public abstract class NabExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
+public abstract class NabExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 
   /**
    * @deprecated Use {@link NabPriorities#LOW_PRIORITY}

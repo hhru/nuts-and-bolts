@@ -1,4 +1,4 @@
-package ru.hh.nab.testbase.kafka;
+package ru.hh.nab.kafka.consumer;
 
 import java.util.Collection;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
-import ru.hh.nab.kafka.consumer.KafkaConsumer;
 
 public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
 
@@ -15,12 +14,17 @@ public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
   }
 
   @Override
-  public void start() {
-    // do nothing
+  public boolean isAutoStartup() {
+    return false;
   }
 
   @Override
-  public void stop(Runnable callback) {
+  public boolean isRunning() {
+    return false;
+  }
+
+  @Override
+  public void start() {
     // do nothing
   }
 

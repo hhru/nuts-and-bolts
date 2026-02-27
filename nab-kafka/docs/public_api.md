@@ -63,8 +63,6 @@ kafka.site.consumer.default.max.poll.records=10
 kafka.site.consumer.default.enable.auto.commit=false
 ```
 
-> ⚠️ В настоящий момент поддерживается только профиль default.</p>
-
 ### Конфигурация consumer для topic
 
 Настройки под префиксом `consumer.topic` будут использоватсья для создания kafka consumer. Настройки topic-а

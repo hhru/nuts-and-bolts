@@ -1,3 +1,13 @@
+-   name: 27.0.0
+    date: '2026-02-27T16:40:56.852291+03:00'
+    description: AnyExceptionMapper теперь обрабатывает все ошибки (Throwable)
+    instructions: "1. Если в вашем коде есть класс, который наследуется от AnyExceptionMapper,\
+        \ то необходимо в сигнатуре метода toResponseInternal заменить Exception на\
+        \ Throwable\r\n2. Если в вашем коде есть класс, который имплементирует ExceptionSerializer,\
+        \ то необходимо в сигнатуре метода serializeException заменить Exception на\
+        \ Throwable"
+    compatible: false
+
 -   name: 26.0.1
     date: '2026-02-27T16:07:31.834501+03:00'
     description: Исправление ошибки, связанной с тем, что метрики тред пулов обнуляются,

@@ -13,6 +13,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max busyThreads = new Max(0);
   private final Max idleThreads = new Max(0);
   private final Max totalThreads = new Max(0);
+  private final Max maxThreads = new Max(0);
 
   public MonitoredQueuedThreadPool(
       int maxThreads,
@@ -33,21 +34,30 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
 
     statsDSender.sendPeriodically(() -> {
+      // Include current pool state in max so that load is reported correctly when no new jobs
+      // are submitted during the interval (e.g. long-running jobs keep the pool busy).
+      updatePoolMetrics();
+
       sender.sendMax(queueSizeMetricName, this.queueSize);
       sender.sendMax(busyThreadsMetricName, this.busyThreads);
       sender.sendMax(idleThreadsMetricName, this.idleThreads);
       sender.sendMax(totalThreadsMetricName, this.totalThreads);
-      sender.sendGauge(maxThreadsMetricName, this.getMaxThreads());
+      sender.sendMax(maxThreadsMetricName, this.maxThreads);
     });
   }
 
   @Override
   public void execute(Runnable job) {
+    updatePoolMetrics();
+
+    super.execute(job);
+  }
+
+  private void updatePoolMetrics() {
     queueSize.save(getQueueSize());
     busyThreads.save(getBusyThreads());
     idleThreads.save(getIdleThreads());
     totalThreads.save(getThreads());
-
-    super.execute(job);
+    maxThreads.save(getMaxThreads());
   }
 }

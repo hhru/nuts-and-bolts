@@ -50,6 +50,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static final int DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_SIZE = 512;
   private static final int DEFAULT_MONITORING_TASK_EXECUTION_START_LAG_HISTOGRAM_COMPACTION_RATIO = 1;
 
+  private final Max maxPoolSizeMetric = new Max(0);
   private final Max poolSizeMetric = new Max(0);
   private final Max activeCountMetric = new Max(0);
   private final Max queueSizeMetric = new Max(0);
@@ -93,9 +94,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
   @Override
   protected void beforeExecute(Thread t, Runnable r) {
-    poolSizeMetric.save(getPoolSize());
-    activeCountMetric.save(getActiveCount());
-    queueSizeMetric.save(getQueue().size());
+    updatePoolMetrics();
 
     if (r instanceof RunnableWithCreationTime rWithCreationTime) {
       int taskExecutionStartLag = (int) Duration.between(rWithCreationTime.getCreationTime(), OffsetDateTime.now()).toMillis();
@@ -247,7 +246,11 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName), new Tag("pool", threadPoolName)));
 
     statsDSender.sendPeriodically(() -> {
-      sender.sendGauge(maxPoolSizeMetricName, threadPoolExecutor.getMaximumPoolSize());
+      // Include current pool state in max so that load is reported correctly when no new tasks
+      // are submitted during the interval (e.g. long-running tasks keep the pool busy).
+      threadPoolExecutor.updatePoolMetrics();
+
+      sender.sendMax(maxPoolSizeMetricName, threadPoolExecutor.maxPoolSizeMetric);
       sender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
       sender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
       sender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);
@@ -270,6 +273,13 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       );
       throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
     };
+  }
+
+  private void updatePoolMetrics() {
+    maxPoolSizeMetric.save(getMaximumPoolSize());
+    poolSizeMetric.save(getPoolSize());
+    activeCountMetric.save(getActiveCount());
+    queueSizeMetric.save(getQueue().size());
   }
 
   private static class RunnableWithCreationTime implements Runnable {

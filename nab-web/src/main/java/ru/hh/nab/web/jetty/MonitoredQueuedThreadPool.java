@@ -13,6 +13,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max busyThreads = new Max(0);
   private final Max idleThreads = new Max(0);
   private final Max totalThreads = new Max(0);
+  private final Max maxThreads = new Max(0);
 
   public MonitoredQueuedThreadPool(
       int maxThreads,
@@ -37,7 +38,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       sender.sendMax(busyThreadsMetricName, this.busyThreads);
       sender.sendMax(idleThreadsMetricName, this.idleThreads);
       sender.sendMax(totalThreadsMetricName, this.totalThreads);
-      sender.sendGauge(maxThreadsMetricName, this.getMaxThreads());
+      sender.sendMax(maxThreadsMetricName, this.maxThreads);
     });
   }
 
@@ -47,6 +48,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     busyThreads.save(getBusyThreads());
     idleThreads.save(getIdleThreads());
     totalThreads.save(getThreads());
+    maxThreads.save(getMaxThreads());
 
     super.execute(job);
   }

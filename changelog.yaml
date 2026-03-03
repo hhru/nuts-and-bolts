@@ -1,3 +1,9 @@
+-   name: 27.0.1
+    date: '2026-03-03T14:16:19.000239+03:00'
+    description: Удалены тесты, которые проверяли логирование из модуля nab-metrics
+    instructions: ''
+    compatible: true
+
 -   name: 27.0.0
     date: '2026-02-27T16:40:56.852291+03:00'
     description: AnyExceptionMapper теперь обрабатывает все ошибки (Throwable)

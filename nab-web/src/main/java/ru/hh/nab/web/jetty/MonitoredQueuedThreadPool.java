@@ -11,7 +11,6 @@ import ru.hh.nab.metrics.TaggedSender;
 public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max queueSize = new Max(0);
   private final Max busyThreads = new Max(0);
-  private final Max idleThreads = new Max(0);
   private final Max totalThreads = new Max(0);
   private final Max maxThreads = new Max(0);
 
@@ -28,7 +27,6 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
 
     String queueSizeMetricName = "queueSize";
     String busyThreadsMetricName = "busyThreads";
-    String idleThreadsMetricName = "idleThreads";
     String totalThreadsMetricName = "totalThreads";
     String maxThreadsMetricName = "maxThreads";
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
@@ -40,7 +38,6 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
 
       sender.sendMax(queueSizeMetricName, this.queueSize);
       sender.sendMax(busyThreadsMetricName, this.busyThreads);
-      sender.sendMax(idleThreadsMetricName, this.idleThreads);
       sender.sendMax(totalThreadsMetricName, this.totalThreads);
       sender.sendMax(maxThreadsMetricName, this.maxThreads);
     });
@@ -56,7 +53,6 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private void updatePoolMetrics() {
     queueSize.save(getQueueSize());
     busyThreads.save(getBusyThreads());
-    idleThreads.save(getIdleThreads());
     totalThreads.save(getThreads());
     maxThreads.save(getMaxThreads());
   }

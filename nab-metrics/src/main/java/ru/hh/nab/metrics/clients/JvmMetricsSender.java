@@ -115,20 +115,33 @@ public class JvmMetricsSender {
 
   private void sendHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
     statsDSender.sendGauge(HEAP_USED_METRIC_NAME, poolUsage.getUsed(), appTag, poolTag);
-    statsDSender.sendGauge(HEAP_MAX_METRIC_NAME, poolUsage.getMax(), appTag, poolTag);
     statsDSender.sendGauge(HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted(), appTag, poolTag);
+
+    long max = poolUsage.getMax();
+    if (max >= 0) {
+      statsDSender.sendGauge(HEAP_MAX_METRIC_NAME, max, appTag, poolTag);
+    }
   }
 
   private void sendNonHeapMemoryPoolUsage(MemoryUsage poolUsage, Tag poolTag) {
     statsDSender.sendGauge(NON_HEAP_USED_METRIC_NAME, poolUsage.getUsed(), appTag, poolTag);
-    statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, poolUsage.getMax(), appTag, poolTag);
     statsDSender.sendGauge(NON_HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted(), appTag, poolTag);
+
+    long max = poolUsage.getMax();
+    if (max >= 0) {
+      statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, max, appTag, poolTag);
+    }
   }
 
   private void sendNonHeapPoolMemoryUsageAdjusted(MemoryUsage poolUsage, MemoryUsage excludedUsage, Tag tag) {
     statsDSender.sendGauge(NON_HEAP_USED_METRIC_NAME, poolUsage.getUsed() - excludedUsage.getUsed(), appTag, tag);
     statsDSender.sendGauge(NON_HEAP_COMMITED_METRIC_NAME, poolUsage.getCommitted() - excludedUsage.getCommitted(), appTag, tag);
-    statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, Math.max(-1, poolUsage.getMax() - excludedUsage.getMax()), appTag, tag);
+
+    long poolMax = poolUsage.getMax();
+    if (poolMax >= 0) {
+      long excludedMax = Math.max(0, excludedUsage.getMax()); // don't adjust if max is unset (-1)
+      statsDSender.sendGauge(NON_HEAP_MAX_METRIC_NAME, poolMax - excludedMax, appTag, tag);
+    }
   }
 
   private void sendBufferPoolsUsage() {

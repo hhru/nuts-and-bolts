@@ -43,15 +43,17 @@ public class AnyExceptionMapper extends NabExceptionMapper<Throwable> {
 
   @Override
   protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Throwable exception) {
-    List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
-    var serviceUnavailableTypeException = throwableList
-        .stream()
-        .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
-        .findAny();
+    if (exception instanceof Exception) {
+      List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
+      var serviceUnavailableTypeException = throwableList
+          .stream()
+          .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
+          .findAny();
 
-    if (serviceUnavailableTypeException.isPresent()) {
-      status = HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
-      loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
+      if (serviceUnavailableTypeException.isPresent()) {
+        status = HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
+        loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
+      }
     }
 
     return super.toResponseInternal(status, loggingLevel, exception);

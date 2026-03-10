@@ -100,22 +100,22 @@ public abstract class NabExceptionMapper<T extends Throwable> implements Excepti
     }
   }
 
-  protected Response serializeException(Response.StatusType statusCode, T throwable) {
-    if (!(throwable instanceof Exception exception)) {
-      return defaultSerializeException(statusCode, throwable);
+  protected Response serializeException(Response.StatusType statusCode, T exception) {
+    if (exception instanceof Exception) {
+      return applicationContext
+          .getBeansOfType(ExceptionSerializer.class)
+          .values()
+          .stream()
+          .filter(s -> s.isCompatible(request, response))
+          .findFirst()
+          .map(s -> s.serializeException(statusCode, (Exception) exception))
+          .orElseGet(() -> defaultSerializeException(statusCode, exception));
     }
 
-    return applicationContext
-        .getBeansOfType(ExceptionSerializer.class)
-        .values()
-        .stream()
-        .filter(s -> s.isCompatible(request, response))
-        .findFirst()
-        .map(s -> s.serializeException(statusCode, exception))
-        .orElseGet(() -> defaultSerializeException(statusCode, exception));
+    return defaultSerializeException(statusCode, exception);
   }
 
-  private static Response defaultSerializeException(Response.StatusType statusCode, Throwable exception) {
+  private Response defaultSerializeException(Response.StatusType statusCode, T exception) {
     Errors errors = new Errors(
         statusCode.getStatusCode(),
         exception.getClass().getCanonicalName(),

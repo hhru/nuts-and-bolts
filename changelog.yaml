@@ -1,3 +1,11 @@
+-   name: 28.0.0
+    date: '2026-03-11T14:58:26.714666+03:00'
+    description: Изменена обработка `Throwable` в `AnyExceptionMapper`.
+    instructions: Если в вашем коде есть класс, который имплементирует ExceptionSerializer,
+        то необходимо в сигнатуре метода serializeException заменить Throwable на
+        Exception.
+    compatible: false
+
 -   name: 27.0.1
     date: '2026-03-03T14:16:19.000239+03:00'
     description: Удалены тесты, которые проверяли логирование из модуля nab-metrics

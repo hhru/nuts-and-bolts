@@ -36,7 +36,7 @@
         <jclient.version>14.1.2</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>3.1.0</consul.client.version>
-        <kafka-test-utils.version>1.0.2</kafka-test-utils.version>
+        <kafka-test-utils.version>1.0.3</kafka-test-utils.version>
     </properties>
 
     <dependencyManagement>

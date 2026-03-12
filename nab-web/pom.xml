@@ -41,7 +41,7 @@
         <dependency>
             <groupId>ru.hh.deadline</groupId>
             <artifactId>deadline-context</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- Jersey -->

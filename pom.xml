@@ -33,7 +33,7 @@
     </modules>
 
     <properties>
-        <jclient.version>14.1.2</jclient.version>
+        <jclient.version>14.1.3</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>3.1.0</consul.client.version>
         <kafka-test-utils.version>1.0.3</kafka-test-utils.version>

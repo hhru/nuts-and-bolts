@@ -115,6 +115,13 @@
             <version>0.7.4</version>
         </dependency>
 
+        <!--concurrency-->
+        <dependency>
+            <groupId>com.netflix.concurrency-limits</groupId>
+            <artifactId>concurrency-limits-core</artifactId>
+            <version>0.5.4</version>
+        </dependency>
+
         <!--Testing-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

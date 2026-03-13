@@ -8,6 +8,11 @@ package ru.hh.nab.common.servlet;
 public final class ServletFilterPriorities {
 
   /**
+   * Concurrency filter/interceptor priority.
+   */
+  public static final int CONCURRENCY = 250;
+
+  /**
    * Observability filter/interceptor priority.
    */
   public static final int OBSERVABILITY = 500;

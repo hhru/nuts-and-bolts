@@ -88,6 +88,7 @@ public class ConcurrencyLimitFilter implements Filter {
     } else if (STATUSES_TO_DROP_CONCURRENCY.contains(httpServletResponse.getStatus())) {
       listener.onDropped();
     } else {
+      // ignore 4xx in order to exclude their RTT from statistic
       listener.onIgnore();
     }
   }

@@ -3,6 +3,7 @@ package ru.hh.nab.telemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -129,6 +130,9 @@ public class TelemetryFilter implements Filter {
           span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, httpServletResponse.getStatus());
           span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, httpServletResponse.getStatus());
           span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));
+        } catch (Throwable t) {
+          span.setStatus(StatusCode.ERROR, t.getMessage());
+          throw t;
         } finally {
           span.end();
         }

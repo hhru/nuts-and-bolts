@@ -36,22 +36,24 @@ import static ru.hh.nab.web.jersey.NabPriorities.LOW_PRIORITY;
         )
     )
 )
-public class AnyExceptionMapper extends NabExceptionMapper<Exception> {
+public class AnyExceptionMapper extends NabExceptionMapper<Throwable> {
   public AnyExceptionMapper() {
     super(INTERNAL_SERVER_ERROR, LoggingLevel.ERROR_WITH_STACK_TRACE);
   }
 
   @Override
-  protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Exception exception) {
-    List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
-    var serviceUnavailableTypeException = throwableList
-        .stream()
-        .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
-        .findAny();
+  protected Response toResponseInternal(Response.StatusType status, LoggingLevel loggingLevel, Throwable exception) {
+    if (exception instanceof Exception) {
+      List<Throwable> throwableList = ExceptionUtils.getThrowableList(exception);
+      var serviceUnavailableTypeException = throwableList
+          .stream()
+          .filter(ex -> ex instanceof SQLTransientConnectionException || ex instanceof RejectedExecutionException)
+          .findAny();
 
-    if (serviceUnavailableTypeException.isPresent()) {
-      status = HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
-      loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
+      if (serviceUnavailableTypeException.isPresent()) {
+        status = HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
+        loggingLevel = LoggingLevel.WARN_WITHOUT_STACK_TRACE;
+      }
     }
 
     return super.toResponseInternal(status, loggingLevel, exception);

@@ -20,7 +20,7 @@ import ru.hh.nab.web.jersey.NabPriorities;
  * — provide a mechanism to add generic exception serializers (see {@link ExceptionSerializer})
  * {@link ExceptionSerializer} beans must be present in application context.
  */
-public abstract class NabExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
+public abstract class NabExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 
   /**
    * @deprecated Use {@link NabPriorities#LOW_PRIORITY}
@@ -101,20 +101,26 @@ public abstract class NabExceptionMapper<T extends Exception> implements Excepti
   }
 
   protected Response serializeException(Response.StatusType statusCode, T exception) {
-    return applicationContext
-        .getBeansOfType(ExceptionSerializer.class)
-        .values()
-        .stream()
-        .filter(s -> s.isCompatible(request, response))
-        .findFirst()
-        .map(s -> s.serializeException(statusCode, exception))
-        .orElseGet(() -> {
-          Errors errors = new Errors(
-              statusCode.getStatusCode(),
-              exception.getClass().getCanonicalName(),
-              ofNullable(exception.getMessage()).orElse("")
-          );
-          return Response.status(statusCode).type(APPLICATION_JSON).entity(errors).build();
-        });
+    if (exception instanceof Exception) {
+      return applicationContext
+          .getBeansOfType(ExceptionSerializer.class)
+          .values()
+          .stream()
+          .filter(s -> s.isCompatible(request, response))
+          .findFirst()
+          .map(s -> s.serializeException(statusCode, (Exception) exception))
+          .orElseGet(() -> defaultSerializeException(statusCode, exception));
+    }
+
+    return defaultSerializeException(statusCode, exception);
+  }
+
+  private Response defaultSerializeException(Response.StatusType statusCode, T exception) {
+    Errors errors = new Errors(
+        statusCode.getStatusCode(),
+        exception.getClass().getCanonicalName(),
+        ofNullable(exception.getMessage()).orElse("")
+    );
+    return Response.status(statusCode).type(APPLICATION_JSON).entity(errors).build();
   }
 }

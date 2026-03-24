@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerBuilder;
 import ru.hh.nab.kafka.consumer.KafkaConsumer;
+import ru.hh.nab.kafka.consumer.NoopKafkaConsumer;
 import ru.hh.nab.kafka.consumer.SeekPosition;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;

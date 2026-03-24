@@ -25,6 +25,8 @@ import ru.hh.nab.metrics.StatsDSender;
 public class ConfigProvider {
   public static final String NAB_SETTING = "nab_setting";
   public static final String DEFAULT_PRODUCER_NAME = "default";
+  public static final String CONSUMER_ENABLED = "enabled";
+  public static final boolean DEFAULT_CONSUMER_ENABLED = true;
   public static final String BACKOFF_INITIAL_INTERVAL_NAME = "backoff.initial.interval";
   public static final long DEFAULT_BACKOFF_INITIAL_INTERVAL = 1000L;
   public static final String BACKOFF_MAX_INTERVAL_NAME = "backoff.max.interval";
@@ -172,13 +174,16 @@ public class ConfigProvider {
     Map<String, Object> producerConfig = new HashMap<>();
     producerConfig.put(ProducerConfig.CLIENT_ID_CONFIG, serviceName);
     producerConfig.putAll(getCommonProperties());
-    producerConfig.putAll(getDefaultProducerProperties(producerName));
+    producerConfig.putAll(getProducerProperties(DEFAULT_PRODUCER_NAME));
+    if (!producerName.equals(DEFAULT_PRODUCER_NAME)) {
+      producerConfig.putAll(getProducerProperties(producerName));
+    }
 
     checkProducerNames(producerConfig);
     return producerConfig;
   }
 
-  private Map<String, Object> getDefaultProducerProperties(String producerName) {
+  private Map<String, Object> getProducerProperties(String producerName) {
     return getConfigAsMap(String.format(PRODUCER_CONFIG_TEMPLATE, kafkaClusterName, producerName));
   }
 

@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.record.CompressionType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.executor.ScheduledExecutor;
@@ -29,10 +31,6 @@ public class ConfigProviderTest {
 
   private static String generateSettingKey(String template, String topicName, String testKey) {
     return String.format(template, KAFKA_CLUSTER_NAME, topicName) + "." + testKey;
-  }
-
-  private static String generateProducerSettingKey(String testKey) {
-    return generateProducerSettingKey(DEFAULT_PRODUCER_NAME, testKey);
   }
 
   private static String generateProducerSettingKey(String producerName, String testKey) {
@@ -136,19 +134,74 @@ public class ConfigProviderTest {
   }
 
   @Test
-  public void shouldReturnDefaultProducerSetting() {
+  public void testProducerCommonSettingsUsed() {
     String testValue = "value";
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey(PRODUCER_TEST_KEY), testValue
+        generateSettingKey(COMMON_CONFIG_TEMPLATE, PRODUCER_TEST_KEY), testValue
     ));
 
-    var result = createConfigProvider(settings).getDefaultProducerConfig();
+    var result = createConfigProvider(settings).getProducerConfig("ignored");
 
     assertEquals(testValue, result.get(PRODUCER_TEST_KEY));
   }
 
   @Test
-  public void shouldReturnDifferentProducerSettings() {
+  public void testDefaultProducerConfigUsed() {
+    // Create default settings for producers
+    String lingerDefaultValue = "100";
+    String batchSizeDefaultValue = "262144";
+    String compressionDefaultValue = CompressionType.LZ4.name();
+    Properties settings = createSettings(Map.of(
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefaultValue,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchSizeDefaultValue,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefaultValue
+    ));
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    // Ensure that default settings preserved across all producers
+    Map<String, Object> producerConfig1 = configProvider.getProducerConfig("1");
+    Map<String, Object> producerConfig2 = configProvider.getProducerConfig("2");
+    assertEquals(producerConfig1, producerConfig2, "Default settings are not preserved across all producers");
+    assertEquals(lingerDefaultValue, producerConfig1.get(ProducerConfig.LINGER_MS_CONFIG));
+    assertEquals(batchSizeDefaultValue, producerConfig1.get(ProducerConfig.BATCH_SIZE_CONFIG));
+    assertEquals(compressionDefaultValue, producerConfig1.get(ProducerConfig.COMPRESSION_TYPE_CONFIG));
+  }
+
+  @Test
+  public void testDefaultProducerConfigOverride() {
+    String producerName = "1";
+
+    // Create default settings for producers
+    String lingerOverride = "2";
+    String batchOverride = "2";
+    String compressionOverride = CompressionType.GZIP.name();
+    String lingerDefault = "100";
+    String batchDefault = "262144";
+    String compressionDefault = CompressionType.LZ4.name();
+    Properties settings = createSettings(Map.of(
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefault,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchDefault,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefault,
+        generateProducerSettingKey(producerName, ProducerConfig.LINGER_MS_CONFIG), lingerOverride,
+        generateProducerSettingKey(producerName, ProducerConfig.BATCH_SIZE_CONFIG), batchOverride,
+        generateProducerSettingKey(producerName, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionOverride
+    ));
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    // Ensure that default settings are not preserved
+    Map<String, Object> overrideConfig = configProvider.getProducerConfig(producerName);
+    Map<String, Object> defaultConfig = configProvider.getDefaultProducerConfig();
+    assertNotEquals(overrideConfig, defaultConfig, "Default settings should not be preserved for first producer");
+    assertEquals(lingerOverride, overrideConfig.get(ProducerConfig.LINGER_MS_CONFIG));
+    assertEquals(batchOverride, overrideConfig.get(ProducerConfig.BATCH_SIZE_CONFIG));
+    assertEquals(compressionOverride, overrideConfig.get(ProducerConfig.COMPRESSION_TYPE_CONFIG));
+    assertEquals(lingerDefault, defaultConfig.get(ProducerConfig.LINGER_MS_CONFIG));
+    assertEquals(batchDefault, defaultConfig.get(ProducerConfig.BATCH_SIZE_CONFIG));
+    assertEquals(compressionDefault, defaultConfig.get(ProducerConfig.COMPRESSION_TYPE_CONFIG));
+  }
+
+  @Test
+  public void testMultipleProducerConfigsUsed() {
     String testKey1 = ProducerConfig.BATCH_SIZE_CONFIG;
     String testValue1 = "444";
     String testKey2 = ProducerConfig.MAX_REQUEST_SIZE_CONFIG;
@@ -166,12 +219,12 @@ public class ConfigProviderTest {
   }
 
   @Test
-  public void shouldFailOnUnsupportedProducerSetting() {
+  public void testFailOnUnsupportedProducerSetting() {
     String defaultValue = "value";
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey("key1"), defaultValue,
-        generateProducerSettingKey("key2"), defaultValue,
-        generateProducerSettingKey("key3"), defaultValue
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key1"), defaultValue,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key2"), defaultValue,
+        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key3"), defaultValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(settings);

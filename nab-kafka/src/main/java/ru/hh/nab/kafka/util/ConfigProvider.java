@@ -38,8 +38,15 @@ public class ConfigProvider {
   public static final String AUTH_EXCEPTION_RETRY_INTERVAL = "auth.exception.retry.interval.ms";
   public static final long DEFAULT_AUTH_EXCEPTION_RETRY_INTERVAL_MS = 10000L;
   public static final String CONCURRENCY = "concurrency";
+  static final String DEFAULT_PSEUDO_CLUSTER = "kafka.default";
   static final String COMMON_CONFIG_TEMPLATE = "%s.common";
-  static final String DEFAULT_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.default";
+  static final String DEFAULT_PSEUDO_CLUSTER_INVALID_CONFIG_REGEXP_PATTERN =
+      Pattern.quote(DEFAULT_PSEUDO_CLUSTER) + "\\.(?!(consumer|producer)\\.).*";
+  static final String CLUSTER_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.default";
+  static final String CLUSTER_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE =
+      "%s\\.consumer\\.(?!(default|topic)\\.).*";
+  static final String DEFAULT_PSEUDO_CLUSTER_CONSUMER_INVALID_CONFIG_REGEXP_PATTERN =
+      Pattern.quote(DEFAULT_PSEUDO_CLUSTER) + "\\.consumer\\.(?!default\\.).*";
   static final String TOPIC_CONSUMER_CONFIG_TEMPLATE = "%s.consumer.topic.%s.default";
   static final String TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE =
       "%s\\.consumer\\.topic\\.%s\\.(?!\\w*(?:default)).*";
@@ -59,7 +66,8 @@ public class ConfigProvider {
   public ConfigProvider(String serviceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
     this.serviceName = serviceName;
     this.kafkaClusterName = kafkaClusterName;
-    this.properties = properties;
+    this.properties = new Properties();
+    this.properties.putAll(properties);
     this.statsDSender = statsDSender;
   }
 
@@ -124,11 +132,14 @@ public class ConfigProvider {
   }
 
   private Map<String, Object> getAllConsumerConfigs(String topicName) {
+    checkConsumerUnusedProperties(kafkaClusterName, topicName);
+
     Map<String, Object> consumerConfig = new HashMap<>();
     consumerConfig.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+    consumerConfig.putAll(getClusterConsumerProperties(DEFAULT_PSEUDO_CLUSTER));
     consumerConfig.putAll(getCommonProperties());
-    consumerConfig.putAll(getDefaultConsumerProperties());
-    consumerConfig.putAll(getTopicOverriddenConsumerProperties(topicName));
+    consumerConfig.putAll(getClusterConsumerProperties(kafkaClusterName));
+    consumerConfig.putAll(getTopicConsumerProperties(topicName));
     return consumerConfig;
   }
 
@@ -142,19 +153,36 @@ public class ConfigProvider {
     }
   }
 
-  private Map<String, Object> getDefaultConsumerProperties() {
-    return getConfigAsMap(String.format(DEFAULT_CONSUMER_CONFIG_TEMPLATE, kafkaClusterName));
+  private Map<String, Object> getClusterConsumerProperties(String clusterName) {
+    return getConfigAsMap(String.format(CLUSTER_CONSUMER_CONFIG_TEMPLATE, clusterName));
   }
 
-  private Map<String, Object> getTopicOverriddenConsumerProperties(String topicName) {
-    findAnyMatchedKey(String.format(
-        TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE, kafkaClusterName, topicName))
+  private Map<String, Object> getTopicConsumerProperties(String topicName) {
+    return getConfigAsMap(String.format(TOPIC_CONSUMER_CONFIG_TEMPLATE, kafkaClusterName, topicName));
+  }
+
+  private void checkDefaultPseudoClusterUnusedProperties() {
+    checkUnusedProperties(DEFAULT_PSEUDO_CLUSTER_INVALID_CONFIG_REGEXP_PATTERN);
+  }
+
+  private void checkConsumerUnusedProperties(String clusterName, String topicName) {
+    checkDefaultPseudoClusterUnusedProperties();
+    checkUnusedProperties(DEFAULT_PSEUDO_CLUSTER_CONSUMER_INVALID_CONFIG_REGEXP_PATTERN);
+    checkUnusedProperties(CLUSTER_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE.formatted(Pattern.quote(clusterName)));
+    checkUnusedProperties(String.format(TOPIC_CONSUMER_INVALID_CONFIG_REGEXP_TEMPLATE, Pattern.quote(clusterName), Pattern.quote(topicName)));
+  }
+
+  private void checkProducerUnusedProperties() {
+    checkDefaultPseudoClusterUnusedProperties();
+  }
+
+  private void checkUnusedProperties(String pattern) {
+    findAnyMatchedKey(pattern)
         .ifPresent(key -> {
           throw new IllegalArgumentException(
               String.format("Unused property found: '%s'", key)
           );
         });
-    return getConfigAsMap(String.format(TOPIC_CONSUMER_CONFIG_TEMPLATE, kafkaClusterName, topicName));
   }
 
   private Optional<String> findAnyMatchedKey(String pattern) {
@@ -171,20 +199,23 @@ public class ConfigProvider {
   }
 
   public Map<String, Object> getProducerConfig(String producerName) {
+    checkProducerUnusedProperties();
+
     Map<String, Object> producerConfig = new HashMap<>();
     producerConfig.put(ProducerConfig.CLIENT_ID_CONFIG, serviceName);
+    producerConfig.putAll(getProducerProperties(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME));
     producerConfig.putAll(getCommonProperties());
-    producerConfig.putAll(getProducerProperties(DEFAULT_PRODUCER_NAME));
+    producerConfig.putAll(getProducerProperties(kafkaClusterName, DEFAULT_PRODUCER_NAME));
     if (!producerName.equals(DEFAULT_PRODUCER_NAME)) {
-      producerConfig.putAll(getProducerProperties(producerName));
+      producerConfig.putAll(getProducerProperties(kafkaClusterName, producerName));
     }
 
     checkProducerNames(producerConfig);
     return producerConfig;
   }
 
-  private Map<String, Object> getProducerProperties(String producerName) {
-    return getConfigAsMap(String.format(PRODUCER_CONFIG_TEMPLATE, kafkaClusterName, producerName));
+  private Map<String, Object> getProducerProperties(String clusterName, String producerName) {
+    return getConfigAsMap(String.format(PRODUCER_CONFIG_TEMPLATE, clusterName, producerName));
   }
 
   private Map<String, Object> getCommonProperties() {

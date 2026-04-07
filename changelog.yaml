@@ -1,3 +1,12 @@
+-   name: 29.2.0
+    date: '2026-04-07T16:35:31.556093+03:00'
+    description: В ConfigProvider для producer'ов и consumer'ов добавлена обработка
+        глобальных настроек для всех кластеров. Данные настройки имеют префикс `kafka.default.producer`
+        и `kafka.default.consumer` соответственно и имеют более низкий приоритет,
+        чем настройки, специфичные для конкретного кластера (`kafka.<cluster-name>.*`)
+    instructions: ''
+    compatible: true
+
 -   name: 29.1.0
     date: '2026-03-24T14:54:00.939734+03:00'
     description: добавлен backpressure-механизм от netflix

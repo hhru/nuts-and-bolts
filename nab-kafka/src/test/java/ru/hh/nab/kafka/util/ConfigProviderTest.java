@@ -3,6 +3,7 @@ package ru.hh.nab.kafka.util;
 import com.timgroup.statsd.NoOpStatsDClient;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.record.CompressionType;
@@ -11,9 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import ru.hh.nab.common.executor.ScheduledExecutor;
+import static ru.hh.nab.kafka.util.ConfigProvider.CLUSTER_CONSUMER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
-import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
+import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PSEUDO_CLUSTER;
 import static ru.hh.nab.kafka.util.ConfigProvider.PRODUCER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_CONSUMER_CONFIG_TEMPLATE;
 import ru.hh.nab.metrics.StatsDSender;
@@ -21,20 +23,20 @@ import ru.hh.nab.metrics.StatsDSender;
 public class ConfigProviderTest {
 
   private static final String SERVICE_NAME = "testService";
-  private static final String KAFKA_CLUSTER_NAME = "kafka";
+  private static final String KAFKA_CLUSTER_NAME = "kafka.test";
+  private static final String COMMON_TEST_KEY = CommonClientConfigs.RECONNECT_BACKOFF_MS_CONFIG;
   private static final String CONSUMER_TEST_KEY = ConsumerConfig.CLIENT_RACK_CONFIG;
-  private static final String PRODUCER_TEST_KEY = ProducerConfig.TRANSACTIONAL_ID_CONFIG;
 
-  private static String generateSettingKey(String template, String testKey) {
-    return String.format(template, KAFKA_CLUSTER_NAME) + "." + testKey;
+  private static String generateSettingKey(String template, String clusterName, String testKey) {
+    return String.format(template, clusterName) + "." + testKey;
   }
 
-  private static String generateSettingKey(String template, String topicName, String testKey) {
-    return String.format(template, KAFKA_CLUSTER_NAME, topicName) + "." + testKey;
+  private static String generateSettingKey(String template, String clusterName, String topicName, String testKey) {
+    return String.format(template, clusterName, topicName) + "." + testKey;
   }
 
-  private static String generateProducerSettingKey(String producerName, String testKey) {
-    return String.format(PRODUCER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, producerName) + "." + testKey;
+  private static String generateProducerSettingKey(String clusterName, String producerName, String testKey) {
+    return String.format(PRODUCER_CONFIG_TEMPLATE, clusterName, producerName) + "." + testKey;
   }
 
   private static ConfigProvider createConfigProvider(Properties settings) {
@@ -49,15 +51,32 @@ public class ConfigProviderTest {
   }
 
   @Test
+  public void shouldFailOnCommonSettingsForAllClusters() {
+    String invalidAllClustersValue = "allClustersValue";
+    Properties settings = createSettings(Map.of(
+        generateSettingKey(COMMON_CONFIG_TEMPLATE, DEFAULT_PSEUDO_CLUSTER, COMMON_TEST_KEY), invalidAllClustersValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig("ignored"));
+    assertEquals("Unused property found: 'kafka.default.common.reconnect.backoff.ms'", exception.getMessage());
+
+    exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getProducerConfig("ignored"));
+    assertEquals("Unused property found: 'kafka.default.common.reconnect.backoff.ms'", exception.getMessage());
+  }
+
+  @Test
   public void shouldReturnCommonSettings() {
     String testValue = "value";
     Properties settings = createSettings(Map.of(
-        generateSettingKey(COMMON_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), testValue
+        generateSettingKey(COMMON_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, COMMON_TEST_KEY), testValue
     ));
 
-    var result = createConfigProvider(settings).getConsumerConfig("ignored");
+    ConfigProvider configProvider = createConfigProvider(settings);
 
-    assertEquals(testValue, result.get(CONSUMER_TEST_KEY));
+    assertEquals(testValue, configProvider.getConsumerConfig("ignored").get(COMMON_TEST_KEY));
+    assertEquals(testValue, configProvider.getProducerConfig("ignored").get(COMMON_TEST_KEY));
   }
 
   @Test
@@ -68,53 +87,97 @@ public class ConfigProviderTest {
   }
 
   @Test
-  public void shouldReturnConsumerDefaultSetting() {
-    String testValue = "value";
+  public void shouldReturnConsumerSettingForAllClusters() {
+    String allClustersValue = "allClustersValue";
     Properties settings = createSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), testValue
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, DEFAULT_PSEUDO_CLUSTER, CONSUMER_TEST_KEY), allClustersValue
     ));
 
     var result = createConfigProvider(settings).getConsumerConfig("ignored");
 
-    assertEquals(testValue, result.get(CONSUMER_TEST_KEY));
+    assertEquals(allClustersValue, result.get(CONSUMER_TEST_KEY));
+  }
+
+  @Test
+  public void shouldReturnOverriddenConsumerSettingForSpecificCluster() {
+    String allClustersValue = "allClustersValue";
+    String clusterValue = "clusterValue";
+    Properties settings = createSettings(Map.of(
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, DEFAULT_PSEUDO_CLUSTER, CONSUMER_TEST_KEY), allClustersValue,
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, CONSUMER_TEST_KEY), clusterValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    var result = configProvider.getConsumerConfig("ignored");
+    assertEquals(clusterValue, result.get(CONSUMER_TEST_KEY));
+  }
+
+  @Test
+  public void shouldFailOnUnusedConsumerSettingForSpecificCluster() {
+    String invalidClusterValue = "invalidClusterValue";
+    Properties settings = createSettings(Map.of(
+        generateSettingKey("%s.consumer", KAFKA_CLUSTER_NAME, CONSUMER_TEST_KEY), invalidClusterValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig("ignored"));
+    assertEquals("Unused property found: 'kafka.test.consumer.client.rack'", exception.getMessage());
+  }
+
+  @Test
+  public void shouldFailOnSpecificTopicSettingForAllClusters() {
+    String invalidAllClustersValue = "allClustersValue";
+    String topicName = "topic";
+    Properties settings = createSettings(Map.of(
+        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, DEFAULT_PSEUDO_CLUSTER, topicName, CONSUMER_TEST_KEY), invalidAllClustersValue
+    ));
+
+    ConfigProvider configProvider = createConfigProvider(settings);
+
+    var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig("ignored"));
+    assertEquals("Unused property found: 'kafka.default.consumer.topic.topic.default.client.rack'", exception.getMessage());
   }
 
   @Test
   public void shouldReturnOverriddenConsumerSettingForSpecificTopic() {
-    String defaultValue = "value";
-    String overriddenValue = "newValue";
+    String allClustersValue = "allClustersValue";
+    String clusterValue = "clusterValue";
+    String topicValue = "topicValue";
     String topicName = "topic";
     Properties settings = createSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, CONSUMER_TEST_KEY), defaultValue,
-        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, topicName, CONSUMER_TEST_KEY), overriddenValue
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, DEFAULT_PSEUDO_CLUSTER, CONSUMER_TEST_KEY), allClustersValue,
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, CONSUMER_TEST_KEY), clusterValue,
+        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, topicName, CONSUMER_TEST_KEY), topicValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(settings);
 
     var result = configProvider.getConsumerConfig(topicName);
-    assertEquals(overriddenValue, result.get(CONSUMER_TEST_KEY));
+    assertEquals(topicValue, result.get(CONSUMER_TEST_KEY));
 
     result = configProvider.getConsumerConfig("ignored");
-    assertEquals(defaultValue, result.get(CONSUMER_TEST_KEY));
+    assertEquals(clusterValue, result.get(CONSUMER_TEST_KEY));
   }
 
   @Test
-  public void shouldFailOnUnusedOverriddenConsumerSettingForSpecificTopic() {
+  public void shouldFailOnUnusedConsumerSettingForSpecificTopic() {
     String testKey = ConsumerConfig.CLIENT_RACK_CONFIG;
-    String defaultValue = "value";
-    String overriddenValue = "newValue";
-    String invalidOverriddenValue = "invalidValue";
+    String clusterValue = "clusterValue";
+    String validTopicValue = "validTopicValue";
+    String invalidTopicValue = "invalidTopicValue";
     String topicName = "topic";
     Properties settings = createSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, testKey), defaultValue,
-        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, topicName, testKey), overriddenValue,
-        generateSettingKey("%s.consumer.topic.%s", topicName, testKey), invalidOverriddenValue
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, testKey), clusterValue,
+        generateSettingKey(TOPIC_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, topicName, testKey), validTopicValue,
+        generateSettingKey("%s.consumer.topic.%s", KAFKA_CLUSTER_NAME, topicName, testKey), invalidTopicValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(settings);
 
     var exception = assertThrows(IllegalArgumentException.class, () -> configProvider.getConsumerConfig(topicName));
-    assertEquals("Unused property found: 'kafka.consumer.topic.topic.client.rack'", exception.getMessage());
+    assertEquals("Unused property found: 'kafka.test.consumer.topic.topic.client.rack'", exception.getMessage());
   }
 
   @Test
@@ -122,9 +185,9 @@ public class ConfigProviderTest {
     String defaultValue = "value";
     String topicName = "topic";
     Properties settings = createSettings(Map.of(
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, "key1"), defaultValue,
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, "key2"), defaultValue,
-        generateSettingKey(DEFAULT_CONSUMER_CONFIG_TEMPLATE, "key3"), defaultValue
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, "key1"), defaultValue,
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, "key2"), defaultValue,
+        generateSettingKey(CLUSTER_CONSUMER_CONFIG_TEMPLATE, KAFKA_CLUSTER_NAME, "key3"), defaultValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(settings);
@@ -134,27 +197,15 @@ public class ConfigProviderTest {
   }
 
   @Test
-  public void testProducerCommonSettingsUsed() {
-    String testValue = "value";
-    Properties settings = createSettings(Map.of(
-        generateSettingKey(COMMON_CONFIG_TEMPLATE, PRODUCER_TEST_KEY), testValue
-    ));
-
-    var result = createConfigProvider(settings).getProducerConfig("ignored");
-
-    assertEquals(testValue, result.get(PRODUCER_TEST_KEY));
-  }
-
-  @Test
   public void testDefaultProducerConfigUsed() {
     // Create default settings for producers
     String lingerDefaultValue = "100";
     String batchSizeDefaultValue = "262144";
     String compressionDefaultValue = CompressionType.LZ4.name();
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefaultValue,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchSizeDefaultValue,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefaultValue
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefaultValue,
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchSizeDefaultValue,
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefaultValue
     ));
     ConfigProvider configProvider = createConfigProvider(settings);
 
@@ -178,13 +229,22 @@ public class ConfigProviderTest {
     String lingerDefault = "100";
     String batchDefault = "262144";
     String compressionDefault = CompressionType.LZ4.name();
+    String lingerAllClustersDefault = "200";
+    String batchAllClustersDefault = "30000";
+    String compressionAllClustersDefault = CompressionType.ZSTD.name();
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefault,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchDefault,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefault,
-        generateProducerSettingKey(producerName, ProducerConfig.LINGER_MS_CONFIG), lingerOverride,
-        generateProducerSettingKey(producerName, ProducerConfig.BATCH_SIZE_CONFIG), batchOverride,
-        generateProducerSettingKey(producerName, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionOverride
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerAllClustersDefault,
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchAllClustersDefault,
+
+        generateProducerSettingKey(DEFAULT_PSEUDO_CLUSTER, DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG),
+        compressionAllClustersDefault,
+
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, ProducerConfig.LINGER_MS_CONFIG), lingerDefault,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, ProducerConfig.BATCH_SIZE_CONFIG), batchDefault,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionDefault,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, producerName, ProducerConfig.LINGER_MS_CONFIG), lingerOverride,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, producerName, ProducerConfig.BATCH_SIZE_CONFIG), batchOverride,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, producerName, ProducerConfig.COMPRESSION_TYPE_CONFIG), compressionOverride
     ));
     ConfigProvider configProvider = createConfigProvider(settings);
 
@@ -207,8 +267,8 @@ public class ConfigProviderTest {
     String testKey2 = ProducerConfig.MAX_REQUEST_SIZE_CONFIG;
     String testValue2 = "555";
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey("1", testKey1), testValue1,
-        generateProducerSettingKey("2", testKey2), testValue2
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, "1", testKey1), testValue1,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, "2", testKey2), testValue2
     ));
 
     var result = createConfigProvider(settings).getProducerConfig("1");
@@ -222,9 +282,9 @@ public class ConfigProviderTest {
   public void testFailOnUnsupportedProducerSetting() {
     String defaultValue = "value";
     Properties settings = createSettings(Map.of(
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key1"), defaultValue,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key2"), defaultValue,
-        generateProducerSettingKey(DEFAULT_PRODUCER_NAME, "key3"), defaultValue
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, "key1"), defaultValue,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, "key2"), defaultValue,
+        generateProducerSettingKey(KAFKA_CLUSTER_NAME, DEFAULT_PRODUCER_NAME, "key3"), defaultValue
     ));
 
     ConfigProvider configProvider = createConfigProvider(settings);

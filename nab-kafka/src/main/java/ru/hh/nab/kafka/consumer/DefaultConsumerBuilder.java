@@ -165,7 +165,11 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
     Properties nabConsumerSettings = configProvider.getNabConsumerSettings(topicName);
     boolean consumerEnabled = PropertiesUtils.getBoolean(nabConsumerSettings, CONSUMER_ENABLED, DEFAULT_CONSUMER_ENABLED);
     if (!consumerEnabled) {
-      logger.info("Consumer with group id {} is disabled", consumerMetadata.getConsumerGroupId());
+      if (isConsumerGroup) {
+        logger.info("Consumer is disabled, group id {}", consumerMetadata.getConsumerGroupId());
+      } else {
+        logger.info("Consumer is disabled, topic {}, operation {}", consumerMetadata.getTopic(), consumerMetadata.getOperation());
+      }
       return new NoopKafkaConsumer<>();
     }
     ConsumerFactory<String, T> springConsumerFactory = consumerFactory.getSpringConsumerFactory(topicName, messageClass);

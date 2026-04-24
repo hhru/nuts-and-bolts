@@ -1,5 +1,6 @@
 package ru.hh.nab.jclient;
 
+import jakarta.servlet.AsyncContext;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,7 +38,24 @@ public class JClientContextProviderFilter implements Filter {
         ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST);
         return;
       }
-      chain.doFilter(request, response);
+      long timeLeft = contextThreadLocalSupplier.get().getDeadlineContext().getTimeLeft();
+
+      if (!request.isAsyncStarted()) {
+        AsyncContext asyncContext = request.startAsync();
+        asyncContext.setTimeout(timeLeft);
+        asyncContext.start(() -> {
+          try {
+            chain.doFilter(request, response);
+          } catch (Exception e) {
+            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          } finally {
+            asyncContext.complete();
+          }
+        });
+      } else {
+        request.getAsyncContext().setTimeout(timeLeft);
+        chain.doFilter(request, response);
+      }
     } finally {
       contextThreadLocalSupplier.clear();
     }

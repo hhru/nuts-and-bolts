@@ -264,12 +264,32 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 
   private static RejectedExecutionHandler getRejectedExecutionHandler(String threadPoolName) {
     return (r, executor) -> {
+      var stackTraces = new StringBuilder();
+      var threadBean = java.lang.management.ManagementFactory.getThreadMXBean();
+      for (var thread : Thread.getAllStackTraces().keySet()) {
+        if (!thread.getName().startsWith(threadPoolName + "-")) {
+          continue;
+        }
+        var threadInfo = threadBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
+        if (threadInfo == null) {
+          continue;
+        }
+        stackTraces.append('\n').append(threadInfo.getThreadName()).append(' ').append(threadInfo.getThreadState());
+        var lockInfo = threadInfo.getLockInfo();
+        if (lockInfo != null) {
+          stackTraces.append(" on ").append(lockInfo);
+        }
+        for (var ste : threadInfo.getStackTrace()) {
+          stackTraces.append("\n    at ").append(ste);
+        }
+      }
       LOGGER.warn(
-          "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}",
+          "{} thread pool is low on threads: size={}, activeCount={}, queueSize={}, threadStackTraces={}",
           threadPoolName,
           executor.getPoolSize(),
           executor.getActiveCount(),
-          executor.getQueue().size()
+          executor.getQueue().size(),
+          stackTraces
       );
       throw new RejectedExecutionException(threadPoolName + " thread pool is low on threads");
     };

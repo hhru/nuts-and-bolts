@@ -1,3 +1,10 @@
+-   name: 29.2.1
+    date: '2026-05-04T13:58:29.239977+03:00'
+    description: поставить приоритет TelemetryFilter выше, чем ConcurrencyLimitFilter,
+        чтобы для отбрасываемых запросов всё равно считалась телеметрия
+    instructions: ''
+    compatible: true
+
 -   name: 29.2.0
     date: '2026-04-07T16:35:31.556093+03:00'
     description: В ConfigProvider для producer'ов и consumer'ов добавлена обработка

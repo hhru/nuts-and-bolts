@@ -8,14 +8,14 @@ package ru.hh.nab.common.servlet;
 public final class ServletFilterPriorities {
 
   /**
-   * Rate limiting priority.
-   */
-  public static final int RATE_LIMITING = 250;
-
-  /**
    * Observability filter/interceptor priority.
    */
   public static final int OBSERVABILITY = 500;
+
+  /**
+   * Rate limiting priority.
+   */
+  public static final int RATE_LIMITING = 600;
 
   /**
    * Cache filter/interceptor priority.

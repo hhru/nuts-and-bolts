@@ -1,5 +1,6 @@
 package ru.hh.nab.web.servlet.filter;
 
+import com.netflix.concurrency.limits.Limit;
 import com.netflix.concurrency.limits.Limiter;
 import com.netflix.concurrency.limits.limit.Gradient2Limit;
 import com.netflix.concurrency.limits.limiter.SimpleLimiter;
@@ -14,9 +15,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.nab.web.http.HttpStatus;
 
 public class ConcurrencyLimitFilter implements Filter {
+  public static final String LIMIT_TYPE_PROPERTY = "server.backpressure.limit";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConcurrencyLimitFilter.class);
+
   private final Limiter<HttpServletRequest> limiter;
 
   private static final Set<Integer> STATUSES_TO_DROP_CONCURRENCY = Set.of(
@@ -34,6 +41,12 @@ public class ConcurrencyLimitFilter implements Filter {
         .build();
     this.limiter = SimpleLimiter.newBuilder()
         .limit(gradientLimit)
+        .build();
+  }
+
+  public ConcurrencyLimitFilter(Limit limit) {
+    this.limiter = SimpleLimiter.newBuilder()
+        .limit(limit)
         .build();
   }
 
@@ -63,6 +76,7 @@ public class ConcurrencyLimitFilter implements Filter {
           @Override
           public void onTimeout(AsyncEvent asyncEvent) {
             limiterListener.onDropped();
+            LOGGER.warn("limiter onDropped by timeout: {}", asyncContext.getTimeout());
           }
 
           @Override
@@ -87,9 +101,11 @@ public class ConcurrencyLimitFilter implements Filter {
       listener.onSuccess();
     } else if (STATUSES_TO_DROP_CONCURRENCY.contains(httpServletResponse.getStatus())) {
       listener.onDropped();
+      LOGGER.warn("limiter onDropped by {}", httpServletResponse.getStatus());
     } else {
       // ignore 4xx in order to exclude their RTT from statistics, because it could be significantly lower comparing with success requests.
       listener.onIgnore();
+      LOGGER.warn("limiter onIgnore by {}", httpServletResponse.getStatus());
     }
   }
 }

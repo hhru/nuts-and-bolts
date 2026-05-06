@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import ru.hh.errors.common.Errors;
+import ru.hh.nab.common.constants.RequestAttributes;
 import ru.hh.nab.web.jersey.NabPriorities;
 
 /**
@@ -57,6 +58,7 @@ public abstract class NabExceptionMapper<T extends Throwable> implements Excepti
 
   @Override
   public Response toResponse(T exception) {
+    request.setAttribute(RequestAttributes.MAPPED_EXCEPTION, exception);
     return toResponseInternal(defaultStatus, defaultLoggingLevel, exception);
   }
 

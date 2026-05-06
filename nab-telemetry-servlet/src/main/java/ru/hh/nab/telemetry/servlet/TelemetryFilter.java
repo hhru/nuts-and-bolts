@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
+import static ru.hh.nab.common.constants.RequestAttributes.MAPPED_EXCEPTION;
 import ru.hh.nab.common.constants.RequestHeaders;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
@@ -103,7 +104,13 @@ public class TelemetryFilter implements Filter {
           }
 
           span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
-          span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus()));
+          StatusCode status = TelemetryPropagator.getStatus(httpServletResponse.getStatus());
+          span.setStatus(status);
+
+          Throwable mappedException = (Throwable) httpServletRequest.getAttribute(MAPPED_EXCEPTION);
+          if (status == StatusCode.ERROR && mappedException != null) {
+            addExceptionEventToSpan(span, mappedException);
+          }
         } catch (Throwable t) {
           span.setStatus(StatusCode.ERROR);
           addExceptionEventToSpan(span, t);

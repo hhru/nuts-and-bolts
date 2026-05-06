@@ -1,5 +1,6 @@
 package ru.hh.nab.web.exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import static jakarta.ws.rs.core.Response.Status.GATEWAY_TIMEOUT;
@@ -7,6 +8,7 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
 import ru.hh.jclient.common.HttpStatuses;
 import ru.hh.nab.web.http.HttpStatus;
 
@@ -17,6 +19,7 @@ public class WebApplicationExceptionMapperTest {
   @BeforeEach
   void setUp() {
     mapper = new WebApplicationExceptionMapper();
+    mapper.request = mock(HttpServletRequest.class);
   }
 
   @Test

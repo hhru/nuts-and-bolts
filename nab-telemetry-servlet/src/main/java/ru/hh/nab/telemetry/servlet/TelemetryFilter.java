@@ -30,6 +30,7 @@ import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import ru.hh.nab.common.constants.RequestHeaders;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
+import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 import ru.hh.trace.TraceContextUnsafe;
 import ru.hh.trace.TraceIdGenerator;
 
@@ -104,7 +105,8 @@ public class TelemetryFilter implements Filter {
           span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
           span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus()));
         } catch (Throwable t) {
-          span.setStatus(StatusCode.ERROR, t.getMessage());
+          span.setStatus(StatusCode.ERROR);
+          addExceptionEventToSpan(span, t);
           throw t;
         } finally {
           span.end();

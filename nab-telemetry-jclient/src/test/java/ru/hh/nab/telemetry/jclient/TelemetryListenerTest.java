@@ -6,6 +6,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.InternalAttributeKeyImpl;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -118,8 +119,7 @@ public class TelemetryListenerTest {
     List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
     assertEquals(1, spans.size());
     SpanData span = spans.get(0);
-    // StatusData раскладывается потом в otel.status_code и otel.status_description
-    assertEquals("Server Error", span.getStatus().getDescription());
+    assertEquals(StatusCode.ERROR, span.getStatus().getStatusCode());
   }
 
   @Test

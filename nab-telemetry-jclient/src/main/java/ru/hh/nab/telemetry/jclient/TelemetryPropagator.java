@@ -25,12 +25,10 @@ public class TelemetryPropagator {
     return (carrier, key, value) -> carrier.getHeaders().set(key, value);
   }
 
-  public static StatusCode getStatus(int httpStatusCode, boolean isServer) {
+  public static StatusCode getStatus(int httpStatusCode) {
     if (httpStatusCode < 100) {
       return StatusCode.ERROR;
     } else if (httpStatusCode <= 399) {
-      return StatusCode.UNSET;
-    } else if (httpStatusCode <= 499 && isServer) {
       return StatusCode.UNSET;
     }
 

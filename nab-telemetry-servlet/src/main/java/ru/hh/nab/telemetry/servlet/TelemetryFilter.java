@@ -102,7 +102,7 @@ public class TelemetryFilter implements Filter {
           }
 
           span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpServletResponse.getStatus());
-          span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));
+          span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus()));
         } catch (Throwable t) {
           span.setStatus(StatusCode.ERROR, t.getMessage());
           throw t;

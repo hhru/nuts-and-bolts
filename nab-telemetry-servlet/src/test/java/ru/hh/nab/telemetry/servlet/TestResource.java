@@ -22,10 +22,4 @@ public class TestResource {
   public String simpleWithParam(@PathParam("name") @DefaultValue("world") String name) {
     return "Hello, %s!".formatted(name);
   }
-
-  @GET
-  @Path("/error")
-  public String error() {
-    throw new RuntimeException("Error description!");
-  }
 }

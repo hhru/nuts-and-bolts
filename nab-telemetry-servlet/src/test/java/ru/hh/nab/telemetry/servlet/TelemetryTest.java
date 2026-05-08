@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.servlet;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -91,7 +91,7 @@ public class TelemetryTest {
     assertEquals("GET", attributes.get(SemanticAttributes.HTTP_METHOD));
     assertEquals("localhost", attributes.get(SemanticAttributes.HTTP_HOST));
     assertEquals("simple", attributes.get(SemanticAttributes.CODE_FUNCTION));
-    assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
+    assertEquals("ru.hh.nab.telemetry.servlet.TestResource", attributes.get(SemanticAttributes.CODE_NAMESPACE));
     assertEquals(userAgent, attributes.get(AttributeKey.stringKey("user_agent.original")));
   }
 

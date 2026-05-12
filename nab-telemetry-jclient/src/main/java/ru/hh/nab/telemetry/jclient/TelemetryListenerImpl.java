@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.jclient;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -87,7 +87,7 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
       return response;
     }
 
-    StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode(), false);
+    StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode());
     span.setStatus(otelStatus, StatusCode.ERROR == otelStatus ? response.getStatusText() : "");
     span.setAttribute(HTTP_STATUS_CODE, response.getStatusCode());
     span.end();

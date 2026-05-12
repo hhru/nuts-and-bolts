@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.servlet;
 
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -21,11 +21,5 @@ public class TestResource {
   @Path("/simple/{name}/greeting")
   public String simpleWithParam(@PathParam("name") @DefaultValue("world") String name) {
     return "Hello, %s!".formatted(name);
-  }
-
-  @GET
-  @Path("/error")
-  public String error() {
-    throw new RuntimeException("Error description!");
   }
 }

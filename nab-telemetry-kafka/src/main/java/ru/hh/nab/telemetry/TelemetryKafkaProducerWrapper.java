@@ -19,6 +19,7 @@ import java.util.concurrent.Executor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
+import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 
 public class TelemetryKafkaProducerWrapper extends KafkaProducer {
   private final String clusterName;
@@ -61,7 +62,8 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
         .sendMessage(record, executor)
         .whenComplete((kafkaSendResult, throwable) -> {
           if (throwable != null) {
-            span.setStatus(StatusCode.ERROR, throwable.getMessage());
+            span.setStatus(StatusCode.ERROR);
+            addExceptionEventToSpan(span, throwable);
           } else {
             span.setStatus(StatusCode.OK);
           }

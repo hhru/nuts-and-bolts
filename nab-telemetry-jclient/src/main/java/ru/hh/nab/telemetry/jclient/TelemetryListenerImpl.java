@@ -21,6 +21,7 @@ import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
+import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 
 public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
@@ -88,7 +89,7 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
     }
 
     StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode());
-    span.setStatus(otelStatus, StatusCode.ERROR == otelStatus ? response.getStatusText() : "");
+    span.setStatus(otelStatus);
     span.setAttribute(HTTP_STATUS_CODE, response.getStatusCode());
     span.end();
 
@@ -104,7 +105,8 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
       return;
     }
 
-    span.setStatus(StatusCode.ERROR, t.getMessage());
+    span.setStatus(StatusCode.ERROR);
+    addExceptionEventToSpan(span, t);
     span.end();
     LOGGER.trace("span closed: {}", span);
   }

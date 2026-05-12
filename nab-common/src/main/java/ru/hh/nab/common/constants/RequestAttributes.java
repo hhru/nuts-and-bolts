@@ -13,6 +13,7 @@ public class RequestAttributes {
    */
   public static final String CODE_FUNCTION_NAME = "codeFunctionName";
   public static final String HTTP_ROUTE = "httpRoute";
+  public static final String MAPPED_EXCEPTION = "mapped_exception";
 
   private RequestAttributes() {}
 }

@@ -1,3 +1,30 @@
+-   name: 30.0.1
+    date: '2026-05-12T14:03:43.400859+03:00'
+    description: При возникновении ошибки в спан добавляется ивент с общей информацией
+        об этой ошибке (тип исключения и message)
+    instructions: ''
+    compatible: true
+
+-   name: 30.0.0
+    date: '2026-05-12T11:53:57.598325+03:00'
+    description: "Из модуля `nab-telemetry` удалены зависимости `nab-jclient` (и все\
+        \ ненужные транзитивные зависимости, которые тянулись вместе с ним) и `jakarta.servlet-api`\r\
+        \n1. Классы `ContextStorage`, `TelemetryListenerImpl`, `TelemetryProcessorFactory`\
+        \ и `TelemetryPropagator` (только метод `propagate`) перенесены из модуля\
+        \ `nab-telemetry` в новый модуль `nab-telemetry-jclient` в пакет `ru.hh.nab.telemetry.jclient`\r\
+        \n2. Классы `TelemetryFilter` и `TelemetryPropagator` (только метод `getTelemetryContext`)\
+        \ перенесены из модуля `nab-telemetry` в новый модуль `nab-telemetry-servlet`\
+        \ в пакет `ru.hh.nab.telemetry.servlet`"
+    instructions: "1. Удалить зависимость `nab-telemetry` (она теперь тянется транзитивно\
+        \ вместе со всеми `nab-telemetry-*` зависимостями)\r\n2. Если в вашем коде\
+        \ используются классы `ContextStorage`, `TelemetryListenerImpl`, `TelemetryProcessorFactory`\
+        \ и `TelemetryPropagator` (метод `propagate(Request request)`), то необходимо\
+        \ подключить зависимость `nab-telemetry-jclient` и поправить импорты\r\n3.\
+        \ Если в вашем коде используются классы `TelemetryFilter` и `TelemetryPropagator`\
+        \ (метод `getTelemetryContext`), то необходимо подключить зависимость `nab-telemetry-servlet`\
+        \ и поправить импорты"
+    compatible: false
+
 -   name: 29.2.1
     date: '2026-05-04T13:58:29.239977+03:00'
     description: поставить приоритет TelemetryFilter выше, чем ConcurrencyLimitFilter,

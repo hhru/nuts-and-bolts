@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>29.2.1.boot-3.5-alpha2-SNAPSHOT</version>
+    <version>30.0.1.boot-3.5-alpha1-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -25,6 +25,8 @@
         <module>nab-jclient</module>
         <module>nab-metrics</module>
         <module>nab-telemetry</module>
+        <module>nab-telemetry-servlet</module>
+        <module>nab-telemetry-jclient</module>
         <module>nab-telemetry-jdbc</module>
         <module>nab-telemetry-kafka</module>
         <module>nab-kafka</module>
@@ -89,6 +91,16 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-telemetry</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry-servlet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.hh.nab</groupId>
+                <artifactId>nab-telemetry-jclient</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

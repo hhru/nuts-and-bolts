@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.jclient;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -21,6 +21,7 @@ import ru.hh.jclient.common.Request;
 import ru.hh.jclient.common.RequestContext;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
+import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 import ru.hh.nab.telemetry.semconv.NabHttpAttributes;
 import ru.hh.nab.telemetry.semconv.NabPeerAttributes;
 import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
@@ -100,8 +101,8 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
       return response;
     }
 
-    StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode(), false);
-    span.setStatus(otelStatus, StatusCode.ERROR == otelStatus ? response.getStatusText() : "");
+    StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode());
+    span.setStatus(otelStatus);
 
     span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, response.getStatusCode());
     span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, response.getStatusCode());
@@ -120,7 +121,8 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
       return;
     }
 
-    span.setStatus(StatusCode.ERROR, t.getMessage());
+    span.setStatus(StatusCode.ERROR);
+    addExceptionEventToSpan(span, t);
     span.end();
     LOGGER.trace("span closed: {}", span);
   }

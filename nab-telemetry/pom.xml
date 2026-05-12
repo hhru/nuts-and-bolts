@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>29.2.1.boot-3.5-alpha2-SNAPSHOT</version>
+        <version>30.0.1.boot-3.5-alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-jclient</artifactId>
+            <artifactId>nab-common</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -27,45 +27,8 @@
             <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.opentelemetry.semconv</groupId>
             <artifactId>opentelemetry-semconv-incubating</artifactId>
-        </dependency>
-
-        <!--Testing-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jersey</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-web</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk-testing</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

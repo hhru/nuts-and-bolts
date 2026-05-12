@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.servlet;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -33,8 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION_NAME;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
+import static ru.hh.nab.common.constants.RequestAttributes.MAPPED_EXCEPTION;
 import ru.hh.nab.common.constants.RequestHeaders;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
+import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.trace.TraceContextUnsafe;
 import ru.hh.trace.TraceIdGenerator;
@@ -129,9 +131,17 @@ public class TelemetryFilter implements Filter {
 
           span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, httpServletResponse.getStatus());
           span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, httpServletResponse.getStatus());
-          span.setStatus(TelemetryPropagator.getStatus(httpServletResponse.getStatus(), true));
+
+          StatusCode status = TelemetryPropagator.getStatus(httpServletResponse.getStatus());
+          span.setStatus(status);
+
+          Throwable mappedException = (Throwable) httpServletRequest.getAttribute(MAPPED_EXCEPTION);
+          if (status == StatusCode.ERROR && mappedException != null) {
+            addExceptionEventToSpan(span, mappedException);
+          }
         } catch (Throwable t) {
-          span.setStatus(StatusCode.ERROR, t.getMessage());
+          span.setStatus(StatusCode.ERROR);
+          addExceptionEventToSpan(span, t);
           throw t;
         } finally {
           span.end();

@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.servlet;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
@@ -10,9 +10,12 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.CodeAttributes;
+import static io.opentelemetry.semconv.ExceptionAttributes.EXCEPTION_MESSAGE;
+import static io.opentelemetry.semconv.ExceptionAttributes.EXCEPTION_TYPE;
 import io.opentelemetry.semconv.HttpAttributes;
 import io.opentelemetry.semconv.ServerAttributes;
 import io.opentelemetry.semconv.UrlAttributes;
@@ -44,6 +47,7 @@ import static org.springframework.http.RequestEntity.head;
 import org.springframework.http.ResponseEntity;
 import ru.hh.nab.common.constants.RequestHeaders;
 import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
+import ru.hh.nab.web.exceptions.AnyExceptionMapper;
 import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
 import ru.hh.nab.web.resource.StatusResource;
 import ru.hh.trace.TraceContextImpl;
@@ -99,8 +103,8 @@ public class TelemetryTest {
     assertEquals("localhost", attributes.get(SemanticAttributesForRemoval.HTTP_HOST));
     assertEquals("localhost", attributes.get(ServerAttributes.SERVER_ADDRESS));
     assertEquals("simple", attributes.get(SemanticAttributesForRemoval.CODE_FUNCTION));
-    assertEquals("ru.hh.nab.telemetry.TestResource", attributes.get(SemanticAttributesForRemoval.CODE_NAMESPACE));
-    assertEquals("ru.hh.nab.telemetry.TestResource.simple", attributes.get(CodeAttributes.CODE_FUNCTION_NAME));
+    assertEquals("ru.hh.nab.telemetry.servlet.TestResource", attributes.get(SemanticAttributesForRemoval.CODE_NAMESPACE));
+    assertEquals("ru.hh.nab.telemetry.servlet.TestResource.simple", attributes.get(CodeAttributes.CODE_FUNCTION_NAME));
     assertEquals(userAgent, attributes.get(UserAgentAttributes.USER_AGENT_ORIGINAL));
   }
 
@@ -213,6 +217,25 @@ public class TelemetryTest {
   }
 
   @Test
+  public void testErrorRequest() {
+    ResponseEntity<String> response = testRestTemplate.getForEntity("/error", String.class);
+
+    assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatusCode().value());
+    awaitAtLeastOneSpan();
+
+    List<SpanData> spans = SPAN_EXPORTER.getFinishedSpanItems();
+    assertEquals(1, spans.size());
+    SpanData span = spans.get(0);
+    assertEquals(SpanKind.SERVER, span.getKind());
+    List<EventData> events = span.getEvents();
+    assertEquals(1, events.size());
+    EventData event = events.get(0);
+    assertEquals("exception", event.getName());
+    assertEquals("java.lang.RuntimeException", event.getAttributes().get(EXCEPTION_TYPE));
+    assertEquals("Error description!", event.getAttributes().get(EXCEPTION_MESSAGE));
+  }
+
+  @Test
   public void testTraceId() {
     final String testRequestId = "123";
 
@@ -251,6 +274,7 @@ public class TelemetryTest {
       resourceConfig.register(TestResourceWithSubResource.class);
       resourceConfig.register(TestResourceWithSubResource.SubResource.class);
       resourceConfig.register(ResourceInformationFilter.class);
+      resourceConfig.register(AnyExceptionMapper.class);
       return resourceConfig;
     }
 

@@ -1,4 +1,4 @@
-package ru.hh.nab.telemetry;
+package ru.hh.nab.telemetry.servlet;
 
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;

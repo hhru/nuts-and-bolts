@@ -194,7 +194,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private static ThreadPoolExecutor create(
       int coreThreads,
       int maxThreads,
-      int queueSize,
+      int queueCapacity,
       int keepAliveTimeSec,
       String threadPoolName,
       RejectedExecutionHandler rejectedExecutionHandler,
@@ -214,12 +214,12 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       return thread;
     };
     BlockingQueue<Runnable> workQueue;
-    if (queueSize < 0) {
+    if (queueCapacity < 0) {
       workQueue = new LinkedBlockingQueue<>();
-    } else if (queueSize == 0) {
+    } else if (queueCapacity == 0) {
       workQueue = new SynchronousQueue<>();
     } else {
-      workQueue = new ArrayBlockingQueue<>(queueSize);
+      workQueue = new ArrayBlockingQueue<>(queueCapacity);
     }
     var threadPoolExecutor = new MonitoredThreadPoolExecutor(
         coreThreads,
@@ -237,12 +237,6 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
         taskExecutionStartLagHistogramCompactionRatio
     );
 
-    String maxPoolSizeMetricName = "threadPool.maxSize";
-    String poolSizeMetricName = "threadPool.size";
-    String activeCountMetricName = "threadPool.activeCount";
-    String queueSizeMetricName = "threadPool.queueSize";
-    String taskDurationMetricName = "threadPool.taskDuration";
-    String taskExecutionStartLagMetricName = "threadPool.taskExecutionStartLag";
     var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName), new Tag("pool", threadPoolName)));
 
     statsDSender.sendPeriodically(() -> {
@@ -250,12 +244,15 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       // are submitted during the interval (e.g. long-running tasks keep the pool busy).
       threadPoolExecutor.updatePoolMetrics();
 
-      sender.sendMax(maxPoolSizeMetricName, threadPoolExecutor.maxPoolSizeMetric);
-      sender.sendMax(poolSizeMetricName, threadPoolExecutor.poolSizeMetric);
-      sender.sendMax(activeCountMetricName, threadPoolExecutor.activeCountMetric);
-      sender.sendMax(queueSizeMetricName, threadPoolExecutor.queueSizeMetric);
-      sender.sendHistogram(taskDurationMetricName, threadPoolExecutor.taskDurationMetric, DEFAULT_PERCENTILES);
-      sender.sendHistogram(taskExecutionStartLagMetricName, threadPoolExecutor.taskExecutionStartLagMetric, DEFAULT_PERCENTILES);
+      sender.sendMax("threadPool.maxSize", threadPoolExecutor.maxPoolSizeMetric);
+      sender.sendMax("threadPool.size", threadPoolExecutor.poolSizeMetric);
+      sender.sendMax("threadPool.activeCount", threadPoolExecutor.activeCountMetric);
+      sender.sendMax("threadPool.queueSize", threadPoolExecutor.queueSizeMetric);
+      if (queueCapacity >= 0) {
+        sender.sendGauge("threadPool.maxQueueSize", queueCapacity);
+      }
+      sender.sendHistogram("threadPool.taskDuration", threadPoolExecutor.taskDurationMetric, DEFAULT_PERCENTILES);
+      sender.sendHistogram("threadPool.taskExecutionStartLag", threadPoolExecutor.taskExecutionStartLagMetric, DEFAULT_PERCENTILES);
     });
 
     threadPoolExecutor.prestartAllCoreThreads();

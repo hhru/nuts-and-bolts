@@ -1,7 +1,7 @@
 package ru.hh.nab.web.jetty;
 
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.StatsDSender;
@@ -18,11 +18,11 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       int maxThreads,
       int minThreads,
       int idleTimeout,
-      BlockingQueue<Runnable> queue,
+      int queueCapacity,
       String poolName,
       StatsDSender statsDSender
   ) {
-    super(maxThreads, minThreads, idleTimeout, -1, queue, null);
+    super(maxThreads, minThreads, idleTimeout, -1, new BlockingArrayQueue<>(queueCapacity), null);
     setName("qtp_" + poolName + "_" + hashCode());
 
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
@@ -36,6 +36,7 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       sender.sendMax("jetty.threadPool.busyThreads", this.busyThreads);
       sender.sendMax("jetty.threadPool.totalThreads", this.totalThreads);
       sender.sendMax("jetty.threadPool.maxThreads", this.maxThreads);
+      sender.sendGauge("jetty.threadPool.maxQueueSize", queueCapacity);
     });
   }
 

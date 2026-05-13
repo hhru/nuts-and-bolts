@@ -25,10 +25,6 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
     super(maxThreads, minThreads, idleTimeout, -1, queue, null);
     setName("qtp_" + poolName + "_" + hashCode());
 
-    String queueSizeMetricName = "queueSize";
-    String busyThreadsMetricName = "busyThreads";
-    String totalThreadsMetricName = "totalThreads";
-    String maxThreadsMetricName = "maxThreads";
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
 
     statsDSender.sendPeriodically(() -> {
@@ -36,10 +32,10 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       // are submitted during the interval (e.g. long-running jobs keep the pool busy).
       updatePoolMetrics();
 
-      sender.sendMax(queueSizeMetricName, this.queueSize);
-      sender.sendMax(busyThreadsMetricName, this.busyThreads);
-      sender.sendMax(totalThreadsMetricName, this.totalThreads);
-      sender.sendMax(maxThreadsMetricName, this.maxThreads);
+      sender.sendMax("jetty.threadPool.queueSize", this.queueSize);
+      sender.sendMax("jetty.threadPool.busyThreads", this.busyThreads);
+      sender.sendMax("jetty.threadPool.totalThreads", this.totalThreads);
+      sender.sendMax("jetty.threadPool.maxThreads", this.maxThreads);
     });
   }
 

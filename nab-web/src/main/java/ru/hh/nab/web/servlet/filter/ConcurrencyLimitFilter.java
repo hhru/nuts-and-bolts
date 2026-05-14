@@ -1,5 +1,6 @@
 package ru.hh.nab.web.servlet.filter;
 
+import com.netflix.concurrency.limits.Limit;
 import com.netflix.concurrency.limits.Limiter;
 import com.netflix.concurrency.limits.limit.Gradient2Limit;
 import com.netflix.concurrency.limits.limiter.SimpleLimiter;
@@ -34,6 +35,12 @@ public class ConcurrencyLimitFilter implements Filter {
         .build();
     this.limiter = SimpleLimiter.newBuilder()
         .limit(gradientLimit)
+        .build();
+  }
+
+  public ConcurrencyLimitFilter(Limit limit) {
+    this.limiter = SimpleLimiter.newBuilder()
+        .limit(limit)
         .build();
   }
 

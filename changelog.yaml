@@ -1,3 +1,9 @@
+-   name: 30.1.0
+    date: '2026-05-14T11:35:41.467630+03:00'
+    description: 'ConcurrencyLimitFilter: pass already configured limit'
+    instructions: ''
+    compatible: true
+
 -   name: 30.0.1
     date: '2026-05-12T14:03:43.400859+03:00'
     description: При возникновении ошибки в спан добавляется ивент с общей информацией

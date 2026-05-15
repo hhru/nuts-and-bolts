@@ -32,11 +32,11 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       // are submitted during the interval (e.g. long-running jobs keep the pool busy).
       updatePoolMetrics();
 
-      sender.sendMax("jetty.threadPool.queueSize", this.queueSize);
-      sender.sendMax("jetty.threadPool.busyThreads", this.busyThreads);
-      sender.sendMax("jetty.threadPool.totalThreads", this.totalThreads);
-      sender.sendMax("jetty.threadPool.maxThreads", this.maxThreads);
-      sender.sendGauge("jetty.threadPool.maxQueueSize", queueCapacity);
+      sender.sendMax("queueSize", this.queueSize);
+      sender.sendMax("busyThreads", this.busyThreads);
+      sender.sendMax("totalThreads", this.totalThreads);
+      sender.sendMax("maxThreads", this.maxThreads);
+      sender.sendGauge("maxQueueSize", queueCapacity);
     });
   }
 

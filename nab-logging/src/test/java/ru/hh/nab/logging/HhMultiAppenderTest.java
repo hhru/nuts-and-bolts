@@ -1,5 +1,6 @@
 package ru.hh.nab.logging;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.LoggingEvent;
@@ -12,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.Iterator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -52,8 +54,40 @@ public class HhMultiAppenderTest {
 
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.start();
-    assertThat(multiAppender.appender, is(instanceOf(HhSyslogAppender.class)));
+    assertThat(multiAppender.appender, is(instanceOf(AsyncAppender.class)));
+    Appender<?> inner = innerAppender((AsyncAppender) multiAppender.appender);
+    assertThat(inner, is(instanceOf(HhSyslogAppender.class)));
     checkIfAppenderProperlyConfigured(multiAppender.appender);
+    checkIfAppenderProperlyConfigured(inner);
+
+    AsyncAppender async = (AsyncAppender) multiAppender.appender;
+    assertEquals(0, async.getDiscardingThreshold(), "default must be lossless: no level-based discarding");
+    assertFalse(async.isNeverBlock(), "default must be lossless: producers block when queue is full");
+  }
+
+  @Test
+  public void testSyslogAsyncPropertiesApplied() {
+    LoggerContext context = new LoggerContext();
+    context.putProperty("log.syslogHost", "localhost");
+    context.putProperty("log.syslogPort", "123");
+    context.putProperty("log.syslogTag", "test");
+    context.putProperty("log.pattern", "[%date{ISO8601}] %-5level %logger{36}:%line mdc={%mdc} - %msg%n");
+    context.putProperty("log.syslog.async.queueSize", "1024");
+    context.putProperty("log.syslog.async.discardingThreshold", "0");
+    context.putProperty("log.syslog.async.neverBlock", "true");
+    context.putProperty("log.syslog.async.maxFlushTime", "2000");
+    context.putProperty("log.syslog.async.includeCallerData", "true");
+
+    HhMultiAppender multiAppender = createHhMultiAppender(context);
+    multiAppender.start();
+
+    assertThat(multiAppender.appender, is(instanceOf(AsyncAppender.class)));
+    AsyncAppender async = (AsyncAppender) multiAppender.appender;
+    assertEquals(1024, async.getQueueSize());
+    assertEquals(0, async.getDiscardingThreshold());
+    assertTrue(async.isNeverBlock());
+    assertEquals(2000, async.getMaxFlushTime());
+    assertTrue(async.isIncludeCallerData());
   }
 
   @Test
@@ -128,8 +162,10 @@ public class HhMultiAppenderTest {
     HhMultiAppender multiAppender = createHhMultiAppender(context);
     multiAppender.setJson(true);
     multiAppender.start();
-    checkIfAppenderProperlyConfigured(multiAppender.appender);
-    ThrowableSupplier layoutSupplier = createLayoutSupplier(multiAppender.appender);
+    assertThat(multiAppender.appender, is(instanceOf(AsyncAppender.class)));
+    Appender<?> inner = innerAppender((AsyncAppender) multiAppender.appender);
+    checkIfAppenderProperlyConfigured(inner);
+    ThrowableSupplier layoutSupplier = createLayoutSupplier(inner);
     assertThat(layoutSupplier.get(), is(instanceOf(NabJsonLayout.class)));
   }
 
@@ -420,6 +456,14 @@ public class HhMultiAppenderTest {
     } catch (NoSuchMethodException e) {
       return null;
     }
+  }
+
+  private static Appender<?> innerAppender(AsyncAppender asyncAppender) {
+    Iterator<? extends Appender<?>> iterator = asyncAppender.iteratorForAppenders();
+    assertTrue(iterator.hasNext(), "AsyncAppender must wrap at least one appender");
+    Appender<?> inner = iterator.next();
+    assertFalse(iterator.hasNext(), "AsyncAppender is expected to wrap exactly one appender");
+    return inner;
   }
 
   protected static HhMultiAppender createHhMultiAppender(LoggerContext context) {

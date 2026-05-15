@@ -1,5 +1,6 @@
 package ru.hh.nab.logging;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -24,6 +25,11 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
   public static final String LOG_TO_CONSOLE_PROPERTY_KEY = "log.toConsole";
   public static final String WRITE_APPENDER_NAME_PROPERTY_KEY = "log.writeAppenderName";
   public static final String LOG_PATTERN_PROPERTY_KEY = "log.pattern";
+  public static final String SYSLOG_ASYNC_QUEUE_SIZE_PROPERTY_KEY = "log.syslog.async.queueSize";
+  public static final String SYSLOG_ASYNC_DISCARDING_THRESHOLD_PROPERTY_KEY = "log.syslog.async.discardingThreshold";
+  public static final String SYSLOG_ASYNC_NEVER_BLOCK_PROPERTY_KEY = "log.syslog.async.neverBlock";
+  public static final String SYSLOG_ASYNC_MAX_FLUSH_TIME_PROPERTY_KEY = "log.syslog.async.maxFlushTime";
+  public static final String SYSLOG_ASYNC_INCLUDE_CALLER_DATA_PROPERTY_KEY = "log.syslog.async.includeCallerData";
 
   protected Appender<ILoggingEvent> appender;
   protected Supplier<Layout<ILoggingEvent>> layoutSupplier;
@@ -90,10 +96,10 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     String host = Optional.ofNullable(System.getenv(SYSLOG_HOST_ENV)).orElseGet(() -> getContext().getProperty(SYSLOG_HOST_PROPERTY_KEY));
     String port = getContext().getProperty(HhSyslogAppender.SYSLOG_PORT_PROPERTY_KEY);
     if (StringUtils.isNotEmpty(host) && StringUtils.isNumeric(port)) {
-      return new AppenderConfigurer<>(new HhSyslogAppender(this.json), this, getContext()) {
+      return new AppenderConfigurer<>(new AsyncAppender(), this, getContext()) {
         @Override
-        protected void configure(HhSyslogAppender appender) {
-          appender.setLayout(buildLayout());
+        protected void configure(AsyncAppender asyncAppender) {
+          attachSyslogAppender(asyncAppender);
         }
       };
     }
@@ -162,6 +168,51 @@ public class HhMultiAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
       }
       initIfNeeded(encoder, optionsHolder.getContext());
       return encoder;
+    }
+
+    protected void attachSyslogAppender(AsyncAppender asyncAppender) {
+      asyncAppender.setContext(context);
+
+      // The syslog appender must keep the user-given name (not "${name}-syslog"):
+      // HhSyslogAppender.generateIdent() uses getName() to build the syslog ident
+      // ("${name}.slog/" or "${name}.rlog/"), and downstream log aggregation keys off that ident.
+      HhSyslogAppender syslogAppender = new HhSyslogAppender(optionsHolder.json);
+      syslogAppender.setName(optionsHolder.getName());
+      syslogAppender.setContext(context);
+      syslogAppender.setLayout(buildLayout());
+      syslogAppender.start();
+
+      // Default to lossless behavior:
+      //   discardingThreshold = 0 — never let AsyncAppender silently drop INFO/DEBUG/TRACE under load.
+      //   neverBlock           = false (Logback default) — when the queue fills, producers block until space appears.
+      asyncAppender.setDiscardingThreshold(0);
+
+      parsePositiveInt(context.getProperty(SYSLOG_ASYNC_QUEUE_SIZE_PROPERTY_KEY)).ifPresent(asyncAppender::setQueueSize);
+      parseInt(context.getProperty(SYSLOG_ASYNC_DISCARDING_THRESHOLD_PROPERTY_KEY)).ifPresent(asyncAppender::setDiscardingThreshold);
+      parsePositiveInt(context.getProperty(SYSLOG_ASYNC_MAX_FLUSH_TIME_PROPERTY_KEY)).ifPresent(asyncAppender::setMaxFlushTime);
+      ofNullable(context.getProperty(SYSLOG_ASYNC_NEVER_BLOCK_PROPERTY_KEY))
+          .map(Boolean::parseBoolean)
+          .ifPresent(asyncAppender::setNeverBlock);
+      ofNullable(context.getProperty(SYSLOG_ASYNC_INCLUDE_CALLER_DATA_PROPERTY_KEY))
+          .map(Boolean::parseBoolean)
+          .ifPresent(asyncAppender::setIncludeCallerData);
+
+      asyncAppender.addAppender(syslogAppender);
+    }
+
+    private static Optional<Integer> parseInt(String value) {
+      if (StringUtils.isBlank(value)) {
+        return Optional.empty();
+      }
+      try {
+        return Optional.of(Integer.parseInt(value.trim()));
+      } catch (NumberFormatException e) {
+        return Optional.empty();
+      }
+    }
+
+    private static Optional<Integer> parsePositiveInt(String value) {
+      return parseInt(value).filter(v -> v > 0);
     }
 
     private static PatternLayout createPatternLayout(HhMultiAppender optionsHolder, Context context) {

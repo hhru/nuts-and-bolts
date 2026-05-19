@@ -1,4 +1,4 @@
-package ru.hh.nab.starter.exceptions;
+package ru.hh.nab.web.exceptions;
 
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -6,7 +6,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import ru.hh.deadline.context.InsufficientTimeoutException;
 import ru.hh.errors.common.Errors;
-import ru.hh.nab.web.exceptions.NabExceptionMapper;
 import static ru.hh.nab.web.http.HttpStatus.INSUFFICIENT_TIMEOUT;
 
 @APIResponse(

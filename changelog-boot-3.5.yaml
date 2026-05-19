@@ -151,34 +151,43 @@
                - Двойной ManyToMany bidirectional-маппинг через @JoinTable вместо mappedBy на одной из сторон.
                - Двойной маппинг foreign key: через Entity и ещё раз id отдельно.
                - @Batch на не-коллекциях.
-         5. [В версии 21.0.0 NoopSecurityHandler удалён, не нужно выполнять этот пункт если переходите с мастера версии 21.0.0 или выше. Также не
+               - Использование persist вместо merge для новых сущностей, где идентификатор назначается вручную (Ошибки могут выглядеть так:
+                 org.hibernate.StaleObjectStateException: Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)).
+         5. Обновление Jackson с 2.15.4 до 2.19.2.
+            1. Jackson стал строже и может выдывать ошибку "com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Problem deserializing 
+               'setterless' property", если у вас название поля в сеттере (часть имени сеттера после "set") называлось не так как в геттере.
+               Небходимо переименовать такие сеттеры.
+            2. Порядок полей при сериализации мог изменится. Если вы полагались на этот порядок (например, в equals/hashcode) то могут возникнуть
+               ошибки. Необходимо обновить код, чтобы он учитывал новый порядок (НЕ рекомендуется) или отрефакторить код, чтобы он не зависел от
+               порядка (РЕКОМЕНДУЕТСЯ). 
+         6. [В версии 21.0.0 NoopSecurityHandler удалён, не нужно выполнять этот пункт если переходите с мастера версии 21.0.0 или выше. Также не
             нужно переносить этот пункт в финальный changelog при merge'э экспериментальной ветки в master] Обновлена сигнатура NoopSecurityHandler в
             соответствии с общими изменениями ConstraintSecurityHandler в Jetty. Если делали override, то нужно использовать обновлённую сигнатуру
             в методе handle.
-         6. [В версии 21.0.0 NoopSessionHandler удалён, не нужно выполнять этот пункт если переходите с мастера версии 21.0.0 или выше. Также не нужно
+         7. [В версии 21.0.0 NoopSessionHandler удалён, не нужно выполнять этот пункт если переходите с мастера версии 21.0.0 или выше. Также не нужно
             переносить этот пункт в финальный changelog при merge'э экспериментальной ветки в master] Обновлена сигнатура NoopSessionHandler в
             соответствии с общими изменениями SessionHandler в Jetty. Если делали override, то нужно использовать обновлённую сигнатуру в методе
             handle.
-         7. Вместо SemanticAttributes.HTTP_ROUTE нужно использовать HttpAttributes.HTTP_ROUTE. Внутреннее значение спана при этом не меняется.
-         8. Вместо SemanticAttributes.MESSAGING_DESTINATION_NAME нужно использовать MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME.
+         8. Вместо SemanticAttributes.HTTP_ROUTE нужно использовать HttpAttributes.HTTP_ROUTE. Внутреннее значение спана при этом не меняется.
+         9. Вместо SemanticAttributes.MESSAGING_DESTINATION_NAME нужно использовать MessagingIncubatingAttributes.MESSAGING_DESTINATION_NAME.
             Внутреннее значение спана при этом не меняется.
-         9. Вместо SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY нужно использовать MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY.
+        10. Вместо SemanticAttributes.MESSAGING_KAFKA_MESSAGE_KEY нужно использовать MessagingIncubatingAttributes.MESSAGING_KAFKA_MESSAGE_KEY.
             Внутреннее значение спана при этом не меняется.
-        10. Вместо SemanticAttributes.MESSAGING_SYSTEM нужно использовать MessagingIncubatingAttributes.MESSAGING_SYSTEM.
+        11. Вместо SemanticAttributes.MESSAGING_SYSTEM нужно использовать MessagingIncubatingAttributes.MESSAGING_SYSTEM.
             Внутреннее значение спана при этом не меняется.
             Для значений атрибута теперь нужно использовать константу MessagingIncubatingAttributes.MessagingSystemIncubatingValues.
-        11. Вместо SemanticAttributes.PEER_SERVICE нужно использовать PeerIncubatingAttributes.PEER_SERVICE. Внутреннее значение спана при этом не
+        12. Вместо SemanticAttributes.PEER_SERVICE нужно использовать PeerIncubatingAttributes.PEER_SERVICE. Внутреннее значение спана при этом не
             меняется.
-        12. Вместо ResourceAttributes.SERVICE_NAME нужно использовать ServiceAttributes.SERVICE_NAME. Внутреннее значение спана при этом не
+        13. Вместо ResourceAttributes.SERVICE_NAME нужно использовать ServiceAttributes.SERVICE_NAME. Внутреннее значение спана при этом не
             меняется. 
-        13. Для всех остальных deprecated атрибутов вида SemanticAttributes.CODE_FUNCTION нужно поменять префикс констант на
+        14. Для всех остальных deprecated атрибутов вида SemanticAttributes.CODE_FUNCTION нужно поменять префикс констант на
             SemanticAttributesForRemoval.CODE_FUNCTION. Внутренние значение спанов при этом не меняются. Это нужно делать только если вы не можете
             мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной совместимости.
-        14. Меняется формат значения в span атрибуте SemanticAttributesForRemoval.CODE_NAMESPACE ("code.namespace"). Вместо class.getCanonicalName()
+        15. Меняется формат значения в span атрибуте SemanticAttributesForRemoval.CODE_NAMESPACE ("code.namespace"). Вместо class.getCanonicalName()
             теперь используется class.getName(). Т.е. вместо "ru.hh.nab.MyClass.MyInnerStaticClass" будет "ru.hh.nab.MyClass$MyInnerStaticClass"
             Адаптируйте код если у вас были завязки на старый формат.
-        15. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
+        16. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
             `.addAttributesExtractor(ServerAttributesExtractor.create(new NabJdbcNetworkAttributesGetter()))`
-        16. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
+        17. TopicPartitionsMonitoring удалён. Если использовали его явно - реализуйте его самостоятельно. Также TopicPartitionsMonitoring больше
             не нужно передавать в конструктор KafkaConsumer.
     compatible: false

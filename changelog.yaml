@@ -1,3 +1,15 @@
+-   name: 31.0.0
+    date: '2026-05-19T16:03:04.124097+03:00'
+    description: "Изменены пакеты у нескольких классов.\r\nДобавлены метрики `maxQueueSize`\
+        \ для `MonitoredQueuedThreadPool` и `threadPool.maxQueueSize` для `MonitoredThreadPoolExecutor`,\
+        \ показывающие вместимость (максимальный размер) очереди пула."
+    instructions: "Если у вас используются классы `InsufficientTimeoutExceptionMapper`\
+        \ и `ServerTimeoutExceptionMapper`, поменяйте пакет в импортах на `ru.hh.nab.web.exceptions`.\r\
+        \nЕсли вы вызываете конструктор `MonitoredQueuedThreadPool`, то теперь вместо\
+        \ готовой очереди `BlockingQueue<Runnable> queue` надо передавать только её\
+        \ размер `int queueCapacity`."
+    compatible: false
+
 -   name: 30.1.1
     date: '2026-05-18T18:58:05.401741+03:00'
     description: Обновление jclient до 15.0.0

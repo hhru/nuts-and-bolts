@@ -1,7 +1,7 @@
 package ru.hh.nab.web.jetty;
 
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import ru.hh.nab.metrics.Max;
 import ru.hh.nab.metrics.StatsDSender;
@@ -18,17 +18,13 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       int maxThreads,
       int minThreads,
       int idleTimeout,
-      BlockingQueue<Runnable> queue,
+      int queueCapacity,
       String poolName,
       StatsDSender statsDSender
   ) {
-    super(maxThreads, minThreads, idleTimeout, -1, queue, null);
+    super(maxThreads, minThreads, idleTimeout, -1, new BlockingArrayQueue<>(queueCapacity), null);
     setName("qtp_" + poolName + "_" + hashCode());
 
-    String queueSizeMetricName = "queueSize";
-    String busyThreadsMetricName = "busyThreads";
-    String totalThreadsMetricName = "totalThreads";
-    String maxThreadsMetricName = "maxThreads";
     var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
 
     statsDSender.sendPeriodically(() -> {
@@ -36,10 +32,11 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       // are submitted during the interval (e.g. long-running jobs keep the pool busy).
       updatePoolMetrics();
 
-      sender.sendMax(queueSizeMetricName, this.queueSize);
-      sender.sendMax(busyThreadsMetricName, this.busyThreads);
-      sender.sendMax(totalThreadsMetricName, this.totalThreads);
-      sender.sendMax(maxThreadsMetricName, this.maxThreads);
+      sender.sendMax("queueSize", this.queueSize);
+      sender.sendMax("busyThreads", this.busyThreads);
+      sender.sendMax("totalThreads", this.totalThreads);
+      sender.sendMax("maxThreads", this.maxThreads);
+      sender.sendGauge("maxQueueSize", queueCapacity);
     });
   }
 

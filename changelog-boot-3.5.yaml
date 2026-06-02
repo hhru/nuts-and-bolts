@@ -132,7 +132,7 @@
                Стало:
                @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "my_seq_gen")
                @SequenceGenerator(name = "my_seq_gen", sequenceName = "my_sequence", allocationSize = 1)
-                Было:
+               Было:
                @GeneratedValue(generator = "uuid")
                @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
                Стало:
@@ -149,7 +149,8 @@
                enumClass = clazz.asSubclass(Enum.class);
             5. Hibernate в целом стал намного строже и теперь уведомляет об ошибках, на которые раньше закрывал глаза. Среди таких ошибок:
                - Двойной ManyToMany bidirectional-маппинг через @JoinTable вместо mappedBy на одной из сторон.
-               - Двойной маппинг foreign key: через Entity и ещё раз id отдельно.
+               - Двойной маппинг foreign key: через Entity и ещё раз id отдельно (может быть неочевидная ошибка вида
+                 "persistent instance references an unsaved transient instance").
                - @Batch на не-коллекциях.
                - Использование persist вместо merge для новых сущностей, где идентификатор назначается вручную (Ошибки могут выглядеть так:
                  org.hibernate.StaleObjectStateException: Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)).

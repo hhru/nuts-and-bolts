@@ -1,3 +1,9 @@
+-   name: 31.0.1
+    date: '2026-06-01T17:26:04.256536+03:00'
+    description: Обновление jclient до 15.0.1.
+    instructions: ''
+    compatible: true
+
 -   name: 31.0.0
     date: '2026-05-19T16:03:04.124097+03:00'
     description: "Изменены пакеты у нескольких классов.\r\nДобавлены метрики `maxQueueSize`\

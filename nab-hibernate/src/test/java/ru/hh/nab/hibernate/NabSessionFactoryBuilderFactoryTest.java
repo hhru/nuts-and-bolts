@@ -17,6 +17,7 @@ import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -65,7 +66,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     when(rs.getMetaData()).thenReturn(metaData);
     PreparedStatement ps = mock(PreparedStatement.class);
     when(ps.executeQuery()).thenReturn(rs);
-    when(connection.prepareStatement(anyString())).thenReturn(ps);
+    when(connection.prepareStatement(anyString(), anyInt(), anyInt())).thenReturn(ps);
   }
 
   @AfterEach
@@ -180,7 +181,7 @@ public class NabSessionFactoryBuilderFactoryTest {
     }
 
     @Override
-    protected Map<String, Object> getVendorProperties() {
+    protected Map<String, Object> getVendorProperties(DataSource dataSource) {
       return new HashMap<>(PropertiesUtils.getAsMap(hibernatePropertiesProvider.get()));
     }
   }

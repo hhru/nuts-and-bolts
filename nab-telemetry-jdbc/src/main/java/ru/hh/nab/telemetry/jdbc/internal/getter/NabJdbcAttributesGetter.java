@@ -1,18 +1,19 @@
 package ru.hh.nab.telemetry.jdbc.internal.getter;
 
-import io.opentelemetry.instrumentation.api.instrumenter.db.SqlClientAttributesGetter;
+import io.opentelemetry.instrumentation.api.incubator.semconv.db.SqlClientAttributesGetter;
 import io.opentelemetry.instrumentation.jdbc.internal.JdbcAttributesGetter;
 import jakarta.annotation.Nullable;
+import java.util.Collection;
 import ru.hh.nab.telemetry.jdbc.internal.model.NabDbRequest;
 
-public class NabJdbcAttributesGetter implements SqlClientAttributesGetter<NabDbRequest> {
+public class NabJdbcAttributesGetter implements SqlClientAttributesGetter<NabDbRequest, Void> {
 
   private static final JdbcAttributesGetter dbAttributesGetter = new JdbcAttributesGetter();
 
   @Nullable
   @Override
   public String getSystem(NabDbRequest request) {
-    return dbAttributesGetter.getSystem(request.getDbRequest());
+    return dbAttributesGetter.getDbSystem(request.getDbRequest());
   }
 
   @Nullable
@@ -24,7 +25,7 @@ public class NabJdbcAttributesGetter implements SqlClientAttributesGetter<NabDbR
   @Nullable
   @Override
   public String getName(NabDbRequest request) {
-    return dbAttributesGetter.getName(request.getDbRequest());
+    return dbAttributesGetter.getDbNamespace(request.getDbRequest());
   }
 
   @Nullable
@@ -36,6 +37,7 @@ public class NabJdbcAttributesGetter implements SqlClientAttributesGetter<NabDbR
   @Nullable
   @Override
   public String getRawStatement(NabDbRequest request) {
-    return dbAttributesGetter.getRawStatement(request.getDbRequest());
+    Collection<String> texts = dbAttributesGetter.getRawQueryTexts(request.getDbRequest());
+    return texts.isEmpty() ? null : texts.iterator().next();
   }
 }

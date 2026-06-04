@@ -26,7 +26,7 @@ public class KafkaConsumerFactoryTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String payload = "it's test message";
-    kafkaTestUtils.sendMessage(topicName, payload);
+    testKafka.sendMessage(topicName, payload);
 
     await()
         .atMost(5, TimeUnit.SECONDS)
@@ -38,13 +38,13 @@ public class KafkaConsumerFactoryTest extends KafkaConsumerTestBase {
     consumer = startMessagesConsumer(String.class, consumerMock);
 
     String firstMessage = "1";
-    kafkaTestUtils.sendMessage(topicName, firstMessage);
+    testKafka.sendMessage(topicName, firstMessage);
     await()
         .atMost(5, TimeUnit.SECONDS)
         .untilAsserted(() -> consumerMock.assertMessagesEquals(List.of(firstMessage)));
 
     String secondMessage = "2";
-    kafkaTestUtils.sendMessage(topicName, secondMessage);
+    testKafka.sendMessage(topicName, secondMessage);
     await()
         .atMost(5, TimeUnit.SECONDS)
         .untilAsserted(() -> consumerMock.assertMessagesEquals(List.of(secondMessage)));

@@ -17,8 +17,7 @@ import static java.util.Optional.ofNullable;
 import org.glassfish.jersey.server.ExtendedUriInfo;
 import org.glassfish.jersey.uri.UriTemplate;
 import org.springframework.util.ClassUtils;
-import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION;
-import static ru.hh.nab.common.constants.RequestAttributes.CODE_NAMESPACE;
+import static ru.hh.nab.common.constants.RequestAttributes.CODE_FUNCTION_NAME;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import ru.hh.nab.common.mdc.MDC;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
@@ -37,8 +36,7 @@ public class ResourceInformationFilter implements ContainerRequestFilter, Contai
     String controller = controllerClass.getSimpleName() + '#' + resourceMethodName;
 
     requestContext.setProperty(CONTROLLER_MDC_KEY, controller);
-    requestContext.setProperty(CODE_FUNCTION, resourceMethodName);
-    requestContext.setProperty(CODE_NAMESPACE, controllerClass.getCanonicalName());
+    requestContext.setProperty(CODE_FUNCTION_NAME, controllerClass.getName() + "." + resourceMethodName);
     getHttpRoute(requestContext.getUriInfo()).ifPresent(route -> requestContext.setProperty(HTTP_ROUTE, route));
 
     MDC.setController(controller);

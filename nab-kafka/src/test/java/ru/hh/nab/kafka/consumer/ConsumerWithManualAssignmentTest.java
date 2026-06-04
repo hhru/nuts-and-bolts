@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,10 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
   private static final AtomicInteger ID_SEQUENCE = new AtomicInteger(0);
 
   private List<KafkaConsumer<?>> startedConsumers = new ArrayList<>();
+
+  // Don't put ack/seek operations under these locks to avoid deadlocks
+  private final ReentrantReadWriteLock processedMessagesLock1 = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock processedMessagesLock2 = new ReentrantReadWriteLock();
 
   @AfterEach()
   void tearDown() {
@@ -43,7 +48,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -51,7 +56,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + 35, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
@@ -66,7 +71,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -75,7 +80,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(35, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(35, processedMessages.size())));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
 
@@ -90,7 +95,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages1.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages1.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -102,7 +107,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages2.add(m.value()));
+          writeLock(processedMessagesLock2, () -> messages.forEach(m -> processedMessages2.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -111,8 +116,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     Thread.sleep(500); // Консумеру нужно какое-то время, чтобы стартовать. Не нашел простого способа подписаться на успешный старт.
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(40 + 35, processedMessages1.size()));
-    waitUntil(() -> assertEquals(35, processedMessages2.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + 35, processedMessages1.size())));
+    waitUntil(() -> readLock(processedMessagesLock2, () -> assertEquals(35, processedMessages2.size())));
 
     assertThat(processedMessages1, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages1, hasItems(secondMessagesBatch.toArray(String[]::new)));
@@ -129,7 +134,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -137,7 +142,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + 35, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
@@ -153,7 +158,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
-              processedMessages.add(m.value());
+              writeLock(processedMessagesLock1, () -> processedMessages.add(m.value()));
               ack.seek(m);
             })
         )
@@ -162,7 +167,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + 35, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
@@ -178,7 +183,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) ->
             messages.forEach(m -> {
-              processedMessages.add(m.value());
+              writeLock(processedMessagesLock1, () -> processedMessages.add(m.value()));
               ack.acknowledge(m);
             }))
         .build();
@@ -186,7 +191,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(35);
-    waitUntil(() -> assertEquals(40 + 35, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + 35, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
@@ -201,7 +206,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages.add(m.value())));
           ack.acknowledge(messages);
         })
         .build();
@@ -209,7 +214,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
 
     List<String> secondMessagesBatch = putMessagesIntoKafka(30);
-    waitUntil(() -> assertEquals(77 + 30, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(77 + 30, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
     assertThat(processedMessages, hasItems(secondMessagesBatch.toArray(String[]::new)));
   }
@@ -227,13 +232,15 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST)
         .withConsumeStrategy((messages, ack) -> {
-          for (int i = 0; i < messages.size(); i++) {
-            processedMessages.add(messages.get(i).value());
-            if (i == (messagesToProcessBeforeError - 1) && errorOccuredLatch.getCount() == 1) {
-              errorOccuredLatch.countDown();
-              throw new RuntimeException("Error on processing");
+          writeLock(processedMessagesLock1, () -> {
+            for (int i = 0; i < messages.size(); i++) {
+              processedMessages.add(messages.get(i).value());
+              if (i == (messagesToProcessBeforeError - 1) && errorOccuredLatch.getCount() == 1) {
+                errorOccuredLatch.countDown();
+                throw new RuntimeException("Error on processing");
+              }
             }
-          }
+          });
           ack.acknowledge();
         })
         .build();
@@ -241,7 +248,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     startedConsumers.add(consumer);
     assertTrue(errorOccuredLatch.await(3, TimeUnit.SECONDS));
 
-    waitUntil(() -> assertEquals(100 + messagesToProcessBeforeError, processedMessages.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(100 + messagesToProcessBeforeError, processedMessages.size())));
     assertThat(processedMessages, hasItems(firstMessagesBatch.toArray(String[]::new)));
   }
 
@@ -256,7 +263,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages1.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages1.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -267,12 +274,14 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .builder(topicName, String.class)
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofSeconds(1))
-        .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> {
-            processedMessages2.add(m.value());
-            ack.seek(m);
-          });
-        })
+        .withConsumeStrategy(
+            (messages, ack) -> messages.forEach(
+                m -> {
+                  writeLock(processedMessagesLock2, () -> processedMessages2.add(m.value()));
+                  ack.seek(m);
+                }
+            )
+        )
         .build();
     consumer2.start();
     startedConsumers.add(consumer2);
@@ -284,8 +293,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
       putMessagesIntoKafka(10, i);
     }
 
-    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages1.size()));
-    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + (10 * 7), processedMessages1.size())));
+    waitUntil(() -> readLock(processedMessagesLock2, () -> assertEquals(40 + (10 * 7), processedMessages2.size())));
     assertEquals(7, consumer1.getAssignedPartitions().size());
     assertEquals(7, consumer2.getAssignedPartitions().size());
 
@@ -294,8 +303,8 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
       putMessagesIntoKafka(10, i);
     }
 
-    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size()));
-    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size())));
+    waitUntil(() -> readLock(processedMessagesLock2, () -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size())));
     assertEquals(9, consumer1.getAssignedPartitions().size());
     assertEquals(9, consumer2.getAssignedPartitions().size());
   }
@@ -309,10 +318,12 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .builder(topicName, String.class)
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
-        .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages1.add(m.value()));
-          ack.acknowledge();
-        })
+        .withConsumeStrategy(
+            (messages, ack) -> {
+              writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages1.add(m.value())));
+              ack.acknowledge();
+            }
+         )
         .build();
     consumer1.start();
     startedConsumers.add(consumer1);
@@ -321,12 +332,14 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .builder(topicName, String.class)
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.LATEST, Duration.ofSeconds(1))
-        .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> {
-            processedMessages2.add(m.value());
-            ack.seek(m);
-          });
-        })
+        .withConsumeStrategy(
+            (messages, ack) -> messages.forEach(
+                m -> {
+                  writeLock(processedMessagesLock2, () -> processedMessages2.add(m.value()));
+                  ack.seek(m);
+                }
+            )
+        )
         .build();
     consumer2.start();
     startedConsumers.add(consumer2);
@@ -335,6 +348,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     putMessagesIntoKafka(40);
 
     addPartitions(topicName, 7);
+    Thread.sleep(1000); // Partition change triggers Spring consumer full recreation
     waitUntil(() -> assertEquals(7, consumer1.getAssignedPartitions().size()));
     waitUntil(() -> assertEquals(7, consumer2.getAssignedPartitions().size()));
 
@@ -342,18 +356,19 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
       putMessagesIntoKafka(10, i);
     }
 
-    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages1.size()));
-    waitUntil(() -> assertEquals(40 + (10 * 7), processedMessages2.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + (10 * 7), processedMessages1.size())));
+    waitUntil(() -> readLock(processedMessagesLock2, () -> assertEquals(40 + (10 * 7), processedMessages2.size())));
 
     addPartitions(topicName, 9);
+    Thread.sleep(1000); // Partition change triggers Spring consumer full recreation
     waitUntil(() -> assertEquals(9, consumer1.getAssignedPartitions().size()));
     waitUntil(() -> assertEquals(9, consumer2.getAssignedPartitions().size()));
     for (int i = 0; i < 9; i++) {
       putMessagesIntoKafka(10, i);
     }
 
-    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size()));
-    waitUntil(() -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages1.size())));
+    waitUntil(() -> readLock(processedMessagesLock2, () -> assertEquals(40 + (10 * 7) + (10 * 9), processedMessages2.size())));
   }
 
   @Test
@@ -365,7 +380,7 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
         .withOperationName("read_messages")
         .withAllPartitionsAssigned(SeekPosition.EARLIEST, Duration.ofMillis(500))
         .withConsumeStrategy((messages, ack) -> {
-          messages.forEach(m -> processedMessages1.add(m.value()));
+          writeLock(processedMessagesLock1, () -> messages.forEach(m -> processedMessages1.add(m.value())));
           ack.acknowledge();
         })
         .build();
@@ -381,14 +396,14 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     for (int i = 0; i < 6; i++) {
       putMessagesIntoKafka(10, i);
     }
-    waitUntil(() -> assertEquals(500 + (10 * 6), processedMessages1.size()));
+    waitUntil(() -> readLock(processedMessagesLock1, () -> assertEquals(500 + (10 * 6), processedMessages1.size())));
   }
 
   private List<String> putMessagesIntoKafka(int count) {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       String body = "body" + ID_SEQUENCE.incrementAndGet();
-      kafkaTestUtils.sendMessage(topicName, body);
+      testKafka.sendMessage(topicName, body);
       messages.add(body);
     }
     return messages;
@@ -398,15 +413,31 @@ public class ConsumerWithManualAssignmentTest extends KafkaConsumerTestBase {
     List<String> messages = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       String body = "body" + ID_SEQUENCE.incrementAndGet();
-      kafkaTestUtils.sendMessage(new ProducerRecord<>(topicName, partition, null, KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(body)));
+      testKafka.sendMessage(new ProducerRecord<>(topicName, partition, null, KafkaTestConfig.OBJECT_MAPPER.writeValueAsBytes(body)));
       messages.add(body);
     }
     return messages;
+  }
 
+  private void readLock(ReentrantReadWriteLock lock, Runnable runnable) {
+    try {
+      lock.readLock().lock();
+      runnable.run();
+    } finally {
+      lock.readLock().unlock();
+    }
+  }
+
+  private void writeLock(ReentrantReadWriteLock lock, Runnable runnable) {
+    try {
+      lock.writeLock().lock();
+      runnable.run();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   protected void waitUntil(Runnable assertion) {
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(assertion::run);
   }
-
 }

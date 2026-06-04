@@ -340,7 +340,6 @@ public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
         consumerFactory.interceptConsumeStrategy(consumerMetadata, consumeStrategy),
         deadLetterQueue,
         springContainerProvider,
-        consumerFactory.getTopicPartitionsMonitoring(),
         consumerFactory.getClusterMetadataProvider(),
         ackProvider,
         logger,

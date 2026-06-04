@@ -10,7 +10,7 @@ import org.apache.kafka.common.TopicPartition;
 public class NoopKafkaConsumer<T> extends KafkaConsumer<T> {
 
   public NoopKafkaConsumer() {
-    super(null, null, null, null, null, null, null, null);
+    super(null, null, null, (KafkaConsumer<T>) null, null, null, null, null);
   }
 
   @Override

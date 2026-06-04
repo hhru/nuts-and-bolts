@@ -1,3 +1,9 @@
+-   name: 32.0.0
+    date: '2026-06-04T12:15:46.672725+03:00'
+    description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md.'
+    instructions: 'Смотри инструкцию по миграции в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md.'
+    compatible: false
+
 -   name: 31.0.1
     date: '2026-06-01T17:26:04.256536+03:00'
     description: Обновление jclient до 15.0.1.

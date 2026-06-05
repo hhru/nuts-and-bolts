@@ -178,15 +178,24 @@
 11. `Вместо ResourceAttributes.SERVICE_NAME` нужно использовать `ServiceAttributes.SERVICE_NAME`.
 
     Внутреннее значение спана при этом **НЕ меняется**.
-12. Для всех остальных deprecated атрибутов вида `SemanticAttributes.CODE_FUNCTION` нужно поменять префикс констант на
+12. Для deprecated атрибутов `SemanticAttributes.MESSAGING_DESTINATION_KIND`, `SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID`,
+    `SemanticAttributes.MESSAGING_KAFKA_CONSUMER_GROUP`, `SemanticAttributes.MESSAGING_OPERATION` нужно поменять префикс констант на
+    `KafkaSemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND`, `KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID`,
+    `KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CONSUMER_GROUP`, `KafkaSemanticAttributesForRemoval.MESSAGING_OPERATION` соответственно.
+
+    Внутренние значения спанов при этом **НЕ меняются**.
+
+    Это нужно делать только если вы не можете мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной
+    совместимости.
+13. Для всех остальных deprecated атрибутов вида `SemanticAttributes.CODE_FUNCTION` нужно поменять префикс констант на
     `SemanticAttributesForRemoval.CODE_FUNCTION`. Внутренние значение спанов при этом **НЕ меняются**. Это нужно делать только если вы не можете
     мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной совместимости.
-13. Меняется формат значения в span атрибуте `SemanticAttributesForRemoval.CODE_NAMESPACE` (`code.namespace`). Вместо `class.getCanonicalName()`
+14. Меняется формат значения в span атрибуте `SemanticAttributesForRemoval.CODE_NAMESPACE` (`code.namespace`). Вместо `class.getCanonicalName()`
     теперь используется `class.getName()`. Т.е. вместо `ru.hh.nab.MyClass.MyInnerStaticClass` будет `ru.hh.nab.MyClass$MyInnerStaticClass`
     Адаптируйте код если у вас были завязки на старый формат.
-14. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
+15. Вместо `.addAttributesExtractor(NetClientAttributesExtractor.create(new NabJdbcNetAttributesGetter()))` используйте
     `.addAttributesExtractor(ServerAttributesExtractor.create(new NabJdbcNetworkAttributesGetter()))`
-15. `TopicPartitionsMonitoring` удалён. Если использовали его явно - реализуйте его самостоятельно. Также `TopicPartitionsMonitoring` больше
+16. `TopicPartitionsMonitoring` удалён. Если использовали его явно - реализуйте его самостоятельно. Также `TopicPartitionsMonitoring` больше
     не нужно передавать в конструктор `KafkaConsumer`.
 
 ## [17.0.0] - 2025-08-01

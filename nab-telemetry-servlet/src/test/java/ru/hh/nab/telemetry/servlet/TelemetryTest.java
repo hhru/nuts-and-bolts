@@ -46,7 +46,6 @@ import static org.springframework.http.RequestEntity.get;
 import static org.springframework.http.RequestEntity.head;
 import org.springframework.http.ResponseEntity;
 import ru.hh.nab.common.constants.RequestHeaders;
-import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.nab.web.exceptions.AnyExceptionMapper;
 import ru.hh.nab.web.jersey.filter.ResourceInformationFilter;
 import ru.hh.nab.web.resource.StatusResource;
@@ -93,17 +92,11 @@ public class TelemetryTest {
     assertEquals(SpanKind.SERVER, span.getKind());
     assertEquals("TestResource#simple", span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
-    assertEquals("/simple", attributes.get(SemanticAttributesForRemoval.HTTP_TARGET));
     assertEquals("/simple", attributes.get(UrlAttributes.URL_PATH));
     assertEquals("/simple", attributes.get(HttpAttributes.HTTP_ROUTE));
-    assertEquals(200, attributes.get(SemanticAttributesForRemoval.HTTP_STATUS_CODE));
     assertEquals(200, attributes.get(HttpAttributes.HTTP_RESPONSE_STATUS_CODE));
-    assertEquals("GET", attributes.get(SemanticAttributesForRemoval.HTTP_METHOD));
     assertEquals("GET", attributes.get(HttpAttributes.HTTP_REQUEST_METHOD));
-    assertEquals("localhost", attributes.get(SemanticAttributesForRemoval.HTTP_HOST));
     assertEquals("localhost", attributes.get(ServerAttributes.SERVER_ADDRESS));
-    assertEquals("simple", attributes.get(SemanticAttributesForRemoval.CODE_FUNCTION));
-    assertEquals("ru.hh.nab.telemetry.servlet.TestResource", attributes.get(SemanticAttributesForRemoval.CODE_NAMESPACE));
     assertEquals("ru.hh.nab.telemetry.servlet.TestResource.simple", attributes.get(CodeAttributes.CODE_FUNCTION_NAME));
     assertEquals(userAgent, attributes.get(UserAgentAttributes.USER_AGENT_ORIGINAL));
   }

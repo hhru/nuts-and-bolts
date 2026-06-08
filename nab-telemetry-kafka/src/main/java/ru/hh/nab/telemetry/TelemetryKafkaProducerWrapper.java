@@ -19,8 +19,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.nab.kafka.producer.KafkaSendResult;
 import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
-import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND;
-import static ru.hh.nab.telemetry.semconv.KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID;
 
 public class TelemetryKafkaProducerWrapper extends KafkaProducer {
   private final String clusterName;
@@ -46,9 +44,6 @@ public class TelemetryKafkaProducerWrapper extends KafkaProducer {
         .setAttribute(PEER_SERVICE, clusterName)
         .setAttribute(MessagingIncubatingAttributes.MESSAGING_SYSTEM, KAFKA)
         .setAttribute(MESSAGING_DESTINATION_NAME, record.topic())
-        .setAttribute(MESSAGING_DESTINATION_KIND, "topic")
-
-        .setAttribute(MESSAGING_KAFKA_CLIENT_ID, clientId)
         .setAttribute(MESSAGING_CLIENT_ID, clientId);
 
     if (record.key() != null) {

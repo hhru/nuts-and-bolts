@@ -24,7 +24,6 @@ import ru.hh.jclient.common.Uri;
 import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
 import ru.hh.nab.telemetry.semconv.NabHttpAttributes;
 import ru.hh.nab.telemetry.semconv.NabPeerAttributes;
-import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 
 public class TelemetryListenerImpl implements HttpClientEventListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryListenerImpl.class);
@@ -60,27 +59,19 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
         .spanBuilder(request.getMethod() + " " + host)
         .setParent(Context.current())
         .setSpanKind(SpanKind.CLIENT)
-
-        .setAttribute(SemanticAttributesForRemoval.HTTP_URL, request.getUrl())
         .setAttribute(UrlAttributes.URL_FULL, request.getUrl())
-
-        .setAttribute(SemanticAttributesForRemoval.HTTP_METHOD, request.getMethod())
         .setAttribute(HttpAttributes.HTTP_REQUEST_METHOD, request.getMethod())
-
         .setAttribute(NabHttpAttributes.HTTP_REQUEST_TIMEOUT, request.getRequestTimeout())
         .setAttribute(
             NabHttpAttributes.HTTP_REQUEST_ORIGINAL_TIMEOUT,
             ofNullable(request.getHeaders().get(HttpHeaderNames.X_OUTER_TIMEOUT_MS)).orElse("-1")
         )
-        .setAttribute(PeerIncubatingAttributes.PEER_SERVICE, host);
-
-    builder.setAttribute(SemanticAttributesForRemoval.HTTP_REQUEST_CLOUD_REGION, context.getDestinationDatacenter());
-    builder.setAttribute(NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE, context.getDestinationDatacenter());
-
-    builder.setAttribute(
-        DestinationIncubatingAttributes.DESTINATION_ADDRESS,
-        context.getDestinationHost() == null ? getExactUriHost(request.getUri()) : context.getDestinationHost()
-    );
+        .setAttribute(PeerIncubatingAttributes.PEER_SERVICE, host)
+        .setAttribute(NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE, context.getDestinationDatacenter())
+        .setAttribute(
+            DestinationIncubatingAttributes.DESTINATION_ADDRESS,
+            context.getDestinationHost() == null ? getExactUriHost(request.getUri()) : context.getDestinationHost()
+        );
 
     span = builder.startSpan();
     LOGGER.trace("span started : {}", span);
@@ -103,10 +94,7 @@ public class TelemetryListenerImpl implements HttpClientEventListener {
 
     StatusCode otelStatus = TelemetryPropagator.getStatus(response.getStatusCode());
     span.setStatus(otelStatus);
-
-    span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, response.getStatusCode());
     span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, response.getStatusCode());
-
     span.end();
 
     LOGGER.trace("span closed: {}", span);

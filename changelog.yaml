@@ -1,9 +1,13 @@
+-   name: 33.0.0
+    date: '2026-06-09T15:24:45.942570+03:00'
+    description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#33-0-0-2026-06-09'
+    instructions: 'Смотри инструкции в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#33-0-0-2026-06-09'
+    compatible: false
+
 -   name: 32.0.0
     date: '2026-06-04T12:15:46.672725+03:00'
-    description: 'Смотри описание в CHANGELOG.md: 
-        https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#32-0-0-2026-06-04'
-    instructions: 'Смотри инструкцию по миграции в CHANGELOG.md: 
-        https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#32-0-0-2026-06-04'
+    description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#32-0-0-2026-06-04'
+    instructions: 'Смотри инструкцию по миграции в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#32-0-0-2026-06-04'
     compatible: false
 
 -   name: 31.0.1

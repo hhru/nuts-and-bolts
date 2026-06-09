@@ -3,6 +3,31 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [33.0.0] - 2026-06-09
+
+### Удалено
+
+1. Удалена отправка устаревших OpenTelemetry атрибутов.
+2. Удалены атрибуты, помеченные как deprecated в версии `32.0.0`:
+   - `SemanticAttributesForRemoval.CODE_FUNCTION` 
+   - `SemanticAttributesForRemoval.CODE_NAMESPACE` 
+   - `SemanticAttributesForRemoval.HTTP_CLIENT_IP` 
+   - `SemanticAttributesForRemoval.HTTP_STATUS_CODE` 
+   - `SemanticAttributesForRemoval.HTTP_HOST` 
+   - `SemanticAttributesForRemoval.HTTP_METHOD` 
+   - `SemanticAttributesForRemoval.HTTP_REQUEST_CLOUD_REGION` 
+   - `SemanticAttributesForRemoval.HTTP_SCHEME` 
+   - `SemanticAttributesForRemoval.HTTP_TARGET` 
+   - `SemanticAttributesForRemoval.HTTP_URL` 
+   - `KafkaSemanticAttributesForRemoval.MESSAGING_DESTINATION_KIND` 
+   - `KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CLIENT_ID` 
+   - `KafkaSemanticAttributesForRemoval.MESSAGING_KAFKA_CONSUMER_GROUP` 
+   - `KafkaSemanticAttributesForRemoval.MESSAGING_OPERATION`
+
+### Инструкции
+
+Удалить использование deprecated атрибутов (см ченджлог для версии `32.0.0`).
+
 ## [32.0.0] - 2026-06-04
 
 ### Добавлено
@@ -16,16 +41,16 @@
 
 ### Устарело
 
-- Начиная с этой версии некоторые span атрибуты OpenTelemetry помечаются как deprecated и будут удалены в будущих версиях. Вместе со старыми 
-  атрибутами будут добавлены новые аналоги, что приведёт к увеличению потребляемого места в вашем хранилище OpenTelemetry.
-  Если вы не знаете зачем вам могли бы понадобиться сразу 2 набора атрибутов в этой переходной версии - сразу обновляйтесь на последующие
-  версии, с целью экономии места в хранилища.
+- В этой версии некоторые span атрибуты OpenTelemetry помечаются как deprecated и будут удалены в версии `33.0.0`. Вместе со старыми 
+  атрибутами будут отправляться новые аналоги, что приведёт к увеличению потребляемого места в вашем хранилище OpenTelemetry.
+  Если вы не знаете зачем вам могли бы понадобиться сразу 2 набора атрибутов в этой переходной версии - сразу обновляйтесь на версию `33.0.0`, 
+  с целью экономии места в хранилище (при этом необходимо выполнить все инструкции для версии `32.0.0`).
   Изменения в атрибутах:
   - Вместо `SemanticAttributes.CODE_FUNCTION` (здесь и далее в скобках будет приводиться текстовое значение, которое нужно поискать в коде
     текстовым поиском помимо константы; если вы нашли такое текстовое значение, то рекомендуется заменить его на константу; `code.function`)
     и `SemanticAttributes.CODE_NAMESPACE` (`code.namespace`) нужно использовать 1 общий атрибут
-    `CodeAttributes.CODE_FUNCTION_NAME` (`code.function.name`). Смотри подробнее в Javadoc `SemanticAttributesForRemoval.CODE_FUNCTION`,
-    `SemanticAttributesForRemoval.CODE_NAMESPACE` как они соотносятся.  
+    `CodeAttributes.CODE_FUNCTION_NAME` (`code.function.name`). Новый атрибут `CodeAttributes.CODE_FUNCTION_NAME` является объединением 
+    `SemanticAttributes.CODE_NAMESPACE + "." + CodeAttributes.CODE_FUNCTION_NAME`.
   - Вместо `SemanticAttributes.HTTP_CLIENT_IP` (`http.client_ip`) нужно использовать `ClientAttributes.CLIENT_ADDRESS` (`client.address`).
   - Вместо `SemanticAttributes.HTTP_HOST` (`http.host`) нужно использовать `ServerAttributes.SERVER_ADDRESS` (`server.address`).
   - Вместо `SemanticAttributes.HTTP_METHOD` (`http.method`) нужно использовать `HttpAttributes.HTTP_REQUEST_METHOD` (`http.request.method`).
@@ -35,7 +60,8 @@
   - Вместо `SemanticAttributes.HTTP_STATUS_CODE` (`http.status_code`) нужно использовать
     `HttpAttributes.HTTP_RESPONSE_STATUS_CODE` (`http.response.status_code`).
   - Вместо `SemanticAttributes.HTTP_TARGET` (`http.target`) нужно использовать 2 атрибута: `UrlAttributes.URL_PATH` (`url.path`) и
-    `UrlAttributes.URL_QUERY` (`url.query`). Смотри подробнее в Javadoc `SemanticAttributesForRemoval.HTTP_TARGET` как они соотносятся.
+    `UrlAttributes.URL_QUERY` (`url.query`). Старый атрибут `SemanticAttributes.HTTP_TARGET` являлся объединением
+    `UrlAttributes.URL_PATH + (UrlAttributes.URL_QUERY == null ? "" : "?" + UrlAttributes.URL_QUERY)`.
   - Вместо `SemanticAttributes.HTTP_URL` (`http.url`) нужно использовать `UrlAttributes.URL_FULL` (`url.full`).
   - Вместо `SemanticAttributes.MESSAGING_KAFKA_CLIENT_ID` (`messaging.kafka.client_id`) нужно использовать
     `MessagingIncubatingAttributes.MESSAGING_CLIENT_ID` (`messaging.client.id`).
@@ -45,6 +71,7 @@
     `MessagingIncubatingAttributes.MESSAGING_OPERATION_TYPE` (`messaging.operation.type`).
     При этом константа значений тоже меняется: вместо `SemanticAttributes.MessagingOperationValues` надо использовать
     `MessagingIncubatingAttributes.MessagingOperationTypeIncubatingValues`.
+  - Использование атрибута `SemanticAttributes.MESSAGING_DESTINATION_KIND` (`messaging.destination.kind`) нужно удалить.
 
 ### Удалено
 
@@ -188,8 +215,12 @@
     Это нужно делать только если вы не можете мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной
     совместимости.
 13. Для всех остальных deprecated атрибутов вида `SemanticAttributes.CODE_FUNCTION` нужно поменять префикс констант на
-    `SemanticAttributesForRemoval.CODE_FUNCTION`. Внутренние значение спанов при этом **НЕ меняются**. Это нужно делать только если вы не можете
-    мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной совместимости.
+    `SemanticAttributesForRemoval.CODE_FUNCTION`. 
+    
+    Внутренние значения спанов при этом **НЕ меняются**. 
+
+    Это нужно делать только если вы не можете мигрировать с этих deprecated атрибутов и вам нужно временно сохранить старые значения для обратной 
+    совместимости.
 14. Меняется формат значения в span атрибуте `SemanticAttributesForRemoval.CODE_NAMESPACE` (`code.namespace`). Вместо `class.getCanonicalName()`
     теперь используется `class.getName()`. Т.е. вместо `ru.hh.nab.MyClass.MyInnerStaticClass` будет `ru.hh.nab.MyClass$MyInnerStaticClass`
     Адаптируйте код если у вас были завязки на старый формат.

@@ -37,7 +37,6 @@ import static ru.hh.nab.common.constants.RequestAttributes.MAPPED_EXCEPTION;
 import ru.hh.nab.common.constants.RequestHeaders;
 import static ru.hh.nab.common.mdc.MDC.CONTROLLER_MDC_KEY;
 import static ru.hh.nab.telemetry.TelemetryUtils.addExceptionEventToSpan;
-import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.trace.TraceContextUnsafe;
 import ru.hh.trace.TraceIdGenerator;
 
@@ -82,26 +81,16 @@ public class TelemetryFilter implements Filter {
             .spanBuilder("unknown controller")
             .setParent(telemetryContext)
             .setSpanKind(SpanKind.SERVER)
-
-            .setAttribute(SemanticAttributesForRemoval.HTTP_METHOD, httpServletRequest.getMethod())
             .setAttribute(HttpAttributes.HTTP_REQUEST_METHOD, httpServletRequest.getMethod())
-
-            .setAttribute(SemanticAttributesForRemoval.HTTP_HOST, url.getHost())
             .setAttribute(ServerAttributes.SERVER_ADDRESS, url.getHost())
-
-            .setAttribute(SemanticAttributesForRemoval.HTTP_TARGET, url.getFile())
             .setAttribute(UrlAttributes.URL_PATH, url.getPath());
         if (url.getQuery() != null) {
           spanBuilder.setAttribute(UrlAttributes.URL_QUERY, url.getQuery());
         }
 
         Span span = spanBuilder
-            .setAttribute(SemanticAttributesForRemoval.HTTP_SCHEME, url.getProtocol())
             .setAttribute(UrlAttributes.URL_SCHEME, url.getProtocol())
-
-            .setAttribute(SemanticAttributesForRemoval.HTTP_CLIENT_IP, request.getRemoteAddr())
             .setAttribute(ClientAttributes.CLIENT_ADDRESS, request.getRemoteAddr())
-
             .setAttribute(UserAgentAttributes.USER_AGENT_ORIGINAL, ofNullable(httpServletRequest.getHeader("User-Agent")).orElse("noUserAgent"))
             .startSpan();
 
@@ -116,20 +105,12 @@ public class TelemetryFilter implements Filter {
           String codeFunctionName = (String) httpServletRequest.getAttribute(CODE_FUNCTION_NAME);
           if (codeFunctionName != null) {
             span.setAttribute(CodeAttributes.CODE_FUNCTION_NAME, codeFunctionName);
-
-            int lastDotIndex = codeFunctionName.lastIndexOf('.');
-            String codeNamespace = codeFunctionName.substring(0, lastDotIndex);
-            String codeFunction = codeFunctionName.substring(lastDotIndex + 1);
-
-            span.setAttribute(SemanticAttributesForRemoval.CODE_FUNCTION, codeFunction);
-            span.setAttribute(SemanticAttributesForRemoval.CODE_NAMESPACE, codeNamespace);
           }
           String httpRoute = (String) httpServletRequest.getAttribute(HTTP_ROUTE);
           if (httpRoute != null) {
             span.setAttribute(HttpAttributes.HTTP_ROUTE, httpRoute);
           }
 
-          span.setAttribute(SemanticAttributesForRemoval.HTTP_STATUS_CODE, httpServletResponse.getStatus());
           span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, httpServletResponse.getStatus());
 
           StatusCode status = TelemetryPropagator.getStatus(httpServletResponse.getStatus());

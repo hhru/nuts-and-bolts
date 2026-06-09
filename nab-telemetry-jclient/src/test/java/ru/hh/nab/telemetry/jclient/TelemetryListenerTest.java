@@ -45,7 +45,6 @@ import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.Response;
 import ru.hh.jclient.common.Uri;
 import ru.hh.nab.telemetry.semconv.NabPeerAttributes;
-import ru.hh.nab.telemetry.semconv.SemanticAttributesForRemoval;
 import ru.hh.trace.TraceContext;
 
 @SpringBootTest(classes = TelemetryListenerTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -105,9 +104,7 @@ public class TelemetryListenerTest {
     assertEquals(SpanKind.CLIENT, span.getKind());
     assertEquals("GET " + TelemetryListenerImpl.getNetloc(Uri.create(url)), span.getName());
     assertEquals("0000000000000000", span.getParentSpanId());
-    assertEquals(url, attributes.get(SemanticAttributesForRemoval.HTTP_URL));
     assertEquals(url, attributes.get(UrlAttributes.URL_FULL));
-    assertNull(attributes.get(SemanticAttributesForRemoval.HTTP_REQUEST_CLOUD_REGION));
     assertNull(attributes.get(NabPeerAttributes.PEER_CLOUD_AVAILABILITY_ZONE));
     assertEquals("localhost", attributes.get(DestinationIncubatingAttributes.DESTINATION_ADDRESS));
   }

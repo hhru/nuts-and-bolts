@@ -1,3 +1,9 @@
+-   name: 34.0.0
+    date: '2026-06-19T16:59:14.320730+03:00'
+    description: Удален SpringExtensionWithFailFast
+    instructions: Удалить использование SpringExtensionWithFailFast
+    compatible: false
+
 -   name: 33.0.0
     date: '2026-06-09T15:24:45.942570+03:00'
     description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#33-0-0-2026-06-09'

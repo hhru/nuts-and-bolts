@@ -1,3 +1,11 @@
+-   name: 34.0.2
+    date: '2026-06-23T08:00:22.155990+03:00'
+    description: Замена default значения порта statsd с 8125 на 8126. На этом порту
+        находится relay, который шлет метрики и в окметр и в vmagent, чтобы они были
+        доступны новому мониторингу
+    instructions: ''
+    compatible: true
+
 -   name: 34.0.0
     date: '2026-06-19T16:59:14.320730+03:00'
     description: Удален SpringExtensionWithFailFast

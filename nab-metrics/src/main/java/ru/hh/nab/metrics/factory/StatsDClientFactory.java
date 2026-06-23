@@ -41,7 +41,7 @@ public class StatsDClientFactory {
   public static final String STATSD_BUFFER_POOL_SIZE_PROPERTY = "statsd.buffer.pool.size";
 
   public static final String DEFAULT_HOST = "localhost";
-  public static final int DEFAULT_PORT = 8125;
+  public static final int DEFAULT_PORT = 8126;
   public static final int DEFAULT_QUEUE_SIZE = 10_000;
   public static final int DEFAULT_UDP_MAX_PACKET_SIZE = NonBlockingStatsDClient.DEFAULT_UDP_MAX_PACKET_SIZE_BYTES;
   public static final int DEFAULT_BUFFER_POOL_SIZE = 8;

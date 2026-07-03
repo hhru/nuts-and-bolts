@@ -50,7 +50,7 @@
     текстовым поиском помимо константы; если вы нашли такое текстовое значение, то рекомендуется заменить его на константу; `code.function`)
     и `SemanticAttributes.CODE_NAMESPACE` (`code.namespace`) нужно использовать 1 общий атрибут
     `CodeAttributes.CODE_FUNCTION_NAME` (`code.function.name`). Новый атрибут `CodeAttributes.CODE_FUNCTION_NAME` является объединением 
-    `SemanticAttributes.CODE_NAMESPACE + "." + CodeAttributes.CODE_FUNCTION_NAME`.
+    `SemanticAttributes.CODE_NAMESPACE + "." + SemanticAttributes.CODE_FUNCTION`.
   - Вместо `SemanticAttributes.HTTP_CLIENT_IP` (`http.client_ip`) нужно использовать `ClientAttributes.CLIENT_ADDRESS` (`client.address`).
   - Вместо `SemanticAttributes.HTTP_HOST` (`http.host`) нужно использовать `ServerAttributes.SERVER_ADDRESS` (`server.address`).
   - Вместо `SemanticAttributes.HTTP_METHOD` (`http.method`) нужно использовать `HttpAttributes.HTTP_REQUEST_METHOD` (`http.request.method`).

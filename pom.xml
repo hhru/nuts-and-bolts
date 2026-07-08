@@ -35,7 +35,7 @@
     </modules>
 
     <properties>
-        <jclient.version>16.0.0</jclient.version>
+        <jclient.version>16.0.1</jclient.version>
         <java.version>17</java.version>
         <consul.client.version>3.1.2</consul.client.version>
         <kafka-test-utils.version>2.0.1</kafka-test-utils.version>

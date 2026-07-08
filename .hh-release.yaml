@@ -1,5 +1,5 @@
 version: 34.0.2
-build_image: registry.pyn.ru/openjdk17-building:2024.05.01
+build_image: registry.pyn.ru/openjdk25-building:2026.07.06
 type: library
 build_method: mvn_build
 deploy_method: mvn_deploy

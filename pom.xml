@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.public-pom</groupId>
         <artifactId>public-pom</artifactId>
-        <version>3.0.0</version>
+        <version>4.1.1</version>
     </parent>
 
     <groupId>ru.hh.nab</groupId>
@@ -35,10 +35,10 @@
     </modules>
 
     <properties>
-        <jclient.version>16.0.0</jclient.version>
-        <java.version>17</java.version>
-        <consul.client.version>3.1.2</consul.client.version>
-        <kafka-test-utils.version>2.0.0</kafka-test-utils.version>
+        <jclient.version>16.0.1</jclient.version>
+        <consul.client.version>3.1.3</consul.client.version>
+        <kafka-test-utils.version>2.0.1</kafka-test-utils.version>
+        <maven-compiler.release.version>17</maven-compiler.release.version>
     </properties>
 
     <dependencyManagement>
@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>ru.hh.errors</groupId>
                 <artifactId>errors-common</artifactId>
-                <version>1.0.1</version>
+                <version>1.0.2</version>
             </dependency>
 
             <dependency>
@@ -169,14 +169,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <release>${java.version}</release>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts telemetry</name>
 
+    <properties>
+        <argLine.javaagent.mockito />
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>

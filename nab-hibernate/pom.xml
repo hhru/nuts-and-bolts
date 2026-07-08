@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts hibernate persistence provider</name>
 
+    <properties>
+        <argLine.javaagent.mockito />
+    </properties>
+
     <build>
         <plugins>
             <plugin>

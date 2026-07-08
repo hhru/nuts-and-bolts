@@ -13,6 +13,10 @@
 
     <name>nuts'n'bolts jpa and spring integration</name>
 
+    <properties>
+        <argLine.javaagent.mockito />
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ru.hh.nab</groupId>

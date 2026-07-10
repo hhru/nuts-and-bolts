@@ -1,3 +1,9 @@
+-   name: 34.0.4
+    date: '2026-07-10T16:52:03.927662+03:00'
+    description: Обновление зависимостей
+    instructions: ''
+    compatible: true
+
 -   name: 34.0.3
     date: '2026-07-08T11:33:08.559655+03:00'
     description: Обновление зависимостей

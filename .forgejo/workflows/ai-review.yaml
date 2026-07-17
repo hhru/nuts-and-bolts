@@ -1,0 +1,29 @@
+# Ревью PR:
+# - автоматически при создании PR из HH-* ветки в master
+# - по команде "/ai-review" в комментариях (для любых PR)
+name: PR Review
+
+on:
+  pull_request:
+    types: [ opened ]
+  issue_comment:
+    types: [ created ]
+
+jobs:
+  ai-review:
+    if: |
+      github.actor != 'claude' &&
+      (
+        (
+          github.event_name == 'pull_request' &&
+          startsWith(github.head_ref, 'HH-') &&
+          github.base_ref == 'master'
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          github.event.comment.body == '/ai-review'
+        )
+      )
+    runs-on: self-hosted
+    uses: https://forgejo.pyn.ru/actions/ai-review/.forgejo/workflows/review-backend-java.yml@main
+    secrets: inherit

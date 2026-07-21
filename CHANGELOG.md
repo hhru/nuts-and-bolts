@@ -3,6 +3,18 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [35.0.0] - 2026-07-21
+
+### Изменено
+
+- Классы `KafkaTelemetryPropagator`, `TelemetryAwareConsumerFactory`, `TelemetryAwareProducerFactory`, `TelemetryConsumeStrategyWrapper`,
+  `TelemetryKafkaProducerWrapper` в модуле nab-telemetry-kafka перемещены в подпакет `ru.hh.nab.telemetry.kafka`
+
+### Инструкции
+
+Поменяйте имя пакета для классов `KafkaTelemetryPropagator`, `TelemetryAwareConsumerFactory`, `TelemetryAwareProducerFactory`, `TelemetryConsumeStrategyWrapper`,
+`TelemetryKafkaProducerWrapper` с `ru.hh.nab.telemetry` на `ru.hh.nab.telemetry.kafka`.
+
 ## [33.0.0] - 2026-06-09
 
 ### Удалено

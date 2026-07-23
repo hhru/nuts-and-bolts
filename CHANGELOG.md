@@ -3,6 +3,20 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [36.0.0] - 2026-07-24
+
+### Удалено
+
+- классы `LoggingUncaughtExceptionHandler`, `ScheduledExecutor`, `FileSettings`, `PropertiesUtils`, `UriComponent`, `ExceptionUtils`, 
+  `ThreadDumpWriter` перенесены из модуля `nab-common` в отдельную библиотеку https://forgejo.pyn.ru/hhru/hh-platform-utils
+- класс `ThreadDiagnosticRejectedExecutionHandler` перенесен из модуля `nab-metrics` в отдельную 
+  библиотеку https://forgejo.pyn.ru/hhru/hh-platform-utils
+
+### Инструкции
+
+Если в вашем коде используются классы `LoggingUncaughtExceptionHandler`, `ScheduledExecutor`, `FileSettings`, `PropertiesUtils`, `UriComponent`, 
+`ExceptionUtils`, `ThreadDumpWriter`, то необходимо подключить зависимость `hh-platform-utils` и поправить импорты.
+
 ## [35.0.0] - 2026-07-21
 
 ### Изменено

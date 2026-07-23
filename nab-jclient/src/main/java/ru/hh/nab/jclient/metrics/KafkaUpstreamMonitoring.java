@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.HttpHeaderNames;
 import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.producer.KafkaProducer;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class KafkaUpstreamMonitoring implements Monitoring {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaUpstreamMonitoring.class);

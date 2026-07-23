@@ -25,7 +25,6 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.support.TopicPartitionOffset;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.consumer.retry.RetryPolicyResolver;
 import ru.hh.nab.kafka.consumer.retry.RetryTopics;
 import ru.hh.nab.kafka.exception.ConfigurationException;
@@ -38,6 +37,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_AUTH_EXCEPTION_RETRY_I
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_CONSUMER_ENABLED;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_POLL_TIMEOUT_MS;
 import static ru.hh.nab.kafka.util.ConfigProvider.POLL_TIMEOUT;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class DefaultConsumerBuilder<T> implements ConsumerBuilder<T> {
 

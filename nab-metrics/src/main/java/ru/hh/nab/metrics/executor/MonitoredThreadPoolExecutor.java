@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
@@ -25,6 +24,7 @@ import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.backoff.ExponentialBackOff;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
@@ -18,6 +17,7 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_INITIAL_INTERV
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MAX_INTERVAL;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_BACKOFF_MULTIPLIER;
 import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
   protected final ConfigProvider configProvider;

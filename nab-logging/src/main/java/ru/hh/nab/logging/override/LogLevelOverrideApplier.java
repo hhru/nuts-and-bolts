@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.PropertiesUtils;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 import ru.hh.trace.Scope;
 import ru.hh.trace.TraceContext;
 

@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_SIZE;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS;
@@ -40,6 +39,7 @@ import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
 import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 import static ru.hh.nab.metrics.Tag.DATASOURCE_TAG_NAME;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabMetricsTrackerFactory.class);

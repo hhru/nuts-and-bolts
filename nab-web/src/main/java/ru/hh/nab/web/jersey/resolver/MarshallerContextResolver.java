@@ -9,10 +9,10 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import org.springframework.core.serializer.support.SerializationFailedException;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 

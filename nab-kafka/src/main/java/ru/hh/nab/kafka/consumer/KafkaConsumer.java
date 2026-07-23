@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.util.CollectionUtils;
-import static ru.hh.nab.common.util.ExceptionUtils.getOrThrow;
+import static ru.hh.platform.utils.util.ExceptionUtils.getOrThrow;
 
 public class KafkaConsumer<T> implements SmartLifecycle {
 

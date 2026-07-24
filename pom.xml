@@ -36,7 +36,7 @@
 
     <properties>
         <hh-platform-utils.version>1.0.0</hh-platform-utils.version>
-        <jclient.version>16.0.2</jclient.version>
+        <jclient.version>17.0.0</jclient.version>
         <consul.client.version>3.1.4</consul.client.version>
         <kafka-test-utils.version>2.0.2</kafka-test-utils.version>
         <maven-compiler.release.version>17</maven-compiler.release.version>

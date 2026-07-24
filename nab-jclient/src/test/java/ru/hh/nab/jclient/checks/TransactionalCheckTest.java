@@ -35,7 +35,7 @@ import ru.hh.jclient.common.HttpClientContext;
 import ru.hh.jclient.common.HttpClientFactory;
 import ru.hh.jclient.common.RequestBuilder;
 import ru.hh.jclient.common.util.storage.SingletonStorage;
-import ru.hh.nab.common.executor.ScheduledExecutor;
+import ru.hh.platform.utils.executor.ScheduledExecutor;
 import ru.hh.trace.TraceContext;
 
 @SpringBootTest(classes = TransactionalCheckTest.TestConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)

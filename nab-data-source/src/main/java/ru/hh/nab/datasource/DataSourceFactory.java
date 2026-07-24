@@ -25,8 +25,6 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.PropertiesUtils;
-import ru.hh.nab.common.servlet.UriComponent;
 import static ru.hh.nab.datasource.DataSourceSettings.DEFAULT_VALIDATION_TIMEOUT_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_ENABLED;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_SETTINGS_PREFIX;
@@ -42,6 +40,8 @@ import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.MetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.monitoring.StatementTimeoutDataSource;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
+import ru.hh.platform.utils.properties.PropertiesUtils;
+import ru.hh.platform.utils.servlet.UriComponent;
 
 public class DataSourceFactory {
 

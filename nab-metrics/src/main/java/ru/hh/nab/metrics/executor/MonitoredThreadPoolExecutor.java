@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.metrics.CompactHistogram;
 import ru.hh.nab.metrics.Histogram;
 import ru.hh.nab.metrics.Max;
@@ -25,8 +24,10 @@ import ru.hh.nab.metrics.StatsDSender;
 import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
 import ru.hh.nab.metrics.Tag;
 import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.platform.utils.executor.NamedThreadPoolExecutor;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
-public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
+public class MonitoredThreadPoolExecutor extends NamedThreadPoolExecutor {
 
   public static final String MIN_SIZE_PROPERTY = "minSize";
   public static final String MAX_SIZE_PROPERTY = "maxSize";
@@ -57,7 +58,6 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
   private final Histogram taskDurationMetric;
   private final Histogram taskExecutionStartLagMetric;
   private final ThreadLocal<Long> taskStart = new ThreadLocal<>();
-  private final String threadPoolName;
   private final Integer longTaskDurationMs;
 
   private MonitoredThreadPoolExecutor(
@@ -75,16 +75,11 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
       int taskExecutionStartLagHistogramSize,
       int taskExecutionStartLagHistogramCompactionRatio
   ) {
-    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler, threadPoolName);
 
     this.longTaskDurationMs = longTaskDurationMs;
-    this.threadPoolName = threadPoolName;
     this.taskDurationMetric = new CompactHistogram(taskDurationHistogramSize, taskDurationHistogramCompactionRatio);
     this.taskExecutionStartLagMetric = new CompactHistogram(taskExecutionStartLagHistogramSize, taskExecutionStartLagHistogramCompactionRatio);
-  }
-
-  public String getThreadPoolName() {
-    return threadPoolName;
   }
 
   @Override
@@ -110,7 +105,7 @@ public class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
     taskDurationMetric.save(taskDuration);
 
     if (longTaskDurationMs != null && taskDuration >= longTaskDurationMs) {
-      LOGGER.warn("{} thread pool task execution took too long: {} ms >= {} ms", threadPoolName, taskDuration, longTaskDurationMs);
+      LOGGER.warn("{} thread pool task execution took too long: {} ms >= {} ms", getThreadPoolName(), taskDuration, longTaskDurationMs);
     }
   }
 

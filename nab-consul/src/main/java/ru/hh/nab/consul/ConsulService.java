@@ -24,7 +24,7 @@ import ru.hh.consul.model.catalog.ServiceWeights;
 import ru.hh.consul.model.kv.Value;
 import ru.hh.consul.option.ConsistencyMode;
 import ru.hh.consul.option.ImmutableQueryOptions;
-import ru.hh.nab.common.properties.PropertiesUtils;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class ConsulService {
 

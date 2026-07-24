@@ -40,7 +40,6 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.jta.JtaTransactionManager;
-import ru.hh.nab.common.properties.PropertiesUtils;
 import ru.hh.nab.datasource.transaction.DataSourceContextTransactionManager;
 import ru.hh.nab.datasource.transaction.TransactionalScope;
 import ru.hh.nab.hibernate.adapter.NabHibernateJpaVendorAdapter;
@@ -48,6 +47,7 @@ import ru.hh.nab.hibernate.adapter.NabHibernatePersistenceProvider;
 import ru.hh.nab.hibernate.properties.HibernatePropertiesProvider;
 import ru.hh.nab.hibernate.service.NabServiceContributor;
 import ru.hh.nab.hibernate.service.ServiceSupplier;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 @SpringBootTest(classes = NabSessionFactoryBuilderFactoryTest.TestContext.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class NabSessionFactoryBuilderFactoryTest {

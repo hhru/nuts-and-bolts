@@ -20,8 +20,9 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-common</artifactId>
+            <groupId>ru.hh.platform.utils</groupId>
+            <artifactId>hh-platform-utils</artifactId>
+            <version>${hh-platform-utils.version}</version>
         </dependency>
 
         <dependency>

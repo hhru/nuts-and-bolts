@@ -20,10 +20,6 @@
         </dependency>
         <dependency>
             <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ru.hh.nab</groupId>
             <artifactId>nab-metrics</artifactId>
         </dependency>
 

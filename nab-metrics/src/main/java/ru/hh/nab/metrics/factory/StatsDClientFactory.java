@@ -4,7 +4,7 @@ import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
 import java.util.Properties;
-import ru.hh.nab.common.properties.PropertiesUtils;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class StatsDClientFactory {
 

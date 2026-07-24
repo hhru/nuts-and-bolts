@@ -19,8 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
-import static ru.hh.nab.common.util.ExceptionUtils.getOrThrow;
 import ru.hh.nab.kafka.KafkaTestConfig;
+import static ru.hh.platform.utils.util.ExceptionUtils.getOrThrow;
 
 @SpringBootTest(classes = KafkaTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public abstract class KafkaConsumerTestBase {

@@ -1,3 +1,9 @@
+-   name: 36.0.0
+    date: '2026-07-24T13:02:13.523920+03:00'
+    description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#36-0-0-2026-07-24'
+    instructions: 'Смотри инструкции в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#36-0-0-2026-07-24'
+    compatible: false
+
 -   name: 35.0.0
     date: '2026-07-21T15:26:44.586321+03:00'
     description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#35-0-0-2026-07-21'

@@ -3,11 +3,11 @@ package ru.hh.nab.datasource.healthcheck;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Set;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import static ru.hh.nab.metrics.Tag.DATASOURCE_TAG_NAME;
-import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
+import static ru.hh.metrics.Tag.DATASOURCE_TAG_NAME;
+import ru.hh.metrics.TaggedSender;
 
 public class HealthCheckHikariDataSourceFactory {
 

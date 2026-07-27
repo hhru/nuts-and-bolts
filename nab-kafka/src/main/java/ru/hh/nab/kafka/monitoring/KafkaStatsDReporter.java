@@ -13,9 +13,9 @@ import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
 
 public class KafkaStatsDReporter implements MetricsReporter {
   public static final String METRICS_ALLOWED = "metrics.allowed";

@@ -12,6 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
+import ru.hh.metrics.Counters;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
 import static ru.hh.nab.datasource.DataSourceSettings.DATASOURCE_NAME_FORMAT;
 import ru.hh.nab.datasource.DataSourceType;
@@ -19,10 +23,6 @@ import ru.hh.nab.datasource.NamedDataSource;
 import ru.hh.nab.datasource.ext.JdbcExtension;
 import ru.hh.nab.datasource.healthcheck.HealthCheck;
 import ru.hh.nab.datasource.healthcheck.HealthCheckDataSource;
-import ru.hh.nab.metrics.Counters;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
 
 public class RoutingDataSource extends AbstractRoutingDataSource {
 

@@ -6,11 +6,11 @@ import java.util.Properties;
 import java.util.Set;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import ru.hh.metrics.TaggedSender;
 import static ru.hh.nab.hibernate.monitoring.HibernateMetrics.QUERY_PLAN_CACHE_HIT_COUNT;
 import static ru.hh.nab.hibernate.monitoring.HibernateMetrics.QUERY_PLAN_CACHE_MISS_COUNT;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import ru.hh.nab.metrics.TaggedSender;
 
 public class HibernateStatisticsSender {
 

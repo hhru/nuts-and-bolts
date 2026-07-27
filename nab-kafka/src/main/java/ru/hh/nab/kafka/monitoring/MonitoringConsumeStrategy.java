@@ -5,11 +5,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.MDC;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.timinglogger.Timings;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerMetadata;
-import ru.hh.nab.metrics.StatsDSender;
 
 public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
 

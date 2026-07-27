@@ -10,8 +10,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.metrics.TaggedSender;
 import static ru.hh.nab.datasource.DataSourceSettings.HEALTHCHECK_DELAY;
-import ru.hh.nab.metrics.TaggedSender;
 import ru.hh.platform.utils.executor.ScheduledExecutor;
 
 public class HealthCheckHikariDataSource extends HikariDataSource implements HealthCheckDataSource {

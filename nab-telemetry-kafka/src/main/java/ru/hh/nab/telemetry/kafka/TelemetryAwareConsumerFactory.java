@@ -3,12 +3,12 @@ package ru.hh.nab.telemetry.kafka;
 import io.opentelemetry.api.OpenTelemetry;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
 import ru.hh.nab.kafka.consumer.DeserializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import ru.hh.nab.metrics.StatsDSender;
 
 public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   private final OpenTelemetry telemetry;

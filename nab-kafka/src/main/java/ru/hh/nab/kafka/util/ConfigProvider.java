@@ -17,9 +17,9 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import ru.hh.metrics.StatsDSender;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
-import ru.hh.nab.metrics.StatsDSender;
 import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class ConfigProvider {

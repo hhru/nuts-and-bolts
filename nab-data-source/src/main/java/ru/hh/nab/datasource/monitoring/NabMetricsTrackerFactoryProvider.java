@@ -1,7 +1,7 @@
 package ru.hh.nab.datasource.monitoring;
 
 import java.util.Properties;
-import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.metrics.StatsDSender;
 
 public class NabMetricsTrackerFactoryProvider implements MetricsTrackerFactoryProvider<NabMetricsTrackerFactory> {
   private final String serviceName;

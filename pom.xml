@@ -23,7 +23,6 @@
         <module>nab-testbase</module>
         <module>nab-logging</module>
         <module>nab-jclient</module>
-        <module>nab-metrics</module>
         <module>nab-telemetry</module>
         <module>nab-telemetry-servlet</module>
         <module>nab-telemetry-jclient</module>
@@ -36,6 +35,7 @@
 
     <properties>
         <hh-platform-utils.version>1.0.0</hh-platform-utils.version>
+        <hh-metrics.version>1.0.0</hh-metrics.version>
         <jclient.version>17.0.0</jclient.version>
         <consul.client.version>3.1.4</consul.client.version>
         <kafka-test-utils.version>2.0.2</kafka-test-utils.version>
@@ -82,11 +82,6 @@
             <dependency>
                 <groupId>ru.hh.nab</groupId>
                 <artifactId>nab-jclient</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ru.hh.nab</groupId>
-                <artifactId>nab-metrics</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

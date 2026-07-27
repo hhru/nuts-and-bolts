@@ -12,10 +12,10 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
+import ru.hh.metrics.Counters;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
 import ru.hh.nab.kafka.util.SleepUtils;
-import ru.hh.nab.metrics.Counters;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
 
 class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
   private static final String MALFORMED_MESSAGE_METRIC_NAME = "nab.kafka.errors.records.deserialization.count";

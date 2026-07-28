@@ -5,8 +5,8 @@ import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
 import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
 
 /**
  * UpstreamMonitoring sends requests metrics to okmeter.io using StatsD.

@@ -1,4 +1,0 @@
-<configuration>
-  <!-- Disable all logging during nab-metrics tests -->
-  <root level="OFF" />
-</configuration>

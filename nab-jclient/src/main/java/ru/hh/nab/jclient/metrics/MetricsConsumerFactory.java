@@ -3,7 +3,7 @@ package ru.hh.nab.jclient.metrics;
 import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import ru.hh.jclient.common.metrics.MetricsConsumer;
-import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.metrics.StatsDSender;
 
 public class MetricsConsumerFactory {
   private MetricsConsumerFactory() {}

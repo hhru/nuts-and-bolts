@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.RequestEntity.get;
-import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_NAME;
 

@@ -13,10 +13,10 @@ import org.eclipse.jetty.util.thread.Scheduler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
+import ru.hh.metrics.TaggedSender;
 
 /**
  * ServerConnector that immediately closes new incoming connections if there is no idle thread in the main thread pool

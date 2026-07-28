@@ -9,10 +9,10 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
-import ru.hh.nab.metrics.StatsDSender;
 
 public class TestDataSourceFactory extends DataSourceFactory {
 

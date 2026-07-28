@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
+import ru.hh.metrics.StatsDSender;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
 import ru.hh.nab.kafka.consumer.DeserializerSupplier;
 import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;
@@ -18,7 +19,6 @@ import ru.hh.nab.kafka.producer.SerializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonDeserializerSupplier;
 import ru.hh.nab.kafka.serialization.JacksonSerializerSupplier;
 import ru.hh.nab.kafka.util.ConfigProvider;
-import ru.hh.nab.metrics.StatsDSender;
 
 @Configuration
 public class KafkaTestConfig {

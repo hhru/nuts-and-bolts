@@ -3,6 +3,17 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [37.0.0] - 2026-07-28
+
+### Удалено
+
+Модуль `nab-metrics` удален. Все классы из данного модуля были перенесены в отдельную библиотеку [hh-metrics](https://forgejo.pyn.ru/hhru/hh-metrics).
+
+### Инструкции
+
+1. В помнике подключите зависимость `ru.hh.metrics:hh-metrics` вместо `ru.hh.nab:nab-metrics`.
+2. В импортах поменяйте имя пакета с `ru.hh.nab.metrics` на `ru.hh.metrics`.
+
 ## [36.0.1] - 2026-07-24
 
 ### Изменено
@@ -14,9 +25,9 @@
 ### Удалено
 
 - классы `LoggingUncaughtExceptionHandler`, `ScheduledExecutor`, `FileSettings`, `PropertiesUtils`, `UriComponent`, `ExceptionUtils`, 
-  `ThreadDumpWriter` перенесены из модуля `nab-common` в отдельную библиотеку https://forgejo.pyn.ru/hhru/hh-platform-utils
+  `ThreadDumpWriter` перенесены из модуля `nab-common` в отдельную библиотеку [hh-platform-utils](https://forgejo.pyn.ru/hhru/hh-platform-utils)
 - класс `ThreadDiagnosticRejectedExecutionHandler` перенесен из модуля `nab-metrics` в отдельную 
-  библиотеку https://forgejo.pyn.ru/hhru/hh-platform-utils
+  библиотеку [hh-platform-utils](https://forgejo.pyn.ru/hhru/hh-platform-utils)
 
 ### Инструкции
 

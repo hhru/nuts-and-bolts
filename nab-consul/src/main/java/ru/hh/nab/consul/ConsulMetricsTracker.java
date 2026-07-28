@@ -1,10 +1,10 @@
 package ru.hh.nab.consul;
 
 import ru.hh.consul.monitoring.ClientEventCallback;
-import ru.hh.nab.metrics.Counters;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+import ru.hh.metrics.Counters;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
 
 public class ConsulMetricsTracker implements ClientEventCallback {
 

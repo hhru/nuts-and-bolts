@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.metrics.StatsDSender;
 
 public class HHServerConnectorFailFastTest {
   private static final int ACCEPTORS = 1;

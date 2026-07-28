@@ -3,10 +3,10 @@ package ru.hh.nab.web.jetty;
 import java.util.Set;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import ru.hh.nab.metrics.Max;
-import ru.hh.nab.metrics.StatsDSender;
-import ru.hh.nab.metrics.Tag;
-import ru.hh.nab.metrics.TaggedSender;
+import ru.hh.metrics.Max;
+import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
+import ru.hh.metrics.TaggedSender;
 
 public class MonitoredQueuedThreadPool extends QueuedThreadPool {
   private final Max queueSize = new Max(0);

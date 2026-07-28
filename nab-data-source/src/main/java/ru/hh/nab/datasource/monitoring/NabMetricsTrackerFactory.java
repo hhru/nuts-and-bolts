@@ -8,6 +8,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.hh.metrics.CompactHistogram;
+import ru.hh.metrics.Counters;
+import ru.hh.metrics.Histogram;
+import ru.hh.metrics.StatsDSender;
+import static ru.hh.metrics.StatsDSender.DEFAULT_PERCENTILES;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
+import static ru.hh.metrics.Tag.DATASOURCE_TAG_NAME;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_COMPACTION_RATIO;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_ACQUISITION_HISTOGRAM_SIZE;
 import static ru.hh.nab.datasource.DataSourceSettings.MONITORING_CONNECTION_TIMEOUT_MAX_NUM_OF_COUNTERS;
@@ -31,14 +39,6 @@ import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.SAMPLED_USAG
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_CONNECTIONS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.TOTAL_USAGE_MS;
 import static ru.hh.nab.datasource.monitoring.ConnectionPoolMetrics.USAGE_MS;
-import ru.hh.nab.metrics.CompactHistogram;
-import ru.hh.nab.metrics.Counters;
-import ru.hh.nab.metrics.Histogram;
-import ru.hh.nab.metrics.StatsDSender;
-import static ru.hh.nab.metrics.StatsDSender.DEFAULT_PERCENTILES;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
-import static ru.hh.nab.metrics.Tag.DATASOURCE_TAG_NAME;
 import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class NabMetricsTrackerFactory implements MetricsTrackerFactory {

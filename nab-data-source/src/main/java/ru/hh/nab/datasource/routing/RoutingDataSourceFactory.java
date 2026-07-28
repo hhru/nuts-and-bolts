@@ -1,7 +1,7 @@
 package ru.hh.nab.datasource.routing;
 
 import javax.sql.DataSource;
-import ru.hh.nab.metrics.StatsDSender;
+import ru.hh.metrics.StatsDSender;
 
 public class RoutingDataSourceFactory {
 

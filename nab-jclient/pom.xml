@@ -23,8 +23,9 @@
             <artifactId>nab-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>ru.hh.nab</groupId>
-            <artifactId>nab-metrics</artifactId>
+            <groupId>ru.hh.metrics</groupId>
+            <artifactId>hh-metrics</artifactId>
+            <version>${hh-metrics.version}</version>
         </dependency>
 
         <dependency>

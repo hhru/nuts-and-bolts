@@ -3,8 +3,8 @@ package ru.hh.nab.kafka.consumer;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
 import java.util.StringJoiner;
-import ru.hh.nab.metrics.Tag;
-import static ru.hh.nab.metrics.Tag.APP_TAG_NAME;
+import ru.hh.metrics.Tag;
+import static ru.hh.metrics.Tag.APP_TAG_NAME;
 
 public class ConsumerMetadata {
 

@@ -3,6 +3,17 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [37.1.0] - unreleased
+
+### Добавлено
+
+В `StructuredRequestLogger` добавлен конструктор с параметрами `StatsDSender` и `serviceName`. При его использовании для каждого запроса
+отправляется statsd-метрика `service_requests_time` (timing, время ответа в миллисекундах) с тегами `app`, `method`, `httpRoute`, `status`,
+`cache_status`. Тег `httpRoute` используется вместо URL, чтобы избежать высокой кардинальности. Перцентили и rate строятся на стороне
+statsd-exporter (quantile и `_count`).
+
+Конструктор без параметров сохранён — метрика при этом не отправляется.
+
 ## [37.0.0] - 2026-07-28
 
 ### Удалено

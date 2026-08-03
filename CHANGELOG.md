@@ -3,6 +3,16 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [38.0.0] – 2026-08-05
+
+### Добавлено
+
+Для каждого http-запроса отправляется метрика `service.request.time` с тегами `app`, `method`, `http_route`, `status`, `cache_status`.
+
+### Инструкции
+
+- Заменить вызов дефолтного конструктора `new StructuredRequestLogger()` на `new StructuredRequestLogger(StatsDSender statsDSender, String serviceName)`.
+
 ## [37.0.0] - 2026-07-28
 
 ### Удалено

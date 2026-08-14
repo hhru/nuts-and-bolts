@@ -3,6 +3,25 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [39.0.0] - 2026-08-14
+
+### Изменено
+
+- Изменена сигнатура конструктора LogLevelOverrideApplier.
+
+### Удалено
+
+- Константы `LogLevelOverrideApplier.LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX`, `LogLevelOverrideApplier.UPDATE_INTERVAL_IN_MINUTES_PROPERTY`,
+  `LogLevelOverrideApplier.DEFAULT_INTERVAL_IN_MINUTES`.
+
+### Инструкции
+
+- В конструктор LogLevelOverrideApplier теперь вместо `Properties` (внутри которого раньше была property:
+  `logLevelOverrideExtension.updateIntervalInMinutes`) нужно передавать long-переменную `updateIntervalInSeconds` и сконвертировать минуты в секунды.
+  Если раньше вы не передавали property `logLevelOverrideExtension.updateIntervalInMinutes`, то нужно передать значение по умолчанию: 300.
+- Больше не используйте константы `LogLevelOverrideApplier.LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX`,
+  `LogLevelOverrideApplier.UPDATE_INTERVAL_IN_MINUTES_PROPERTY`, `LogLevelOverrideApplier.DEFAULT_INTERVAL_IN_MINUTES` или заведите их копии. 
+
 ## [38.0.0] – 2026-08-05
 
 ### Добавлено

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,28 +13,23 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.platform.utils.properties.PropertiesUtils;
 import ru.hh.trace.Scope;
 import ru.hh.trace.TraceContext;
 
 public class LogLevelOverrideApplier {
 
-  public static final String LOG_LEVEL_OVERRIDE_EXTENSION_PROPERTIES_PREFIX = "logLevelOverrideExtension";
-  public static final String UPDATE_INTERVAL_IN_MINUTES_PROPERTY = "logLevelOverrideExtension.updateIntervalInMinutes";
-  public static final int DEFAULT_INTERVAL_IN_MINUTES = 5;
-
   private static final Logger LOGGER = LoggerFactory.getLogger(LogLevelOverrideApplier.class);
 
   private final Map<String, LogInfo> initialLogLevelsInfo = new HashMap<>();
   private final Map<String, String> previousOverrides = new HashMap<>();
-  private final TraceContext traceContext;
 
   private final LogLevelOverrideExtension extension;
-  private final long updateInterval;
+  private final long updateIntervalInSeconds;
+  private final TraceContext traceContext;
 
-  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, Properties properties, TraceContext traceContext) {
+  public LogLevelOverrideApplier(LogLevelOverrideExtension extension, long updateIntervalInSeconds, TraceContext traceContext) {
     this.extension = extension;
-    this.updateInterval = PropertiesUtils.getInteger(properties, UPDATE_INTERVAL_IN_MINUTES_PROPERTY, DEFAULT_INTERVAL_IN_MINUTES);
+    this.updateIntervalInSeconds = updateIntervalInSeconds;
     this.traceContext = traceContext;
   }
 
@@ -56,7 +50,7 @@ public class LogLevelOverrideApplier {
           LOGGER.error("Could not apply log level overrides", e);
         }
       }
-    }, updateInterval, updateInterval, TimeUnit.MINUTES);
+    }, updateIntervalInSeconds, updateIntervalInSeconds, TimeUnit.SECONDS);
   }
 
   private void applyFilteredOverrides(Map<String, String> currentOverrides) {

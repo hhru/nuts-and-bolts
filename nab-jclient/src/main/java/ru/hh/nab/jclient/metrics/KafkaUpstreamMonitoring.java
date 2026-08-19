@@ -93,6 +93,10 @@ public class KafkaUpstreamMonitoring implements Monitoring {
   public void countUpdateIgnore(String upstreamName, String serverDatacenter) {
   }
 
+  @Override
+  public void countDefaultConfigUsed(String upstreamName) {
+  }
+
   private record RequestInfo(long ts, String app, String upstream, String dc, String hostname, int status, String requestId) {
 
     @Override

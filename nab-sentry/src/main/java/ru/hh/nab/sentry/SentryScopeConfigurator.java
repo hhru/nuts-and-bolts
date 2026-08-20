@@ -1,9 +1,9 @@
 package ru.hh.nab.sentry;
 
 import io.sentry.Sentry;
-import io.sentry.SentryTraceHeader;
 import io.sentry.protocol.SentryId;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +22,20 @@ public class SentryScopeConfigurator {
     });
   }
 
+  /**
+   * Reads the trace id straight from the propagation context, the same place {@link #setTraceId(String)} and
+   * {@link #clearTraceId()} write to.
+   *
+   * <p>{@code Sentry.getTraceparent()} would return the very same id, but on its way there it assembles a full
+   * {@code Baggage} header and URL-encodes it with {@link String#replaceAll(String, String)}, which recompiles a
+   * regex {@code Pattern} on every single call. Since this method is invoked once per request, that showed up as
+   * roughly 13% of all allocation in hh-xmlback-online.
+   */
+  @SuppressWarnings("UnstableApiUsage")
   public static Optional<String> getTraceId() {
-    return Optional.ofNullable(Sentry.getTraceparent()).map(SentryTraceHeader::getTraceId).map(SentryId::toString);
+    AtomicReference<SentryId> traceId = new AtomicReference<>();
+    Sentry.configureScope(scope -> traceId.set(scope.getPropagationContext().getTraceId()));
+    return Optional.ofNullable(traceId.get()).map(SentryId::toString);
   }
 
   @SuppressWarnings("UnstableApiUsage")

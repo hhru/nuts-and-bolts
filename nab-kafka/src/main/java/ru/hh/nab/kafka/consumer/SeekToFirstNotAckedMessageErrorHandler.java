@@ -13,7 +13,7 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
 import ru.hh.metrics.Counters;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import ru.hh.nab.kafka.util.SleepUtils;
 
@@ -27,7 +27,7 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
   private final BackOff backOff;
   private final KafkaConsumer<T> kafkaConsumer;
 
-  private StatsDSender statsDSender;
+  private MetricsSender metricsSender;
   private Counters malformedMessagesCounter;
   private Tag serviceNameTag;
 
@@ -48,18 +48,18 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
       BackOff backOff,
       KafkaConsumer<T> kafkaConsumer,
       String serviceName,
-      StatsDSender statsDSender
+      MetricsSender metricsSender
   ) {
     this.logger = logger;
     this.backOff = backOff;
     this.kafkaConsumer = kafkaConsumer;
 
-    if (statsDSender != null) {
+    if (metricsSender != null) {
       this.malformedMessagesCounter = new Counters(2000);
       this.serviceNameTag = new Tag(Tag.APP_TAG_NAME, serviceName);
-      this.statsDSender = statsDSender;
-      statsDSender.sendPeriodically(() -> {
-        statsDSender.sendCounters(MALFORMED_MESSAGE_METRIC_NAME, malformedMessagesCounter);
+      this.metricsSender = metricsSender;
+      metricsSender.sendPeriodically(() -> {
+        metricsSender.sendCounters(MALFORMED_MESSAGE_METRIC_NAME, malformedMessagesCounter);
       });
     }
   }
@@ -106,7 +106,7 @@ class SeekToFirstNotAckedMessageErrorHandler<T> implements CommonErrorHandler {
   public void handleOtherException(Exception thrownException, Consumer<?, ?> consumer, MessageListenerContainer container, boolean batchListener) {
     if (thrownException instanceof RecordDeserializationException se) {
 
-      if (statsDSender != null) {
+      if (metricsSender != null) {
         malformedMessagesCounter.add(1, this.serviceNameTag);
       }
 

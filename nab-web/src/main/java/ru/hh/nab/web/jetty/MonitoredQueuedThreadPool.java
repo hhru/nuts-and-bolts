@@ -4,7 +4,7 @@ import java.util.Set;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import ru.hh.metrics.Max;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import ru.hh.metrics.TaggedSender;
 
@@ -20,14 +20,14 @@ public class MonitoredQueuedThreadPool extends QueuedThreadPool {
       int idleTimeout,
       int queueCapacity,
       String poolName,
-      StatsDSender statsDSender
+      MetricsSender metricsSender
   ) {
     super(maxThreads, minThreads, idleTimeout, -1, new BlockingArrayQueue<>(queueCapacity), null);
     setName("qtp_" + poolName + "_" + hashCode());
 
-    var sender = new TaggedSender(statsDSender, Set.of(new Tag("pool", poolName)));
+    var sender = new TaggedSender(metricsSender, Set.of(new Tag("pool", poolName)));
 
-    statsDSender.sendPeriodically(() -> {
+    metricsSender.sendPeriodically(() -> {
       // Include current pool state in max so that load is reported correctly when no new jobs
       // are submitted during the interval (e.g. long-running jobs keep the pool busy).
       updatePoolMetrics();

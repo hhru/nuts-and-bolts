@@ -2,7 +2,7 @@ package ru.hh.nab.jclient.metrics;
 
 import java.util.Properties;
 import ru.hh.jclient.common.metrics.MetricsConsumer;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class MetricsConsumerFactory {
@@ -10,9 +10,9 @@ public class MetricsConsumerFactory {
 
   private static final MetricsConsumer NOOP_METRICS_CONSUMER = metricsProvider -> {};
 
-  public static MetricsConsumer buildMetricsConsumer(Properties properties, String name, StatsDSender statsDSender) {
+  public static MetricsConsumer buildMetricsConsumer(Properties properties, String name, MetricsSender metricsSender) {
     return PropertiesUtils.getBoolean(properties, "enabled", false) ?
-        new StatsDMetricsConsumer(name, statsDSender) :
+        new StatsDMetricsConsumer(name, metricsSender) :
         NOOP_METRICS_CONSUMER;
   }
 }

@@ -17,7 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
 import ru.hh.platform.utils.properties.PropertiesUtils;
@@ -61,14 +61,14 @@ public class ConfigProvider {
   private final String serviceName;
   private final String kafkaClusterName;
   private final Properties properties;
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
 
-  public ConfigProvider(String serviceName, String kafkaClusterName, Properties properties, StatsDSender statsDSender) {
+  public ConfigProvider(String serviceName, String kafkaClusterName, Properties properties, MetricsSender metricsSender) {
     this.serviceName = serviceName;
     this.kafkaClusterName = kafkaClusterName;
     this.properties = new Properties();
     this.properties.putAll(properties);
-    this.statsDSender = statsDSender;
+    this.metricsSender = metricsSender;
   }
 
   private static void checkNames(Map<String, ?> nonNabSettings, Set<String> supportedNames, String type) {
@@ -243,7 +243,7 @@ public class ConfigProvider {
     // Approximation, kafka defaults are 30000ms for sample window and 2 for num samples
     properties.put(ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 4);
     // A workaround to support single instance of StatsD client
-    properties.put(KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY, this.statsDSender);
+    properties.put(KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY, this.metricsSender);
     return properties;
   }
 

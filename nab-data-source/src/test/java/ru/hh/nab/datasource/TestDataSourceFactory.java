@@ -9,7 +9,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.nab.datasource.healthcheck.HealthCheckHikariDataSourceFactory;
 import ru.hh.nab.datasource.monitoring.NabMetricsTrackerFactoryProvider;
 import ru.hh.nab.datasource.routing.DatabaseSwitcher;
@@ -17,7 +17,7 @@ import ru.hh.nab.datasource.routing.DatabaseSwitcher;
 public class TestDataSourceFactory extends DataSourceFactory {
 
   private static final String TEST_SERVICE_NAME = "testService";
-  private static final StatsDSender statsDSender = mock(StatsDSender.class);
+  private static final MetricsSender metricsSender = mock(MetricsSender.class);
 
   public TestDataSourceFactory() {
     this(null);
@@ -25,8 +25,8 @@ public class TestDataSourceFactory extends DataSourceFactory {
 
   public TestDataSourceFactory(DatabaseSwitcher databaseSwitcher) {
     super(
-        new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, statsDSender),
-        new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, statsDSender),
+        new NabMetricsTrackerFactoryProvider(TEST_SERVICE_NAME, metricsSender),
+        new HealthCheckHikariDataSourceFactory(TEST_SERVICE_NAME, metricsSender),
         null,
         databaseSwitcher
     );

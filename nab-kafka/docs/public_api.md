@@ -21,9 +21,9 @@
 public ConfigProvider kafkaSiteConfigProvider(
   @Named(NamedQualifier.SERVICE_NAME) String serviceName,
   FileSettings fileSettings,
-  StatsDSender statsDSender
+  MetricsSender metricsSender
 ) {
-  return new ConfigProvider(serviceName, "kafka.site", fileSettings, statsDSender);
+  return new ConfigProvider(serviceName, "kafka.site", fileSettings, metricsSender);
 }
 ```
 

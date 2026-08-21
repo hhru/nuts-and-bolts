@@ -13,7 +13,7 @@ import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 
@@ -53,7 +53,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
   protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
   private String serviceName;
-  private StatsDSender statsDSender;
+  private MetricsSender metricsSender;
   private boolean isSendAll;
   private Set<String> allowedMetrics;
 
@@ -68,7 +68,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
       recordMetric(metric);
     }
 
-    statsDSender.sendPeriodically(() -> {
+    metricsSender.sendPeriodically(() -> {
       recordedMetrics.forEach((key, value) -> {
         try {
           Object metricValue = value.metricValue();
@@ -83,7 +83,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
             Tag topicTag = createTag(tags, ReporterTag.TOPIC);
             Tag partitionTag = createTag(tags, ReporterTag.PARTITION);
 
-            statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
+            metricsSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
             LOGGER.debug("Sent gauge value {} for metric {}", value, name);
           }
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
     this.serviceName = ofNullable(configs.get(SERVICE_NAME)).map(Object::toString).orElseThrow();
     // A workaround to support a single instance of StatsD client, see ru.hh.nab.kafka.util.ConfigProvider
-    this.statsDSender = (StatsDSender) configs.get(STATSD_INSTANCE_PROPERTY);
+    this.metricsSender = (MetricsSender) configs.get(STATSD_INSTANCE_PROPERTY);
   }
 
   private void recordMetric(KafkaMetric metric) {

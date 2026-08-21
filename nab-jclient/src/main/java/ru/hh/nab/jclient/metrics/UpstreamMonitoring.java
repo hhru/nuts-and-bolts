@@ -9,12 +9,7 @@ import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
 
 /**
- * UpstreamMonitoring sends requests metrics to okmeter.io using StatsD.
- * <p>
- * Metrics:
- * - http.client.requests
- * - http.client.request.time
- * - http.client.retries
+ * UpstreamMonitoring sends requests metrics using StatsD.
  */
 public class UpstreamMonitoring implements Monitoring {
   private final StatsDSender statsDSender;
@@ -71,6 +66,31 @@ public class UpstreamMonitoring implements Monitoring {
     statsDSender.sendCount("http.client.not.ehough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, clientDatacenter)));
   }
 
+  @Override
+  public void countRequestEmptyUpstream(String upstreamName) {
+    statsDSender.sendCount("http.client.request.empty.upstream", 1, toTagsArray(getCommonTags(serviceName, upstreamName, null)));
+  }
+
+  @Override
+  public void countRetryBudgetCheck(String upstreamName, int allowedServers, int forbiddenServers) {
+    Map<String, String> commonTags = getCommonTags(serviceName, upstreamName, null);
+
+    statsDSender.sendCount(
+        "http.client.retry.budget.allowed.result",
+        1,
+        toTagsArray(commonTags, Map.of("allowed", transformRetryBudgetCount(allowedServers)))
+    );
+    statsDSender.sendCount(
+        "http.client.retry.budget.forbidden.result",
+        1,
+        toTagsArray(commonTags, Map.of("forbidden", transformRetryBudgetCount(forbiddenServers)))
+    );
+  }
+
+  private static String transformRetryBudgetCount(int serversCount) {
+    return serversCount < 3 ? String.valueOf(serversCount) : "3+";
+  }
+
   private static Map<String, String> getCommonTags(String serviceName, String upstreamName, String datacenter) {
     Map<String, String> tags = new HashMap<>();
     tags.put("app", serviceName);
@@ -86,5 +106,12 @@ public class UpstreamMonitoring implements Monitoring {
         .filter(p -> p.getValue() != null)
         .map(p -> new Tag(p.getKey(), p.getValue()))
         .toArray(Tag[]::new);
+  }
+
+  private static Tag[] toTagsArray(Map<String, String> commonTags, Map<String, String> extraTags) {
+    Map<String, String> tags = new HashMap<>(commonTags.size() + extraTags.size());
+    tags.putAll(commonTags);
+    tags.putAll(extraTags);
+    return toTagsArray(tags);
   }
 }

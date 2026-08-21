@@ -14,12 +14,10 @@ public class StatsDMetricsConsumer implements MetricsConsumer {
 
   private final Tag nameTag;
   private final StatsDSender statsDSender;
-  private final int sendIntervalInSeconds;
 
-  public StatsDMetricsConsumer(String name, StatsDSender statsDSender, int sendIntervalInSeconds) {
+  public StatsDMetricsConsumer(String name, StatsDSender statsDSender) {
     this.nameTag = new Tag(NAME_KEY, name);
     this.statsDSender = statsDSender;
-    this.sendIntervalInSeconds = sendIntervalInSeconds;
   }
 
   @Override
@@ -100,7 +98,7 @@ public class StatsDMetricsConsumer implements MetricsConsumer {
           metricsProvider.nioMaxThreads().get(),
           nameTag
       );
-    }, sendIntervalInSeconds);
+    });
 
     log.info("Successfully scheduled metrics sending");
   }

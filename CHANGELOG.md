@@ -3,6 +3,12 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [39.0.1] - 2026-08-21
+
+### Изменено
+
+- Поправил чтение traceId в SentryScopeConfigurator
+
 ## [39.0.0] - 2026-08-14
 
 ### Изменено

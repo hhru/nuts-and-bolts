@@ -12,7 +12,7 @@ public class MetricsConsumerFactory {
 
   public static MetricsConsumer buildMetricsConsumer(Properties properties, String name, MetricsSender metricsSender) {
     return PropertiesUtils.getBoolean(properties, "enabled", false) ?
-        new StatsDMetricsConsumer(name, metricsSender) :
+        new MetricsConsumerImpl(name, metricsSender) :
         NOOP_METRICS_CONSUMER;
   }
 }

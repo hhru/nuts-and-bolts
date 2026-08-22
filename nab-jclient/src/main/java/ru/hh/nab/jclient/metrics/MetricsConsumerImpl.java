@@ -7,15 +7,15 @@ import ru.hh.jclient.common.metrics.MetricsProvider;
 import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 
-public class StatsDMetricsConsumer implements MetricsConsumer {
+public class MetricsConsumerImpl implements MetricsConsumer {
 
-  private static final Logger log = LoggerFactory.getLogger(StatsDMetricsConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(MetricsConsumerImpl.class);
   private static final String NAME_KEY = "clientName";
 
   private final Tag nameTag;
   private final MetricsSender metricsSender;
 
-  public StatsDMetricsConsumer(String name, MetricsSender metricsSender) {
+  public MetricsConsumerImpl(String name, MetricsSender metricsSender) {
     this.nameTag = new Tag(NAME_KEY, name);
     this.metricsSender = metricsSender;
   }

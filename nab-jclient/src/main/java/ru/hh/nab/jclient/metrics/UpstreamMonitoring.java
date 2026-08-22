@@ -9,7 +9,7 @@ import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 
 /**
- * UpstreamMonitoring sends requests metrics to okmeter.io using StatsD.
+ * UpstreamMonitoring sends requests metrics to your monitoring system using {@link MetricsSender}.
  * <p>
  * Metrics:
  * - http.client.requests

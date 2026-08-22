@@ -237,8 +237,6 @@ public class ConfigProvider {
         .orElse("");
     properties.put(KafkaMetricsReporter.METRICS_ALLOWED, enabledMetrics);
 
-    // TODO Remove when we leave Okmeter monitoring
-    // Okmeter doesn't provide precision better than once a minute
     properties.put(ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 60000);
     // Approximation, kafka defaults are 30000ms for sample window and 2 for num samples
     properties.put(ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 4);

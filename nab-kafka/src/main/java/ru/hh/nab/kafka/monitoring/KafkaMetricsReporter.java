@@ -20,7 +20,7 @@ import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 public class KafkaMetricsReporter implements MetricsReporter {
   public static final String METRICS_ALLOWED = "metrics.allowed";
   public static final String METRICS_SEND_ALL = "metrics.send-all";
-  public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
+  public static final String METRICS_SENDER_INSTANCE_PROPERTY = "NAB_METRICS_SENDER_INSTANCE";
   static final Set<String> CRITICAL_METRICS = Set.of(
       "consumer-metrics.last-poll-seconds-ago",
 
@@ -129,8 +129,8 @@ public class KafkaMetricsReporter implements MetricsReporter {
     this.allowedMetrics.addAll(CRITICAL_METRICS);
 
     this.serviceName = ofNullable(configs.get(SERVICE_NAME)).map(Object::toString).orElseThrow();
-    // A workaround to support a single instance of StatsD client, see ru.hh.nab.kafka.util.ConfigProvider
-    this.metricsSender = (MetricsSender) configs.get(STATSD_INSTANCE_PROPERTY);
+    // A workaround to support a single instance of MetricsSender client, see ru.hh.nab.kafka.util.ConfigProvider
+    this.metricsSender = (MetricsSender) configs.get(METRICS_SENDER_INSTANCE_PROPERTY);
   }
 
   private void recordMetric(KafkaMetric metric) {

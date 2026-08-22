@@ -54,7 +54,7 @@ public class ConfigProvider {
   static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).startsWith(NAB_SETTING + ".");
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
       SERVICE_NAME,
-      KafkaMetricsReporter.STATSD_INSTANCE_PROPERTY,
+      KafkaMetricsReporter.METRICS_SENDER_INSTANCE_PROPERTY,
       KafkaMetricsReporter.METRICS_ALLOWED,
       KafkaMetricsReporter.METRICS_SEND_ALL
   );
@@ -242,8 +242,8 @@ public class ConfigProvider {
     properties.put(ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 60000);
     // Approximation, kafka defaults are 30000ms for sample window and 2 for num samples
     properties.put(ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 4);
-    // A workaround to support single instance of StatsD client
-    properties.put(KafkaMetricsReporter.STATSD_INSTANCE_PROPERTY, this.metricsSender);
+    // A workaround to support single instance of MetricsSender client
+    properties.put(KafkaMetricsReporter.METRICS_SENDER_INSTANCE_PROPERTY, this.metricsSender);
     return properties;
   }
 

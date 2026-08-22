@@ -19,7 +19,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL
 import org.apache.kafka.clients.producer.ProducerConfig;
 import ru.hh.metrics.MetricsSender;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
-import ru.hh.nab.kafka.monitoring.KafkaStatsDReporter;
+import ru.hh.nab.kafka.monitoring.KafkaMetricsReporter;
 import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class ConfigProvider {
@@ -54,9 +54,9 @@ public class ConfigProvider {
   static final Predicate<Object> NAB_SETTING_PREDICATE = key -> ((String) key).startsWith(NAB_SETTING + ".");
   private static final Set<String> SUPPORTED_PROPERTIES = Set.of(
       SERVICE_NAME,
-      KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY,
-      KafkaStatsDReporter.METRICS_ALLOWED,
-      KafkaStatsDReporter.METRICS_SEND_ALL
+      KafkaMetricsReporter.STATSD_INSTANCE_PROPERTY,
+      KafkaMetricsReporter.METRICS_ALLOWED,
+      KafkaMetricsReporter.METRICS_SEND_ALL
   );
   private final String serviceName;
   private final String kafkaClusterName;
@@ -224,18 +224,18 @@ public class ConfigProvider {
 
     String metricReporters = ofNullable(properties.get(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG))
         .map(Object::toString)
-        .orElseGet(KafkaStatsDReporter.class::getName);
+        .orElseGet(KafkaMetricsReporter.class::getName);
     properties.put(CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG, metricReporters);
 
-    String metricsSendAll = ofNullable(properties.get(KafkaStatsDReporter.METRICS_SEND_ALL))
+    String metricsSendAll = ofNullable(properties.get(KafkaMetricsReporter.METRICS_SEND_ALL))
         .map(Object::toString)
         .orElseGet(Boolean.FALSE::toString);
-    properties.put(KafkaStatsDReporter.METRICS_SEND_ALL, metricsSendAll);
+    properties.put(KafkaMetricsReporter.METRICS_SEND_ALL, metricsSendAll);
 
-    String enabledMetrics = ofNullable(properties.get(KafkaStatsDReporter.METRICS_ALLOWED))
+    String enabledMetrics = ofNullable(properties.get(KafkaMetricsReporter.METRICS_ALLOWED))
         .map(Object::toString)
         .orElse("");
-    properties.put(KafkaStatsDReporter.METRICS_ALLOWED, enabledMetrics);
+    properties.put(KafkaMetricsReporter.METRICS_ALLOWED, enabledMetrics);
 
     // TODO Remove when we leave Okmeter monitoring
     // Okmeter doesn't provide precision better than once a minute
@@ -243,7 +243,7 @@ public class ConfigProvider {
     // Approximation, kafka defaults are 30000ms for sample window and 2 for num samples
     properties.put(ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 4);
     // A workaround to support single instance of StatsD client
-    properties.put(KafkaStatsDReporter.STATSD_INSTANCE_PROPERTY, this.metricsSender);
+    properties.put(KafkaMetricsReporter.STATSD_INSTANCE_PROPERTY, this.metricsSender);
     return properties;
   }
 

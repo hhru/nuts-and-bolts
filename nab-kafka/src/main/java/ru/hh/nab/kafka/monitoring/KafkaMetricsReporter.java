@@ -17,7 +17,7 @@ import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 
-public class KafkaStatsDReporter implements MetricsReporter {
+public class KafkaMetricsReporter implements MetricsReporter {
   public static final String METRICS_ALLOWED = "metrics.allowed";
   public static final String METRICS_SEND_ALL = "metrics.send-all";
   public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
@@ -50,7 +50,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
       "producer-topic-metrics.record-retry-rate",
       "producer-topic-metrics.record-error-rate"
   );
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaMetricsReporter.class);
   protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
   private String serviceName;
   private MetricsSender metricsSender;

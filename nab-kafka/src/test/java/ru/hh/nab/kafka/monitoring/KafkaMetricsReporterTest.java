@@ -95,23 +95,18 @@ class KafkaMetricsReporterTest extends KafkaConsumerTestBase {
     }
   }
 
-  /**
-   * Verifies that Kafka metric tags are similar to StatsD tags
-   * This restriction allows developers to use official documentation
-   * https://kafka.apache.org/31/documentation.html#common_node_monitoring
-   */
   @Test
   public void verifyEquality() {
     for (KafkaMetricsReporter.ReporterTag value : KafkaMetricsReporter.ReporterTag.values()) {
-      assertEquals(formatKafkaTag(value.getKafkaTag()), formatStatsDTag(value.getStatsDTag()));
+      assertEquals(formatOriginalKafkaTag(value.getOriginalKafkaTag()), formatMappedTag(value.getMappedTag()));
     }
   }
 
-  private String formatKafkaTag(String tagName) {
+  private static String formatOriginalKafkaTag(String tagName) {
     return tagName.replace("-", ".");
   }
 
-  private String formatStatsDTag(String tagName) {
+  private static String formatMappedTag(String tagName) {
     return tagName.replace("_", ".");
   }
 
@@ -167,15 +162,15 @@ class KafkaMetricsReporterTest extends KafkaConsumerTestBase {
     }
 
     var observedMetric = getObservedMetric(PRODUCER_METRICS_BUFFER_TOTAL_BYTES);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
 
     observedMetric = getObservedMetric(PRODUCER_NODE_METRICS_INCOMING_BYTE_RATE);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getOriginalKafkaTag()));
 
     observedMetric = getObservedMetric(PRODUCER_TOPIC_METRICS_BYTE_RATE);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getOriginalKafkaTag()));
   }
 
   /**
@@ -189,19 +184,19 @@ class KafkaMetricsReporterTest extends KafkaConsumerTestBase {
     testKafka.sendMessage(topicName, payload);
 
     var observedMetric = getObservedMetric(CONSUMER_METRICS_OUTGOING_BYTE_TOTAL);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
 
     observedMetric = getObservedMetric(CONSUMER_NODE_METRICS_INCOMING_BYTE_RATE);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(NODE_ID.getOriginalKafkaTag()));
 
     observedMetric = getObservedMetric(CONSUMER_COORDINATOR_METRICS_ASSIGNED_PARTITIONS);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
 
     observedMetric = getObservedMetric(CONSUMER_FETCH_MANAGER_METRICS_PREFERRED_READ_REPLICA);
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getKafkaTag()));
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getKafkaTag()));
-    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(PARTITION.getKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(CLIENT_ID.getOriginalKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(TOPIC.getOriginalKafkaTag()));
+    Assertions.assertTrue(observedMetric.metricName().tags().containsKey(PARTITION.getOriginalKafkaTag()));
   }
 
   /**

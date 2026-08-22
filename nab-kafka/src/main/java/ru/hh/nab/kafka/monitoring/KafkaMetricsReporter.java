@@ -94,8 +94,8 @@ public class KafkaMetricsReporter implements MetricsReporter {
   }
 
   private static Tag createTag(Map<String, String> tags, ReporterTag tag) {
-    String kafkaTag = tags.getOrDefault(tag.getKafkaTag(), "unknown");
-    return new Tag(tag.getStatsDTag(), kafkaTag);
+    String originalKafkaTagValue = tags.getOrDefault(tag.getOriginalKafkaTag(), "unknown");
+    return new Tag(tag.getMappedTag(), originalKafkaTagValue);
   }
 
   @Override
@@ -142,30 +142,26 @@ public class KafkaMetricsReporter implements MetricsReporter {
   }
 
   public enum ReporterTag {
-    /**
-     * When submitting tags to Okmeter through StatsD use underscore '_'
-     * because okmeter doesn't comply to DataDog StatsD standards
-     * https://docs.datadoghq.com/getting_started/tagging/
-     */
+
     NODE_ID("node-id", "node_id"),
     CLIENT_ID("client-id", "client_id"),
     PARTITION("partition", "partition"),
     TOPIC("topic", "topic");
 
     private final String kafkaTag;
-    private final String statsDTag;
+    private final String mappedTag;
 
-    ReporterTag(String kafkaTag, String statsDTag) {
+    ReporterTag(String kafkaTag, String mappedTag) {
       this.kafkaTag = kafkaTag;
-      this.statsDTag = statsDTag;
+      this.mappedTag = mappedTag;
     }
 
-    public String getKafkaTag() {
+    public String getOriginalKafkaTag() {
       return kafkaTag;
     }
 
-    public String getStatsDTag() {
-      return statsDTag;
+    public String getMappedTag() {
+      return mappedTag;
     }
   }
 }

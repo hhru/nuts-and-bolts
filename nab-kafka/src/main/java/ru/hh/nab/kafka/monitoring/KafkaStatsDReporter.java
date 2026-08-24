@@ -85,18 +85,15 @@ public class KafkaStatsDReporter implements MetricsReporter {
 
             statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
             LOGGER.debug("Sent gauge value {} for metric {}", value, name);
-          } else {
-            statsDSender.sendSetValue(name, metricValue.toString(), serviceNameTag, nodeIdTag, clientIdTag);
-            LOGGER.debug("Sent set value {} for metric {}", value, name);
           }
         } catch (Exception e) {
-          LOGGER.error("Skipping metric %s".formatted(key), e);
+          LOGGER.error("Skipping metric {}", key, e);
         }
       });
     });
   }
 
-  private Tag createTag(Map<String, String> tags, ReporterTag tag) {
+  private static Tag createTag(Map<String, String> tags, ReporterTag tag) {
     String kafkaTag = tags.getOrDefault(tag.getKafkaTag(), "unknown");
     return new Tag(tag.getStatsDTag(), kafkaTag);
   }
@@ -123,7 +120,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
     this.isSendAll = ofNullable(configs.get(METRICS_SEND_ALL)).map(value -> Boolean.parseBoolean(value.toString())).orElse(false);
     String metrics = ofNullable(configs.get(METRICS_ALLOWED)).map(Object::toString).orElse("");
     this.allowedMetrics = new HashSet<>();
-    if (!metrics.isEmpty() && !metrics.isBlank()) {
+    if (!metrics.isBlank()) {
       String[] rawMetricNames = metrics.split(",");
       for (String rawMetricName : rawMetricNames) {
         this.allowedMetrics.add(rawMetricName.trim());

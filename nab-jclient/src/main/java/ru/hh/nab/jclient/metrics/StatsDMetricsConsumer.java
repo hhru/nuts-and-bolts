@@ -5,24 +5,21 @@ import org.slf4j.LoggerFactory;
 import ru.hh.jclient.common.metrics.MetricsConsumer;
 import ru.hh.jclient.common.metrics.MetricsProvider;
 import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.Tag;
 
 public class StatsDMetricsConsumer implements MetricsConsumer {
 
   private static final Logger log = LoggerFactory.getLogger(StatsDMetricsConsumer.class);
   private static final String NAME_KEY = "clientName";
 
-  private final String nameTag;
+  private final Tag nameTag;
   private final StatsDSender statsDSender;
   private final int sendIntervalInSeconds;
 
   public StatsDMetricsConsumer(String name, StatsDSender statsDSender, int sendIntervalInSeconds) {
-    this.nameTag = buildNameTag(name);
+    this.nameTag = new Tag(NAME_KEY, name);
     this.statsDSender = statsDSender;
     this.sendIntervalInSeconds = sendIntervalInSeconds;
-  }
-
-  private static String buildNameTag(String name) {
-    return NAME_KEY + "_is_" + name.replace('.', '-');
   }
 
   @Override
@@ -34,70 +31,77 @@ public class StatsDMetricsConsumer implements MetricsConsumer {
 
     statsDSender.sendPeriodically(() -> {
       statsDSender.sendGauge(
-          getFullMetricName("async.client.connection.total.count", nameTag),
-          metricsProvider.totalConnectionCount().get()
+          "async.client.connection.total.count",
+          metricsProvider.totalConnectionCount().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.connection.active.count", nameTag),
-          metricsProvider.totalActiveConnectionCount().get()
+          "async.client.connection.active.count",
+          metricsProvider.totalActiveConnectionCount().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.connection.idle.count", nameTag),
-          metricsProvider.totalIdleConnectionCount().get()
+          "async.client.connection.idle.count",
+          metricsProvider.totalIdleConnectionCount().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.usedDirectMemory", nameTag),
-          metricsProvider.usedDirectMemory().get()
+          "async.client.usedDirectMemory",
+          metricsProvider.usedDirectMemory().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.usedHeapMemory", nameTag),
-          metricsProvider.usedHeapMemory().get()
+          "async.client.usedHeapMemory",
+          metricsProvider.usedHeapMemory().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.numActiveSmallAllocations", nameTag),
-          metricsProvider.numActiveSmallAllocations().get()
+          "async.client.numActiveSmallAllocations",
+          metricsProvider.numActiveSmallAllocations().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.numActiveNormalAllocations", nameTag),
-          metricsProvider.numActiveNormalAllocations().get()
+          "async.client.numActiveNormalAllocations",
+          metricsProvider.numActiveNormalAllocations().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.numActiveHugeAllocations", nameTag),
-          metricsProvider.numActiveHugeAllocations().get()
+          "async.client.numActiveHugeAllocations",
+          metricsProvider.numActiveHugeAllocations().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.epollTotalPendingTasks", nameTag),
-          metricsProvider.epollTotalPendingTasks().get()
+          "async.client.epollTotalPendingTasks",
+          metricsProvider.epollTotalPendingTasks().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.nioTotalPendingTasks", nameTag),
-          metricsProvider.nioTotalPendingTasks().get()
+          "async.client.nioTotalPendingTasks",
+          metricsProvider.nioTotalPendingTasks().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.epollPendingThreads", nameTag),
-          metricsProvider.epollPendingThreads().get()
+          "async.client.epollPendingThreads",
+          metricsProvider.epollPendingThreads().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.nioPendingThreads", nameTag),
-          metricsProvider.nioPendingThreads().get()
+          "async.client.nioPendingThreads",
+          metricsProvider.nioPendingThreads().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.epollMaxThreads", nameTag),
-          metricsProvider.epollMaxThreads().get()
+          "async.client.epollMaxThreads",
+          metricsProvider.epollMaxThreads().get(),
+          nameTag
       );
       statsDSender.sendGauge(
-          getFullMetricName("async.client.nioMaxThreads", nameTag),
-          metricsProvider.nioMaxThreads().get()
+          "async.client.nioMaxThreads",
+          metricsProvider.nioMaxThreads().get(),
+          nameTag
       );
     }, sendIntervalInSeconds);
 
     log.info("Successfully scheduled metrics sending");
-  }
-
-  private static String getFullMetricName(String metricName, String... tags) {
-    if (tags == null) {
-      return metricName;
-    }
-    return String.join(".", metricName, String.join(".", tags));
   }
 }

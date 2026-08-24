@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.hh.nab</groupId>
         <artifactId>nuts-and-bolts-parent</artifactId>
-        <version>39.0.2-SNAPSHOT</version>
+        <version>39.0.2</version>
     </parent>
 
     <artifactId>nab-telemetry-jclient</artifactId>

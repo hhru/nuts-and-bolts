@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import org.springframework.core.serializer.support.SerializationFailedException;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import ru.hh.metrics.TaggedSender;
 import ru.hh.platform.utils.properties.PropertiesUtils;
@@ -23,7 +23,7 @@ public class MarshallerContextResolver implements ContextResolver<Marshaller> {
   private final PartiallyOverflowingCache<Class<?>, JAXBContext> jaxbContexts;
 
   @Inject
-  public MarshallerContextResolver(Properties properties, String serviceName, StatsDSender statsDSender) {
+  public MarshallerContextResolver(Properties properties, String serviceName, MetricsSender metricsSender) {
     int contextsMaxCollectionSize = PropertiesUtils.getInteger(
         properties,
         JAXB_CONTEXTS_MAX_COLLECTION_SIZE_PROPERTY,
@@ -33,8 +33,8 @@ public class MarshallerContextResolver implements ContextResolver<Marshaller> {
 
     String cacheSizeMetricName = "JAXBContextCacheSize";
     String cacheMaxSizeMetricName = "JAXBContextCacheMaxSize";
-    var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
-    statsDSender.sendPeriodically(() -> {
+    var sender = new TaggedSender(metricsSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
+    metricsSender.sendPeriodically(() -> {
           sender.sendGauge(cacheSizeMetricName, jaxbContexts.getStorageSize());
           sender.sendGauge(cacheMaxSizeMetricName, contextsMaxCollectionSize);
         }

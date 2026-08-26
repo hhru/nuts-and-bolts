@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.RequestEntity.get;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.NabWebTestConfig.TEST_SERVICE_NAME;
 
@@ -56,7 +56,7 @@ public class XmlTest {
       MarshallerContextResolver contextResolver = new MarshallerContextResolver(
           new Properties(),
           TEST_SERVICE_NAME,
-          mock(StatsDSender.class)
+          mock(MetricsSender.class)
       );
 
       ResourceConfig resourceConfig = new ResourceConfig();

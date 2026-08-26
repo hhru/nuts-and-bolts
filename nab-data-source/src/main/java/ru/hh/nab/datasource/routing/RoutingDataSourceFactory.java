@@ -1,16 +1,16 @@
 package ru.hh.nab.datasource.routing;
 
 import javax.sql.DataSource;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 
 public class RoutingDataSourceFactory {
 
   private final String serviceName;
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
 
-  public RoutingDataSourceFactory(String serviceName, StatsDSender statsDSender) {
+  public RoutingDataSourceFactory(String serviceName, MetricsSender metricsSender) {
     this.serviceName = serviceName;
-    this.statsDSender = statsDSender;
+    this.metricsSender = metricsSender;
   }
 
   /**
@@ -21,10 +21,10 @@ public class RoutingDataSourceFactory {
    * - {@link RoutingDataSource#addDataSource(String, String, DataSource)}
    */
   public RoutingDataSource create(DataSource defaultDataSource) {
-    return new RoutingDataSource(defaultDataSource, serviceName, statsDSender);
+    return new RoutingDataSource(defaultDataSource, serviceName, metricsSender);
   }
 
   public RoutingDataSource create() {
-    return new RoutingDataSource(serviceName, statsDSender);
+    return new RoutingDataSource(serviceName, metricsSender);
   }
 }

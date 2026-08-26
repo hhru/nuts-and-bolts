@@ -3,7 +3,7 @@ package ru.hh.nab.datasource.healthcheck;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Set;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import static ru.hh.metrics.Tag.DATASOURCE_TAG_NAME;
@@ -12,11 +12,11 @@ import ru.hh.metrics.TaggedSender;
 public class HealthCheckHikariDataSourceFactory {
 
   private final String serviceName;
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
 
-  public HealthCheckHikariDataSourceFactory(String serviceName, StatsDSender statsDSender) {
+  public HealthCheckHikariDataSourceFactory(String serviceName, MetricsSender metricsSender) {
     this.serviceName = serviceName;
-    this.statsDSender = statsDSender;
+    this.metricsSender = metricsSender;
   }
 
   public HikariDataSource create(HikariConfig hikariConfig) {
@@ -24,7 +24,7 @@ public class HealthCheckHikariDataSourceFactory {
         new Tag(APP_TAG_NAME, serviceName),
         new Tag(DATASOURCE_TAG_NAME, hikariConfig.getPoolName())
     );
-    TaggedSender metricsSender = new TaggedSender(statsDSender, tags);
-    return new HealthCheckHikariDataSource(hikariConfig, metricsSender);
+    TaggedSender taggedSender = new TaggedSender(metricsSender, tags);
+    return new HealthCheckHikariDataSource(hikariConfig, taggedSender);
   }
 }

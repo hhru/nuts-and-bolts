@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import ru.hh.metrics.CompactHistogram;
 import ru.hh.metrics.Counters;
 import ru.hh.metrics.Histogram;
-import ru.hh.metrics.StatsDSender;
-import static ru.hh.metrics.StatsDSender.DEFAULT_PERCENTILES;
+import ru.hh.metrics.MetricsSender;
+import static ru.hh.metrics.MetricsSender.DEFAULT_PERCENTILES;
 import ru.hh.metrics.Tag;
 import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import static ru.hh.metrics.Tag.DATASOURCE_TAG_NAME;
@@ -45,16 +45,16 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(NabMetricsTrackerFactory.class);
 
   private final String serviceName;
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
   private final Properties dataSourceProperties;
 
   public NabMetricsTrackerFactory(
       String serviceName,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       Properties dataSourceProperties
   ) {
     this.serviceName = serviceName;
-    this.statsDSender = statsDSender;
+    this.metricsSender = metricsSender;
     this.dataSourceProperties = dataSourceProperties;
   }
 
@@ -109,23 +109,23 @@ public class NabMetricsTrackerFactory implements MetricsTrackerFactory {
         );
       }
 
-      statsDSender.sendPeriodically(() -> {
-        statsDSender.sendHistogram(CREATION_MS, jdbcTags, creationHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendHistogram(ACQUISITION_MS, jdbcTags, acquisitionHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendHistogram(USAGE_MS, jdbcTags, usageHistogram, DEFAULT_PERCENTILES);
-        statsDSender.sendCounters(CONNECTION_TIMEOUTS, timeoutCounters);
+      metricsSender.sendPeriodically(() -> {
+        metricsSender.sendHistogram(CREATION_MS, jdbcTags, creationHistogram, DEFAULT_PERCENTILES);
+        metricsSender.sendHistogram(ACQUISITION_MS, jdbcTags, acquisitionHistogram, DEFAULT_PERCENTILES);
+        metricsSender.sendHistogram(USAGE_MS, jdbcTags, usageHistogram, DEFAULT_PERCENTILES);
+        metricsSender.sendCounters(CONNECTION_TIMEOUTS, timeoutCounters);
 
-        statsDSender.sendGauge(ACTIVE_CONNECTIONS, poolStats.getActiveConnections(), jdbcTags);
-        statsDSender.sendGauge(TOTAL_CONNECTIONS, poolStats.getTotalConnections(), jdbcTags);
-        statsDSender.sendGauge(IDLE_CONNECTIONS, poolStats.getIdleConnections(), jdbcTags);
-        statsDSender.sendGauge(MAX_CONNECTIONS, poolStats.getMaxConnections(), jdbcTags);
-        statsDSender.sendGauge(MIN_CONNECTIONS, poolStats.getMinConnections(), jdbcTags);
-        statsDSender.sendGauge(PENDING_THREADS, poolStats.getPendingThreads(), jdbcTags);
+        metricsSender.sendGauge(ACTIVE_CONNECTIONS, poolStats.getActiveConnections(), jdbcTags);
+        metricsSender.sendGauge(TOTAL_CONNECTIONS, poolStats.getTotalConnections(), jdbcTags);
+        metricsSender.sendGauge(IDLE_CONNECTIONS, poolStats.getIdleConnections(), jdbcTags);
+        metricsSender.sendGauge(MAX_CONNECTIONS, poolStats.getMaxConnections(), jdbcTags);
+        metricsSender.sendGauge(MIN_CONNECTIONS, poolStats.getMinConnections(), jdbcTags);
+        metricsSender.sendGauge(PENDING_THREADS, poolStats.getPendingThreads(), jdbcTags);
 
         if (samplePoolUsageStats) {
-          statsDSender.sendCounters(SAMPLED_USAGE_MS, usageCounters);
+          metricsSender.sendCounters(SAMPLED_USAGE_MS, usageCounters);
         } else {
-          statsDSender.sendCounters(TOTAL_USAGE_MS, usageCounters);
+          metricsSender.sendCounters(TOTAL_USAGE_MS, usageCounters);
         }
       });
     }

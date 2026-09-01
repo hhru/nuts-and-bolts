@@ -5,7 +5,7 @@ import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
 import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 
 /**
@@ -17,11 +17,11 @@ import ru.hh.metrics.Tag;
  * - http.client.retries
  */
 public class UpstreamMonitoring implements Monitoring {
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
   private final String serviceName;
 
-  public UpstreamMonitoring(StatsDSender statsDSender, String serviceName) {
-    this.statsDSender = statsDSender;
+  public UpstreamMonitoring(MetricsSender metricsSender, String serviceName) {
+    this.metricsSender = metricsSender;
     this.serviceName = serviceName;
   }
 
@@ -40,13 +40,13 @@ public class UpstreamMonitoring implements Monitoring {
     tags.put("status", String.valueOf(statusCode));
     tags.put("final", String.valueOf(isRequestFinal));
     tags.put("balancing", requireNonNullElse(balancingStrategyType, "unknown"));
-    statsDSender.sendCount("http.client.requests", 1, toTagsArray(tags));
+    metricsSender.sendCount("http.client.requests", 1, toTagsArray(tags));
   }
 
   @Override
   public void countRequestTime(String upstreamName, String serverDatacenter, HttpHeaders requestHeaders, long requestTimeMillis) {
     Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
-    statsDSender.sendTime("http.client.request.time", requestTimeMillis, toTagsArray(tags));
+    metricsSender.sendTime("http.client.request.time", requestTimeMillis, toTagsArray(tags));
   }
 
   @Override
@@ -63,12 +63,12 @@ public class UpstreamMonitoring implements Monitoring {
     tags.put("status", String.valueOf(statusCode));
     tags.put("first_status", String.valueOf(firstStatusCode));
     tags.put("tries", String.valueOf(triesUsed));
-    statsDSender.sendCount("http.client.retries", 1, toTagsArray(tags));
+    metricsSender.sendCount("http.client.retries", 1, toTagsArray(tags));
   }
 
   @Override
   public void countUpdateIgnore(String upstreamName, String clientDatacenter) {
-    statsDSender.sendCount("http.client.not.ehough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, clientDatacenter)));
+    metricsSender.sendCount("http.client.not.ehough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, clientDatacenter)));
   }
 
   private static Map<String, String> getCommonTags(String serviceName, String upstreamName, String datacenter) {

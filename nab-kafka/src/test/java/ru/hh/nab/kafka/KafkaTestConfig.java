@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.hh.kafka.test.KafkaTestUtils;
 import ru.hh.kafka.test.TestKafka;
 import ru.hh.kafka.test.TestKafkaWithJsonMessages;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
 import ru.hh.nab.kafka.consumer.DeserializerSupplier;
 import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;
@@ -41,18 +41,18 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  public ConfigProvider configProvider(@Named(KAFKA) Properties properties, StatsDSender statsDSender) {
-    return new ConfigProvider("service", "kafka", properties, statsDSender);
+  public ConfigProvider configProvider(@Named(KAFKA) Properties properties, MetricsSender metricsSender) {
+    return new ConfigProvider("service", "kafka", properties, metricsSender);
   }
 
   @Bean
   public KafkaConsumerFactory consumerFactory(
       ConfigProvider configProvider,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       DeserializerSupplier deserializerSupplier,
       TestKafka testKafka
   ) {
-    return new DefaultConsumerFactory(configProvider, deserializerSupplier, statsDSender, testKafka::getBootstrapServers);
+    return new DefaultConsumerFactory(configProvider, deserializerSupplier, metricsSender, testKafka::getBootstrapServers);
   }
 
   @Bean
@@ -88,7 +88,7 @@ public class KafkaTestConfig {
   }
 
   @Bean
-  public StatsDSender statsDSender() {
-    return mock(StatsDSender.class);
+  public MetricsSender statsDSender() {
+    return mock(MetricsSender.class);
   }
 }

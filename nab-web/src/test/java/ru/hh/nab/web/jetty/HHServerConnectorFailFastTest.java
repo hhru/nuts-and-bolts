@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 
 public class HHServerConnectorFailFastTest {
   private static final int ACCEPTORS = 1;
@@ -44,7 +44,7 @@ public class HHServerConnectorFailFastTest {
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
   private static final SimpleAsyncHTTPClient httpClient = new SimpleAsyncHTTPClient(executorService);
 
-  private static final StatsDSender statsDSender = mock(StatsDSender.class);
+  private static final MetricsSender metricsSender = mock(MetricsSender.class);
   private static final String serviceName = "testService";
 
   private ThreadPool threadPool;
@@ -96,7 +96,7 @@ public class HHServerConnectorFailFastTest {
 
   @Test
   public void testHHServerConnectorResetsNewIncomingConnectionIfLowOnThreads() throws Exception {
-    server.addConnector(new HHServerConnector(server, ACCEPTORS, SELECTORS, statsDSender, serviceName));
+    server.addConnector(new HHServerConnector(server, ACCEPTORS, SELECTORS, metricsSender, serviceName));
     server.start();
     int serverPort = getPort(server);
 

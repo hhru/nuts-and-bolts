@@ -34,7 +34,7 @@ import org.glassfish.jersey.message.internal.HeaderUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.unit.DataSize;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import ru.hh.metrics.TaggedSender;
 import static ru.hh.nab.web.http.RequestInfo.CACHE_ATTRIBUTE;
@@ -75,7 +75,7 @@ public class CacheFilter implements ContainerRequestFilter, ContainerResponseFil
   @Context
   private Configuration configuration;
 
-  public CacheFilter(String serviceName, DataSize size, StatsDSender statsDSender) {
+  public CacheFilter(String serviceName, DataSize size, MetricsSender metricsSender) {
     Serializer serializer = new Serializer();
     cache = OHCacheBuilder
         .<byte[], byte[]>newBuilder()
@@ -97,9 +97,9 @@ public class CacheFilter implements ContainerRequestFilter, ContainerResponseFil
     String missesMetricName = "http.cache.misses";
     String placeholderMetricName = "http.cache.placeholder";
     String bypassMetricName = "http.cache.bypass";
-    var sender = new TaggedSender(statsDSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
+    var sender = new TaggedSender(metricsSender, Set.of(new Tag(Tag.APP_TAG_NAME, serviceName)));
 
-    statsDSender.sendPeriodically(() -> {
+    metricsSender.sendPeriodically(() -> {
       OHCacheStats stats = cache.stats();
       cache.resetStatistics();
 
@@ -118,7 +118,7 @@ public class CacheFilter implements ContainerRequestFilter, ContainerResponseFil
       sender.sendCount(missesMetricName, cachedMisses.getAndSet(0));
       sender.sendCount(placeholderMetricName, cachedPlaceholder.getAndSet(0));
       sender.sendCount(bypassMetricName, cachedBypass.getAndSet(0));
-    }, STATS_UPDATE_RATE);
+    });
   }
 
   private byte[] getCacheKey(ContainerRequestContext requestContext) {

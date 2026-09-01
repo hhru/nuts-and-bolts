@@ -13,7 +13,7 @@ import org.eclipse.jetty.util.thread.Scheduler;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import ru.hh.metrics.TaggedSender;
@@ -26,9 +26,9 @@ public final class HHServerConnector extends ServerConnector {
   private final TaggedSender statsDSender;
   private static final Logger logger = LoggerFactory.getLogger(HHServerConnector.class);
 
-  public HHServerConnector(Server server, int acceptors, int selectors, StatsDSender statsDSender, String serviceName) {
+  public HHServerConnector(Server server, int acceptors, int selectors, MetricsSender metricsSender, String serviceName) {
     super(server, acceptors, selectors);
-    this.statsDSender = createTaggedSender(statsDSender, serviceName);
+    this.statsDSender = createTaggedSender(metricsSender, serviceName);
   }
 
   public HHServerConnector(
@@ -38,12 +38,12 @@ public final class HHServerConnector extends ServerConnector {
       ByteBufferPool bufferPool,
       int acceptors,
       int selectors,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       String serviceName,
       ConnectionFactory... factories
   ) {
     super(server, executor, scheduler, bufferPool, acceptors, selectors, factories);
-    this.statsDSender = createTaggedSender(statsDSender, serviceName);
+    this.statsDSender = createTaggedSender(metricsSender, serviceName);
   }
 
   @Override
@@ -51,8 +51,8 @@ public final class HHServerConnector extends ServerConnector {
     return new FailFastServerConnectorManager(executor, scheduler, selectors);
   }
 
-  private TaggedSender createTaggedSender(StatsDSender statsDSender, String serviceName) {
-    return new TaggedSender(statsDSender, Set.of(new Tag(APP_TAG_NAME, serviceName)));
+  private TaggedSender createTaggedSender(MetricsSender metricsSender, String serviceName) {
+    return new TaggedSender(metricsSender, Set.of(new Tag(APP_TAG_NAME, serviceName)));
   }
 
   private class FailFastServerConnectorManager extends ServerConnectorManager {

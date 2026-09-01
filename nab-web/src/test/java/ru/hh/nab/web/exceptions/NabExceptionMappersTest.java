@@ -33,7 +33,7 @@ import static org.springframework.http.MediaType.TEXT_HTML;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import ru.hh.errors.common.Errors;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.executor.MonitoredThreadPoolExecutor;
 import ru.hh.nab.web.NabWebTestConfig;
 import static ru.hh.nab.web.http.HttpStatus.SERVICE_PARTIALLY_UNAVAILABLE;
@@ -160,7 +160,7 @@ public class NabExceptionMappersTest {
       properties.setProperty("minSize", "4");
       properties.setProperty("maxSize", "4");
 
-      var tpe = MonitoredThreadPoolExecutor.create(properties, "test", mock(StatsDSender.class), "test");
+      var tpe = MonitoredThreadPoolExecutor.create(properties, "test", mock(MetricsSender.class), "test");
 
       tpe.execute(TASK);
       tpe.execute(TASK);

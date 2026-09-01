@@ -66,7 +66,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;  
 import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;  
 import ru.hh.nab.kafka.util.ConfigProvider;  
-import ru.hh.nab.metrics.MetricsSender;  
+import ru.hh.metrics.MetricsSender;  
 
 @Configuration  
 public class KafkaConfig {  

@@ -13,14 +13,14 @@ import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.nab.common.qualifier.NamedQualifier.SERVICE_NAME;
 
-public class KafkaStatsDReporter implements MetricsReporter {
+public class KafkaMetricsReporter implements MetricsReporter {
   public static final String METRICS_ALLOWED = "metrics.allowed";
   public static final String METRICS_SEND_ALL = "metrics.send-all";
-  public static final String STATSD_INSTANCE_PROPERTY = "NAB_STATSD_INSTANCE";
+  public static final String METRICS_SENDER_INSTANCE_PROPERTY = "NAB_METRICS_SENDER_INSTANCE";
   static final Set<String> CRITICAL_METRICS = Set.of(
       "consumer-metrics.last-poll-seconds-ago",
 
@@ -50,10 +50,10 @@ public class KafkaStatsDReporter implements MetricsReporter {
       "producer-topic-metrics.record-retry-rate",
       "producer-topic-metrics.record-error-rate"
   );
-  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaStatsDReporter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaMetricsReporter.class);
   protected final ConcurrentMap<MetricName, Metric> recordedMetrics = new ConcurrentHashMap<>();
   private String serviceName;
-  private StatsDSender statsDSender;
+  private MetricsSender metricsSender;
   private boolean isSendAll;
   private Set<String> allowedMetrics;
 
@@ -68,7 +68,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
       recordMetric(metric);
     }
 
-    statsDSender.sendPeriodically(() -> {
+    metricsSender.sendPeriodically(() -> {
       recordedMetrics.forEach((key, value) -> {
         try {
           Object metricValue = value.metricValue();
@@ -83,7 +83,7 @@ public class KafkaStatsDReporter implements MetricsReporter {
             Tag topicTag = createTag(tags, ReporterTag.TOPIC);
             Tag partitionTag = createTag(tags, ReporterTag.PARTITION);
 
-            statsDSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
+            metricsSender.sendGauge(name, number.doubleValue(), serviceNameTag, nodeIdTag, clientIdTag, topicTag, partitionTag);
             LOGGER.debug("Sent gauge value {} for metric {}", value, name);
           }
         } catch (Exception e) {
@@ -94,8 +94,8 @@ public class KafkaStatsDReporter implements MetricsReporter {
   }
 
   private static Tag createTag(Map<String, String> tags, ReporterTag tag) {
-    String kafkaTag = tags.getOrDefault(tag.getKafkaTag(), "unknown");
-    return new Tag(tag.getStatsDTag(), kafkaTag);
+    String originalKafkaTagValue = tags.getOrDefault(tag.getOriginalKafkaTag(), "unknown");
+    return new Tag(tag.getMappedTag(), originalKafkaTagValue);
   }
 
   @Override
@@ -129,8 +129,8 @@ public class KafkaStatsDReporter implements MetricsReporter {
     this.allowedMetrics.addAll(CRITICAL_METRICS);
 
     this.serviceName = ofNullable(configs.get(SERVICE_NAME)).map(Object::toString).orElseThrow();
-    // A workaround to support a single instance of StatsD client, see ru.hh.nab.kafka.util.ConfigProvider
-    this.statsDSender = (StatsDSender) configs.get(STATSD_INSTANCE_PROPERTY);
+    // A workaround to support a single instance of MetricsSender client, see ru.hh.nab.kafka.util.ConfigProvider
+    this.metricsSender = (MetricsSender) configs.get(METRICS_SENDER_INSTANCE_PROPERTY);
   }
 
   private void recordMetric(KafkaMetric metric) {
@@ -142,30 +142,26 @@ public class KafkaStatsDReporter implements MetricsReporter {
   }
 
   public enum ReporterTag {
-    /**
-     * When submitting tags to Okmeter through StatsD use underscore '_'
-     * because okmeter doesn't comply to DataDog StatsD standards
-     * https://docs.datadoghq.com/getting_started/tagging/
-     */
+
     NODE_ID("node-id", "node_id"),
     CLIENT_ID("client-id", "client_id"),
     PARTITION("partition", "partition"),
     TOPIC("topic", "topic");
 
     private final String kafkaTag;
-    private final String statsDTag;
+    private final String mappedTag;
 
-    ReporterTag(String kafkaTag, String statsDTag) {
+    ReporterTag(String kafkaTag, String mappedTag) {
       this.kafkaTag = kafkaTag;
-      this.statsDTag = statsDTag;
+      this.mappedTag = mappedTag;
     }
 
-    public String getKafkaTag() {
+    public String getOriginalKafkaTag() {
       return kafkaTag;
     }
 
-    public String getStatsDTag() {
-      return statsDTag;
+    public String getMappedTag() {
+      return mappedTag;
     }
   }
 }

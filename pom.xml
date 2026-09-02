@@ -10,7 +10,7 @@
     <groupId>ru.hh.nab</groupId>
     <artifactId>nuts-and-bolts-parent</artifactId>
     <packaging>pom</packaging>
-    <version>39.0.3-SNAPSHOT</version>
+    <version>39.0.2.micrometer-alpha2-SNAPSHOT</version>
 
     <name>nuts'n'bolts parent module</name>
 
@@ -35,7 +35,7 @@
 
     <properties>
         <hh-platform-utils.version>1.0.0</hh-platform-utils.version>
-        <hh-metrics.version>1.0.0</hh-metrics.version>
+        <hh-metrics.version>2.0.0</hh-metrics.version>
         <jclient.version>17.0.0</jclient.version>
         <consul.client.version>3.1.4</consul.client.version>
         <kafka-test-utils.version>2.0.2</kafka-test-utils.version>

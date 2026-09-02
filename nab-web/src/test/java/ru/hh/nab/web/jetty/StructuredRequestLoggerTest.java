@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
 import static ru.hh.nab.web.http.RequestInfo.CACHE_ATTRIBUTE;
@@ -23,13 +23,13 @@ public class StructuredRequestLoggerTest {
 
   @Test
   public void testRequestTimeMetricIsSentWithTags() {
-    StatsDSender statsDSender = mock(StatsDSender.class);
+    MetricsSender metricsSender = mock(MetricsSender.class);
 
-    StructuredRequestLogger logger = new StructuredRequestLogger(statsDSender, SERVICE_NAME);
+    StructuredRequestLogger logger = new StructuredRequestLogger(metricsSender, SERVICE_NAME);
     logger.log(createRequest(), createResponse());
 
     ArgumentCaptor<Long> timeCaptor = ArgumentCaptor.forClass(Long.class);
-    verify(statsDSender).sendTime(
+    verify(metricsSender).sendTime(
         eq("service.request.time"),
         timeCaptor.capture(),
         eq(new Tag("app", SERVICE_NAME)),

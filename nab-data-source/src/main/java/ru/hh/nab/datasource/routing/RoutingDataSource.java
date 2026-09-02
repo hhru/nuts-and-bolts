@@ -13,7 +13,7 @@ import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.lang.Nullable;
 import ru.hh.metrics.Counters;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import ru.hh.nab.datasource.DataSourcePropertiesStorage;
@@ -39,7 +39,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
   private JdbcExtension jdbcExtension;
 
   /**
-   * @deprecated Use {@link RoutingDataSource#RoutingDataSource(DataSource, String, StatsDSender)}
+   * @deprecated Use {@link RoutingDataSource#RoutingDataSource(DataSource, String, MetricsSender)}
    */
   @Deprecated(forRemoval = true)
   public RoutingDataSource(DataSource targetDataSource) {
@@ -48,13 +48,13 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
 
   /**
    * It's not allowed to use this constructor if application needs to work with multiple databases.
-   * In this case you should use {@link RoutingDataSource#RoutingDataSource(String, StatsDSender)} and inject all dataSources via
+   * In this case you should use {@link RoutingDataSource#RoutingDataSource(String, MetricsSender)} and inject all dataSources via
    * - {@link RoutingDataSource#addNamedDataSource(DataSource)} - the most preferred way
    * - {@link RoutingDataSource#addDataSource(String, DataSource)}
    * - {@link RoutingDataSource#addDataSource(String, String, DataSource)}
    */
-  public RoutingDataSource(DataSource targetDataSource, String serviceName, StatsDSender statsDSender) {
-    this(serviceName, statsDSender);
+  public RoutingDataSource(DataSource targetDataSource, String serviceName, MetricsSender metricsSender) {
+    this(serviceName, metricsSender);
     if (DataSourceContextUnsafe.getDatabaseSwitcher().isEmpty()) {
       addDataSource(DataSourceType.MASTER, targetDataSource);
     } else {
@@ -63,15 +63,15 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
     }
   }
 
-  public RoutingDataSource(String serviceName, StatsDSender statsDSender) {
+  public RoutingDataSource(String serviceName, MetricsSender metricsSender) {
     this.serviceName = serviceName;
     this.successfulSwitchingCounters = new Counters(50);
     this.failedSwitchingCounters = new Counters(50);
 
-    ofNullable(statsDSender)
+    ofNullable(metricsSender)
         .ifPresent(sender -> sender.sendPeriodically(() -> {
-          statsDSender.sendCounters(SUCCESSFUL_SWITCHING_METRIC_NAME, successfulSwitchingCounters);
-          statsDSender.sendCounters(FAILED_SWITCHING_METRIC_NAME, failedSwitchingCounters);
+          metricsSender.sendCounters(SUCCESSFUL_SWITCHING_METRIC_NAME, successfulSwitchingCounters);
+          metricsSender.sendCounters(FAILED_SWITCHING_METRIC_NAME, failedSwitchingCounters);
         }));
   }
 

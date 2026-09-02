@@ -1,23 +1,18 @@
 package ru.hh.nab.jclient.metrics;
 
-import static java.util.Optional.ofNullable;
 import java.util.Properties;
 import ru.hh.jclient.common.metrics.MetricsConsumer;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
+import ru.hh.platform.utils.properties.PropertiesUtils;
 
 public class MetricsConsumerFactory {
   private MetricsConsumerFactory() {}
 
   private static final MetricsConsumer NOOP_METRICS_CONSUMER = metricsProvider -> {};
 
-  public static MetricsConsumer buildMetricsConsumer(Properties properties, String name, StatsDSender statsDSender) {
-    if (!ofNullable(properties.getProperty("enabled")).map(Boolean::parseBoolean).orElse(Boolean.FALSE)) {
-      return NOOP_METRICS_CONSUMER;
-    }
-
-    return ofNullable(properties.getProperty("sendIntervalSec"))
-        .map(Integer::parseInt)
-        .<MetricsConsumer>map(sendIntervalSec -> new StatsDMetricsConsumer(name, statsDSender, sendIntervalSec))
-        .orElse(NOOP_METRICS_CONSUMER);
+  public static MetricsConsumer buildMetricsConsumer(Properties properties, String name, MetricsSender metricsSender) {
+    return PropertiesUtils.getBoolean(properties, "enabled", false) ?
+        new MetricsConsumerImpl(name, metricsSender) :
+        NOOP_METRICS_CONSUMER;
   }
 }

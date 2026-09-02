@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.backoff.ExponentialBackOff;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.nab.kafka.monitoring.MonitoringConsumeStrategy;
 import ru.hh.nab.kafka.util.ConfigProvider;
 import static ru.hh.nab.kafka.util.ConfigProvider.BACKOFF_INITIAL_INTERVAL_NAME;
@@ -22,7 +22,7 @@ import ru.hh.platform.utils.properties.PropertiesUtils;
 public class DefaultConsumerFactory implements KafkaConsumerFactory {
   protected final ConfigProvider configProvider;
   private final DeserializerSupplier deserializerSupplier;
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
   private final Logger factoryLogger;
   private final Supplier<String> bootstrapServersSupplier;
   private final ClusterMetadataProvider clusterMetadataProvider;
@@ -30,39 +30,39 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       Logger logger
   ) {
-    this(configProvider, deserializerSupplier, statsDSender, logger, null);
+    this(configProvider, deserializerSupplier, metricsSender, logger, null);
   }
 
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender
+      MetricsSender metricsSender
   ) {
-    this(configProvider, deserializerSupplier, statsDSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), null);
+    this(configProvider, deserializerSupplier, metricsSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), null);
   }
 
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
-    this(configProvider, deserializerSupplier, statsDSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), bootstrapServersSupplier);
+    this(configProvider, deserializerSupplier, metricsSender, LoggerFactory.getLogger(DefaultConsumerFactory.class), bootstrapServersSupplier);
   }
 
   public DefaultConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       Logger logger,
       @Nullable Supplier<String> bootstrapServersSupplier
   ) {
     this.configProvider = configProvider;
     this.deserializerSupplier = deserializerSupplier;
-    this.statsDSender = statsDSender;
+    this.metricsSender = metricsSender;
     this.factoryLogger = logger;
     this.bootstrapServersSupplier = bootstrapServersSupplier;
     this.clusterMetadataProvider = new ClusterMetadataProvider(this);
@@ -75,7 +75,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
   }
 
   public <T> ConsumeStrategy<T> interceptConsumeStrategy(ConsumerMetadata consumerMetadata, ConsumeStrategy<T> consumeStrategy) {
-    return new MonitoringConsumeStrategy<>(statsDSender, consumerMetadata, consumeStrategy);
+    return new MonitoringConsumeStrategy<>(metricsSender, consumerMetadata, consumeStrategy);
   }
 
 
@@ -90,7 +90,7 @@ public class DefaultConsumerFactory implements KafkaConsumerFactory {
         PropertiesUtils.getDouble(settings, BACKOFF_MULTIPLIER_NAME, DEFAULT_BACKOFF_MULTIPLIER)
     );
     backOff.setMaxInterval(PropertiesUtils.getLong(settings, BACKOFF_MAX_INTERVAL_NAME, DEFAULT_BACKOFF_MAX_INTERVAL));
-    return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer, configProvider.getServiceName(), statsDSender);
+    return new SeekToFirstNotAckedMessageErrorHandler<>(logger, backOff, kafkaConsumer, configProvider.getServiceName(), metricsSender);
   }
 
   <T> ConsumerFactory<String, T> getSpringConsumerFactory(String topicName, Class<T> messageClass) {

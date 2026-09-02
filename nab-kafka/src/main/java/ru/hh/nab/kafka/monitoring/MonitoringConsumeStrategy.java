@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.MDC;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.timinglogger.Timings;
 import ru.hh.nab.kafka.consumer.Ack;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
@@ -20,12 +20,12 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
   private final ConsumerMetadata consumerMetadata;
 
   public MonitoringConsumeStrategy(
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       ConsumerMetadata consumerMetadata,
       ConsumeStrategy<T> consumeStrategy
   ) {
     this.consumerMetadata = consumerMetadata;
-    this.timings = buildTimings(statsDSender, consumerMetadata);
+    this.timings = buildTimings(metricsSender, consumerMetadata);
     this.consumeStrategy = consumeStrategy;
   }
 
@@ -46,10 +46,10 @@ public class MonitoringConsumeStrategy<T> implements ConsumeStrategy<T> {
     MDC.put("batchSize", String.valueOf(messages.size()));
   }
 
-  private Timings buildTimings(StatsDSender statsDSender, ConsumerMetadata identifier) {
+  private static Timings buildTimings(MetricsSender metricsSender, ConsumerMetadata identifier) {
     Timings.Builder builder = new Timings.Builder()
         .withMetric("batchProcessingTime")
-        .withStatsDSender(statsDSender);
+        .withMetricsSender(metricsSender);
     identifier.toMetricTags().forEach(builder::withTag);
     return builder.start();
   }

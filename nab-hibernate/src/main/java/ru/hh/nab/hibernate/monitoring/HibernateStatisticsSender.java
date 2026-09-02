@@ -6,7 +6,7 @@ import java.util.Properties;
 import java.util.Set;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import ru.hh.metrics.TaggedSender;
 import static ru.hh.nab.hibernate.monitoring.HibernateMetrics.QUERY_PLAN_CACHE_HIT_COUNT;
@@ -21,7 +21,7 @@ public class HibernateStatisticsSender {
       Properties hibernateProperties,
       String serviceName,
       Map<String, SessionFactory> sessionFactories,
-      StatsDSender statsDSender
+      MetricsSender metricsSender
   ) {
     if (!Optional.ofNullable(hibernateProperties.getProperty(HIBERNATE_GENERATE_STATISTICS_PROPERTY)).orElse("").equals("true")) {
       return;
@@ -29,11 +29,11 @@ public class HibernateStatisticsSender {
 
     sessionFactories.forEach((sessionFactoryName, sessionFactory) -> {
       var sender = new TaggedSender(
-          statsDSender,
+          metricsSender,
           Set.of(new Tag(Tag.APP_TAG_NAME, serviceName), new Tag(SESSION_FACTORY_NAME_TAG, sessionFactoryName))
       );
 
-      statsDSender.sendPeriodically(() -> {
+      metricsSender.sendPeriodically(() -> {
         Statistics statistics = sessionFactory.getStatistics();
 
         sender.sendCount(QUERY_PLAN_CACHE_HIT_COUNT, statistics.getQueryPlanCacheHitCount());

@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import static ru.hh.jclient.common.HttpHeaderNames.X_OUTER_TIMEOUT_MS;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.metrics.Tag;
 import static ru.hh.metrics.Tag.APP_TAG_NAME;
 import static ru.hh.nab.common.constants.RequestAttributes.HTTP_ROUTE;
@@ -37,11 +37,11 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
   private static final String STATUS_TAG_NAME = "status";
   private static final String CACHE_STATUS_TAG_NAME = "cache_status";
 
-  private final StatsDSender statsDSender;
+  private final MetricsSender metricsSender;
   private final Tag appTag;
 
-  public StructuredRequestLogger(StatsDSender statsDSender, String serviceName) {
-    this.statsDSender = statsDSender;
+  public StructuredRequestLogger(MetricsSender metricsSender, String serviceName) {
+    this.metricsSender = metricsSender;
     this.appTag = new Tag(APP_TAG_NAME, serviceName);
   }
 
@@ -75,7 +75,7 @@ public class StructuredRequestLogger extends AbstractLifeCycle implements Reques
     context.put(HTTP_ROUTE, httpRoute);
 
     LOGGER.info(appendEntries(context), null);
-    statsDSender.sendTime(
+    metricsSender.sendTime(
         SERVICE_REQUEST_TIME,
         executionTime,
         appTag,

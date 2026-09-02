@@ -66,32 +66,32 @@ import org.springframework.context.annotation.Configuration;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;  
 import ru.hh.nab.kafka.consumer.KafkaConsumerFactory;  
 import ru.hh.nab.kafka.util.ConfigProvider;  
-import ru.hh.nab.metrics.StatsDSender;  
+import ru.hh.metrics.MetricsSender;  
 
 @Configuration  
 public class KafkaConfig {  
 
     @Bean  
-    public ConfigProvider configProvider(FileSettings fileSettings, StatsDSender statsDSender) {  
+    public ConfigProvider configProvider(FileSettings fileSettings, MetricsSender metricsSender) {  
         return new ConfigProvider(  
             "my-service", // Замените на имя вашего сервиса  
             "kafka-site", // Замените на имя вашего Kafka-кластера  
             fileSettings,  
-            statsDSender // Передайте экземпляр StatsDSender для метрик  
+            metricsSender // Передайте экземпляр MetricsSender для метрик  
         );  
     }  
 
     @Bean  
     public TelemetryAwareConsumerFactory kafkaSiteConsumerFactory(  
         ConfigProvider configProvider,  
-        StatsDSender statsDSender,
+        MetricsSender metricsSender,
         OpenTelemetry openTelemetry,
         KafkaHostsFetcher kafkaHostsFetcher  
     ) {  
         return new DefaultConsumerFactory(  
             configProvider,  
             new JacksonDeserializerSupplier(KafkaSiteObjectMapperFactory.createObjectMapper()),  
-            statsDSender,
+            metricsSender,
             openTelemetry,
             // Этот параметр является опциональным. Без него конфигурация bootstrap.servers должна быть явно задана в service.properties.
             // https://kafka.apache.org/documentation/#consumerconfigs_bootstrap.servers

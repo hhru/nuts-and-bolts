@@ -3,7 +3,7 @@ package ru.hh.nab.telemetry.kafka;
 import io.opentelemetry.api.OpenTelemetry;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
-import ru.hh.metrics.StatsDSender;
+import ru.hh.metrics.MetricsSender;
 import ru.hh.nab.kafka.consumer.ConsumeStrategy;
 import ru.hh.nab.kafka.consumer.ConsumerMetadata;
 import ru.hh.nab.kafka.consumer.DefaultConsumerFactory;
@@ -16,12 +16,12 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   public TelemetryAwareConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       Logger logger,
       OpenTelemetry telemetry,
       Supplier<String> bootstrapServersSupplier
   ) {
-    super(configProvider, deserializerSupplier, statsDSender, logger, bootstrapServersSupplier);
+    super(configProvider, deserializerSupplier, metricsSender, logger, bootstrapServersSupplier);
 
     this.telemetry = telemetry;
   }
@@ -29,11 +29,11 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   public TelemetryAwareConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       OpenTelemetry telemetry,
       Supplier<String> bootstrapServersSupplier
   ) {
-    super(configProvider, deserializerSupplier, statsDSender, bootstrapServersSupplier);
+    super(configProvider, deserializerSupplier, metricsSender, bootstrapServersSupplier);
 
     this.telemetry = telemetry;
   }
@@ -41,11 +41,11 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   public TelemetryAwareConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       Logger logger,
       OpenTelemetry telemetry
   ) {
-    super(configProvider, deserializerSupplier, statsDSender, logger);
+    super(configProvider, deserializerSupplier, metricsSender, logger);
 
     this.telemetry = telemetry;
   }
@@ -53,10 +53,10 @@ public class TelemetryAwareConsumerFactory extends DefaultConsumerFactory {
   public TelemetryAwareConsumerFactory(
       ConfigProvider configProvider,
       DeserializerSupplier deserializerSupplier,
-      StatsDSender statsDSender,
+      MetricsSender metricsSender,
       OpenTelemetry telemetry
   ) {
-    super(configProvider, deserializerSupplier, statsDSender);
+    super(configProvider, deserializerSupplier, metricsSender);
 
     this.telemetry = telemetry;
   }

@@ -71,6 +71,11 @@ public class UpstreamMonitoring implements Monitoring {
     metricsSender.sendCount("http.client.not.ehough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, clientDatacenter)));
   }
 
+  @Override
+  public void countDefaultConfigUsed(String upstreamName) {
+    metricsSender.sendCount("http.client.upstream.config.default.used", 1, toTagsArray(getCommonTags(serviceName, upstreamName, null)));
+  }
+
   private static Map<String, String> getCommonTags(String serviceName, String upstreamName, String datacenter) {
     Map<String, String> tags = new HashMap<>();
     tags.put("app", serviceName);

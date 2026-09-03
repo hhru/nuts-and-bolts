@@ -3,6 +3,14 @@
 Этот формат соответствует [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Проект придерживается [Семантического Версионирования](https://semver.org/lang/ru/spec/v2.0.0.html).
 
+## [40.1.0] - 2026-09-03
+
+### Добавлено
+
+- В классах `UpstreamMonitoring` и `KafkaUpstreamMonitoring` реализован метод `countDefaultConfigUsed`. `UpstreamMonitoring` отправляет метрику
+  `http.client.upstream.config.default.used` с тегами `app`, `upstream`, когда для апстрима применяется конфигурация по умолчанию.
+  `KafkaUpstreamMonitoring` метрику не отправляет.
+
 ## [40.0.0] - 2026-09-02
 
 ### Изменено

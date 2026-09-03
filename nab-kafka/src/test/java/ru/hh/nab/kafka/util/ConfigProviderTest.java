@@ -1,6 +1,5 @@
 package ru.hh.nab.kafka.util;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -11,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
 import ru.hh.metrics.MetricsSender;
 import static ru.hh.nab.kafka.util.ConfigProvider.CLUSTER_CONSUMER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.COMMON_CONFIG_TEMPLATE;
@@ -18,7 +18,6 @@ import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PRODUCER_NAME;
 import static ru.hh.nab.kafka.util.ConfigProvider.DEFAULT_PSEUDO_CLUSTER;
 import static ru.hh.nab.kafka.util.ConfigProvider.PRODUCER_CONFIG_TEMPLATE;
 import static ru.hh.nab.kafka.util.ConfigProvider.TOPIC_CONSUMER_CONFIG_TEMPLATE;
-import ru.hh.platform.utils.executor.ScheduledExecutor;
 
 public class ConfigProviderTest {
 
@@ -40,7 +39,7 @@ public class ConfigProviderTest {
   }
 
   private static ConfigProvider createConfigProvider(Properties settings) {
-    MetricsSender metricsSender = new MetricsSender(new SimpleMeterRegistry(), new ScheduledExecutor(), MetricsSender.DEFAULT_SEND_INTERVAL_SECONDS);
+    MetricsSender metricsSender = mock(MetricsSender.class);
     return new ConfigProvider(SERVICE_NAME, KAFKA_CLUSTER_NAME, settings, metricsSender);
   }
 

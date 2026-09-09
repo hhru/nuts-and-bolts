@@ -1,3 +1,9 @@
+-   name: 40.1.1
+    date: '2026-09-09T18:23:42.224312+03:00'
+    description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#40-1-1-2026-09-09'
+    instructions: ''
+    compatible: true
+
 -   name: 40.1.0
     date: '2026-09-03T15:20:47.019913+03:00'
     description: 'Смотри описание в CHANGELOG.md: https://forgejo.pyn.ru/hhru/nuts-and-bolts/src/branch/master/CHANGELOG.md#40-1-0-2026-09-03'

@@ -3,7 +3,6 @@ package ru.hh.nab.jclient.metrics;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Objects.requireNonNullElse;
-import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
 import ru.hh.metrics.StatsDSender;
 import ru.hh.metrics.Tag;
@@ -25,9 +24,8 @@ public class UpstreamMonitoring implements Monitoring {
       String upstreamName,
       String serverDatacenter,
       String serverAddress,
-      HttpHeaders requestHeaders,
+      String requestId,
       int statusCode,
-      long requestTimeMillis,
       boolean isRequestFinal,
       String balancingStrategyType
   ) {
@@ -39,22 +37,14 @@ public class UpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequestTime(String upstreamName, String serverDatacenter, HttpHeaders requestHeaders, long requestTimeMillis) {
+  public void countRequestTime(String upstreamName, String serverDatacenter, long requestTimeMillis) {
     Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
     statsDSender.sendTime("http.client.request.time", requestTimeMillis, toTagsArray(tags));
   }
 
   @Override
-  public void countRetry(
-      String upstreamName,
-      String serverDatacenter,
-      String serverAddress,
-      HttpHeaders requestHeaders,
-      int statusCode,
-      int firstStatusCode,
-      int triesUsed
-  ) {
-    Map<String, String> tags = getCommonTags(serviceName, upstreamName, serverDatacenter);
+  public void countRetry(String upstreamName, int statusCode, int firstStatusCode, int triesUsed) {
+    Map<String, String> tags = getCommonTags(serviceName, upstreamName, null);
     tags.put("status", String.valueOf(statusCode));
     tags.put("first_status", String.valueOf(firstStatusCode));
     tags.put("tries", String.valueOf(triesUsed));
@@ -62,8 +52,8 @@ public class UpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countUpdateIgnore(String upstreamName, String clientDatacenter) {
-    statsDSender.sendCount("http.client.not.ehough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, clientDatacenter)));
+  public void countUpdateIgnore(String upstreamName) {
+    statsDSender.sendCount("http.client.not.enough.servers.update", 1, toTagsArray(getCommonTags(serviceName, upstreamName, null)));
   }
 
   @Override
@@ -73,18 +63,11 @@ public class UpstreamMonitoring implements Monitoring {
 
   @Override
   public void countRetryBudgetCheck(String upstreamName, int allowedServers, int forbiddenServers) {
-    Map<String, String> commonTags = getCommonTags(serviceName, upstreamName, null);
+    Map<String, String> tags = getCommonTags(serviceName, upstreamName, null);
+    tags.put("allowed", transformRetryBudgetCount(allowedServers));
+    tags.put("forbidden", transformRetryBudgetCount(forbiddenServers));
 
-    statsDSender.sendCount(
-        "http.client.retry.budget.allowed.result",
-        1,
-        toTagsArray(commonTags, Map.of("allowed", transformRetryBudgetCount(allowedServers)))
-    );
-    statsDSender.sendCount(
-        "http.client.retry.budget.forbidden.result",
-        1,
-        toTagsArray(commonTags, Map.of("forbidden", transformRetryBudgetCount(forbiddenServers)))
-    );
+    statsDSender.sendCount("http.client.retry.budget.result", 1, toTagsArray(tags));
   }
 
   private static String transformRetryBudgetCount(int serversCount) {
@@ -106,12 +89,5 @@ public class UpstreamMonitoring implements Monitoring {
         .filter(p -> p.getValue() != null)
         .map(p -> new Tag(p.getKey(), p.getValue()))
         .toArray(Tag[]::new);
-  }
-
-  private static Tag[] toTagsArray(Map<String, String> commonTags, Map<String, String> extraTags) {
-    Map<String, String> tags = new HashMap<>(commonTags.size() + extraTags.size());
-    tags.putAll(commonTags);
-    tags.putAll(extraTags);
-    return toTagsArray(tags);
   }
 }

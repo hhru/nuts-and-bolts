@@ -7,11 +7,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.jclient.common.HttpHeaderNames;
-import ru.hh.jclient.common.HttpHeaders;
 import ru.hh.jclient.common.Monitoring;
 import ru.hh.nab.kafka.producer.KafkaProducer;
 import ru.hh.platform.utils.properties.PropertiesUtils;
+import ru.hh.trace.TraceContext;
 
 public class KafkaUpstreamMonitoring implements Monitoring {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaUpstreamMonitoring.class);
@@ -23,6 +22,7 @@ public class KafkaUpstreamMonitoring implements Monitoring {
   private final String localDc;
   private final KafkaProducer kafkaProducer;
   private final Executor kafkaExecutor;
+  private final TraceContext traceContext;
   private final String topicName;
   private final boolean sendingEnabled;
 
@@ -31,12 +31,14 @@ public class KafkaUpstreamMonitoring implements Monitoring {
       String localDc,
       KafkaProducer kafkaProducer,
       Executor kafkaExecutor,
+      TraceContext traceContext,
       Properties properties
   ) {
     this.serviceName = serviceName;
     this.localDc = localDc;
     this.kafkaProducer = kafkaProducer;
     this.kafkaExecutor = kafkaExecutor;
+    this.traceContext = traceContext;
     this.topicName = properties.getProperty(REQUEST_TOPIC_KEY, DEFAULT_REQUEST_TOPIC);
     this.sendingEnabled = PropertiesUtils.getBoolean(properties, ENABLED_PROPERTY_KEY, false);
   }
@@ -46,9 +48,8 @@ public class KafkaUpstreamMonitoring implements Monitoring {
       String upstreamName,
       String serverDatacenter,
       String serverAddress,
-      HttpHeaders requestHeaders,
+      String requestId,
       int statusCode,
-      long requestTimeMillis,
       boolean isRequestFinal,
       String balancingStrategyType
   ) {
@@ -60,7 +61,7 @@ public class KafkaUpstreamMonitoring implements Monitoring {
           StringUtil.isNullOrEmpty(serverDatacenter) ? localDc : serverDatacenter,
           serverAddress,
           statusCode,
-          ofNullable(requestHeaders.get(HttpHeaderNames.X_REQUEST_ID)).orElse("")
+          ofNullable(requestId).or(traceContext::getTraceId).orElse("")
       );
       LOGGER.debug("Sending countRequest {}", requestInfo);
       kafkaProducer
@@ -74,23 +75,15 @@ public class KafkaUpstreamMonitoring implements Monitoring {
   }
 
   @Override
-  public void countRequestTime(String upstreamName, String dc, HttpHeaders requestHeaders, long requestTimeMillis) {
+  public void countRequestTime(String upstreamName, String serverDatacenter, long requestTimeMillis) {
   }
 
   @Override
-  public void countRetry(
-      String upstreamName,
-      String dc,
-      String serverAddress,
-      HttpHeaders requestHeaders,
-      int statusCode,
-      int firstStatusCode,
-      int triesUsed
-  ) {
+  public void countRetry(String upstreamName, int statusCode, int firstStatusCode, int triesUsed) {
   }
 
   @Override
-  public void countUpdateIgnore(String upstreamName, String serverDatacenter) {
+  public void countUpdateIgnore(String upstreamName) {
   }
 
   @Override
